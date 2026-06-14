@@ -1,0 +1,357 @@
+[2m21:46:06[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/ai/conversations/10/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m21:46:06[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/ai/multi-agent/presets/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m21:51:00[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/student-profiles/me/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m21:51:00[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/student-profiles/me/persona/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m21:51:00[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/ai/learning/recommend/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m21:51:00[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/analytics/insights/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m21:51:00[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/analytics/progress-report/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m21:51:00[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/submissions/stats/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m21:51:00[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/learning-paths/paths/?page_size=3[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m21:51:00[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/articles/articles/recommend/?limit=3[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m21:51:00[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/resources/?page_size=3&ordering=-view_count[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m21:51:00[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/learning-paths/recommendations/review-reminders/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m21:51:00[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/analytics/teaching-plan/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m21:51:01[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/challenges/categories/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m21:51:01[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/challenges/challenges/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m21:51:01[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/submissions/stats/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m21:51:02[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/student-profiles/me/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m21:51:02[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/student-profiles/me/persona/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m21:51:02[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/ai/learning/recommend/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m21:51:02[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/analytics/insights/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m21:51:02[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/analytics/progress-report/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m21:51:02[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/submissions/stats/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m21:51:02[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/learning-paths/paths/?page_size=3[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m21:51:02[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/articles/articles/recommend/?limit=3[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m21:51:02[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/resources/?page_size=3&ordering=-view_count[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m21:51:02[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/learning-paths/recommendations/review-reminders/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m21:51:02[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/analytics/teaching-plan/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m21:51:03[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/challenges/categories/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m21:51:03[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/challenges/challenges/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m21:51:03[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/submissions/stats/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m22:13:01[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/ai/multi-agent/chat/[39m
+Error: read ECONNRESET
+    at TCP.onStreamRead (node:internal/stream_base_commons:216:20)
+[2m23:44:13[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/announcements/announcements/pinned/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m23:44:13[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/users/profile/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m23:44:13[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/submissions/my/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m23:44:13[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/articles/articles/my_favorites/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m23:44:13[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/challenges/challenges/my_solved/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m23:44:13[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/learning-paths/progress/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m23:44:13[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/submissions/stats/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m23:44:13[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/student-profiles/me/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m23:44:13[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/student-profiles/me/persona/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m23:44:31[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/users/login/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m23:44:32[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/users/login/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m23:44:33[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/users/login/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m23:44:37[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/users/login/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m23:44:48[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/users/login/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m23:44:50[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/users/login/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m23:44:50[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/users/login/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m23:44:51[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/users/login/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m23:45:42[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/announcements/announcements/pinned/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m23:45:44[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/announcements/announcements/pinned/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m23:49:10[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/users/login/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m23:49:11[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/users/login/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m23:49:22[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/users/login/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m23:49:28[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/users/login/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m23:49:29[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/users/login/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m23:49:33[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/users/login/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m23:49:34[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/users/login/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m23:49:36[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/challenges/categories/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m23:49:36[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/challenges/challenges/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m23:49:38[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/resources/?page=1&page_size=12&ordering=-created_at[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m23:51:51[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/announcements/announcements/pinned/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m23:51:51[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/resources/?page=1&page_size=12&ordering=-created_at[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m23:51:52[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/announcements/announcements/pinned/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m23:51:52[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/resources/?page=1&page_size=12&ordering=-created_at[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m23:51:53[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/announcements/announcements/pinned/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m23:51:53[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/resources/?page=1&page_size=12&ordering=-created_at[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m23:51:54[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/announcements/announcements/pinned/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m23:51:54[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/resources/?page=1&page_size=12&ordering=-created_at[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m23:51:54[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/announcements/announcements/pinned/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m23:51:54[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/resources/?page=1&page_size=12&ordering=-created_at[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m23:51:54[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/announcements/announcements/pinned/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m23:51:54[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/resources/?page=1&page_size=12&ordering=-created_at[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m23:51:54[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/announcements/announcements/pinned/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m23:51:54[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/resources/?page=1&page_size=12&ordering=-created_at[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m23:51:55[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/announcements/announcements/pinned/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m23:51:55[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/resources/?page=1&page_size=12&ordering=-created_at[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m23:51:55[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/announcements/announcements/pinned/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m23:51:55[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/resources/?page=1&page_size=12&ordering=-created_at[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m23:51:55[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/announcements/announcements/pinned/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m23:51:56[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/resources/?page=1&page_size=12&ordering=-created_at[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m23:51:56[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/announcements/announcements/pinned/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m23:51:56[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/resources/?page=1&page_size=12&ordering=-created_at[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m23:51:56[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/announcements/announcements/pinned/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m23:51:56[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/resources/?page=1&page_size=12&ordering=-created_at[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m23:51:56[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/announcements/announcements/pinned/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m23:51:56[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/resources/?page=1&page_size=12&ordering=-created_at[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m23:51:56[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/announcements/announcements/pinned/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m23:51:56[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/resources/?page=1&page_size=12&ordering=-created_at[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m23:51:56[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/announcements/announcements/pinned/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m23:51:56[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/resources/?page=1&page_size=12&ordering=-created_at[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m23:51:57[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/announcements/announcements/pinned/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m23:51:57[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/resources/?page=1&page_size=12&ordering=-created_at[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m23:51:57[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/announcements/announcements/pinned/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m23:51:57[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/resources/?page=1&page_size=12&ordering=-created_at[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m23:51:57[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/announcements/announcements/pinned/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m23:51:57[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/resources/?page=1&page_size=12&ordering=-created_at[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m23:51:58[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/announcements/announcements/pinned/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m23:51:58[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/resources/?page=1&page_size=12&ordering=-created_at[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m23:51:58[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/announcements/announcements/pinned/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m23:51:58[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/resources/?page=1&page_size=12&ordering=-created_at[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m23:52:28[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/challenges/categories/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m23:52:28[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/challenges/challenges/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m23:52:31[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/resources/?page=1&page_size=12&ordering=-created_at[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m23:52:32[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/articles/categories/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m23:52:32[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/articles/articles/?page=1&page_size=10[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m23:52:32[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/articles/articles/hot/?limit=10[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m23:52:32[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/articles/articles/recommend/?limit=6[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m23:52:34[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/resources/?page=1&page_size=12&ordering=-created_at[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m23:52:36[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/challenges/categories/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m23:52:36[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/challenges/challenges/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m23:52:37[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/challenges/challenges/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m23:52:39[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/challenges/categories/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m23:52:39[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/challenges/challenges/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m23:54:18[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/announcements/announcements/pinned/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m23:54:18[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/challenges/categories/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m23:54:18[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/challenges/challenges/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m23:54:19[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/announcements/announcements/pinned/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m23:54:19[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/challenges/categories/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+[2m23:54:19[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/challenges/challenges/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)

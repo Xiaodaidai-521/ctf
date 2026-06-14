@@ -1,0 +1,820 @@
+Watching for file changes with StatReloader
+C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\asgiref\sync.py:608: UserWarning: async_to_sync was passed a non-async-marked callable
+  return AsyncToSync(
+Not Found: /
+[06/Jun/2026 11:19:44] "GET / HTTP/1.1" 404 5069
+[06/Jun/2026 11:19:44,375] - Broken pipe from ('127.0.0.1', 55415)
+[06/Jun/2026 11:19:55] "GET /admin/ HTTP/1.1" 302 0
+[06/Jun/2026 11:19:55] "GET /admin/login/?next=/admin/ HTTP/1.1" 200 4094
+[06/Jun/2026 11:19:55,234] - Broken pipe from ('127.0.0.1', 55420)
+[06/Jun/2026 11:20:25] "GET /api/announcements/announcements/pinned/ HTTP/1.1" 200 1301
+[06/Jun/2026 11:20:27] "GET /api/challenges/challenges/ HTTP/1.1" 200 7740
+C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\rest_framework\pagination.py:198: UnorderedObjectListWarning: Pagination may yield inconsistent results with an unordered object_list: <class 'challenges.models.Category'> QuerySet.
+  paginator = self.django_paginator_class(queryset, page_size)
+[06/Jun/2026 11:20:29] "GET /api/challenges/categories/ HTTP/1.1" 200 489
+[06/Jun/2026 11:20:29] "GET /api/challenges/challenges/ HTTP/1.1" 200 7740
+[06/Jun/2026 11:20:46] "POST /api/users/login/ HTTP/1.1" 200 497
+[06/Jun/2026 11:20:46] "GET /api/challenges/challenges/ HTTP/1.1" 200 7735
+[06/Jun/2026 11:20:57] "GET /api/challenges/categories/ HTTP/1.1" 200 489
+[06/Jun/2026 11:20:57] "GET /api/submissions/stats/ HTTP/1.1" 200 737
+[06/Jun/2026 11:20:57] "GET /api/challenges/challenges/ HTTP/1.1" 200 7735
+[06/Jun/2026 11:20:58] "GET /api/challenges/challenge/46/ HTTP/1.1" 200 580
+Internal Server Error: /api/challenges/challenges/46/container/
+Traceback (most recent call last):
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\docker\api\client.py", line 223, in _retrieve_server_version
+    return self.version(api_version=False)["ApiVersion"]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\docker\api\daemon.py", line 181, in version
+    return self._result(self._get(url), json=True)
+                        ^^^^^^^^^^^^^^
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\docker\utils\decorators.py", line 44, in inner
+    return f(self, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\docker\api\client.py", line 246, in _get
+    return self.get(url, **self._set_request_timeout(kwargs))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\requests\sessions.py", line 671, in get
+    return self.request("GET", url, params=params, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\requests\sessions.py", line 651, in request
+    resp = self.send(prep, **send_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\requests\sessions.py", line 784, in send
+    r = adapter.send(request, **kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\requests\adapters.py", line 696, in send
+    resp = conn.urlopen(
+           ^^^^^^^^^^^^^
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\urllib3\connectionpool.py", line 788, in urlopen
+    response = self._make_request(
+               ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\urllib3\connectionpool.py", line 493, in _make_request
+    conn.request(
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\urllib3\connection.py", line 500, in request
+    self.endheaders()
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\http\client.py", line 1331, in endheaders
+    self._send_output(message_body, encode_chunked=encode_chunked)
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\http\client.py", line 1091, in _send_output
+    self.send(msg)
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\http\client.py", line 1035, in send
+    self.connect()
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\docker\transport\npipeconn.py", line 25, in connect
+    sock.connect(self.npipe_path)
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\docker\transport\npipesocket.py", line 25, in wrapped
+    return f(self, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\docker\transport\npipesocket.py", line 76, in connect
+    raise e
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\docker\transport\npipesocket.py", line 54, in connect
+    handle = win32file.CreateFile(
+             ^^^^^^^^^^^^^^^^^^^^^
+pywintypes.error: (2, 'CreateFile', '系统找不到指定的文件。')
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\django\core\handlers\base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\rest_framework\viewsets.py", line 125, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\rest_framework\views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\rest_framework\views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\rest_framework\views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\rest_framework\views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\xwechat_files\wxid_0x71zojosvp622_e4a7\msg\file\2026-06\sjh(2)\sjh\ctf-platform\ctf-platform-export-20260315_184335\project-code\backend\challenges\views.py", line 222, in container
+    container_manager = get_container_manager()
+                        ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\xwechat_files\wxid_0x71zojosvp622_e4a7\msg\file\2026-06\sjh(2)\sjh\ctf-platform\ctf-platform-export-20260315_184335\project-code\backend\challenges\container_manager.py", line 447, in get_container_manager
+    _container_manager_instance = ContainerManager()
+                                  ^^^^^^^^^^^^^^^^^^
+  File "D:\xwechat_files\wxid_0x71zojosvp622_e4a7\msg\file\2026-06\sjh(2)\sjh\ctf-platform\ctf-platform-export-20260315_184335\project-code\backend\challenges\container_manager.py", line 23, in __init__
+    self.docker_client = docker.from_env()
+                         ^^^^^^^^^^^^^^^^^
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\docker\client.py", line 94, in from_env
+    return cls(
+           ^^^^
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\docker\client.py", line 45, in __init__
+    self.api = APIClient(*args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\docker\api\client.py", line 207, in __init__
+    self._version = self._retrieve_server_version()
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\docker\api\client.py", line 230, in _retrieve_server_version
+    raise DockerException(
+docker.errors.DockerException: Error while fetching server API version: (2, 'CreateFile', '系统找不到指定的文件。')
+[06/Jun/2026 11:20:59] "GET /api/challenges/challenges/46/container/ HTTP/1.1" 500 28789
+Internal Server Error: /api/challenges/challenges/46/start/
+Traceback (most recent call last):
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\docker\api\client.py", line 223, in _retrieve_server_version
+    return self.version(api_version=False)["ApiVersion"]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\docker\api\daemon.py", line 181, in version
+    return self._result(self._get(url), json=True)
+                        ^^^^^^^^^^^^^^
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\docker\utils\decorators.py", line 44, in inner
+    return f(self, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\docker\api\client.py", line 246, in _get
+    return self.get(url, **self._set_request_timeout(kwargs))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\requests\sessions.py", line 671, in get
+    return self.request("GET", url, params=params, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\requests\sessions.py", line 651, in request
+    resp = self.send(prep, **send_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\requests\sessions.py", line 784, in send
+    r = adapter.send(request, **kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\requests\adapters.py", line 696, in send
+    resp = conn.urlopen(
+           ^^^^^^^^^^^^^
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\urllib3\connectionpool.py", line 788, in urlopen
+    response = self._make_request(
+               ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\urllib3\connectionpool.py", line 493, in _make_request
+    conn.request(
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\urllib3\connection.py", line 500, in request
+    self.endheaders()
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\http\client.py", line 1331, in endheaders
+    self._send_output(message_body, encode_chunked=encode_chunked)
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\http\client.py", line 1091, in _send_output
+    self.send(msg)
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\http\client.py", line 1035, in send
+    self.connect()
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\docker\transport\npipeconn.py", line 25, in connect
+    sock.connect(self.npipe_path)
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\docker\transport\npipesocket.py", line 25, in wrapped
+    return f(self, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\docker\transport\npipesocket.py", line 76, in connect
+    raise e
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\docker\transport\npipesocket.py", line 54, in connect
+    handle = win32file.CreateFile(
+             ^^^^^^^^^^^^^^^^^^^^^
+pywintypes.error: (2, 'CreateFile', '系统找不到指定的文件。')
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\django\core\handlers\base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\rest_framework\viewsets.py", line 125, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\rest_framework\views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\rest_framework\views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\rest_framework\views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\rest_framework\views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\xwechat_files\wxid_0x71zojosvp622_e4a7\msg\file\2026-06\sjh(2)\sjh\ctf-platform\ctf-platform-export-20260315_184335\project-code\backend\challenges\views.py", line 159, in start
+    container_manager = get_container_manager()
+                        ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\xwechat_files\wxid_0x71zojosvp622_e4a7\msg\file\2026-06\sjh(2)\sjh\ctf-platform\ctf-platform-export-20260315_184335\project-code\backend\challenges\container_manager.py", line 447, in get_container_manager
+    _container_manager_instance = ContainerManager()
+                                  ^^^^^^^^^^^^^^^^^^
+  File "D:\xwechat_files\wxid_0x71zojosvp622_e4a7\msg\file\2026-06\sjh(2)\sjh\ctf-platform\ctf-platform-export-20260315_184335\project-code\backend\challenges\container_manager.py", line 23, in __init__
+    self.docker_client = docker.from_env()
+                         ^^^^^^^^^^^^^^^^^
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\docker\client.py", line 94, in from_env
+    return cls(
+           ^^^^
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\docker\client.py", line 45, in __init__
+    self.api = APIClient(*args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\docker\api\client.py", line 207, in __init__
+    self._version = self._retrieve_server_version()
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\docker\api\client.py", line 230, in _retrieve_server_version
+    raise DockerException(
+docker.errors.DockerException: Error while fetching server API version: (2, 'CreateFile', '系统找不到指定的文件。')
+[06/Jun/2026 11:21:00] "POST /api/challenges/challenges/46/start/ HTTP/1.1" 500 28810
+[06/Jun/2026 11:21:03] "GET /api/challenges/challenge/54/ HTTP/1.1" 200 355
+[06/Jun/2026 11:21:07] "GET /api/challenges/challenge/55/ HTTP/1.1" 200 361
+[06/Jun/2026 11:21:09] "GET /api/challenges/challenge/57/ HTTP/1.1" 200 364
+[06/Jun/2026 11:21:12] "GET /api/challenges/challenge/26/ HTTP/1.1" 200 560
+Internal Server Error: /api/challenges/challenges/26/container/
+Traceback (most recent call last):
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\docker\api\client.py", line 223, in _retrieve_server_version
+    return self.version(api_version=False)["ApiVersion"]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\docker\api\daemon.py", line 181, in version
+    return self._result(self._get(url), json=True)
+                        ^^^^^^^^^^^^^^
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\docker\utils\decorators.py", line 44, in inner
+    return f(self, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\docker\api\client.py", line 246, in _get
+    return self.get(url, **self._set_request_timeout(kwargs))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\requests\sessions.py", line 671, in get
+    return self.request("GET", url, params=params, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\requests\sessions.py", line 651, in request
+    resp = self.send(prep, **send_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\requests\sessions.py", line 784, in send
+    r = adapter.send(request, **kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\requests\adapters.py", line 696, in send
+    resp = conn.urlopen(
+           ^^^^^^^^^^^^^
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\urllib3\connectionpool.py", line 788, in urlopen
+    response = self._make_request(
+               ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\urllib3\connectionpool.py", line 493, in _make_request
+    conn.request(
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\urllib3\connection.py", line 500, in request
+    self.endheaders()
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\http\client.py", line 1331, in endheaders
+    self._send_output(message_body, encode_chunked=encode_chunked)
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\http\client.py", line 1091, in _send_output
+    self.send(msg)
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\http\client.py", line 1035, in send
+    self.connect()
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\docker\transport\npipeconn.py", line 25, in connect
+    sock.connect(self.npipe_path)
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\docker\transport\npipesocket.py", line 25, in wrapped
+    return f(self, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\docker\transport\npipesocket.py", line 76, in connect
+    raise e
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\docker\transport\npipesocket.py", line 54, in connect
+    handle = win32file.CreateFile(
+             ^^^^^^^^^^^^^^^^^^^^^
+pywintypes.error: (2, 'CreateFile', '系统找不到指定的文件。')
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\django\core\handlers\base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\rest_framework\viewsets.py", line 125, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\rest_framework\views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\rest_framework\views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\rest_framework\views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\rest_framework\views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\xwechat_files\wxid_0x71zojosvp622_e4a7\msg\file\2026-06\sjh(2)\sjh\ctf-platform\ctf-platform-export-20260315_184335\project-code\backend\challenges\views.py", line 222, in container
+    container_manager = get_container_manager()
+                        ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\xwechat_files\wxid_0x71zojosvp622_e4a7\msg\file\2026-06\sjh(2)\sjh\ctf-platform\ctf-platform-export-20260315_184335\project-code\backend\challenges\container_manager.py", line 447, in get_container_manager
+    _container_manager_instance = ContainerManager()
+                                  ^^^^^^^^^^^^^^^^^^
+  File "D:\xwechat_files\wxid_0x71zojosvp622_e4a7\msg\file\2026-06\sjh(2)\sjh\ctf-platform\ctf-platform-export-20260315_184335\project-code\backend\challenges\container_manager.py", line 23, in __init__
+    self.docker_client = docker.from_env()
+                         ^^^^^^^^^^^^^^^^^
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\docker\client.py", line 94, in from_env
+    return cls(
+           ^^^^
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\docker\client.py", line 45, in __init__
+    self.api = APIClient(*args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\docker\api\client.py", line 207, in __init__
+    self._version = self._retrieve_server_version()
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\docker\api\client.py", line 230, in _retrieve_server_version
+    raise DockerException(
+docker.errors.DockerException: Error while fetching server API version: (2, 'CreateFile', '系统找不到指定的文件。')
+[06/Jun/2026 11:21:12] "GET /api/challenges/challenges/26/container/ HTTP/1.1" 500 28789
+[06/Jun/2026 11:21:20] "GET /api/analytics/admin/student-report/ HTTP/1.1" 200 15261
+[06/Jun/2026 11:21:44] "GET /api/ai/multi-agent/presets/ HTTP/1.1" 200 790
+[06/Jun/2026 11:21:48] "GET /api/learning-paths/paths/ HTTP/1.1" 200 57959
+[06/Jun/2026 11:21:49] "GET /api/resources/?page=1&page_size=12&ordering=-created_at HTTP/1.1" 200 18820
+[06/Jun/2026 11:21:51] "GET /api/exams/level-rules/ HTTP/1.1" 200 556
+[06/Jun/2026 11:21:51] "GET /api/exams/records/statistics/ HTTP/1.1" 200 125
+[06/Jun/2026 11:21:51] "GET /api/exams/records/score_trend/ HTTP/1.1" 200 541
+[06/Jun/2026 11:21:51] "GET /api/exams/records/my_history/ HTTP/1.1" 200 8215
+[06/Jun/2026 11:21:51] "GET /api/exams/records/?status=in_progress HTTP/1.1" 200 517
+[06/Jun/2026 11:21:52] "GET /api/articles/articles/?page=1&page_size=10 HTTP/1.1" 200 5544
+[06/Jun/2026 11:21:52] "GET /api/articles/articles/recommend/?limit=6 HTTP/1.1" 200 2799
+[06/Jun/2026 11:21:52] "GET /api/articles/categories/ HTTP/1.1" 200 708
+[06/Jun/2026 11:21:52] "GET /api/articles/articles/hot/?limit=10 HTTP/1.1" 200 4818
+[06/Jun/2026 11:21:54] "GET /api/users/leaderboard/?page_size=100 HTTP/1.1" 200 3730
+[06/Jun/2026 11:21:55] "GET /api/challenges/challenges/ HTTP/1.1" 200 7735
+[06/Jun/2026 11:21:57] "GET /api/challenges/challenges/ HTTP/1.1" 200 7735
+[06/Jun/2026 11:22:24] "GET /api/analytics/admin/student-report/ HTTP/1.1" 200 15261
+[06/Jun/2026 11:22:25] "GET /api/users/profile/ HTTP/1.1" 200 412
+[06/Jun/2026 11:22:25] "GET /api/learning-paths/progress/ HTTP/1.1" 200 1062
+[06/Jun/2026 11:22:25] "GET /api/submissions/stats/ HTTP/1.1" 200 737
+[06/Jun/2026 11:22:25] "GET /api/student-profiles/me/ HTTP/1.1" 200 518
+[06/Jun/2026 11:22:25] "GET /api/challenges/challenges/my_solved/ HTTP/1.1" 200 1984
+[06/Jun/2026 11:22:25] "GET /api/submissions/my/ HTTP/1.1" 200 2664
+[06/Jun/2026 11:22:25] "GET /api/articles/articles/my_favorites/ HTTP/1.1" 200 41353
+[06/Jun/2026 11:22:25] "GET /api/student-profiles/me/persona/ HTTP/1.1" 200 133
+[06/Jun/2026 11:22:26] "GET /api/ai/multi-agent/presets/ HTTP/1.1" 200 790
+[06/Jun/2026 11:22:27] "GET /api/learning-paths/paths/ HTTP/1.1" 200 57959
+[06/Jun/2026 11:22:28] "GET /api/users/leaderboard/?page_size=100 HTTP/1.1" 200 3730
+[06/Jun/2026 11:22:28] "GET /api/challenges/challenges/ HTTP/1.1" 200 7735
+[06/Jun/2026 11:22:38] "POST /api/users/login/ HTTP/1.1" 200 476
+[06/Jun/2026 11:22:39] "GET /api/challenges/challenges/ HTTP/1.1" 200 7736
+[06/Jun/2026 11:22:41] "GET /api/challenges/categories/ HTTP/1.1" 200 489
+[06/Jun/2026 11:22:41] "GET /api/submissions/stats/ HTTP/1.1" 200 726
+[06/Jun/2026 11:22:41] "GET /api/challenges/challenges/ HTTP/1.1" 200 7736
+[06/Jun/2026 11:22:42] "GET /api/student-profiles/me/ HTTP/1.1" 200 920
+[06/Jun/2026 11:22:42] "GET /api/student-profiles/me/persona/ HTTP/1.1" 200 303
+[06/Jun/2026 11:22:42] "GET /api/ai/learning/recommend/ HTTP/1.1" 200 2779
+[06/Jun/2026 11:22:42] "GET /api/submissions/stats/ HTTP/1.1" 200 726
+[06/Jun/2026 11:22:42] "GET /api/analytics/progress-report/ HTTP/1.1" 200 483
+[06/Jun/2026 11:22:42] "GET /api/analytics/insights/ HTTP/1.1" 200 2820
+[06/Jun/2026 11:22:43] "GET /api/challenges/categories/ HTTP/1.1" 200 489
+[06/Jun/2026 11:22:43] "GET /api/submissions/stats/ HTTP/1.1" 200 726
+[06/Jun/2026 11:22:43] "GET /api/challenges/challenges/ HTTP/1.1" 200 7736
+[06/Jun/2026 11:22:46] "GET /api/challenges/challenge/49/ HTTP/1.1" 200 546
+Internal Server Error: /api/challenges/challenges/49/container/
+Traceback (most recent call last):
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\docker\api\client.py", line 223, in _retrieve_server_version
+    return self.version(api_version=False)["ApiVersion"]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\docker\api\daemon.py", line 181, in version
+    return self._result(self._get(url), json=True)
+                        ^^^^^^^^^^^^^^
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\docker\utils\decorators.py", line 44, in inner
+    return f(self, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\docker\api\client.py", line 246, in _get
+    return self.get(url, **self._set_request_timeout(kwargs))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\requests\sessions.py", line 671, in get
+    return self.request("GET", url, params=params, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\requests\sessions.py", line 651, in request
+    resp = self.send(prep, **send_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\requests\sessions.py", line 784, in send
+    r = adapter.send(request, **kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\requests\adapters.py", line 696, in send
+    resp = conn.urlopen(
+           ^^^^^^^^^^^^^
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\urllib3\connectionpool.py", line 788, in urlopen
+    response = self._make_request(
+               ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\urllib3\connectionpool.py", line 493, in _make_request
+    conn.request(
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\urllib3\connection.py", line 500, in request
+    self.endheaders()
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\http\client.py", line 1331, in endheaders
+    self._send_output(message_body, encode_chunked=encode_chunked)
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\http\client.py", line 1091, in _send_output
+    self.send(msg)
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\http\client.py", line 1035, in send
+    self.connect()
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\docker\transport\npipeconn.py", line 25, in connect
+    sock.connect(self.npipe_path)
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\docker\transport\npipesocket.py", line 25, in wrapped
+    return f(self, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\docker\transport\npipesocket.py", line 76, in connect
+    raise e
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\docker\transport\npipesocket.py", line 54, in connect
+    handle = win32file.CreateFile(
+             ^^^^^^^^^^^^^^^^^^^^^
+pywintypes.error: (2, 'CreateFile', '系统找不到指定的文件。')
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\django\core\handlers\base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\rest_framework\viewsets.py", line 125, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\rest_framework\views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\rest_framework\views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\rest_framework\views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\rest_framework\views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\xwechat_files\wxid_0x71zojosvp622_e4a7\msg\file\2026-06\sjh(2)\sjh\ctf-platform\ctf-platform-export-20260315_184335\project-code\backend\challenges\views.py", line 222, in container
+    container_manager = get_container_manager()
+                        ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\xwechat_files\wxid_0x71zojosvp622_e4a7\msg\file\2026-06\sjh(2)\sjh\ctf-platform\ctf-platform-export-20260315_184335\project-code\backend\challenges\container_manager.py", line 447, in get_container_manager
+    _container_manager_instance = ContainerManager()
+                                  ^^^^^^^^^^^^^^^^^^
+  File "D:\xwechat_files\wxid_0x71zojosvp622_e4a7\msg\file\2026-06\sjh(2)\sjh\ctf-platform\ctf-platform-export-20260315_184335\project-code\backend\challenges\container_manager.py", line 23, in __init__
+    self.docker_client = docker.from_env()
+                         ^^^^^^^^^^^^^^^^^
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\docker\client.py", line 94, in from_env
+    return cls(
+           ^^^^
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\docker\client.py", line 45, in __init__
+    self.api = APIClient(*args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\docker\api\client.py", line 207, in __init__
+    self._version = self._retrieve_server_version()
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\docker\api\client.py", line 230, in _retrieve_server_version
+    raise DockerException(
+docker.errors.DockerException: Error while fetching server API version: (2, 'CreateFile', '系统找不到指定的文件。')
+[06/Jun/2026 11:22:46] "GET /api/challenges/challenges/49/container/ HTTP/1.1" 500 28784
+Internal Server Error: /api/challenges/challenges/49/start/
+Traceback (most recent call last):
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\docker\api\client.py", line 223, in _retrieve_server_version
+    return self.version(api_version=False)["ApiVersion"]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\docker\api\daemon.py", line 181, in version
+    return self._result(self._get(url), json=True)
+                        ^^^^^^^^^^^^^^
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\docker\utils\decorators.py", line 44, in inner
+    return f(self, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\docker\api\client.py", line 246, in _get
+    return self.get(url, **self._set_request_timeout(kwargs))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\requests\sessions.py", line 671, in get
+    return self.request("GET", url, params=params, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\requests\sessions.py", line 651, in request
+    resp = self.send(prep, **send_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\requests\sessions.py", line 784, in send
+    r = adapter.send(request, **kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\requests\adapters.py", line 696, in send
+    resp = conn.urlopen(
+           ^^^^^^^^^^^^^
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\urllib3\connectionpool.py", line 788, in urlopen
+    response = self._make_request(
+               ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\urllib3\connectionpool.py", line 493, in _make_request
+    conn.request(
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\urllib3\connection.py", line 500, in request
+    self.endheaders()
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\http\client.py", line 1331, in endheaders
+    self._send_output(message_body, encode_chunked=encode_chunked)
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\http\client.py", line 1091, in _send_output
+    self.send(msg)
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\http\client.py", line 1035, in send
+    self.connect()
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\docker\transport\npipeconn.py", line 25, in connect
+    sock.connect(self.npipe_path)
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\docker\transport\npipesocket.py", line 25, in wrapped
+    return f(self, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\docker\transport\npipesocket.py", line 76, in connect
+    raise e
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\docker\transport\npipesocket.py", line 54, in connect
+    handle = win32file.CreateFile(
+             ^^^^^^^^^^^^^^^^^^^^^
+pywintypes.error: (2, 'CreateFile', '系统找不到指定的文件。')
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\django\core\handlers\base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\rest_framework\viewsets.py", line 125, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\rest_framework\views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\rest_framework\views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\rest_framework\views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\rest_framework\views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\xwechat_files\wxid_0x71zojosvp622_e4a7\msg\file\2026-06\sjh(2)\sjh\ctf-platform\ctf-platform-export-20260315_184335\project-code\backend\challenges\views.py", line 159, in start
+    container_manager = get_container_manager()
+                        ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\xwechat_files\wxid_0x71zojosvp622_e4a7\msg\file\2026-06\sjh(2)\sjh\ctf-platform\ctf-platform-export-20260315_184335\project-code\backend\challenges\container_manager.py", line 447, in get_container_manager
+    _container_manager_instance = ContainerManager()
+                                  ^^^^^^^^^^^^^^^^^^
+  File "D:\xwechat_files\wxid_0x71zojosvp622_e4a7\msg\file\2026-06\sjh(2)\sjh\ctf-platform\ctf-platform-export-20260315_184335\project-code\backend\challenges\container_manager.py", line 23, in __init__
+    self.docker_client = docker.from_env()
+                         ^^^^^^^^^^^^^^^^^
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\docker\client.py", line 94, in from_env
+    return cls(
+           ^^^^
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\docker\client.py", line 45, in __init__
+    self.api = APIClient(*args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\docker\api\client.py", line 207, in __init__
+    self._version = self._retrieve_server_version()
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\docker\api\client.py", line 230, in _retrieve_server_version
+    raise DockerException(
+docker.errors.DockerException: Error while fetching server API version: (2, 'CreateFile', '系统找不到指定的文件。')
+[06/Jun/2026 11:22:47] "POST /api/challenges/challenges/49/start/ HTTP/1.1" 500 28805
+[06/Jun/2026 11:22:51] "GET /api/student-profiles/me/ HTTP/1.1" 200 920
+[06/Jun/2026 11:22:51] "GET /api/student-profiles/me/persona/ HTTP/1.1" 200 303
+[06/Jun/2026 11:22:51] "GET /api/ai/learning/recommend/ HTTP/1.1" 200 2779
+[06/Jun/2026 11:22:51] "GET /api/analytics/progress-report/ HTTP/1.1" 200 483
+[06/Jun/2026 11:22:51] "GET /api/analytics/insights/ HTTP/1.1" 200 2820
+[06/Jun/2026 11:22:51] "GET /api/submissions/stats/ HTTP/1.1" 200 726
+[06/Jun/2026 11:22:52] "GET /api/ai/multi-agent/presets/ HTTP/1.1" 200 790
+[06/Jun/2026 11:22:53] "GET /api/student-profiles/me/ HTTP/1.1" 200 920
+[06/Jun/2026 11:22:53] "GET /api/student-profiles/me/persona/ HTTP/1.1" 200 303
+[06/Jun/2026 11:22:53] "GET /api/ai/learning/recommend/ HTTP/1.1" 200 2779
+[06/Jun/2026 11:22:53] "GET /api/analytics/progress-report/ HTTP/1.1" 200 483
+[06/Jun/2026 11:22:53] "GET /api/analytics/insights/ HTTP/1.1" 200 2820
+[06/Jun/2026 11:22:53] "GET /api/submissions/stats/ HTTP/1.1" 200 726
+[06/Jun/2026 11:25:14] "GET /api/learning-paths/paths/ HTTP/1.1" 200 57959
+[06/Jun/2026 11:25:16] "GET /api/ai/multi-agent/presets/ HTTP/1.1" 200 790
+[06/Jun/2026 11:25:17] "GET /api/resources/?page=1&page_size=12&ordering=-created_at HTTP/1.1" 200 18820
+[06/Jun/2026 11:25:19] "GET /api/student-profiles/me/ HTTP/1.1" 200 920
+[06/Jun/2026 11:25:19] "GET /api/student-profiles/me/persona/ HTTP/1.1" 200 303
+[06/Jun/2026 11:25:19] "GET /api/ai/learning/recommend/ HTTP/1.1" 200 2779
+[06/Jun/2026 11:25:19] "GET /api/submissions/stats/ HTTP/1.1" 200 726
+[06/Jun/2026 11:25:19] "GET /api/analytics/insights/ HTTP/1.1" 200 2820
+[06/Jun/2026 11:25:19] "GET /api/analytics/progress-report/ HTTP/1.1" 200 483
+[06/Jun/2026 11:27:06] "GET /api/challenges/categories/ HTTP/1.1" 200 489
+[06/Jun/2026 11:27:06] "GET /api/submissions/stats/ HTTP/1.1" 200 726
+[06/Jun/2026 11:27:06] "GET /api/challenges/challenges/ HTTP/1.1" 200 7736
+[06/Jun/2026 11:27:16] "GET /api/articles/categories/ HTTP/1.1" 200 708
+[06/Jun/2026 11:27:16] "GET /api/articles/articles/recommend/?limit=6 HTTP/1.1" 200 2799
+[06/Jun/2026 11:27:16] "GET /api/articles/articles/hot/?limit=10 HTTP/1.1" 200 4818
+[06/Jun/2026 11:27:16] "GET /api/articles/articles/?page=1&page_size=10 HTTP/1.1" 200 4846
+[06/Jun/2026 11:27:20] "GET /api/articles/articles/recommend/?limit=6 HTTP/1.1" 200 2799
+[06/Jun/2026 11:27:20] "GET /api/articles/articles/8/ HTTP/1.1" 200 8592
+[06/Jun/2026 11:27:20] "GET /api/articles/articles/recommend/?limit=6 HTTP/1.1" 200 2799
+[06/Jun/2026 11:27:20] "GET /api/articles/articles/?status=approved&page=1&page_size=6 HTTP/1.1" 200 4846
+[06/Jun/2026 11:27:20] "GET /api/articles/comments/?article=8 HTTP/1.1" 200 2277
+[06/Jun/2026 11:27:20] "GET /api/articles/articles/8/ HTTP/1.1" 200 8592
+[06/Jun/2026 11:27:20] "GET /api/articles/comments/?article=8 HTTP/1.1" 200 2277
+[06/Jun/2026 11:27:20] "GET /api/articles/articles/?category%5Bid%5D=4&category%5Bname%5D=DevSecOps&category%5Bdescription%5D=%E5%AE%89%E5%85%A8%E5%BC%80%E5%8F%91%E5%92%8C%E8%BF%90%E7%BB%B4&category%5Bicon%5D=%F0%9F%9B%A1%EF%B8%8F&category%5Border%5D=4&status=approved&page=1&page_size=6 HTTP/1.1" 200 4846
+[06/Jun/2026 11:27:25] "GET /api/articles/articles/recommend/?limit=6 HTTP/1.1" 200 2799
+[06/Jun/2026 11:27:25] "GET /api/articles/articles/hot/?limit=10 HTTP/1.1" 200 4818
+[06/Jun/2026 11:27:25] "GET /api/articles/categories/ HTTP/1.1" 200 708
+[06/Jun/2026 11:27:25] "GET /api/articles/articles/?page=1&page_size=10 HTTP/1.1" 200 4846
+[06/Jun/2026 11:28:50] "GET /api/articles/articles/recommend/?limit=6 HTTP/1.1" 200 2799
+[06/Jun/2026 11:28:50] "GET /api/articles/articles/8/ HTTP/1.1" 200 8592
+[06/Jun/2026 11:28:50] "GET /api/articles/articles/recommend/?limit=6 HTTP/1.1" 200 2799
+[06/Jun/2026 11:28:50] "GET /api/articles/articles/?status=approved&page=1&page_size=6 HTTP/1.1" 200 4846
+[06/Jun/2026 11:28:50] "GET /api/articles/articles/8/ HTTP/1.1" 200 8592
+[06/Jun/2026 11:28:50] "GET /api/articles/comments/?article=8 HTTP/1.1" 200 2277
+[06/Jun/2026 11:28:50] "GET /api/articles/articles/?category%5Bid%5D=4&category%5Bname%5D=DevSecOps&category%5Bdescription%5D=%E5%AE%89%E5%85%A8%E5%BC%80%E5%8F%91%E5%92%8C%E8%BF%90%E7%BB%B4&category%5Bicon%5D=%F0%9F%9B%A1%EF%B8%8F&category%5Border%5D=4&status=approved&page=1&page_size=6 HTTP/1.1" 200 4846
+[06/Jun/2026 11:28:51] "GET /api/articles/comments/?article=8 HTTP/1.1" 200 2277
+[06/Jun/2026 11:28:52] "GET /api/articles/categories/ HTTP/1.1" 200 708
+[06/Jun/2026 11:28:52] "GET /api/articles/articles/hot/?limit=10 HTTP/1.1" 200 4818
+[06/Jun/2026 11:28:52] "GET /api/articles/articles/recommend/?limit=6 HTTP/1.1" 200 2799
+[06/Jun/2026 11:28:52] "GET /api/articles/articles/?page=1&page_size=10 HTTP/1.1" 200 4846
+[06/Jun/2026 11:28:56] "GET /api/student-profiles/me/ HTTP/1.1" 200 920
+[06/Jun/2026 11:28:56] "GET /api/student-profiles/me/persona/ HTTP/1.1" 200 303
+[06/Jun/2026 11:28:56] "GET /api/analytics/progress-report/ HTTP/1.1" 200 483
+[06/Jun/2026 11:28:56] "GET /api/submissions/stats/ HTTP/1.1" 200 726
+[06/Jun/2026 11:28:56] "GET /api/ai/learning/recommend/ HTTP/1.1" 200 2779
+[06/Jun/2026 11:28:56] "GET /api/analytics/insights/ HTTP/1.1" 200 2820
+D:\xwechat_files\wxid_0x71zojosvp622_e4a7\msg\file\2026-06\sjh(2)\sjh\ctf-platform\ctf-platform-export-20260315_184335\project-code\backend\ai_assistant\learning_orchestrator.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\asgiref\sync.py:608: UserWarning: async_to_sync was passed a non-async-marked callable
+  return AsyncToSync(
+[06/Jun/2026 11:42:08] "GET /api/learning-paths/paths/ HTTP/1.1" 200 57959
+[06/Jun/2026 11:42:10] "GET /api/student-profiles/me/ HTTP/1.1" 200 920
+[06/Jun/2026 11:42:10] "GET /api/student-profiles/me/persona/ HTTP/1.1" 200 303
+[06/Jun/2026 11:42:10] "GET /api/analytics/insights/ HTTP/1.1" 200 2820
+[06/Jun/2026 11:42:10] "GET /api/submissions/stats/ HTTP/1.1" 200 726
+[06/Jun/2026 11:42:10] "GET /api/ai/learning/recommend/ HTTP/1.1" 200 1396
+[06/Jun/2026 11:42:10] "GET /api/analytics/progress-report/ HTTP/1.1" 200 483
+C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\rest_framework\pagination.py:198: UnorderedObjectListWarning: Pagination may yield inconsistent results with an unordered object_list: <class 'challenges.models.Category'> QuerySet.
+  paginator = self.django_paginator_class(queryset, page_size)
+[06/Jun/2026 11:42:15] "GET /api/challenges/categories/ HTTP/1.1" 200 489
+[06/Jun/2026 11:42:15] "GET /api/submissions/stats/ HTTP/1.1" 200 726
+[06/Jun/2026 11:42:15] "GET /api/challenges/challenges/ HTTP/1.1" 200 7736
+[06/Jun/2026 11:42:16] "GET /api/student-profiles/me/ HTTP/1.1" 200 920
+[06/Jun/2026 11:42:16] "GET /api/student-profiles/me/persona/ HTTP/1.1" 200 303
+[06/Jun/2026 11:42:16] "GET /api/ai/learning/recommend/ HTTP/1.1" 200 1396
+[06/Jun/2026 11:42:16] "GET /api/analytics/insights/ HTTP/1.1" 200 2820
+[06/Jun/2026 11:42:16] "GET /api/submissions/stats/ HTTP/1.1" 200 726
+[06/Jun/2026 11:42:16] "GET /api/analytics/progress-report/ HTTP/1.1" 200 483
+[06/Jun/2026 11:42:21] "GET /api/articles/categories/ HTTP/1.1" 200 708
+[06/Jun/2026 11:42:21] "GET /api/articles/articles/?page=1&page_size=10 HTTP/1.1" 200 4846
+[06/Jun/2026 11:42:21] "GET /api/articles/articles/recommend/?limit=6 HTTP/1.1" 200 2799
+[06/Jun/2026 11:42:21] "GET /api/articles/articles/hot/?limit=10 HTTP/1.1" 200 4818
+[06/Jun/2026 11:42:26] "GET /api/learning-paths/paths/ HTTP/1.1" 200 57959
+[06/Jun/2026 11:42:29] "GET /api/student-profiles/me/ HTTP/1.1" 200 920
+[06/Jun/2026 11:42:29] "GET /api/student-profiles/me/persona/ HTTP/1.1" 200 303
+[06/Jun/2026 11:42:29] "GET /api/analytics/insights/ HTTP/1.1" 200 2820
+[06/Jun/2026 11:42:29] "GET /api/submissions/stats/ HTTP/1.1" 200 726
+[06/Jun/2026 11:42:29] "GET /api/ai/learning/recommend/ HTTP/1.1" 200 1396
+[06/Jun/2026 11:42:29] "GET /api/analytics/progress-report/ HTTP/1.1" 200 483
+[06/Jun/2026 11:42:34] "GET /api/challenges/categories/ HTTP/1.1" 200 489
+[06/Jun/2026 11:42:34] "GET /api/submissions/stats/ HTTP/1.1" 200 726
+[06/Jun/2026 11:42:34] "GET /api/challenges/challenges/ HTTP/1.1" 200 7736
+[06/Jun/2026 11:42:36] "GET /api/learning-paths/paths/ HTTP/1.1" 200 57959
+[06/Jun/2026 11:42:37] "GET /api/resources/?page=1&page_size=12&ordering=-created_at HTTP/1.1" 200 18820
+[06/Jun/2026 11:42:39] "GET /api/articles/categories/ HTTP/1.1" 200 708
+[06/Jun/2026 11:42:39] "GET /api/articles/articles/recommend/?limit=6 HTTP/1.1" 200 2799
+[06/Jun/2026 11:42:39] "GET /api/articles/articles/hot/?limit=10 HTTP/1.1" 200 4818
+[06/Jun/2026 11:42:39] "GET /api/articles/articles/?page=1&page_size=10 HTTP/1.1" 200 4846
+[06/Jun/2026 11:42:42] "GET /api/resources/?page=1&page_size=12&ordering=-created_at HTTP/1.1" 200 18820
+[06/Jun/2026 11:42:45] "GET /api/articles/articles/hot/?limit=10 HTTP/1.1" 200 4818
+[06/Jun/2026 11:42:45] "GET /api/articles/categories/ HTTP/1.1" 200 708
+[06/Jun/2026 11:42:45] "GET /api/articles/articles/?page=1&page_size=10 HTTP/1.1" 200 4846
+[06/Jun/2026 11:42:45] "GET /api/articles/articles/recommend/?limit=6 HTTP/1.1" 200 2799
+[06/Jun/2026 11:42:47] "GET /api/resources/?page=1&page_size=12&ordering=-created_at HTTP/1.1" 200 18820
+[06/Jun/2026 11:42:48] "GET /api/learning-paths/paths/ HTTP/1.1" 200 57959
+[06/Jun/2026 11:42:50] "GET /api/learning-paths/progress/ HTTP/1.1" 200 332
+[06/Jun/2026 11:42:50] "GET /api/learning-paths/modules/?learning_path=6 HTTP/1.1" 200 2384
+[06/Jun/2026 11:42:50] "GET /api/learning-paths/paths/6/ HTTP/1.1" 200 2651
+[06/Jun/2026 11:42:50] "GET /api/learning-paths/knowledge-concepts/?limit=6 HTTP/1.1" 200 8780
+[06/Jun/2026 11:42:51] "GET /api/learning-paths/progress/ HTTP/1.1" 200 332
+[06/Jun/2026 11:42:51] "GET /api/learning-paths/modules/18/ HTTP/1.1" 200 387
+[06/Jun/2026 11:42:51] "GET /api/learning-paths/paths/6/ HTTP/1.1" 200 2651
+[06/Jun/2026 11:42:55] "GET /api/resources/?page=1&page_size=12&ordering=-created_at HTTP/1.1" 200 18820
+[06/Jun/2026 11:42:56] "GET /api/learning-paths/paths/ HTTP/1.1" 200 57959
+[06/Jun/2026 11:42:58] "GET /api/exams/level-rules/ HTTP/1.1" 200 556
+[06/Jun/2026 11:42:58] "GET /api/exams/records/statistics/ HTTP/1.1" 200 103
+[06/Jun/2026 11:42:58] "GET /api/exams/records/score_trend/ HTTP/1.1" 200 64
+[06/Jun/2026 11:42:58] "GET /api/exams/records/my_history/ HTTP/1.1" 200 24
+[06/Jun/2026 11:42:58] "GET /api/exams/records/?status=in_progress HTTP/1.1" 200 52
+[06/Jun/2026 11:54:21] "GET /api/announcements/announcements/pinned/ HTTP/1.1" 200 1301
+[06/Jun/2026 11:54:21] "GET /api/exams/level-rules/ HTTP/1.1" 200 556
+[06/Jun/2026 11:54:21] "GET /api/exams/records/statistics/ HTTP/1.1" 200 103
+[06/Jun/2026 11:54:21] "GET /api/exams/records/score_trend/ HTTP/1.1" 200 64
+[06/Jun/2026 11:54:21] "GET /api/exams/records/my_history/ HTTP/1.1" 200 24
+[06/Jun/2026 11:54:21] "GET /api/exams/records/?status=in_progress HTTP/1.1" 200 52
+[06/Jun/2026 11:54:23] "GET /api/student-profiles/me/ HTTP/1.1" 200 920
+[06/Jun/2026 11:54:23] "GET /api/ai/learning/recommend/ HTTP/1.1" 200 1396
+[06/Jun/2026 11:54:23] "GET /api/student-profiles/me/persona/ HTTP/1.1" 200 303
+[06/Jun/2026 11:54:23] "GET /api/analytics/insights/ HTTP/1.1" 200 2820
+[06/Jun/2026 11:54:23] "GET /api/submissions/stats/ HTTP/1.1" 200 726
+[06/Jun/2026 11:54:23] "GET /api/articles/articles/recommend/?limit=3 HTTP/1.1" 200 2080
+[06/Jun/2026 11:54:23] "GET /api/analytics/progress-report/ HTTP/1.1" 200 483
+[06/Jun/2026 11:54:23] "GET /api/resources/?page_size=3&ordering=-view_count HTTP/1.1" 200 18820
+[06/Jun/2026 11:54:24] "GET /api/learning-paths/paths/?page_size=3 HTTP/1.1" 200 57959
+[06/Jun/2026 11:54:27] "GET /api/resources/17/ HTTP/1.1" 200 1168
+[06/Jun/2026 11:54:27] "GET /api/resources/?page=1&page_size=12&ordering=-created_at HTTP/1.1" 200 18820
+[06/Jun/2026 11:54:32] "GET /api/resources/?page=1&page_size=12&ordering=-created_at HTTP/1.1" 200 18820
+[06/Jun/2026 11:54:33] "GET /api/learning-paths/paths/ HTTP/1.1" 200 57959
+[06/Jun/2026 11:54:34] "GET /api/ai/multi-agent/presets/ HTTP/1.1" 200 790
+[06/Jun/2026 11:54:36] "GET /api/student-profiles/me/ HTTP/1.1" 200 920
+[06/Jun/2026 11:54:36] "GET /api/student-profiles/me/persona/ HTTP/1.1" 200 303
+[06/Jun/2026 11:54:36] "GET /api/ai/learning/recommend/ HTTP/1.1" 200 1396
+[06/Jun/2026 11:54:36] "GET /api/analytics/insights/ HTTP/1.1" 200 2820
+[06/Jun/2026 11:54:36] "GET /api/analytics/progress-report/ HTTP/1.1" 200 483
+[06/Jun/2026 11:54:36] "GET /api/articles/articles/recommend/?limit=3 HTTP/1.1" 200 2080
+[06/Jun/2026 11:54:36] "GET /api/submissions/stats/ HTTP/1.1" 200 726
+[06/Jun/2026 11:54:36] "GET /api/resources/?page_size=3&ordering=-view_count HTTP/1.1" 200 18820
+[06/Jun/2026 11:54:37] "GET /api/learning-paths/paths/?page_size=3 HTTP/1.1" 200 57959
+[06/Jun/2026 11:57:42] "GET /api/announcements/announcements/pinned/ HTTP/1.1" 200 1301
+[06/Jun/2026 11:57:42] "GET /api/student-profiles/me/ HTTP/1.1" 200 920
+[06/Jun/2026 11:57:42] "GET /api/student-profiles/me/persona/ HTTP/1.1" 200 303
+[06/Jun/2026 11:57:42] "GET /api/submissions/stats/ HTTP/1.1" 200 726
+[06/Jun/2026 11:57:42] "GET /api/articles/articles/recommend/?limit=3 HTTP/1.1" 200 2080
+[06/Jun/2026 11:57:42] "GET /api/ai/learning/recommend/ HTTP/1.1" 200 1396
+[06/Jun/2026 11:57:42] "GET /api/analytics/insights/ HTTP/1.1" 200 2820
+[06/Jun/2026 11:57:42] "GET /api/analytics/progress-report/ HTTP/1.1" 200 483
+[06/Jun/2026 11:57:42] "GET /api/resources/?page_size=3&ordering=-view_count HTTP/1.1" 200 18820
+[06/Jun/2026 11:57:42] "GET /api/learning-paths/paths/?page_size=3 HTTP/1.1" 200 57959
+[06/Jun/2026 11:59:15] "GET /api/announcements/announcements/pinned/ HTTP/1.1" 200 1301
+[06/Jun/2026 11:59:15] "GET /api/student-profiles/me/ HTTP/1.1" 200 920
+[06/Jun/2026 11:59:15] "GET /api/student-profiles/me/persona/ HTTP/1.1" 200 303
+[06/Jun/2026 11:59:15] "GET /api/ai/learning/recommend/ HTTP/1.1" 200 1396
+[06/Jun/2026 11:59:15] "GET /api/analytics/progress-report/ HTTP/1.1" 200 483
+[06/Jun/2026 11:59:15] "GET /api/analytics/insights/ HTTP/1.1" 200 2820
+[06/Jun/2026 11:59:15] "GET /api/articles/articles/recommend/?limit=3 HTTP/1.1" 200 2080
+[06/Jun/2026 11:59:15] "GET /api/submissions/stats/ HTTP/1.1" 200 726
+[06/Jun/2026 11:59:15] "GET /api/resources/?page_size=3&ordering=-view_count HTTP/1.1" 200 18820
+[06/Jun/2026 11:59:15] "GET /api/learning-paths/paths/?page_size=3 HTTP/1.1" 200 57959
+[06/Jun/2026 12:00:23] "GET /api/announcements/announcements/pinned/ HTTP/1.1" 200 1301
+[06/Jun/2026 12:00:23] "GET /api/student-profiles/me/ HTTP/1.1" 200 920
+[06/Jun/2026 12:00:24] "GET /api/ai/learning/recommend/ HTTP/1.1" 200 1396
+[06/Jun/2026 12:00:24] "GET /api/student-profiles/me/persona/ HTTP/1.1" 200 303
+[06/Jun/2026 12:00:24] "GET /api/submissions/stats/ HTTP/1.1" 200 726
+[06/Jun/2026 12:00:24] "GET /api/analytics/insights/ HTTP/1.1" 200 2820
+[06/Jun/2026 12:00:24] "GET /api/articles/articles/recommend/?limit=3 HTTP/1.1" 200 2080
+[06/Jun/2026 12:00:24] "GET /api/analytics/progress-report/ HTTP/1.1" 200 483
+[06/Jun/2026 12:00:24] "GET /api/resources/?page_size=3&ordering=-view_count HTTP/1.1" 200 18820
+[06/Jun/2026 12:00:24] "GET /api/learning-paths/paths/?page_size=3 HTTP/1.1" 200 57959
+[06/Jun/2026 12:00:30] "GET /api/ai/multi-agent/presets/ HTTP/1.1" 200 790
+[06/Jun/2026 12:00:32] "GET /api/learning-paths/paths/ HTTP/1.1" 200 57959
+[06/Jun/2026 12:00:34] "GET /api/ai/multi-agent/presets/ HTTP/1.1" 200 790
+[06/Jun/2026 12:00:36] "GET /api/student-profiles/me/ HTTP/1.1" 200 920
+[06/Jun/2026 12:00:36] "GET /api/student-profiles/me/persona/ HTTP/1.1" 200 303
+[06/Jun/2026 12:00:36] "GET /api/ai/learning/recommend/ HTTP/1.1" 200 1396
+[06/Jun/2026 12:00:36] "GET /api/analytics/insights/ HTTP/1.1" 200 2820
+[06/Jun/2026 12:00:36] "GET /api/articles/articles/recommend/?limit=3 HTTP/1.1" 200 2080
+[06/Jun/2026 12:00:36] "GET /api/analytics/progress-report/ HTTP/1.1" 200 483
+[06/Jun/2026 12:00:36] "GET /api/submissions/stats/ HTTP/1.1" 200 726
+[06/Jun/2026 12:00:36] "GET /api/resources/?page_size=3&ordering=-view_count HTTP/1.1" 200 18820
+[06/Jun/2026 12:00:36] "GET /api/learning-paths/paths/?page_size=3 HTTP/1.1" 200 57959
+[06/Jun/2026 12:03:34] "GET /api/announcements/announcements/pinned/ HTTP/1.1" 200 1301
+[06/Jun/2026 12:03:34] "GET /api/student-profiles/me/ HTTP/1.1" 200 920
+[06/Jun/2026 12:03:34] "GET /api/student-profiles/me/persona/ HTTP/1.1" 200 303
+[06/Jun/2026 12:03:34] "GET /api/analytics/progress-report/ HTTP/1.1" 200 483
+[06/Jun/2026 12:03:34] "GET /api/ai/learning/recommend/ HTTP/1.1" 200 1396
+[06/Jun/2026 12:03:34] "GET /api/submissions/stats/ HTTP/1.1" 200 726
+[06/Jun/2026 12:03:34] "GET /api/articles/articles/recommend/?limit=3 HTTP/1.1" 200 2080
+[06/Jun/2026 12:03:34] "GET /api/analytics/insights/ HTTP/1.1" 200 2820
+[06/Jun/2026 12:03:34] "GET /api/resources/?page_size=3&ordering=-view_count HTTP/1.1" 200 18820
+[06/Jun/2026 12:03:34] "GET /api/learning-paths/paths/?page_size=3 HTTP/1.1" 200 57959
+[06/Jun/2026 12:03:42] "GET /api/ai/multi-agent/presets/ HTTP/1.1" 200 790
+[06/Jun/2026 12:06:14] "GET /api/student-profiles/me/ HTTP/1.1" 200 920
+[06/Jun/2026 12:06:14] "GET /api/student-profiles/me/persona/ HTTP/1.1" 200 303
+[06/Jun/2026 12:06:14] "GET /api/analytics/insights/ HTTP/1.1" 200 2820
+[06/Jun/2026 12:06:14] "GET /api/ai/learning/recommend/ HTTP/1.1" 200 1396
+[06/Jun/2026 12:06:14] "GET /api/analytics/progress-report/ HTTP/1.1" 200 483
+[06/Jun/2026 12:06:14] "GET /api/submissions/stats/ HTTP/1.1" 200 726
+[06/Jun/2026 12:06:14] "GET /api/articles/articles/recommend/?limit=3 HTTP/1.1" 200 2080
+[06/Jun/2026 12:06:14] "GET /api/resources/?page_size=3&ordering=-view_count HTTP/1.1" 200 18820
+[06/Jun/2026 12:06:14] "GET /api/learning-paths/paths/?page_size=3 HTTP/1.1" 200 57959
+D:\xwechat_files\wxid_0x71zojosvp622_e4a7\msg\file\2026-06\sjh(2)\sjh\ctf-platform\ctf-platform-export-20260315_184335\project-code\backend\learning_paths\views.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\asgiref\sync.py:608: UserWarning: async_to_sync was passed a non-async-marked callable
+  return AsyncToSync(
+D:\xwechat_files\wxid_0x71zojosvp622_e4a7\msg\file\2026-06\sjh(2)\sjh\ctf-platform\ctf-platform-export-20260315_184335\project-code\backend\challenges\views.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\29681\AppData\Local\Programs\Python\Python312\Lib\site-packages\asgiref\sync.py:608: UserWarning: async_to_sync was passed a non-async-marked callable
+  return AsyncToSync(
+[06/Jun/2026 12:13:12] "GET /api/announcements/announcements/pinned/ HTTP/1.1" 200 1301
+[06/Jun/2026 12:13:12] "GET /api/student-profiles/me/ HTTP/1.1" 200 920
+[06/Jun/2026 12:13:12] "GET /api/student-profiles/me/persona/ HTTP/1.1" 200 303
+[06/Jun/2026 12:13:12] "GET /api/analytics/insights/ HTTP/1.1" 200 2820
+[06/Jun/2026 12:13:12] "GET /api/articles/articles/recommend/?limit=3 HTTP/1.1" 200 2080
+[06/Jun/2026 12:13:12] "GET /api/submissions/stats/ HTTP/1.1" 200 726
+[06/Jun/2026 12:13:12] "GET /api/analytics/progress-report/ HTTP/1.1" 200 483
+[06/Jun/2026 12:13:12] "GET /api/ai/learning/recommend/ HTTP/1.1" 200 1396
+[06/Jun/2026 12:13:12] "GET /api/resources/?page_size=3&ordering=-view_count HTTP/1.1" 200 18820
+[06/Jun/2026 12:13:12] "GET /api/learning-paths/paths/?page_size=3 HTTP/1.1" 200 57959
+[06/Jun/2026 12:13:50] "GET /api/student-profiles/me/ HTTP/1.1" 200 920
+[06/Jun/2026 12:13:50] "GET /api/student-profiles/me/persona/ HTTP/1.1" 200 303
+[06/Jun/2026 12:13:50] "GET /api/ai/learning/recommend/ HTTP/1.1" 200 1396
+[06/Jun/2026 12:13:50] "GET /api/articles/articles/recommend/?limit=3 HTTP/1.1" 200 2080
+[06/Jun/2026 12:13:50] "GET /api/analytics/insights/ HTTP/1.1" 200 2820
+[06/Jun/2026 12:13:50] "GET /api/submissions/stats/ HTTP/1.1" 200 726
+[06/Jun/2026 12:13:50] "GET /api/analytics/progress-report/ HTTP/1.1" 200 483
+[06/Jun/2026 12:13:50] "GET /api/resources/?page_size=3&ordering=-view_count HTTP/1.1" 200 18820
+[06/Jun/2026 12:13:50] "GET /api/learning-paths/paths/?page_size=3 HTTP/1.1" 200 57959
+[06/Jun/2026 12:14:03] "GET /api/student-profiles/me/ HTTP/1.1" 200 920
+[06/Jun/2026 12:14:03] "GET /api/student-profiles/me/persona/ HTTP/1.1" 200 303
+[06/Jun/2026 12:14:03] "GET /api/ai/learning/recommend/ HTTP/1.1" 200 1396
+[06/Jun/2026 12:14:03] "GET /api/articles/articles/recommend/?limit=3 HTTP/1.1" 200 2080
+[06/Jun/2026 12:14:03] "GET /api/analytics/progress-report/ HTTP/1.1" 200 483
+[06/Jun/2026 12:14:03] "GET /api/analytics/insights/ HTTP/1.1" 200 2820
+[06/Jun/2026 12:14:03] "GET /api/submissions/stats/ HTTP/1.1" 200 726
+[06/Jun/2026 12:14:03] "GET /api/learning-paths/recommendations/review-reminders/ HTTP/1.1" 200 1012
+[06/Jun/2026 12:14:03] "GET /api/resources/?page_size=3&ordering=-view_count HTTP/1.1" 200 18820
+[06/Jun/2026 12:14:03] "GET /api/learning-paths/paths/?page_size=3 HTTP/1.1" 200 57959
+[06/Jun/2026 12:14:56] "GET /api/announcements/announcements/pinned/ HTTP/1.1" 200 1301
+[06/Jun/2026 12:14:56] "GET /api/student-profiles/me/ HTTP/1.1" 200 920
+[06/Jun/2026 12:14:56] "GET /api/analytics/progress-report/ HTTP/1.1" 200 483
+[06/Jun/2026 12:14:56] "GET /api/student-profiles/me/persona/ HTTP/1.1" 200 303
+[06/Jun/2026 12:14:56] "GET /api/ai/learning/recommend/ HTTP/1.1" 200 1396
+[06/Jun/2026 12:14:56] "GET /api/articles/articles/recommend/?limit=3 HTTP/1.1" 200 2080
+[06/Jun/2026 12:14:56] "GET /api/submissions/stats/ HTTP/1.1" 200 726
+[06/Jun/2026 12:14:56] "GET /api/analytics/insights/ HTTP/1.1" 200 2820
+[06/Jun/2026 12:14:56] "GET /api/learning-paths/recommendations/review-reminders/ HTTP/1.1" 200 1012
+[06/Jun/2026 12:14:56] "GET /api/resources/?page_size=3&ordering=-view_count HTTP/1.1" 200 18820
+[06/Jun/2026 12:14:56] "GET /api/learning-paths/paths/?page_size=3 HTTP/1.1" 200 57959

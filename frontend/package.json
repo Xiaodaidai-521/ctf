@@ -1,0 +1,28 @@
+{
+  "name": "ctf-frontend",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@arco-design/web-vue": "^2.57.0",
+    "@vueuse/core": "^14.2.1",
+    "axios": "^1.13.6",
+    "bootstrap-icons": "^1.13.1",
+    "echarts": "^6.0.0",
+    "highlight.js": "^11.11.1",
+    "marked": "^17.0.4",
+    "mermaid": "^11.15.0",
+    "pinia": "^3.0.4",
+    "vue": "^3.5.30",
+    "vue-router": "^5.0.3"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^6.0.4",
+    "vite": "^7.3.1"
+  },
+  "packageManager": "pnpm@10.29.3"
+}

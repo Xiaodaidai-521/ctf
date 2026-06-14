@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>容器启动测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        h2 { color: #333; }
+        .section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 4px; }
+        .success { background-color: #d4edda; border-color: #c3e6cb; color: #155724; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; color: #721c24; }
+        .info { background-color: #d1ecf1; border-color: #bee5eb; color: #0c5460; }
+
+        /* 进度框样式 */
+        .startup-progress-box {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 24px;
+            margin-top: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .progress-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .spinner {
+            width: 24px;
+            height: 24px;
+            border: 3px solid #e0e0e0;
+            border-top-color: #4CAF50;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .progress-title {
+            font-size: 16px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background-color: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 12px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #8BC34A);
+            transition: width 0.3s ease;
+        }
+
+        .progress-steps {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: #666;
+            margin-top: 8px;
+        }
+
+        .step {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .step.active { color: #4CAF50; font-weight: 500; }
+
+        .step-icon { font-size: 14px; }
+
+        button {
+            padding: 12px 24px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        button:hover { background-color: #45a049; }
+        button:disabled { background-color: #cccccc; cursor: not-allowed; }
+
+        #log {
+            background: #f8f8f8;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>🧪 容器启动功能测试</h2>
+
+        <div id="status" class="section info">
+            <strong>状态：</strong> 准备就绪，请登录
+        </div>
+
+        <div id="control-panel">
+            <button id="loginBtn" onclick="login()">登录</button>
+            <button id="startBtn" onclick="startContainer()" disabled>启动容器</button>
+            <button id="stopBtn" onclick="stopContainer()" disabled>停止容器</button>
+        </div>
+
+        <div id="startup-progress" style="display: none;">
+            <div class="startup-progress-box">
+                <div class="progress-header">
+                    <div class="spinner"></div>
+                    <span class="progress-title">正在启动容器环境...</span>
+                </div>
+
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
+                </div>
+
+                <div class="progress-steps">
+                    <div class="step active" id="step-1">
+                        <span class="step-icon">📦</span>
+                        <span>创建容器</span>
+                    </div>
+                    <div class="step" id="step-2">
+                        <span class="step-icon">🌐</span>
+                        <span>配置网络</span>
+                    </div>
+                    <div class="step" id="step-3">
+                        <span class="step-icon">⚙️</span>
+                        <span>启动服务</span>
+                    </div>
+                    <div class="step" id="step-4">
+                        <span class="step-icon">✅</span>
+                        <span>就绪检查</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="access-info" class="section success" style="display: none;">
+            <h3>🎉 容器已就绪！</h3>
+            <p><strong>访问地址：</strong>
+                <a id="access-url" href="#" target="_blank" style="color: #4CAF50; font-weight: bold;">点击访问</a>
+            </p>
+            <p><strong>剩余时间：</strong> <span id="remaining-time">--</span> 秒</p>
+        </div>
+
+        <div id="log"></div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000/api';
+        let token = null;
+        let progressTimer = null;
+        let checkTimer = null;
+        let countdownTimer = null;
+        let progress = 0;
+
+        function log(message) {
+            const logDiv = document.getElementById('log');
+            const time = new Date().toLocaleTimeString();
+            logDiv.innerHTML += `[${time}] ${message}<br>`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+            console.log(message);
+        }
+
+        function updateStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('status');
+            statusDiv.className = `section ${type}`;
+            statusDiv.innerHTML = `<strong>状态：</strong> ${message}`;
+        }
+
+        async function login() {
+            try {
+                log('正在登录...');
+                const response = await fetch(`${API_BASE}/users/login/`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: 'admin', password: 'admin123' })
+                });
+                const data = await response.json();
+                token = data.token;
+                log(`✅ 登录成功`);
+                updateStatus('登录成功，可以启动容器', 'success');
+                document.getElementById('startBtn').disabled = false;
+                document.getElementById('stopBtn').disabled = false;
+                document.getElementById('loginBtn').disabled = true;
+            } catch (error) {
+                log(`❌ 登录失败: ${error.message}`);
+                updateStatus('登录失败', 'error');
+            }
+        }
+
+        async function startContainer() {
+            if (!token) {
+                log('请先登录');
+                return;
+            }
+
+            document.getElementById('startBtn').disabled = true;
+            document.getElementById('stopBtn').disabled = false;
+            document.getElementById('access-info').style.display = 'none';
+
+            try {
+                log('正在启动容器...');
+                updateStatus('正在启动容器...', 'info');
+
+                const response = await fetch(`${API_BASE}/challenges/challenges/26/start/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Token ${token}`
+                    }
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    log(`✅ 容器启动请求成功`);
+                    log(`   容器ID: ${data.container.container_id}`);
+                    log(`   访问URL: ${data.container.access_url}`);
+                    updateStatus('容器启动中...', 'info');
+
+                    // 开始显示进度
+                    startProgressCheck();
+                } else {
+                    log(`❌ 启动失败: ${data.message}`);
+                    updateStatus(`启动失败: ${data.message}`, 'error');
+                    document.getElementById('startBtn').disabled = false;
+                }
+            } catch (error) {
+                log(`❌ 启动失败: ${error.message}`);
+                updateStatus('启动失败', 'error');
+                document.getElementById('startBtn').disabled = false;
+            }
+        }
+
+        function startProgressCheck() {
+            document.getElementById('startup-progress').style.display = 'block';
+            progress = 0;
+
+            log('🔄 开始启动进度检查...');
+
+            // 模拟进度
+            progressTimer = setInterval(() => {
+                if (progress < 80) {
+                    progress += 5.3;
+                    updateProgress(Math.min(80, Math.floor(progress)));
+                    log(`📊 进度: ${Math.min(80, Math.floor(progress))}%`);
+                } else if (progress >= 80 && progress < 95) {
+                    progress += 0.5;
+                    updateProgress(Math.floor(progress));
+                }
+            }, 500);
+
+            // 检查容器就绪状态
+            let checkAttempts = 0;
+            const maxAttempts = 20;
+
+            checkTimer = setInterval(async () => {
+                checkAttempts++;
+                log(`🔍 检查容器就绪 (${checkAttempts}/${maxAttempts})`);
+
+                if (checkAttempts >= maxAttempts) {
+                    log('⏱️ 检查超时，显示访问URL');
+                    finishProgress(true);
+                    return;
+                }
+
+                try {
+                    const response = await fetch(`${API_BASE}/challenges/challenges/26/container/`, {
+                        headers: { 'Authorization': `Token ${token}` }
+                    });
+                    const data = await response.json();
+                    log(`   容器状态: ${data.status}, 运行中: ${data.is_running}`);
+
+                    if (data.is_running) {
+                        log('✅ 容器已就绪');
+                        finishProgress(true);
+                    }
+                } catch (error) {
+                    log(`   检查失败: ${error.message}`);
+                }
+            }, 1000);
+        }
+
+        function updateProgress(value) {
+            document.getElementById('progress-fill').style.width = `${value}%`;
+
+            // 更新步骤状态
+            for (let i = 1; i <= 4; i++) {
+                const step = document.getElementById(`step-${i}`);
+                step.classList.remove('active');
+                if (value >= (i - 1) * 25) {
+                    step.classList.add('active');
+                }
+            }
+        }
+
+        function finishProgress(showUrl) {
+            clearInterval(progressTimer);
+            clearInterval(checkTimer);
+            progressTimer = null;
+            checkTimer = null;
+
+            updateProgress(100);
+
+            setTimeout(async () => {
+                document.getElementById('startup-progress').style.display = 'none';
+
+                if (showUrl) {
+                    try {
+                        const response = await fetch(`${API_BASE}/challenges/challenges/26/container/`, {
+                            headers: { 'Authorization': `Token ${token}` }
+                        });
+                        const data = await response.json();
+
+                        document.getElementById('access-url').href = data.access_url;
+                        document.getElementById('access-url').textContent = data.access_url;
+                        document.getElementById('access-info').style.display = 'block';
+
+                        updateStatus('容器已就绪，可以开始做题', 'success');
+                        log('🎉 显示访问URL');
+
+                        // 启动倒计时
+                        startCountdown();
+                    } catch (error) {
+                        log(`❌ 获取容器信息失败: ${error.message}`);
+                    }
+                }
+            }, 500);
+        }
+
+        function startCountdown() {
+            log('⏰ 启动倒计时');
+
+            countdownTimer = setInterval(async () => {
+                try {
+                    const response = await fetch(`${API_BASE}/challenges/challenges/26/container/`, {
+                        headers: { 'Authorization': `Token ${token}` }
+                    });
+                    const data = await response.json();
+
+                    if (data.is_expired) {
+                        log('⏰ 容器已过期');
+                        clearInterval(countdownTimer);
+                        document.getElementById('access-info').style.display = 'none';
+                        updateStatus('容器已过期，请重新启动', 'error');
+                        document.getElementById('startBtn').disabled = false;
+                        return;
+                    }
+
+                    const remaining = calculateRemainingTime(data.expires_at);
+                    document.getElementById('remaining-time').textContent = remaining;
+
+                    if (remaining <= 0) {
+                        clearInterval(countdownTimer);
+                        log('⏰ 倒计时结束');
+                        document.getElementById('access-info').style.display = 'none';
+                        updateStatus('容器已过期，请重新启动', 'error');
+                        document.getElementById('startBtn').disabled = false;
+                    }
+                } catch (error) {
+                    log(`⚠️ 更新倒计时失败: ${error.message}`);
+                }
+            }, 1000);
+        }
+
+        function calculateRemainingTime(expiresAt) {
+            const expires = new Date(expiresAt);
+            const now = new Date();
+            const diff = Math.max(0, Math.floor((expires - now) / 1000));
+            return diff;
+        }
+
+        async function stopContainer() {
+            if (!token) return;
+
+            clearInterval(progressTimer);
+            clearInterval(checkTimer);
+            clearInterval(countdownTimer);
+
+            document.getElementById('startBtn').disabled = true;
+            document.getElementById('stopBtn').disabled = true;
+
+            try {
+                log('正在停止容器...');
+                const response = await fetch(`${API_BASE}/challenges/challenges/26/stop/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Token ${token}`
+                    }
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    log('✅ 容器已停止');
+                    updateStatus('容器已停止', 'info');
+                    document.getElementById('startup-progress').style.display = 'none';
+                    document.getElementById('access-info').style.display = 'none';
+                    document.getElementById('startBtn').disabled = false;
+                } else {
+                    log(`❌ 停止失败: ${data.message}`);
+                }
+            } catch (error) {
+                log(`❌ 停止失败: ${error.message}`);
+            }
+
+            document.getElementById('stopBtn').disabled = false;
+        }
+
+        // 页面加载时自动登录
+        window.onload = function() {
+            log('页面已加载');
+        };
+    </script>
+</body>
+</html>

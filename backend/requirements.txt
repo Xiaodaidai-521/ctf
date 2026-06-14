@@ -1,0 +1,40 @@
+# Django and REST Framework
+Django==6.0.3
+djangorestframework==3.16.1
+django-cors-headers==4.9.0
+
+# WSGI Server (生产环境)
+gunicorn==23.0.0
+
+# Database (PostgreSQL)
+psycopg2-binary==2.9.10
+
+# Docker support (容器题目管理)
+docker==7.1.0
+
+# HTTP requests
+requests==2.32.5
+requests-toolbelt==1.0.0
+python-dotenv==1.0.1
+
+# ASGI/WSGI
+asgiref==3.11.1
+
+# Security
+bcrypt==4.0.1
+cryptography==44.0.0  # Fernet AES加密
+
+# AI - LangChain + OpenAI Compatible API
+langchain-openai==0.3.16
+langchain-core>=0.3.58
+openai==1.68.2
+
+# Document processing (service.py 延迟导入)
+beautifulsoup4==4.13.3
+docx==0.2.4
+openpyxl==3.1.5
+numpy==2.2.3
+
+# Date and Time
+python-dateutil==2.9.0
+pytz==2024.2

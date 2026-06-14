@@ -1,0 +1,33 @@
+# CTF Platform .gitignore
+
+# 环境变量（包含密码和密钥）
+.env
+.env.production
+.env.local
+backend/.env
+
+# 数据库
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+venv/
+.venv/
+ctf-env/
+
+# Node.js
+node_modules/
+dist/
+
+# Docker
+postgres_data/
+
+# 日志
+
+# 媒体文件
+backend/media/
+
+# IDE
+.vscode/
+.idea/
