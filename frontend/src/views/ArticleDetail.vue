@@ -222,6 +222,7 @@ import hljs from 'highlight.js'
 import 'highlight.js/styles/github.css'
 import api from '@/api'
 import CommentItem from '@/components/CommentItem.vue'
+import { sanitizeHtml } from '@/utils/sanitize'
 
 const route = useRoute()
 const router = useRouter()
@@ -247,7 +248,7 @@ marked.setOptions({
 const renderedContent = computed(() => {
   if (!article.value?.content) return ''
   try {
-    return marked.parse(article.value.content)
+    return sanitizeHtml(marked.parse(article.value.content))
   } catch (error) {
     console.error('Markdown 解析失败:', error)
     return article.value.content

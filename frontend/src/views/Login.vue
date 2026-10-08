@@ -1,95 +1,60 @@
-<template>
+﻿<template>
   <div class="login-page">
     <div class="login-container">
-      <div class="login-header">
+      <header class="login-header">
         <h1 class="login-title">用户登录</h1>
         <p class="login-subtitle">欢迎回到在线学习平台</p>
-      </div>
+      </header>
 
-      <div class="login-form">
-        <div class="form-group">
-          <label class="form-label">用户名</label>
-          <input
-            v-model="form.username"
-            type="text"
-            class="input"
-            placeholder="请输入用户名"
-            @keyup.enter="handleLogin"
-          />
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">密码</label>
-          <input
-            v-model="form.password"
-            type="password"
-            class="input"
-            placeholder="请输入密码"
-            @keyup.enter="handleLogin"
-          />
-        </div>
-
-        <button
-          class="btn btn-primary btn-block btn-large"
-          @click="handleLogin"
-          :disabled="loading"
-        >
-          {{ loading ? '登录中...' : '登录' }}
+      <form class="login-form" @submit.prevent="handleLogin">
+        <label class="form-group">
+          <span class="form-label">用户名</span>
+          <input v-model.trim="form.username" type="text" class="input" autocomplete="username" placeholder="请输入用户名" />
+        </label>
+        <label class="form-group">
+          <span class="form-label">密码</span>
+          <input v-model="form.password" type="password" class="input" autocomplete="current-password" placeholder="请输入密码" />
+        </label>
+        <button class="btn btn-primary btn-block btn-large" type="submit" :disabled="loading">
+          {{ loading ? '登录中…' : '登录' }}
         </button>
-
         <div class="form-footer">
           <span class="form-footer-text">还没有账号？</span>
           <router-link to="/register" class="form-footer-link">立即注册</router-link>
         </div>
-      </div>
-
-      <div v-if="error" class="error-message">
-        {{ error }}
-      </div>
+      </form>
+      <p v-if="error" class="error-message" role="alert">{{ error }}</p>
     </div>
   </div>
 </template>
 
 <script setup>
 import { ref } from 'vue'
-import { useUserStore } from '@/store/user'
 import { useRouter } from 'vue-router'
+import { useUserStore } from '@/store/user'
 
 const userStore = useUserStore()
 const router = useRouter()
-
-const form = ref({
-  username: '',
-  password: ''
-})
-
+const form = ref({ username: '', password: '' })
 const loading = ref(false)
 const error = ref('')
 
 const handleLogin = async () => {
-  console.log('点击登录按钮', form.value)
   if (!form.value.username || !form.value.password) {
-    error.value = '请填写用户名和密码'
+    error.value = '请填写用户名和密码。'
     return
   }
-
   loading.value = true
   error.value = ''
-
   try {
-    console.log('调用userStore.login')
     const result = await userStore.login(form.value)
-    console.log('登录结果:', result)
-    if (result.success) {
-      console.log('准备跳转到首页')
-      await router.push('/')
-      console.log('跳转完成')
-    } else {
+    if (!result.success) {
       error.value = result.message
+      return
     }
-  } catch (err) {
-    console.error('登录异常:', err)
-    error.value = '登录失败，请稍后重试'
+    await router.push(userStore.userInfo?.role === 'teacher' ? '/teacher' : '/')
+  } catch {
+    error.value = '登录失败，请稍后重试。'
   } finally {
     loading.value = false
   }
@@ -97,97 +62,5 @@ const handleLogin = async () => {
 </script>
 
 <style scoped>
-.login-page {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-}
-
-.login-container {
-  width: 100%;
-  max-width: 400px;
-  background: white;
-  padding: 40px;
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg);
-}
-
-.login-header {
-  text-align: center;
-  margin-bottom: 32px;
-}
-
-.login-title {
-  font-size: 24px;
-  font-weight: bold;
-  color: var(--text-primary);
-  margin-bottom: 8px;
-}
-
-.login-subtitle {
-  font-size: 14px;
-  color: var(--text-secondary);
-}
-
-.login-form {
-  margin-bottom: 24px;
-}
-
-.form-group {
-  margin-bottom: 20px;
-}
-
-.form-label {
-  display: block;
-  margin-bottom: 8px;
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--text-primary);
-}
-
-.btn-large {
-  padding: 12px 24px;
-  font-size: 16px;
-  margin-top: 8px;
-  width: 100%;
-}
-
-.form-footer {
-  text-align: center;
-  margin-top: 24px;
-  padding-top: 20px;
-  border-top: 1px solid #f0f0f0;
-}
-
-.form-footer-text {
-  color: var(--text-secondary);
-  font-size: 14px;
-}
-
-.form-footer-link {
-  color: #1890ff;
-  font-size: 14px;
-  margin-left: 4px;
-  text-decoration: none;
-  transition: color 0.3s;
-  font-weight: 500;
-}
-
-.form-footer-link:hover {
-  color: #40a9ff;
-}
-
-.error-message {
-  padding: 12px;
-  background: #fff2f0;
-  border: 1px solid #ffccc7;
-  color: #ff4d4f;
-  border-radius: var(--radius-sm);
-  font-size: 14px;
-  text-align: center;
-  margin-bottom: 16px;
-}
+.login-page{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:linear-gradient(90deg,rgba(24,23,19,.045) 1px,transparent 1px) 0 0/44px 44px,linear-gradient(180deg,#faf7f0 0%,var(--bg-paper) 100%)}.login-container{width:100%;max-width:400px;padding:40px;border:1px solid var(--border-color);border-radius:var(--radius-lg);background:rgba(255,250,242,.86);box-shadow:14px 14px 0 var(--bg-paper-2)}.login-header{text-align:center;margin-bottom:32px}.login-title{margin:0 0 8px;font-size:32px;line-height:1.05;font-weight:950;color:var(--text-primary)}.login-subtitle{margin:0;color:var(--text-secondary);font-size:14px}.login-form{margin-bottom:24px}.form-group{display:block;margin-bottom:20px}.form-label{display:block;margin-bottom:8px;color:var(--text-primary);font-size:14px;font-weight:850}.btn-large{width:100%;margin-top:8px;padding:12px 24px;font-size:16px}.form-footer{margin-top:24px;padding-top:20px;border-top:1px solid #e8dfd2;text-align:center}.form-footer-text{color:var(--text-secondary);font-size:14px}.form-footer-link{margin-left:4px;color:var(--primary-color);font-size:14px;font-weight:850;text-decoration:none}.form-footer-link:hover{color:#8e2721}.error-message{margin:0;padding:12px;border:1px solid rgba(183,53,45,.28);border-radius:var(--radius-sm);background:rgba(183,53,45,.1);color:var(--error-color);font-size:14px;text-align:center}
 </style>

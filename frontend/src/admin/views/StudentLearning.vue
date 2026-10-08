@@ -95,6 +95,9 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import api from '@/api'
+import { useUserStore } from '@/store/user'
+
+const userStore = useUserStore()
 
 const students = ref([])
 const loading = ref(false)
@@ -142,7 +145,12 @@ const modalTitle = computed(() => detail.value ? `${detail.value.username} - 学
 
 const fetchStudents = async () => {
   loading.value = true
-  try { students.value = await api.analytics.adminStudentReport() || [] } catch(e){ console.error(e) }
+  try {
+    const loadReport = userStore.userInfo?.role === 'teacher'
+      ? api.analytics.teacherStudentReport
+      : api.analytics.adminStudentReport
+    students.value = await loadReport() || []
+  } catch(e){ console.error(e) }
   finally { loading.value = false }
 }
 

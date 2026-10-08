@@ -4,8 +4,12 @@ FRP 客户端管理模块
 """
 
 import docker
+import logging
 from django.conf import settings
 from .models import ChallengeContainer
+
+
+logger = logging.getLogger(__name__)
 
 
 class FRPClientManager:
@@ -17,7 +21,7 @@ class FRPClientManager:
         # FRP 服务器配置
         self.frps_server = getattr(settings, 'FRP_SERVER', 'frps-server')
         self.frps_port = getattr(settings, 'FRP_SERVER_PORT', 7000)
-        self.frps_token = getattr(settings, 'FRP_TOKEN', 'ctf_platform_secret')
+        self.frps_token = getattr(settings, 'FRP_TOKEN', '')
         self.frps_vhost_port = getattr(settings, 'FRP_HTTP_PORT', 9123)
 
         # Docker 网络配置
@@ -28,6 +32,9 @@ class FRPClientManager:
 
     def _ensure_image(self):
         """确保 FRP 客户端镜像存在"""
+        if not self.frps_token:
+            logger.error("FRP client container was not started because FRP_TOKEN is not configured")
+            return False
         try:
             self.docker_client.images.get(self.frpc_image)
         except docker.errors.ImageNotFound:
@@ -48,7 +55,8 @@ class FRPClientManager:
         """
         try:
             # 确保 FRP 客户端镜像存在
-            self._ensure_image()
+            if self._ensure_image() is False:
+                return False
 
             # 生成 FRP 客户端配置
             frpc_config = self._generate_frpc_config(container)

@@ -1,5 +1,6 @@
 <template>
   <div class="admin-resources">
+    <ResourceSidebar @resource-clicked="focusReviewList" />
     <div class="page-card">
       <div class="page-header">
         <h3 class="page-title">资源审核</h3>
@@ -185,7 +186,7 @@
         </div>
         <div class="modal-footer">
           <button class="action-btn btn-default" @click="showPreviewModal = false">关闭</button>
-          <button v-if="previewResource?.file_url" class="action-btn btn-primary" @click="downloadResource">
+          <button v-if="previewResource" class="action-btn btn-primary" @click="downloadResource">
             📥 下载文件
           </button>
         </div>
@@ -197,6 +198,7 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import api from '@/api'
+import ResourceSidebar from '@/components/ResourceSidebar.vue'
 
 const resources = ref([])
 const loading = ref(false)
@@ -232,6 +234,10 @@ const pendingCount = computed(() => statusCounts.value.pending || 0)
 const approvedCount = computed(() => statusCounts.value.approved || 0)
 const rejectedCount = computed(() => statusCounts.value.rejected || 0)
 const totalCount = computed(() => statusCounts.value.all || 0)
+
+const focusReviewList = () => {
+  document.querySelector('.page-card')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+}
 
 const fetchResources = async () => {
   loading.value = true
@@ -316,9 +322,26 @@ const handlePreview = (resource) => {
   showPreviewModal.value = true
 }
 
-const downloadResource = () => {
-  if (previewResource.value?.file_url) {
-    window.open(previewResource.value.file_url, '_blank')
+const downloadResource = async () => {
+  if (!previewResource.value) return
+
+  try {
+    const response = await api.resource.download(previewResource.value.id)
+    const contentDisposition = response.headers['content-disposition'] || ''
+    const fileNameMatch = contentDisposition.match(/filename\*?=(?:UTF-8''|\")?([^;\"]+)/i)
+    const fileName = fileNameMatch
+      ? decodeURIComponent(fileNameMatch[1].trim())
+      : previewResource.value.file_name || 'resource-download'
+    const url = URL.createObjectURL(response.data)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = fileName
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+    URL.revokeObjectURL(url)
+  } catch (error) {
+    console.error('Resource download failed:', error)
   }
 }
 
@@ -342,7 +365,8 @@ const getResourceTypeIcon = (type) => {
     'document': '📄',
     'video': '🎬',
     'report': '📊',
-    'zip': '📦'
+    'zip': '📦',
+    'ai_resource': '✨'
   }
   return icons[type] || '📁'
 }
@@ -365,6 +389,10 @@ onMounted(() => {
 <style scoped>
 .admin-resources {
   padding: 24px;
+}
+
+.page-card {
+  min-width: 0;
 }
 
 .filter-bar {
@@ -592,6 +620,7 @@ onMounted(() => {
 .type-video { background: rgba(250, 84, 28, 0.9); color: white; }
 .type-report { background: rgba(82, 196, 26, 0.9); color: white; }
 .type-zip { background: rgba(114, 46, 209, 0.9); color: white; }
+.type-ai_resource { background: rgba(109, 74, 160, 0.9); color: white; }
 .badge-primary { background: var(--primary-color); color: white; }
 
 .preview-meta {
@@ -710,5 +739,11 @@ onMounted(() => {
 .btn-default {
   background: white;
   color: #333;
+}
+
+@media (max-width: 900px) {
+  .admin-resources {
+    padding: 16px;
+  }
 }
 </style>

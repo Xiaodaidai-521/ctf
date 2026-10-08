@@ -3,6 +3,7 @@ from django.core.management.base import BaseCommand
 from ai_assistant.models import ChallengeKnowledgePack, CategoryKnowledgePack
 from ai_assistant.service import MultiAgentChatService
 from challenges.models import Challenge
+from legal_kb.services.platform_indexing_service import PlatformContentIndexingService
 
 
 class Command(BaseCommand):
@@ -61,6 +62,11 @@ class Command(BaseCommand):
             )
             rebuilt_categories += 1
 
+        index_result = PlatformContentIndexingService().index_challenge_knowledge_packs()
+        self.stdout.write(
+            f'Indexed challenge knowledge packs: '
+            f'{index_result.indexed_objects} packs, {index_result.embedded_chunks} chunks.'
+        )
         self.stdout.write(self.style.SUCCESS(
             f'Knowledge pack rebuild complete: {rebuilt_challenges} challenges, {rebuilt_categories} categories.'
         ))

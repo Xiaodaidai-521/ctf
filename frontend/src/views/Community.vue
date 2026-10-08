@@ -15,7 +15,8 @@
             {{ tab.label }}
           </div>
           <button class="write-btn" @click="handleWrite">
-            ✍️ 写文章
+            <i class="bi bi-pencil-square"></i>
+            写文章
           </button>
         </div>
 
@@ -28,7 +29,7 @@
             :class="{ active: selectedCategory === cat.id }"
             @click="handleCategoryChange(cat.id)"
           >
-            <span v-if="cat.icon">{{ cat.icon }}</span>
+            <span class="category-icon"><i :class="['bi', getCategoryIcon(cat)]"></i></span>
             {{ cat.name }}
           </div>
         </div>
@@ -40,7 +41,7 @@
         </div>
 
         <div v-else-if="articles.length === 0" class="empty-state">
-          <div class="empty-icon">📝</div>
+          <div class="empty-icon"><i class="bi bi-journal-text"></i></div>
           <h3>暂无文章</h3>
           <p>快来发布第一篇文章吧</p>
         </div>
@@ -67,7 +68,7 @@
         <!-- 热门文章排行 -->
         <div class="sidebar-card hot-rank">
           <div class="card-header">
-            <h3>🔥 热门文章</h3>
+            <h3><i class="bi bi-fire"></i> 热门文章</h3>
             <span class="more-link" @click="handleViewMore('hot')">更多</span>
           </div>
           <div class="rank-list">
@@ -81,8 +82,8 @@
               <div class="rank-info">
                 <h4 class="rank-title">{{ item.title }}</h4>
                 <div class="rank-stats">
-                  <span>👁️ {{ item.view_count }}</span>
-                  <span>❤️ {{ item.like_count }}</span>
+                  <span><i class="bi bi-eye"></i> {{ item.view_count }}</span>
+                  <span><i class="bi bi-heart-fill"></i> {{ item.like_count }}</span>
                 </div>
               </div>
             </div>
@@ -92,7 +93,7 @@
         <!-- 推荐文章 -->
         <div class="sidebar-card recommend">
           <div class="card-header">
-            <h3>⭐ 精选推荐</h3>
+            <h3><i class="bi bi-bookmark-star"></i> 精选推荐</h3>
             <span class="more-link" @click="handleViewMore('recommend')">更多</span>
           </div>
           <div class="recommend-list">
@@ -114,7 +115,7 @@
         <!-- 分类导航 -->
         <div class="sidebar-card category-nav">
           <div class="card-header">
-            <h3>📂 分类导航</h3>
+            <h3><i class="bi bi-folder2-open"></i> 分类导航</h3>
           </div>
           <div class="category-nav-list">
             <div
@@ -123,7 +124,7 @@
               class="nav-item"
               @click="handleCategoryChange(cat.id)"
             >
-              <span v-if="cat.icon" class="nav-icon">{{ cat.icon }}</span>
+              <span class="nav-icon"><i :class="['bi', getCategoryIcon(cat)]"></i></span>
               <span class="nav-name">{{ cat.name }}</span>
             </div>
           </div>
@@ -160,6 +161,24 @@ const loading = ref(false)
 const loadingMore = ref(false)
 const currentPage = ref(1)
 const hasMore = ref(true)
+
+const categoryIconMap = [
+  { keywords: ['web'], icon: 'bi-globe2' },
+  { keywords: ['网络'], icon: 'bi-lock' },
+  { keywords: ['系统'], icon: 'bi-pc-display' },
+  { keywords: ['devsecops'], icon: 'bi-shield-check' },
+  { keywords: ['移动'], icon: 'bi-phone' },
+  { keywords: ['二进制'], icon: 'bi-diagram-3' },
+  { keywords: ['扫描'], icon: 'bi-search' },
+]
+
+const getCategoryIcon = (category) => {
+  const name = String(category?.name || '').toLowerCase()
+  const match = categoryIconMap.find(item =>
+    item.keywords.some(keyword => name.includes(keyword))
+  )
+  return match?.icon || 'bi-folder2'
+}
 
 const fetchCategories = async () => {
   try {
@@ -309,11 +328,12 @@ onMounted(() => {
 .content-tabs {
   display: flex;
   align-items: center;
-  background: white;
+  background: transparent;
+  border-bottom: 1px solid var(--border-color);
   border-radius: var(--radius-md);
   padding: 0 16px;
   margin-bottom: 16px;
-  box-shadow: var(--shadow-sm);
+  box-shadow: none;
 }
 
 .tab-item {
@@ -337,11 +357,14 @@ onMounted(() => {
 }
 
 .write-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
   margin-left: auto;
   padding: 8px 20px;
   background: var(--primary-color);
-  color: white;
-  border: none;
+  color: #fbf7ef;
+  border: 1px solid var(--primary-color);
   border-radius: var(--radius-sm);
   cursor: pointer;
   font-size: 14px;
@@ -357,33 +380,59 @@ onMounted(() => {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
-  background: white;
+  background: transparent;
   padding: 16px;
+  border-bottom: 1px solid var(--border-color);
   border-radius: var(--radius-md);
   margin-bottom: 16px;
-  box-shadow: var(--shadow-sm);
+  box-shadow: none;
 }
 
 .category-item {
-  padding: 6px 16px;
-  background: #f5f5f5;
-  border-radius: 16px;
+  padding: 7px 14px 7px 8px;
+  background: var(--bg-paper-2);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
   font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
   cursor: pointer;
   transition: all 0.3s;
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 8px;
 }
 
 .category-item:hover {
-  background: #e6f7ff;
+  background: rgba(183, 53, 45, 0.08);
+  border-color: rgba(183, 53, 45, 0.22);
   color: var(--primary-color);
 }
 
 .category-item.active {
   background: var(--primary-color);
-  color: white;
+  border-color: var(--primary-color);
+  color: #fbf7ef;
+}
+
+.category-icon,
+.nav-icon {
+  width: 24px;
+  height: 24px;
+  display: inline-grid;
+  place-items: center;
+  border: 1px solid rgba(24, 23, 19, 0.16);
+  border-radius: 4px;
+  background: #fffaf2bd;
+  color: var(--primary-color);
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+.category-item.active .category-icon {
+  color: #fbf7ef;
+  background: rgba(255, 250, 242, 0.12);
+  border-color: rgba(255, 250, 242, 0.32);
 }
 
 .loading-state,
@@ -394,9 +443,10 @@ onMounted(() => {
   justify-content: center;
   padding: 80px 20px;
   text-align: center;
-  background: white;
+  background: transparent;
+  border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
-  box-shadow: var(--shadow-sm);
+  box-shadow: none;
 }
 
 .loading-spinner {
@@ -414,7 +464,15 @@ onMounted(() => {
 }
 
 .empty-icon {
-  font-size: 80px;
+  width: 72px;
+  height: 72px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(24, 23, 19, 0.16);
+  border-radius: 8px;
+  background: #fffaf2bd;
+  color: var(--primary-color);
+  font-size: 32px;
   margin-bottom: 24px;
 }
 
@@ -431,8 +489,8 @@ onMounted(() => {
 
 .load-more-btn {
   padding: 12px 48px;
-  background: white;
-  border: 1px solid #d9d9d9;
+  background: transparent;
+  border: 1px solid var(--text-primary);
   border-radius: var(--radius-sm);
   cursor: pointer;
   font-size: 14px;
@@ -442,7 +500,7 @@ onMounted(() => {
 
 .load-more-btn:hover:not(:disabled) {
   background: var(--primary-color);
-  color: white;
+  color: #fbf7ef;
   border-color: var(--primary-color);
 }
 
@@ -458,11 +516,12 @@ onMounted(() => {
 }
 
 .sidebar-card {
-  background: white;
+  background: transparent;
+  border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
   padding: 20px;
   margin-bottom: 16px;
-  box-shadow: var(--shadow-sm);
+  box-shadow: none;
 }
 
 .card-header {
@@ -471,13 +530,21 @@ onMounted(() => {
   align-items: center;
   margin-bottom: 16px;
   padding-bottom: 12px;
-  border-bottom: 2px solid #f0f0f0;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .card-header h3 {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   font-size: 16px;
-  font-weight: 600;
+  font-weight: 850;
   color: var(--text-primary);
+}
+
+.card-header h3 .bi {
+  color: var(--primary-color);
+  font-size: 15px;
 }
 
 .more-link {
@@ -500,14 +567,16 @@ onMounted(() => {
   display: flex;
   gap: 12px;
   padding: 12px;
-  background: #fafafa;
-  border-radius: 8px;
+  background: var(--bg-paper-2);
+  border: 1px solid transparent;
+  border-radius: 4px;
   cursor: pointer;
   transition: all 0.3s;
 }
 
 .rank-item:hover {
-  background: #f0f0f0;
+  background: rgba(183, 53, 45, 0.08);
+  border-color: rgba(183, 53, 45, 0.22);
   transform: translateX(4px);
 }
 
@@ -554,6 +623,12 @@ onMounted(() => {
   color: var(--text-secondary);
 }
 
+.rank-stats span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
 .recommend-list {
   display: flex;
   flex-direction: column;
@@ -564,13 +639,13 @@ onMounted(() => {
   display: flex;
   gap: 12px;
   padding: 8px;
-  border-radius: 8px;
+  border-radius: 4px;
   cursor: pointer;
   transition: all 0.3s;
 }
 
 .recommend-item:hover {
-  background: #f5f5f5;
+  background: var(--bg-paper-2);
 }
 
 .recommend-cover {
@@ -578,7 +653,7 @@ onMounted(() => {
   height: 60px;
   border-radius: 6px;
   object-fit: cover;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--bg-dark);
   flex-shrink: 0;
 }
 
@@ -615,20 +690,20 @@ onMounted(() => {
   align-items: center;
   gap: 8px;
   padding: 10px;
-  background: #f5f5f5;
-  border-radius: 6px;
+  background: var(--bg-paper-2);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
   cursor: pointer;
   transition: all 0.3s;
   font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
 }
 
 .nav-item:hover {
-  background: #e6f7ff;
+  background: rgba(183, 53, 45, 0.08);
+  border-color: rgba(183, 53, 45, 0.22);
   color: var(--primary-color);
-}
-
-.nav-icon {
-  font-size: 16px;
 }
 
 .nav-name {

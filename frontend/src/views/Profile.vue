@@ -54,7 +54,7 @@
               :class="{ active: activeTab === menu.value }"
               @click="activeTab = menu.value"
             >
-              <span class="menu-icon">{{ menu.icon }}</span>
+              <span class="menu-icon"><i :class="menu.icon"></i></span>
               <span class="menu-label">{{ menu.label }}</span>
               <span class="menu-count" v-if="menu.count !== undefined">{{ menu.count }}</span>
             </div>
@@ -85,7 +85,7 @@
               </div>
             </div>
             <div v-else class="empty-state">
-              <div class="empty-icon">⭐</div>
+              <div class="empty-icon"><i class="bi bi-bookmark"></i></div>
               <p class="empty-text">还没有收藏任何内容</p>
             </div>
           </div>
@@ -118,7 +118,7 @@
               >
                 <div class="challenge-card-header">
                   <div class="challenge-status-badge">
-                    <span class="status-icon">✓</span>
+                    <span class="status-icon"><i class="bi bi-check2"></i></span>
                     <span class="status-text">已解决</span>
                   </div>
                   <span class="challenge-score">{{ challenge.score }} 分</span>
@@ -135,7 +135,7 @@
               </div>
             </div>
             <div v-else class="empty-state">
-              <div class="empty-icon">🎯</div>
+              <div class="empty-icon"><i class="bi bi-bullseye"></i></div>
               <p class="empty-text">还没有解决任何题目，开始挑战吧！</p>
             </div>
 
@@ -187,7 +187,7 @@
               </div>
             </div>
             <div v-else class="empty-state">
-              <div class="empty-icon">📚</div>
+              <div class="empty-icon"><i class="bi bi-journal-bookmark"></i></div>
               <p class="empty-text">还没有加入学习路径</p>
               <button class="btn btn-link" @click="router.push('/learning-paths')">
                 查看学习路径 →
@@ -218,7 +218,7 @@
               </div>
             </div>
             <div v-else class="empty-state">
-              <div class="empty-icon">📭</div>
+              <div class="empty-icon"><i class="bi bi-inbox"></i></div>
               <p class="empty-text">暂无提交记录</p>
             </div>
           </div>
@@ -227,6 +227,33 @@
           <div v-if="activeTab === 'persona'" class="tab-content">
             <a-spin :loading="personaLoading">
               <div v-if="personaData" class="persona-section">
+                <section v-if="!initialReport" class="persona-card onboarding-cta">
+                  <div>
+                    <h3 class="persona-card-title">完成初始学习画像</h3>
+                    <p>通过 8 轮自然问答建立可追溯的能力基线，完成后将自动形成画像报表。</p>
+                  </div>
+                  <a-button type="primary" @click="router.push('/profile/setup')">开始画像访谈</a-button>
+                </section>
+
+                <section class="persona-card dynamic-growth-card" :class="{ 'dynamic-growth-empty': growthInsufficient }">
+                  <div class="persona-card-head">
+                    <div>
+                      <h3 class="persona-card-title">动态成长画像</h3>
+                      <span v-if="growthInsufficient">暂未产生有效学习数据，完成练习后将生成动态成长画像。</span>
+                      <span v-else>基于已持久化的学习时长、练习与答题结果计算。</span>
+                    </div>
+                    <a-button v-if="growthInsufficient" type="primary" size="small" @click="router.push('/learning-paths')">开始学习</a-button>
+                  </div>
+                  <div class="evidence-metrics dynamic-growth-metrics">
+                    <div><strong>{{ learningMinutes }} 分钟</strong><span>有效学习时长</span></div>
+                    <div><strong>{{ growthData.completed_question_count || 0 }}</strong><span>完成练习</span></div>
+                    <div><strong>{{ growthData.correct_rate || 0 }}%</strong><span>正确率</span></div>
+                    <div><strong>{{ growthAbilityText }}</strong><span>能力等级</span></div>
+                  </div>
+                  <p v-if="growthInsufficient" class="dynamic-growth-hint">
+                    AI 分析门槛：至少完成 {{ growthData.minimum_requirements?.completed_questions || 3 }} 道练习，或累计学习 {{ Math.ceil((growthData.minimum_requirements?.learning_seconds || 600) / 60) }} 分钟；当前还差 {{ growthData.remaining?.completed_questions || 0 }} 道练习或 {{ remainingLearningMinutes }} 分钟。
+                  </p>
+                </section>
                 <section class="persona-hero-card">
                   <div class="persona-hero-main">
                     <div class="persona-kicker">AI 学习画像</div>
@@ -243,43 +270,93 @@
                 </section>
 
                 <div class="persona-grid">
-                  <section class="persona-card">
+                  <section class="persona-card stage-compare-card advantage-compare-card">
                     <div class="persona-card-head">
                       <h3 class="persona-card-title">优势方向</h3>
-                      <span>可迁移到实战解题</span>
+                      <span>对比两个阶段中可迁移到实战解题的能力</span>
                     </div>
-                    <div class="direction-list">
-                      <div v-for="item in strengthItems" :key="item.key || item.label" class="direction-row">
-                        <div class="direction-row-main">
-                          <strong>{{ item.label }}</strong>
-                          <span>{{ item.reason || '当前掌握相对稳定' }}</span>
+                    <div class="stage-compare-grid">
+                      <div class="stage-column initial-stage">
+                        <div class="stage-column-head"><strong>初始画像</strong></div>
+                        <div class="direction-list">
+                          <div v-for="item in initialStrengthItems" :key="`initial-strength-${item.key}`" class="direction-row">
+                            <div class="direction-row-main"><strong>{{ item.label }}</strong><span>{{ item.reason }}</span></div>
+                            <div class="level-bar"><i :style="{ width: `${skillPercent(item.level)}%` }"></i></div>
+                            <em>{{ formatAbilityScore(item.level) }}</em>
+                          </div>
+                          <div v-if="!initialStrengthItems.length" class="quiet-empty">完成入学画像问答后生成。</div>
                         </div>
-                        <div class="level-bar">
-                          <i :style="{ width: `${skillPercent(item.level)}%` }"></i>
-                        </div>
-                        <em>{{ item.level || 0 }}/5</em>
                       </div>
-                      <div v-if="!strengthItems.length" class="quiet-empty">暂无明显优势，先完成自评或更多练习。</div>
+                      <div class="stage-column learned-stage">
+                        <div class="stage-column-head"><strong>动态成长画像</strong></div>
+                        <div class="direction-list">
+                          <template v-if="growthInsufficient">
+                            <div class="direction-row dynamic-empty-row">
+                              <div class="direction-row-main"><strong>暂未产生有效学习数据</strong><span>等待后续有效测评形成优势方向。</span></div>
+                              <div class="level-bar"><i :style="{ width: '0%' }"></i></div>
+                              <em>0 分</em>
+                            </div>
+                            <div class="direction-row dynamic-empty-row">
+                              <div class="direction-row-main"><strong>暂未产生有效学习数据</strong><span>等待后续有效测评形成优势方向。</span></div>
+                              <div class="level-bar"><i :style="{ width: '0%' }"></i></div>
+                              <em>0 分</em>
+                            </div>
+                          </template>
+                          <template v-else v-for="item in learnedStrengthItems" :key="`learned-strength-${item.key}`">
+                          <div class="direction-row">
+                            <div class="direction-row-main"><strong>{{ item.label }}</strong><span>{{ item.reason }}</span></div>
+                            <div class="level-bar"><i :style="{ width: `${skillPercent(item.level)}%` }"></i></div>
+                            <em>{{ formatAbilityScore(item.level) }}</em>
+                          </div>
+                          </template>
+                          <div v-if="!growthInsufficient && !learnedStrengthItems.length" class="quiet-empty">等待后续有效测评形成优势对比。</div>
+                        </div>
+                      </div>
                     </div>
                   </section>
 
-                  <section class="persona-card">
+                  <section class="persona-card stage-compare-card priority-compare-card">
                     <div class="persona-card-head">
                       <h3 class="persona-card-title">优先补强</h3>
-                      <span>下一轮学习重点</span>
+                      <span>分别展示当时的薄弱方向和下一轮重点</span>
                     </div>
-                    <div class="direction-list">
-                      <div v-for="item in weaknessItems" :key="item.key || item.label" class="direction-row weak">
-                        <div class="direction-row-main">
-                          <strong>{{ item.label }}</strong>
-                          <span>{{ item.reason || '建议先补概念和基础题型' }}</span>
+                    <div class="stage-compare-grid">
+                      <div class="stage-column initial-stage">
+                        <div class="stage-column-head"><strong>初始画像</strong></div>
+                        <div class="direction-list">
+                          <div v-for="item in initialWeaknessItems" :key="`initial-weakness-${item.key}`" class="direction-row weak">
+                            <div class="direction-row-main"><strong>{{ item.label }}</strong><span>{{ item.reason }}</span></div>
+                            <div class="level-bar"><i :style="{ width: `${skillPercent(item.level)}%` }"></i></div>
+                            <em>{{ formatAbilityScore(item.level) }}</em>
+                          </div>
+                          <div v-if="!initialWeaknessItems.length" class="quiet-empty">完成入学画像问答后生成。</div>
                         </div>
-                        <div class="level-bar">
-                          <i :style="{ width: `${skillPercent(item.level)}%` }"></i>
-                        </div>
-                        <em>{{ item.level || 0 }}/5</em>
                       </div>
-                      <div v-if="!weaknessItems.length" class="quiet-empty">暂未发现明显短板。</div>
+                      <div class="stage-column learned-stage">
+                        <div class="stage-column-head"><strong>动态成长画像</strong></div>
+                        <div class="direction-list">
+                          <template v-if="growthInsufficient">
+                            <div class="direction-row dynamic-empty-row weak">
+                              <div class="direction-row-main"><strong>暂未产生有效学习数据</strong><span>等待后续有效测评形成优先补强。</span></div>
+                              <div class="level-bar"><i :style="{ width: '0%' }"></i></div>
+                              <em>0 分</em>
+                            </div>
+                            <div class="direction-row dynamic-empty-row weak">
+                              <div class="direction-row-main"><strong>暂未产生有效学习数据</strong><span>等待后续有效测评形成优先补强。</span></div>
+                              <div class="level-bar"><i :style="{ width: '0%' }"></i></div>
+                              <em>0 分</em>
+                            </div>
+                          </template>
+                          <template v-else v-for="item in learnedWeaknessItems" :key="`learned-weakness-${item.key}`">
+                          <div class="direction-row weak">
+                            <div class="direction-row-main"><strong>{{ item.label }}</strong><span>{{ item.reason }}</span></div>
+                            <div class="level-bar"><i :style="{ width: `${skillPercent(item.level)}%` }"></i></div>
+                            <em>{{ formatAbilityScore(item.level) }}</em>
+                          </div>
+                          </template>
+                          <div v-if="!growthInsufficient && !learnedWeaknessItems.length" class="quiet-empty">等待后续有效测评形成补强对比。</div>
+                        </div>
+                      </div>
                     </div>
                   </section>
                 </div>
@@ -319,30 +396,68 @@
                   </div>
                 </section>
 
-                <section v-if="studentProfile" class="persona-card">
-                  <div class="persona-card-head">
-                    <h3 class="persona-card-title">数据依据</h3>
-                    <span>无变化时不会重复调用模型</span>
+                <section v-if="studentProfile" class="persona-card evidence-dashboard">
+                  <div class="persona-card-head evidence-dashboard-head">
+                    <div>
+                      <h3 class="persona-card-title">数据依据</h3>
+                      <p>展示画像结论的数据覆盖度、客观来源与形成过程，所有结果均可追溯。</p>
+                    </div>
+                    <span class="traceable-badge">数据可追溯</span>
                   </div>
-                  <div class="evidence-grid">
-                    <div class="evidence-item">
-                      <span>能力自评</span>
-                      <div class="rating-summary">
-                        <span v-for="(v, k) in studentProfile.self_assessed_skills" :key="k" class="rating-chip">
-                          {{ dirLabel(k) }} {{ v }}★
-                        </span>
+
+                  <div class="evidence-phase-grid">
+                    <section class="evidence-phase initial-evidence-phase">
+                      <div class="evidence-phase-head">
+                        <div><strong>初始画像</strong><span>注册问答形成的能力基线</span></div>
+                        <div class="evidence-confidence"><b>{{ initialConfidencePercent }}%</b><span>画像置信度</span></div>
                       </div>
-                    </div>
-                    <div class="evidence-item" v-if="studentProfile.preference">
-                      <span>学习偏好</span>
-                      <strong>{{ paceText(studentProfile.preference.preferred_pace) }} / {{ studentProfile.preference.daily_study_hours }} 小时/天</strong>
-                    </div>
-                    <div class="evidence-item" v-if="studentProfile.learning_goals">
-                      <span>学习目标</span>
-                      <strong>{{ studentProfile.learning_goals }}</strong>
-                    </div>
+                      <div class="evidence-metrics">
+                        <div><strong>{{ initialQuestionCount }} / 8</strong><span>自然问答完成度</span></div>
+                        <div><strong>{{ initialDirectionCount }} 项</strong><span>能力方向覆盖</span></div>
+                        <div><strong>{{ initialReport ? 4 : 0 }} 类</strong><span>画像信息维度</span></div>
+                        <div><strong>{{ formatShortDate(initialReport?.created_at) }}</strong><span>生成日期</span></div>
+                      </div>
+                      <div class="evidence-source-list">
+                        <div class="evidence-source-row"><i></i><div><strong>原始自然问答</strong><span>目标、技术经历、解题思路、学习偏好</span></div></div>
+                        <div class="evidence-source-row"><i></i><div><strong>AI 结构化分析</strong><span>六维能力、证据、置信度与推荐路径</span></div></div>
+                      </div>
+                    </section>
+
+                    <section class="evidence-phase learned-evidence-phase">
+                      <div class="evidence-phase-head">
+                        <div><strong>动态成长画像</strong><span>真实学习行为形成的成长结论</span></div>
+                        <div class="evidence-confidence"><b>{{ confidencePercent }}%</b><span>画像置信度</span></div>
+                      </div>
+                      <div class="evidence-metrics">
+                        <div><strong>{{ stats.total_submissions || 0 }}</strong><span>累计提交题目</span></div>
+                        <div><strong>{{ stats.success_rate || 0 }}%</strong><span>练习正确率</span></div>
+                        <div><strong>{{ stats.solved_challenges || 0 }}</strong><span>已解题目</span></div>
+                        <div><strong>{{ stats.completion_rate || 0 }}%</strong><span>模块完成率</span></div>
+                      </div>
+                      <div class="evidence-source-list">
+                        <div class="evidence-source-row"><i></i><div><strong>客观学习数据</strong><span>答题结果、完成进度、错题与阶段测评</span></div></div>
+                        <div class="evidence-source-row"><i></i><div><strong>持续校正机制</strong><span>达到有效数据阈值后更新，不重复生成</span></div></div>
+                      </div>
+                    </section>
+                  </div>
+
+                  <div class="evidence-chain-head"><strong>画像证据链</strong><span>从原始数据到画像结论的形成过程</span></div>
+                  <div class="evidence-chain">
+                    <div class="evidence-chain-node initial-node"><strong>01&nbsp; 原始输入</strong><span>8 轮自然问答</span></div><i>→</i>
+                    <div class="evidence-chain-node initial-node"><strong>02&nbsp; 初始分析</strong><span>AI 提取能力与证据</span></div><i>→</i>
+                    <div class="evidence-chain-node learned-node"><strong>03&nbsp; 行为校验</strong><span>练习、测评与进度</span></div><i>→</i>
+                    <div class="evidence-chain-node learned-node"><strong>04&nbsp; 动态更新</strong><span>形成成长画像</span></div>
+                  </div>
+
+                  <div class="evidence-status-strip">
+                    <span>完整性&nbsp; {{ initialQuestionCount === 8 ? '已通过' : '待补充' }}</span>
+                    <span>时效性&nbsp; {{ dataFreshnessText }}</span>
+                    <span>客观性&nbsp; {{ stats.total_submissions ? '学习数据已接入' : '待积累' }}</span>
+                    <em>最近更新：{{ formatStageDate(personaData.last_computed || initialReport?.created_at) }}</em>
                   </div>
                 </section>
+
+                <AbilityRadarCard class="persona-radar-card" />
               </div>
               <div v-else class="empty-state">
                 <div class="empty-icon">🧠</div>
@@ -443,14 +558,16 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '@/store/user'
 import api from '@/api'
+import AbilityRadarCard from '@/components/AbilityRadarCard.vue'
 
 const router = useRouter()
+const route = useRoute()
 const userStore = useUserStore()
 
-const activeTab = ref('solved')
+const activeTab = ref(route.query.tab === 'persona' ? 'persona' : 'solved')
 const submissions = ref([])
 const favorites = ref([])
 const solvedChallenges = ref([])
@@ -459,9 +576,16 @@ const stats = ref({})
 const saving = ref(false)
 const personaData = ref(null)
 const studentProfile = ref(null)
+const profileReports = ref([])
 const personaLoading = ref(false)
+const growthData = ref({})
+const growthInsufficient = computed(() => growthData.value?.analysis_status === 'insufficient_data')
+const learningMinutes = computed(() => Math.floor((growthData.value?.total_learning_seconds || 0) / 60))
+const remainingLearningMinutes = computed(() => Math.ceil((growthData.value?.remaining?.learning_seconds || 0) / 60))
+const growthAbilityText = computed(() => growthInsufficient.value ? '待评估' : `${Math.round(growthData.value?.ability_level || 0)} 分`)
 
 const personaLabelMap = {
+  initial_interview: '初始学习画像',
   code_first: '实践派学员',
   theory_driven: '理论型学员',
   visual_learner: '视觉型学员',
@@ -507,8 +631,74 @@ const personaTraits = computed(() => personaData.value?.persona_traits || {})
 const personaSummary = computed(() => (
   personaTraits.value.summary || '完成自评后，系统会结合评分表生成你的学习画像。'
 ))
-const strengthItems = computed(() => personaTraits.value.strengths || [])
-const weaknessItems = computed(() => personaTraits.value.weaknesses || [])
+const initialReport = computed(() => profileReports.value.find((item) => item.report_type === 'initial') || null)
+const initialReportData = computed(() => initialReport.value?.report_data || {})
+const initialAbilityScores = computed(() => initialReportData.value.ability_scores || {})
+const initialEvidence = computed(() => initialReportData.value.evidence || {})
+const buildInitialDirectionItems = (reverse = false) => Object.entries(initialAbilityScores.value)
+  .map(([key, score]) => ({
+    key,
+    label: dirLabel(key),
+    level: (Number(score) || 0) / 20,
+    reason: initialEvidence.value[key] || '来自注册后自然问答的初始判断',
+  }))
+  .sort((a, b) => reverse ? a.level - b.level : b.level - a.level)
+  .slice(0, 2)
+const initialStrengthItems = computed(() => buildInitialDirectionItems(false))
+const initialWeaknessItems = computed(() => buildInitialDirectionItems(true))
+const normalizePersonaItems = (items, fallbackReason) => (Array.isArray(items) ? items : []).map((item) => {
+  if (typeof item === 'string') {
+    const score = personaTraits.value.ability_scores?.[item] ?? initialAbilityScores.value[item] ?? 0
+    return { key: item, label: dirLabel(item), level: Number(score) / 20, reason: fallbackReason }
+  }
+  const key = item.key || item.name || item.label
+  const rawLevel = item.level ?? item.score ?? personaTraits.value.ability_scores?.[key] ?? 0
+  return {
+    ...item,
+    key,
+    label: item.label || dirLabel(key),
+    level: Number(rawLevel) > 5 ? Number(rawLevel) / 20 : Number(rawLevel),
+    reason: item.reason || fallbackReason,
+  }
+})
+const hasLearningStageData = computed(() => Boolean(growthData.value?.eligible_for_ai))
+const dynamicDirectionItems = computed(() => Object.entries(growthData.value?.dynamic_scores || {})
+  .filter(([key]) => growthData.value?.growth_evidence?.[key]?.status === 'grown')
+  .map(([key, score]) => {
+    const evidence = growthData.value.growth_evidence[key] || {}
+    const delta = Number(growthData.value?.growth_deltas?.[key] || 0)
+    return {
+      key,
+      label: dirLabel(key),
+      level: Number(score) / 20,
+      reason: `较初始画像 +${delta} 分；${evidence.correct || 0}/${evidence.attempts || 0} 次答对`,
+    }
+  }))
+const learnedStrengthItems = computed(() => hasLearningStageData.value
+  ? [...dynamicDirectionItems.value].sort((a, b) => b.level - a.level).slice(0, 2)
+  : [])
+const learnedWeaknessItems = computed(() => {
+  if (!hasLearningStageData.value) return []
+  const items = [...dynamicDirectionItems.value].sort((a, b) => a.level - b.level).slice(0, 2)
+  const initialOrder = initialWeaknessItems.value.map((item) => item.key)
+  return [...items].sort((a, b) => {
+    const aIndex = initialOrder.indexOf(a.key)
+    const bIndex = initialOrder.indexOf(b.key)
+    return (aIndex < 0 ? 999 : aIndex) - (bIndex < 0 ? 999 : bIndex)
+  })
+})
+const initialQuestionCount = computed(() => initialReport.value?.raw_interview?.filter((item) => item.answer)?.length || 0)
+const initialConfidencePercent = computed(() => {
+  const values = Object.values(initialReportData.value.confidence || {}).map(Number).filter(Number.isFinite)
+  return values.length ? Math.round((values.reduce((sum, value) => sum + value, 0) / values.length) * 100) : 0
+})
+const initialDirectionCount = computed(() => Object.keys(initialAbilityScores.value).length)
+const dataFreshnessText = computed(() => {
+  const latest = stats.value.recent_submissions?.[0]?.submitted_at || personaData.value?.last_computed
+  if (!latest || !stats.value.total_submissions) return '待积累'
+  const days = Math.max(0, Math.floor((Date.now() - new Date(latest).getTime()) / 86400000))
+  return days <= 30 ? '近 30 天' : `${days} 天前`
+})
 const paceAdvice = computed(() => personaTraits.value.pace_advice || '保持稳定练习节奏，每轮学习后复盘卡点。')
 const nextActions = computed(() => personaTraits.value.next_actions || [])
 const riskAlerts = computed(() => personaTraits.value.risk_alerts || [])
@@ -523,16 +713,21 @@ const personaStatusText = computed(() => {
   return '画像已生成'
 })
 const skillPercent = (level) => Math.max(0, Math.min(Number(level) || 0, 5)) * 20
+const formatAbilityScore = (level) => `${Math.round((Number(level) || 0) * 20)} 分`
+const formatStageDate = (value) => value ? new Date(value).toLocaleDateString('zh-CN') : '暂无'
+const formatShortDate = (value) => value
+  ? new Date(value).toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit' })
+  : '--/--'
 
 const isAdminUser = computed(() => userStore.userInfo?.role === 'admin')
 
 const baseMenus = [
-  { label: '收藏', value: 'favorites', icon: '⭐', count: computed(() => favorites.length) },
-  { label: '完成题目', value: 'solved', icon: '✓', count: computed(() => solvedChallenges.length) },
-  { label: '学习进度', value: 'progress', icon: '📚', count: computed(() => learningPaths.length) },
-  { label: '提交记录', value: 'submissions', icon: '📝', count: computed(() => submissions.length) },
-  { label: '个人资料', value: 'profile', icon: '👤' },
-  { label: '学习画像', value: 'persona', icon: '🧠' }
+  { label: '收藏', value: 'favorites', icon: 'bi bi-bookmark', count: computed(() => favorites.length) },
+  { label: '完成题目', value: 'solved', icon: 'bi bi-check2-square', count: computed(() => solvedChallenges.length) },
+  { label: '学习进度', value: 'progress', icon: 'bi bi-bar-chart', count: computed(() => learningPaths.length) },
+  { label: '提交记录', value: 'submissions', icon: 'bi bi-file-earmark-text', count: computed(() => submissions.length) },
+  { label: '个人资料', value: 'profile', icon: 'bi bi-person' },
+  { label: '学习画像', value: 'persona', icon: 'bi bi-cpu' }
 ]
 
 const menus = computed(() => (
@@ -639,14 +834,20 @@ const fetchLearningPaths = async () => {
 const fetchPersona = async () => {
   personaLoading.value = true
   try {
-    const [profile, persona] = await Promise.all([
+    const [profile, persona, reports, growth] = await Promise.all([
       api.studentProfile.get(),
-      api.studentProfile.persona()
+      api.studentProfile.persona(),
+      api.studentProfile.reports(),
+      api.studentProfile.growth()
     ])
     studentProfile.value = profile
     personaData.value = persona
+    profileReports.value = Array.isArray(reports) ? reports : []
+    growthData.value = persona?.dynamic_growth || growth || {}
   } catch {
     personaData.value = null
+    profileReports.value = []
+    growthData.value = {}
   } finally {
     personaLoading.value = false
   }
@@ -1328,6 +1529,22 @@ onMounted(async () => {
   gap: 14px;
 }
 
+.onboarding-cta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border-color: rgba(184, 51, 43, 0.32);
+  background: #fffaf7;
+}
+
+.onboarding-cta p {
+  margin: 6px 0 0;
+  color: var(--text-secondary);
+  line-height: 1.65;
+}
+
 .persona-hero-card,
 .persona-card {
   border: 1px solid #e3e8f0;
@@ -1413,6 +1630,335 @@ onMounted(async () => {
 
 .persona-card {
   padding: 14px;
+}
+
+.stage-compare-card {
+  grid-column: 1 / -1;
+}
+
+.stage-compare-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border-top: 1px solid #e4ded5;
+}
+
+.stage-column {
+  min-width: 0;
+  padding: 14px 12px 4px;
+}
+
+.stage-column + .stage-column {
+  border-left: 1px solid #ddd7cd;
+}
+
+.stage-column-head {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.stage-column-head strong {
+  color: #b8332b;
+  font-size: 14px;
+}
+
+.stage-column-head span {
+  color: #837c72;
+  font-size: 11px;
+}
+
+.learned-stage .stage-column-head strong {
+  color: #4f7d59;
+}
+
+.initial-stage .direction-row {
+  background: #fbf0ed;
+}
+
+.learned-stage .direction-row {
+  background: #eef5ef;
+}
+
+.initial-stage .level-bar i,
+.initial-stage .direction-row.weak .level-bar i {
+  background: #b8332b;
+}
+
+.learned-stage .level-bar i,
+.learned-stage .direction-row.weak .level-bar i {
+  background: #4f7d59;
+}
+
+.evidence-stage-grid {
+  margin-top: 4px;
+}
+
+.evidence-empty {
+  min-height: 96px;
+  display: grid;
+  place-items: center;
+}
+
+.evidence-dashboard {
+  padding: 18px;
+}
+
+.evidence-dashboard-head {
+  padding-bottom: 14px;
+  border-bottom: 1px solid #e3ddd3;
+}
+
+.evidence-dashboard-head p {
+  margin: 6px 0 0;
+  color: #746d63;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.persona-card-head .traceable-badge {
+  flex: none;
+  padding: 6px 10px;
+  border-radius: 4px;
+  background: #e8f2ea;
+  color: #4f7d59;
+  font-weight: 700;
+}
+
+.evidence-phase-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.evidence-phase {
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid;
+  border-radius: 7px;
+}
+
+.initial-evidence-phase {
+  border-color: #e5c5bf;
+  background: #fdf8f6;
+}
+
+.learned-evidence-phase {
+  border-color: #c8dccd;
+  background: #f4f9f5;
+}
+
+.evidence-phase-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.evidence-phase-head > div:first-child strong,
+.evidence-phase-head > div:first-child span,
+.evidence-confidence b,
+.evidence-confidence span {
+  display: block;
+}
+
+.evidence-phase-head > div:first-child strong {
+  color: #b8332b;
+  font-size: 16px;
+}
+
+.learned-evidence-phase .evidence-phase-head > div:first-child strong {
+  color: #4f7d59;
+}
+
+.evidence-phase-head > div:first-child span,
+.evidence-confidence span {
+  margin-top: 5px;
+  color: #7b746b;
+  font-size: 11px;
+}
+
+.evidence-confidence {
+  text-align: right;
+}
+
+.evidence-confidence b {
+  color: #b8332b;
+  font-size: 25px;
+}
+
+.learned-evidence-phase .evidence-confidence b {
+  color: #4f7d59;
+}
+
+.evidence-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin: 18px 0;
+}
+
+.evidence-metrics strong,
+.evidence-metrics span {
+  display: block;
+}
+
+.evidence-metrics strong {
+  color: #b8332b;
+  font-size: 20px;
+}
+
+.learned-evidence-phase .evidence-metrics strong {
+  color: #4f7d59;
+}
+
+.evidence-metrics span {
+  margin-top: 5px;
+  color: #746d63;
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+.evidence-source-list {
+  display: grid;
+  gap: 8px;
+}
+
+.evidence-source-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  min-height: 54px;
+  padding: 9px 12px;
+  border: 1px solid #e2dcd2;
+  border-radius: 5px;
+  background: #fff;
+}
+
+.evidence-source-row i {
+  width: 10px;
+  height: 10px;
+  flex: 0 0 10px;
+  border-radius: 50%;
+  background: #b8332b;
+}
+
+.learned-evidence-phase .evidence-source-row i {
+  background: #4f7d59;
+}
+
+.evidence-source-row strong,
+.evidence-source-row span {
+  display: block;
+}
+
+.evidence-source-row strong {
+  color: #292621;
+  font-size: 12px;
+}
+
+.evidence-source-row span {
+  margin-top: 3px;
+  color: #7b746b;
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+.evidence-chain-head {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  margin-top: 18px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #e3ddd3;
+}
+
+.evidence-chain-head strong {
+  font-size: 14px;
+}
+
+.evidence-chain-head span {
+  color: #7b746b;
+  font-size: 11px;
+}
+
+.evidence-chain {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 20px minmax(0, 1fr) 20px minmax(0, 1fr) 20px minmax(0, 1.25fr);
+  gap: 8px;
+  align-items: center;
+  padding: 14px 0;
+}
+
+.evidence-chain > i {
+  color: #aaa298;
+  font-size: 18px;
+  font-style: normal;
+  text-align: center;
+}
+
+.evidence-chain-node {
+  min-height: 58px;
+  padding: 10px 12px;
+  border: 1px solid;
+  border-radius: 5px;
+  background: #fff;
+}
+
+.evidence-chain-node strong,
+.evidence-chain-node span {
+  display: block;
+}
+
+.evidence-chain-node strong {
+  font-size: 11px;
+}
+
+.evidence-chain-node span {
+  margin-top: 7px;
+  color: #746d63;
+  font-size: 10px;
+}
+
+.initial-node { border-color: #b8332b; }
+.initial-node strong { color: #b8332b; }
+.learned-node { border-color: #4f7d59; }
+.learned-node strong { color: #4f7d59; }
+
+.evidence-status-strip {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 9px 12px;
+  border: 1px solid #e3ddd3;
+  border-radius: 5px;
+  background: #f6f3ee;
+}
+
+.evidence-status-strip span {
+  padding: 5px 9px;
+  border-radius: 4px;
+  background: #e4efe6;
+  color: #4f7d59;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.evidence-status-strip em {
+  margin-left: auto;
+  color: #756e64;
+  font-size: 10px;
+  font-style: normal;
+}
+
+.advantage-compare-card .direction-row {
+  height: 96px;
+  box-sizing: border-box;
+}
+
+.priority-compare-card .direction-row {
+  height: 96px;
+  box-sizing: border-box;
 }
 
 .persona-card-head {
@@ -1504,6 +2050,20 @@ onMounted(async () => {
   text-align: center;
 }
 
+.dynamic-empty-row {
+  height: 96px;
+}
+
+.dynamic-empty-row .direction-row-main strong {
+  font-size: 14px;
+  margin-bottom: 5px;
+}
+
+.dynamic-empty-row .direction-row-main span {
+  font-size: 12px;
+  line-height: 1.5;
+}
+
 .advice-layout {
   display: grid;
   grid-template-columns: 1fr 1.1fr 1.1fr;
@@ -1590,6 +2150,45 @@ onMounted(async () => {
   font-size: 13px;
   font-weight: 500;
   line-height: 1.5;
+}
+
+@media (max-width: 820px) {
+  .stage-compare-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .stage-column + .stage-column {
+    border-left: 0;
+    border-top: 1px solid #ddd7cd;
+    margin-top: 10px;
+  }
+
+  .direction-row {
+    grid-template-columns: minmax(0, 1fr) 72px 44px;
+  }
+
+  .evidence-phase-grid,
+  .evidence-chain {
+    grid-template-columns: 1fr;
+  }
+
+  .evidence-chain > i {
+    transform: rotate(90deg);
+  }
+
+  .evidence-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .evidence-status-strip {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .evidence-status-strip em {
+    width: 100%;
+    margin-left: 0;
+  }
 }
 
 /* 空状态 */
@@ -1694,6 +2293,280 @@ onMounted(async () => {
   background: #f5f5f5;
   color: #c9ccd0;
   cursor: not-allowed;
+}
+
+/* Phase 2 Editorial UI override */
+.profile-page {
+  padding: 42px 0 72px;
+  background:
+    linear-gradient(90deg, rgba(24, 23, 19, 0.045) 1px, transparent 1px) 0 0 / 44px 44px,
+    linear-gradient(180deg, #faf7f0 0%, var(--bg-paper) 100%);
+}
+
+.container {
+  width: min(1180px, calc(100% - 40px));
+  max-width: none;
+  padding: 0;
+}
+
+.profile-container {
+  grid-template-columns: 280px minmax(0, 1fr);
+  gap: 18px;
+}
+
+.user-card,
+.sidebar-menu,
+.profile-main,
+.list-card,
+.challenge-card,
+.path-item,
+.persona-hero-card,
+.persona-card,
+.advice-panel,
+.evidence-panel,
+.form-card {
+  background: rgba(255, 250, 242, 0.72);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  box-shadow: none;
+}
+
+.user-card {
+  padding: 24px 22px;
+}
+
+.user-avatar {
+  background: var(--text-primary);
+  color: #fbf7ef;
+  border-radius: 4px;
+  box-shadow: 8px 8px 0 rgba(24, 23, 19, 0.1);
+}
+
+.user-name,
+.content-title,
+.challenge-card-title,
+.card-title,
+.path-title,
+.submission-title,
+.persona-title,
+.persona-card-title,
+.overview-value,
+.overview-rank {
+  color: var(--text-primary);
+  font-weight: 950;
+}
+
+.user-id,
+.user-bio,
+.stat-mini-label,
+.card-summary,
+.challenge-card-desc,
+.path-meta,
+.submission-flag,
+.persona-summary,
+.empty-text,
+.card-meta,
+.card-time {
+  color: var(--text-secondary);
+}
+
+.user-role,
+.role-admin,
+.role-teacher,
+.role-student,
+.challenge-status-badge,
+.completed-badge,
+.card-tag,
+.card-difficulty,
+.meta-tag,
+.persona-status,
+.card-badge,
+.sub-badge-correct,
+.sub-badge-wrong {
+  background: var(--bg-paper-2);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  font-weight: 850;
+}
+
+.user-stats-mini,
+.content-header,
+.challenge-card-footer,
+.path-actions,
+.modal-header,
+.modal-footer {
+  border-color: var(--border-color);
+}
+
+.stat-mini-value {
+  color: var(--text-primary);
+  font-weight: 950;
+}
+
+.sidebar-menu {
+  overflow: hidden;
+}
+
+.menu-item {
+  border-left: 0;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-primary);
+}
+
+.menu-item:last-child {
+  border-bottom: 0;
+}
+
+.menu-item:hover,
+.menu-item.active {
+  background: var(--bg-paper-2);
+  color: var(--text-primary);
+}
+
+.menu-item.active {
+  box-shadow: inset 4px 0 0 var(--text-primary);
+}
+
+.menu-icon {
+  color: var(--text-primary);
+  font-size: 15px;
+}
+
+.menu-label {
+  color: inherit;
+  font-weight: 750;
+}
+
+.menu-count {
+  background: rgba(24, 23, 19, 0.08);
+  color: var(--text-secondary);
+  border-radius: 4px;
+}
+
+.profile-main {
+  min-height: 520px;
+}
+
+.tab-content {
+  background: transparent;
+}
+
+.stats-overview {
+  gap: 14px;
+}
+
+.overview-card,
+.rank-card {
+  background: transparent;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  box-shadow: none;
+}
+
+.overview-value,
+.overview-rank {
+  color: var(--text-primary) !important;
+  text-shadow: none !important;
+}
+
+.overview-label {
+  color: var(--text-secondary);
+}
+
+.challenge-card:hover,
+.list-card:hover,
+.path-item:hover {
+  border-color: var(--text-primary);
+  box-shadow: 8px 8px 0 rgba(24, 23, 19, 0.1);
+  transform: translateY(-2px);
+}
+
+.challenge-status-badge {
+  gap: 6px;
+}
+
+.status-icon,
+.status-text {
+  color: var(--text-primary);
+}
+
+.challenge-score {
+  color: var(--text-primary);
+  font-weight: 950;
+}
+
+.diff-easy,
+.diff-medium,
+.diff-hard,
+.diff-expert {
+  background: var(--bg-paper-2);
+  color: var(--text-primary);
+}
+
+.progress-bar {
+  background: var(--bg-paper-2);
+}
+
+.progress-fill {
+  background: var(--text-primary);
+}
+
+.progress-text,
+.persona-kicker,
+.confidence-ring strong {
+  color: var(--primary-color);
+}
+
+.submission-item,
+.submission-item.correct {
+  background: rgba(255, 250, 242, 0.62);
+  border: 1px solid var(--border-color);
+  border-left: 4px solid var(--text-primary);
+}
+
+.submission-item.correct .submission-icon,
+.submission-item:not(.correct) .submission-icon {
+  background: var(--text-primary);
+  color: #fbf7ef;
+}
+
+.confidence-ring {
+  background:
+    radial-gradient(circle at center, #fffaf2 56%, transparent 57%),
+    conic-gradient(var(--primary-color) calc(var(--confidence, 0) * 1%), var(--bg-paper-2) 0);
+  box-shadow: inset 0 0 0 1px var(--border-color);
+}
+
+.empty-icon {
+  color: var(--text-primary);
+  font-size: 32px;
+}
+
+.input,
+.textarea {
+  background: rgba(255, 250, 242, 0.78);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+.input:focus,
+.textarea:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(183, 53, 45, 0.12);
+}
+
+.btn-primary {
+  background: var(--text-primary);
+  color: #fbf7ef;
+}
+
+.btn-primary:hover {
+  background: #2a2823;
+}
+
+.btn-link {
+  color: var(--primary-color);
 }
 
 @media (max-width: 768px) {

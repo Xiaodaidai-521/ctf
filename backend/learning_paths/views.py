@@ -21,11 +21,20 @@ from .serializers import (
     UserKnowledgeStateSerializer, LearningPathRecommendationSerializer,
     ResourceRecommendationSerializer, LabAttemptSerializer
 )
+from users.permissions import IsTeacherOrAdmin
+
+
+MANAGEMENT_ACTIONS = {'create', 'update', 'partial_update', 'destroy'}
 
 
 class LearningPathViewSet(viewsets.ModelViewSet):
     """学习路径视图"""
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+    def get_permissions(self):
+        if self.action in MANAGEMENT_ACTIONS:
+            return [IsTeacherOrAdmin()]
+        return [permissions.IsAuthenticatedOrReadOnly()]
 
     def get_queryset(self):
         queryset = LearningPath.objects.filter(is_published=True)
@@ -97,6 +106,11 @@ class PathModuleViewSet(viewsets.ModelViewSet):
     """路径模块视图"""
     serializer_class = PathModuleSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+    def get_permissions(self):
+        if self.action in MANAGEMENT_ACTIONS:
+            return [IsTeacherOrAdmin()]
+        return [permissions.IsAuthenticatedOrReadOnly()]
 
     def get_queryset(self):
         queryset = PathModule.objects.select_related('learning_path', 'parent_module').prefetch_related('requires_modules', 'module_labs__lab')
@@ -201,6 +215,11 @@ class PathModuleViewSet(viewsets.ModelViewSet):
             behavior_type='complete_module',
             content_object=module
         )
+        from learning_analytics.events import record_learning_event
+        record_learning_event(user, 'module_completed', {
+            'module_id': module.id,
+            'learning_path_id': module.learning_path_id,
+        })
 
         serializer = UserModuleProgressSerializer(user_module)
         return Response(serializer.data)
@@ -363,6 +382,11 @@ class KnowledgeConceptViewSet(viewsets.ModelViewSet):
     """知识概念视图"""
     serializer_class = KnowledgeConceptSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+    def get_permissions(self):
+        if self.action in MANAGEMENT_ACTIONS:
+            return [IsTeacherOrAdmin()]
+        return [permissions.IsAuthenticatedOrReadOnly()]
 
     def get_queryset(self):
         queryset = KnowledgeConcept.objects.all()

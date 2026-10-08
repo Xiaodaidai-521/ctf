@@ -85,6 +85,15 @@ def _get_serializer_for_instance(instance):
     return None
 
 
+def _get_owned_content(content_id, user):
+    instance, model = _find_content_by_id(content_id)
+    if instance is None:
+        return None, None
+    if instance.created_by_id and instance.created_by_id != user.id and not user.is_staff:
+        return None, None
+    return instance, model
+
+
 # ------------------------------------------------------------------
 # 生成视图
 # ------------------------------------------------------------------
@@ -216,7 +225,7 @@ class GeneratedContentDetailView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, pk):
-        instance, _model = _find_content_by_id(pk)
+        instance, _model = _get_owned_content(pk, request.user)
         if instance is None:
             return Response({'error': '内容不存在'}, status=status.HTTP_404_NOT_FOUND)
 
@@ -232,7 +241,7 @@ class RegenerateContentView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, pk):
-        instance, model_cls = _find_content_by_id(pk)
+        instance, model_cls = _get_owned_content(pk, request.user)
         if instance is None:
             return Response({'error': '内容不存在'}, status=status.HTTP_404_NOT_FOUND)
 

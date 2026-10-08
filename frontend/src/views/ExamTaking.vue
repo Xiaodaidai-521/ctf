@@ -245,6 +245,7 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import api from '@/api'
+import { sanitizeHtml } from '@/utils/sanitize'
 
 const router = useRouter()
 const route = useRoute()
@@ -291,11 +292,11 @@ const getQuestionTypeText = (type) => {
 const formatQuestion = (question) => {
   // 理论题
   if (question.question_detail) {
-    return question.question_detail.question_text
+    return sanitizeHtml(question.question_detail.question_text)
   }
   // 实战题
   if (question.challenge) {
-    return question.challenge.description || question.challenge_title
+    return sanitizeHtml(question.challenge.description || question.challenge_title)
   }
   return ''
 }
@@ -528,16 +529,10 @@ const formatTime = (seconds) => {
 // 加载考试信息
 const loadExamInfo = async () => {
   console.log('开始加载考试信息, recordId:', recordId)
-  console.log('当前 token:', localStorage.getItem('token'))
 
   try {
     // 添加原始响应日志
-    const response = await fetch(`/api/exams/records/${recordId}/result/`, {
-      headers: {
-        'Authorization': `Token ${localStorage.getItem('token')}`
-      }
-    })
-    const rawRecord = await response.json()
+    const rawRecord = await api.exams.getExamResult(recordId)
     console.log('=== 原始 API 响应 ===')
     console.log('原始响应数据:', rawRecord)
     console.log('原始响应 theory_exam:', rawRecord.theory_exam)

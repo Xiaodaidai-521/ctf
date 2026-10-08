@@ -25,11 +25,14 @@ const isAdminRoute = computed(() => {
 <style>
 #app {
   min-height: 100vh;
-  background-color: #f5f5f5;
+  background:
+    linear-gradient(90deg, rgba(24, 23, 19, 0.045) 1px, transparent 1px) 0 0 / 44px 44px,
+    linear-gradient(180deg, #faf7f0 0%, var(--bg-paper) 44%, #f8f4ed 100%);
 }
 
 .app-container {
   padding-top: 64px;
+  min-height: 100vh;
 }
 
 .app-container.no-navbar {

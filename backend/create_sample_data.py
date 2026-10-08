@@ -17,7 +17,7 @@ if not User.objects.filter(username='admin').exists():
         password='admin123456',
         nickname='管理员',
         team='CTF官方',
-        is_admin=True
+        role='admin'
     )
     print(f"✓ 创建管理员用户: {admin_user.username}")
 

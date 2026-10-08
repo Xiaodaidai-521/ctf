@@ -159,6 +159,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { marked } from 'marked'
+import { sanitizeHtml } from '@/utils/sanitize'
 import { useUserStore } from '@/store/user'
 import api from '@/api'
 
@@ -199,10 +200,10 @@ const toastType = ref('success')
 const renderedContent = computed(() => {
   if (!articleForm.value.content) return '<p class="empty-hint">预览内容将显示在这里...</p>'
   try {
-    return marked.parse(articleForm.value.content)
+    return sanitizeHtml(marked.parse(articleForm.value.content))
   } catch (error) {
     console.error('Markdown 解析失败:', error)
-    return articleForm.value.content
+    return sanitizeHtml(articleForm.value.content)
   }
 })
 

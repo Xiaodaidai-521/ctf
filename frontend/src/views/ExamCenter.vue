@@ -37,7 +37,7 @@
       <div class="chart-container">
         <div ref="chartRef" class="chart"></div>
         <div v-if="!hasExamHistory" class="no-data">
-          <div class="no-data-icon">📊</div>
+          <div class="no-data-icon"><i class="bi bi-graph-up"></i></div>
           <div class="no-data-text">暂无考试记录</div>
           <div class="no-data-desc">完成考试后将显示成绩趋势图</div>
         </div>
@@ -47,7 +47,7 @@
     <!-- 考试统计卡片 -->
     <div class="stats-grid">
       <div class="stat-card">
-        <div class="stat-icon" style="background: #e6f7ff; color: #1890ff;">
+        <div class="stat-icon">
           <i class="bi bi-journal-check"></i>
         </div>
         <div class="stat-content">
@@ -56,7 +56,7 @@
         </div>
       </div>
       <div class="stat-card">
-        <div class="stat-icon" style="background: #f6ffed; color: #52c41a;">
+        <div class="stat-icon">
           <i class="bi bi-check-circle"></i>
         </div>
         <div class="stat-content">
@@ -65,7 +65,7 @@
         </div>
       </div>
       <div class="stat-card">
-        <div class="stat-icon" style="background: #fff7e6; color: #faad14;">
+        <div class="stat-icon">
           <i class="bi bi-trophy"></i>
         </div>
         <div class="stat-content">
@@ -74,7 +74,7 @@
         </div>
       </div>
       <div class="stat-card">
-        <div class="stat-icon" style="background: #fff1f0; color: #ff4d4f;">
+        <div class="stat-icon">
           <i class="bi bi-star"></i>
         </div>
         <div class="stat-content">
@@ -94,14 +94,14 @@
         <div class="exam-info-content">
           <div class="exam-type">
             <div class="type-item">
-              <div class="type-icon">📚</div>
+              <div class="type-icon"><i class="bi bi-journal-text"></i></div>
               <div class="type-info">
                 <div class="type-name">理论测试</div>
                 <div class="type-desc">30单选 + 20多选 + 20判断</div>
               </div>
             </div>
             <div class="type-item">
-              <div class="type-icon">💻</div>
+              <div class="type-icon"><i class="bi bi-terminal"></i></div>
               <div class="type-info">
                 <div class="type-name">实战测试</div>
                 <div class="type-desc">3简单 + 2中等 + 1困难</div>
@@ -109,9 +109,9 @@
             </div>
           </div>
           <div class="exam-tips">
-            <div class="tip-item">⏰ 理论测试限时 180 分钟</div>
-            <div class="tip-item">⏰ 实战测试限时 180 分钟</div>
-            <div class="tip-item">📝 完成理论测试后自动进入实战测试</div>
+            <div class="tip-item"><i class="bi bi-clock"></i> 理论测试限时 180 分钟</div>
+            <div class="tip-item"><i class="bi bi-clock-history"></i> 实战测试限时 180 分钟</div>
+            <div class="tip-item"><i class="bi bi-arrow-right-square"></i> 完成理论测试后自动进入实战测试</div>
           </div>
         </div>
         <div v-if="hasOngoingExam && ongoingExamId" class="ongoing-exam-actions">
@@ -128,7 +128,8 @@
             放弃当前考试并开始新考试
           </button>
           <div class="ongoing-warning">
-            ⚠️ 放弃当前考试将无法恢复
+            <i class="bi bi-exclamation-triangle"></i>
+            放弃当前考试将无法恢复
           </div>
         </div>
         <button
@@ -151,7 +152,7 @@
       </div>
       <div class="history-list">
         <div v-if="recentRecords.length === 0" class="no-history">
-          <div class="no-history-icon">📋</div>
+          <div class="no-history-icon"><i class="bi bi-clipboard2-check"></i></div>
           <div class="no-history-text">暂无考试记录</div>
           <div class="no-history-desc">开始测试后，考试记录将显示在这里</div>
         </div>
@@ -291,13 +292,13 @@ const initChart = () => {
 
   if (!scoreChart) scoreChart = echarts.init(chartRef.value)
   const option = {
-    color: ['#165dff', '#00b42a', '#ff7d00'],
+    color: ['#b7352d', '#4f7c52', '#d58b25'],
     tooltip: {
       trigger: 'axis',
-      backgroundColor: 'rgba(255,255,255,0.96)',
-      borderColor: '#e5e8ef',
+      backgroundColor: 'rgba(255, 250, 242, 0.96)',
+      borderColor: '#e4d8c8',
       borderWidth: 1,
-      textStyle: { color: '#1d2129' },
+      textStyle: { color: '#181713' },
       valueFormatter: (value) => (value === null || value === undefined ? '-' : `${value}%`),
     },
     legend: {
@@ -306,7 +307,7 @@ const initChart = () => {
       icon: 'roundRect',
       itemWidth: 18,
       itemHeight: 10,
-      textStyle: { color: '#4e5969' },
+      textStyle: { color: '#6f665d' },
     },
     grid: {
       left: 42,
@@ -320,9 +321,9 @@ const initChart = () => {
       boundaryGap: false,
       data: scoreTrend.value.dates,
       axisTick: { show: false },
-      axisLine: { lineStyle: { color: '#e5e8ef' } },
+      axisLine: { lineStyle: { color: '#e4d8c8' } },
       axisLabel: {
-        color: '#86909c',
+        color: '#8a8178',
         fontSize: 11,
         hideOverlap: true,
         formatter: (value) => (value && value.length > 5 ? value.slice(5) : value),
@@ -334,10 +335,10 @@ const initChart = () => {
       min: 0,
       max: 100,
       axisLabel: {
-        color: '#86909c',
+        color: '#8a8178',
         formatter: '{value}%',
       },
-      splitLine: { lineStyle: { color: '#edf1f7' } },
+      splitLine: { lineStyle: { color: '#ece2d6' } },
     },
     series: [
       {
@@ -347,7 +348,7 @@ const initChart = () => {
         smooth: true,
         symbolSize: 7,
         lineStyle: { width: 3 },
-        areaStyle: { color: 'rgba(22, 93, 255, 0.10)' },
+        areaStyle: { color: 'rgba(183, 53, 45, 0.10)' },
       },
       {
         name: '理论',
@@ -374,12 +375,31 @@ const initChart = () => {
 
 const resizeChart = () => scoreChart?.resize()
 
-const normalizeTrend = (trend) => ({
-  dates: Array.isArray(trend?.dates) ? trend.dates : [],
-  scores: Array.isArray(trend?.scores) ? trend.scores : [],
-  theory_scores: Array.isArray(trend?.theory_scores) ? trend.theory_scores : [],
-  practice_scores: Array.isArray(trend?.practice_scores) ? trend.practice_scores : [],
-})
+const fillMissingTrendSeries = (values, length) => {
+  const series = Array.isArray(values) ? values.slice(0, length) : []
+  while (series.length < length) series.push(null)
+
+  const firstValue = series.find((value) => value !== null && value !== undefined)
+  let lastValue = firstValue ?? 0
+
+  return series.map((value) => {
+    if (value !== null && value !== undefined) {
+      lastValue = value
+      return value
+    }
+    return lastValue
+  })
+}
+
+const normalizeTrend = (trend) => {
+  const dates = Array.isArray(trend?.dates) ? trend.dates : []
+  return {
+    dates,
+    scores: Array.isArray(trend?.scores) ? trend.scores : [],
+    theory_scores: Array.isArray(trend?.theory_scores) ? trend.theory_scores : [],
+    practice_scores: fillMissingTrendSeries(trend?.practice_scores, dates.length),
+  }
+}
 
 // 加载数据
 const loadData = async () => {
@@ -512,7 +532,7 @@ onUnmounted(() => {
 .exam-center-page {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 24px;
+  padding: 44px 24px 32px;
 }
 
 .page-header {
@@ -521,15 +541,16 @@ onUnmounted(() => {
 }
 
 .page-title {
-  font-size: 32px;
-  font-weight: bold;
-  color: #1a1a1a;
+  font-size: 44px;
+  line-height: 1;
+  font-weight: 950;
+  color: var(--text-primary);
   margin-bottom: 8px;
 }
 
 .page-subtitle {
   font-size: 16px;
-  color: #666;
+  color: var(--text-secondary);
 }
 
 /* 学习等级卡片 */
@@ -538,10 +559,11 @@ onUnmounted(() => {
 }
 
 .level-card {
-  background: white;
-  border-radius: 12px;
+  background: var(--bg-paper-2);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
   padding: 28px;
-  box-shadow: 0 8px 24px rgba(22, 93, 255, 0.08);
+  box-shadow: 10px 10px 0 rgba(24, 23, 19, 0.06);
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) minmax(240px, 360px);
   align-items: center;
@@ -552,34 +574,15 @@ onUnmounted(() => {
 .level-grade {
   width: 88px;
   height: 88px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  border-radius: 8px;
+  background: var(--bg-dark);
+  color: var(--secondary-color);
+  border: 1px solid rgba(24, 23, 19, 0.2);
   font-size: 42px;
-  font-weight: bold;
+  font-weight: 950;
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.level-s .level-grade {
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-}
-
-.level-a .level-grade {
-  background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
-}
-
-.level-b .level-grade {
-  background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
-}
-
-.level-c .level-grade {
-  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-}
-
-.level-d .level-grade {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
 .level-info {
@@ -588,14 +591,14 @@ onUnmounted(() => {
 
 .level-title {
   font-size: 24px;
-  font-weight: bold;
-  color: #1a1a1a;
+  font-weight: 950;
+  color: var(--text-primary);
   margin-bottom: 4px;
 }
 
 .level-desc {
   font-size: 14px;
-  color: #666;
+  color: var(--text-secondary);
   margin-bottom: 12px;
 }
 
@@ -605,7 +608,7 @@ onUnmounted(() => {
 
 .progress-label {
   font-size: 14px;
-  color: #4e5969;
+  color: var(--text-secondary);
   margin-bottom: 8px;
   text-align: right;
   white-space: nowrap;
@@ -613,24 +616,26 @@ onUnmounted(() => {
 
 .progress-bar {
   height: 10px;
-  background: #eef2f8;
-  border-radius: 999px;
+  background: #fffaf2;
+  border: 1px solid rgba(24, 23, 19, 0.12);
+  border-radius: 4px;
   overflow: hidden;
 }
 
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-  border-radius: 999px;
+  background: var(--primary-color);
+  border-radius: 0;
   transition: width 0.3s;
 }
 
 /* 图表区域 */
 .chart-section {
-  background: white;
-  border-radius: 12px;
+  background: #fffaf2bd;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
   padding: 28px;
-  box-shadow: 0 8px 24px rgba(22, 93, 255, 0.08);
+  box-shadow: 10px 10px 0 rgba(24, 23, 19, 0.04);
   margin-bottom: 32px;
 }
 
@@ -640,22 +645,22 @@ onUnmounted(() => {
 
 .section-title {
   font-size: 20px;
-  font-weight: bold;
-  color: #1a1a1a;
+  font-weight: 950;
+  color: var(--text-primary);
   margin-bottom: 4px;
 }
 
 .section-subtitle {
   font-size: 14px;
-  color: #666;
+  color: var(--text-secondary);
 }
 
 .chart-container {
   min-height: 320px;
   position: relative;
-  border: 1px solid #edf1f7;
-  border-radius: 10px;
-  background: #fbfdff;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: #fffaf2a8;
   padding: 12px 12px 4px;
 }
 
@@ -674,11 +679,20 @@ onUnmounted(() => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  color: #999;
+  color: var(--text-muted);
 }
 
-.no-data-icon {
-  font-size: 64px;
+.no-data-icon,
+.no-history-icon {
+  width: 72px;
+  height: 72px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(24, 23, 19, 0.16);
+  border-radius: 8px;
+  background: #fffaf2bd;
+  color: var(--primary-color);
+  font-size: 30px;
   margin-bottom: 16px;
 }
 
@@ -700,10 +714,11 @@ onUnmounted(() => {
 }
 
 .stat-card {
-  background: white;
-  border-radius: 12px;
+  background: #fffaf2bd;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
   padding: 24px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  box-shadow: 8px 8px 0 rgba(24, 23, 19, 0.04);
   display: flex;
   align-items: center;
   gap: 16px;
@@ -712,7 +727,10 @@ onUnmounted(() => {
 .stat-icon {
   width: 56px;
   height: 56px;
-  border-radius: 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(24, 23, 19, 0.16);
+  background: #fffaf2bd;
+  color: var(--primary-color);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -725,14 +743,14 @@ onUnmounted(() => {
 
 .stat-value {
   font-size: 28px;
-  font-weight: bold;
-  color: #1a1a1a;
+  font-weight: 950;
+  color: var(--text-primary);
   margin-bottom: 4px;
 }
 
 .stat-label {
   font-size: 14px;
-  color: #666;
+  color: var(--text-secondary);
 }
 
 /* 开始考试区域 */
@@ -741,10 +759,11 @@ onUnmounted(() => {
 }
 
 .exam-info-card {
-  background: white;
-  border-radius: 16px;
+  background: #fffaf2bd;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
   padding: 32px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  box-shadow: 10px 10px 0 rgba(24, 23, 19, 0.05);
 }
 
 .exam-info-header {
@@ -756,17 +775,17 @@ onUnmounted(() => {
 
 .exam-info-title {
   font-size: 24px;
-  font-weight: bold;
-  color: #1a1a1a;
+  font-weight: 950;
+  color: var(--text-primary);
 }
 
 .exam-info-badge {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  padding: 6px 16px;
-  border-radius: 20px;
+  background: var(--bg-dark);
+  color: #fbf7ef;
+  padding: 6px 14px;
+  border-radius: 4px;
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 850;
 }
 
 .exam-type {
@@ -781,24 +800,34 @@ onUnmounted(() => {
   align-items: center;
   gap: 16px;
   padding: 20px;
-  background: #f8f9fa;
-  border-radius: 12px;
+  background: #fffaf294;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
 }
 
 .type-icon {
-  font-size: 32px;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(24, 23, 19, 0.16);
+  border-radius: 6px;
+  background: #fffaf2bd;
+  color: var(--primary-color);
+  font-size: 20px;
+  flex-shrink: 0;
 }
 
 .type-name {
   font-size: 16px;
-  font-weight: bold;
-  color: #1a1a1a;
+  font-weight: 950;
+  color: var(--text-primary);
   margin-bottom: 4px;
 }
 
 .type-desc {
   font-size: 14px;
-  color: #666;
+  color: var(--text-secondary);
 }
 
 .exam-tips {
@@ -807,21 +836,27 @@ onUnmounted(() => {
   gap: 8px;
   margin-bottom: 24px;
   padding: 16px;
-  background: #fff7e6;
-  border-radius: 8px;
+  background: rgba(239, 196, 107, 0.16);
+  border: 1px solid rgba(239, 196, 107, 0.35);
+  border-radius: 6px;
 }
 
 .tip-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   font-size: 14px;
-  color: #d46b08;
+  color: #785313;
+  font-weight: 700;
 }
 
 .ongoing-tip {
   margin-top: 12px;
   padding: 12px;
-  background: #e6f7ff;
-  color: #1890ff;
-  border-radius: 8px;
+  background: rgba(183, 53, 45, 0.08);
+  color: var(--primary-color);
+  border: 1px solid rgba(183, 53, 45, 0.18);
+  border-radius: 6px;
   text-align: center;
   font-size: 14px;
 }
@@ -833,10 +868,15 @@ onUnmounted(() => {
 }
 
 .ongoing-warning {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   padding: 12px;
-  background: #fff2f0;
-  color: #ff4d4f;
-  border-radius: 8px;
+  background: rgba(183, 53, 45, 0.08);
+  color: var(--primary-color);
+  border: 1px solid rgba(183, 53, 45, 0.18);
+  border-radius: 6px;
   text-align: center;
   font-size: 14px;
   font-weight: 500;
@@ -850,14 +890,15 @@ onUnmounted(() => {
 
 /* 历史记录 */
 .history-section {
-  background: white;
-  border-radius: 16px;
+  background: #fffaf2bd;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
   padding: 32px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  box-shadow: 10px 10px 0 rgba(24, 23, 19, 0.04);
 }
 
 .view-all-link {
-  color: #1890ff;
+  color: var(--primary-color);
   text-decoration: none;
   font-size: 14px;
 }
@@ -871,12 +912,7 @@ onUnmounted(() => {
 .no-history {
   padding: 48px;
   text-align: center;
-  color: #999;
-}
-
-.no-history-icon {
-  font-size: 64px;
-  margin-bottom: 16px;
+  color: var(--text-muted);
 }
 
 .no-history-text {
@@ -893,14 +929,15 @@ onUnmounted(() => {
   align-items: center;
   justify-content: space-between;
   padding: 20px;
-  background: #f8f9fa;
-  border-radius: 12px;
+  background: #fffaf294;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
   cursor: pointer;
   transition: all 0.3s;
 }
 
 .history-item:hover {
-  background: #e9ecef;
+  background: var(--bg-paper-2);
   transform: translateX(4px);
 }
 
@@ -911,23 +948,23 @@ onUnmounted(() => {
 .history-type {
   display: inline-block;
   padding: 4px 12px;
-  background: #1890ff;
-  color: white;
-  border-radius: 12px;
+  background: var(--bg-dark);
+  color: #fbf7ef;
+  border-radius: 4px;
   font-size: 12px;
   margin-bottom: 8px;
 }
 
 .history-title {
   font-size: 16px;
-  font-weight: bold;
-  color: #1a1a1a;
+  font-weight: 950;
+  color: var(--text-primary);
   margin-bottom: 4px;
 }
 
 .history-time {
   font-size: 14px;
-  color: #666;
+  color: var(--text-secondary);
 }
 
 .history-right {
@@ -936,22 +973,22 @@ onUnmounted(() => {
 
 .history-score {
   font-size: 24px;
-  font-weight: bold;
-  color: #1a1a1a;
+  font-weight: 950;
+  color: var(--text-primary);
   margin-bottom: 4px;
 }
 
 .history-score.passed {
-  color: #52c41a;
+  color: var(--success-color);
 }
 
 .history-score.failed {
-  color: #ff4d4f;
+  color: var(--primary-color);
 }
 
 .history-status {
   font-size: 14px;
-  color: #666;
+  color: var(--text-secondary);
 }
 
 @media (max-width: 820px) {

@@ -1,4 +1,5 @@
 import asyncio
+import logging
 import hashlib
 import json
 import os
@@ -12,6 +13,9 @@ from django.utils import timezone
 from learning_analytics.models import AdminLearningScore
 
 from .models import LearningPersona, LearningPreference, StudentProfile
+
+
+logger = logging.getLogger(__name__)
 
 
 VALID_SCORE_DAYS = 90
@@ -130,6 +134,22 @@ def _preference_payload(profile: StudentProfile) -> Dict[str, Any]:
 
 
 def build_persona_input_snapshot(profile: StudentProfile) -> Tuple[Dict[str, Any], str]:
+    from .growth_service import refresh_dynamic_growth
+
+    growth = refresh_dynamic_growth(profile.user, allow_ai=False)
+    growth_input = {
+        key: growth[key]
+        for key in (
+            'total_learning_seconds',
+            'completed_question_count',
+            'correct_question_count',
+            'correct_rate',
+            'knowledge_mastery',
+            'ability_level',
+            'risk_level',
+            'recommendation_preferences',
+        )
+    }
     snapshot = {
         'profile': {
             'learning_goals': profile.learning_goals or '',
@@ -138,6 +158,7 @@ def build_persona_input_snapshot(profile: StudentProfile) -> Tuple[Dict[str, Any
         'preference': _preference_payload(profile),
         'effective_scores': _effective_score_payloads(profile.user),
         'recent_score_revisions': _recent_score_payloads(profile.user),
+        'dynamic_growth_summary': growth_input,
         'rules': {
             'valid_score_days': VALID_SCORE_DAYS,
             'min_score_interval_days': MIN_SCORE_INTERVAL_DAYS,
@@ -221,7 +242,14 @@ def _extract_json_object(text: str) -> Dict[str, Any]:
     try:
         parsed = json.loads(cleaned)
         return parsed if isinstance(parsed, dict) else {}
-    except Exception:
+    except Exception as exc:
+        logger.warning(
+            'student_profiles_persona_json_parse_failed',
+            extra={
+                'event': 'student_profiles_persona_json_parse_failed',
+                'error_type': type(exc).__name__,
+            },
+        )
         return {}
 
 
@@ -350,6 +378,7 @@ def _build_prompt(snapshot: Dict[str, Any]) -> str:
         'learning_preference': snapshot.get('preference', {}),
         'effective_admin_scores': snapshot.get('effective_scores', []),
         'recent_score_revisions': snapshot.get('recent_score_revisions', []),
+        'dynamic_growth_summary': snapshot.get('dynamic_growth_summary', {}),
         'direction_labels': DIRECTION_LABELS,
     }
     return (

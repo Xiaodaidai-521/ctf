@@ -18,7 +18,7 @@ _allowed_origins = [
 ]
 
 # CORS settings
-CORS_ALLOW_ALL_ORIGINS = _debug and not _allowed_origins
+CORS_ALLOW_ALL_ORIGINS = False
 CORS_ALLOWED_ORIGINS = _allowed_origins
 CORS_ALLOW_CREDENTIALS = True
 
@@ -43,9 +43,10 @@ for origin in _allowed_origins:
     if origin not in CSRF_TRUSTED_ORIGINS:
         CSRF_TRUSTED_ORIGINS.append(origin)
 
-CSRF_COOKIE_HTTPONLY = False
+CSRF_COOKIE_HTTPONLY = True
 CSRF_COOKIE_SAMESITE = 'Lax'
 
 # Session settings for development
 SESSION_COOKIE_SAMESITE = 'Lax'
 SESSION_COOKIE_HTTPONLY = True
+

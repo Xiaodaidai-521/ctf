@@ -3,6 +3,7 @@
 为题目容器分配和管理内网端口
 """
 
+from django.conf import settings
 from django.core.cache import cache
 from typing import Optional
 
@@ -12,8 +13,10 @@ class PortPool:
 
     def __init__(self):
         # 端口范围：8080-9000（920个端口）
-        self.start_port = 8080
-        self.end_port = 9000
+        self.start_port = getattr(settings, 'CONTAINER_PORT_MIN', 8080)
+        self.end_port = getattr(settings, 'CONTAINER_PORT_MAX', 9000)
+        if self.end_port < self.start_port:
+            raise ValueError('CONTAINER_PORT_MAX must be greater than or equal to CONTAINER_PORT_MIN')
         self.total_ports = self.end_port - self.start_port + 1
         self.cache_key_prefix = 'port_pool_'
 

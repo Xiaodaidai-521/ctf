@@ -218,6 +218,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '@/store/user'
 import api from '@/api'
 import { marked } from 'marked'
+import { sanitizeHtml } from '@/utils/sanitize'
 
 const route = useRoute()
 const router = useRouter()
@@ -442,7 +443,7 @@ const formatDuration = (seconds) => {
 
 const renderMarkdown = (content) => {
   if (!content) return ''
-  return marked(content)
+  return sanitizeHtml(marked(content))
 }
 
 // 生命周期

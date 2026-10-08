@@ -2,14 +2,24 @@
   <div class="resources-page">
     <header class="page-header">
       <div class="header-content">
+        <p class="section-kicker">RESOURCE INDEX / Knowledge Shelf</p>
         <h1 class="page-title">学习资源中心</h1>
-        <p class="page-subtitle">探索丰富的学习资料，提升你的技能</p>
+        <p class="page-subtitle">把文档、视频、报告、压缩包和 AI 学习辅助资料整理成可检索的训练资料索引。</p>
       </div>
-      <button class="btn btn-primary" @click="handleUpload" v-if="isTeacherOrAdmin">
-        <span>➕</span> 上传资源
+      <div class="header-actions">
+        <button class="btn btn-secondary" type="button" @click="resetTutorHighlights" v-if="hasAISurfacedResources">
+          清除AI推荐状态
+        </button>
+        <button class="btn btn-primary" @click="handleUpload" v-if="isTeacherOrAdmin">
+        <i class="bi bi-upload"></i>
+        上传资源
       </button>
+      </div>
     </header>
 
+    <div class="resources-layout">
+      <ResourceSidebar @resource-clicked="focusResourceList" />
+      <main class="resource-content">
     <div class="filters-section">
       <div class="search-box">
         <input
@@ -30,6 +40,7 @@
             <option value="video">视频</option>
             <option value="report">报告</option>
             <option value="zip">压缩包</option>
+            <option value="ai_resource">AI资源</option>
           </select>
         </div>
 
@@ -95,9 +106,13 @@
       </button>
     </div>
 
+      </main>
+    </div>
+
     <ResourceDetailModal
       v-if="selectedResourceId"
       :resourceId="selectedResourceId"
+      :highlightResourceId="detailHighlightResourceId"
       @close="handleCloseModal"
     />
   </div>
@@ -110,6 +125,12 @@ import { useUserStore } from '@/store/user'
 import api from '@/api'
 import ResourceCard from '@/components/ResourceCard.vue'
 import ResourceDetailModal from '@/components/ResourceDetailModal.vue'
+import ResourceSidebar from '@/components/ResourceSidebar.vue'
+import {
+  clearRememberedTutorResources,
+  loadRememberedTutorResources,
+  tutorResourceCenterIds
+} from '@/utils/tutorResources'
 
 const router = useRouter()
 const route = useRoute()
@@ -125,6 +146,41 @@ const selectedType = ref('')
 const selectedCategory = ref('')
 const sortBy = ref('-created_at')
 const selectedResourceId = ref(null)
+const rememberedTutorResources = ref([])
+const parsePositiveIds = (value) => {
+  const rawItems = Array.isArray(value) ? value : String(value || '').split(',')
+  return rawItems
+    .map((item) => Number(String(item).trim()))
+    .filter((item) => Number.isFinite(item) && item > 0)
+}
+const highlightResourceId = computed(() => {
+  const value = Number(route.query.highlight_resource)
+  return Number.isFinite(value) && value > 0 ? value : null
+})
+
+const rememberedHighlightIds = computed(() => tutorResourceCenterIds(rememberedTutorResources.value))
+const routeHighlightIds = computed(() => [
+  ...parsePositiveIds(route.query.highlight_resource),
+  ...parsePositiveIds(route.query.highlight_resources)
+])
+const currentHighlightResourceIds = computed(() => {
+  const seen = new Set()
+  return [...routeHighlightIds.value, ...rememberedHighlightIds.value].filter((id) => {
+    if (seen.has(id)) return false
+    seen.add(id)
+    return true
+  })
+})
+const hasAISurfacedResources = computed(() => currentHighlightResourceIds.value.length > 0)
+const detailHighlightResourceId = computed(() => {
+  const selectedId = Number(selectedResourceId.value)
+  if (Number.isFinite(selectedId) && currentHighlightResourceIds.value.includes(selectedId)) return selectedId
+  return highlightResourceId.value
+})
+
+const refreshRememberedTutorResources = () => {
+  rememberedTutorResources.value = loadRememberedTutorResources()
+}
 
 const isTeacherOrAdmin = computed(() => {
   const role = userStore.userInfo?.role
@@ -144,6 +200,8 @@ const fetchResources = async () => {
     if (searchQuery.value) params.search = searchQuery.value
     if (selectedType.value) params.resource_type = selectedType.value
     if (selectedCategory.value) params.category = selectedCategory.value
+    if (highlightResourceId.value) params.highlight_resource = highlightResourceId.value
+    if (currentHighlightResourceIds.value.length) params.highlight_resources = currentHighlightResourceIds.value.join(',')
 
     const data = await api.resource.list(params)
     resources.value = data.results || []
@@ -172,6 +230,15 @@ const handlePageChange = (page) => {
   window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
+const focusResourceList = (selection = {}) => {
+  if (selection.category) {
+    selectedCategory.value = selection.category
+    currentPage.value = 1
+    fetchResources()
+  }
+  document.querySelector('.filters-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+}
+
 const handleResourceClick = (resource) => {
   selectedResourceId.value = resource.id
 }
@@ -184,6 +251,18 @@ const handleCloseModal = () => {
     router.replace({ path: '/resources', query })
   }
   fetchResources()
+}
+
+const resetTutorHighlights = () => {
+  clearRememberedTutorResources()
+  rememberedTutorResources.value = []
+  selectedResourceId.value = null
+  const query = { ...route.query }
+  delete query.highlight_resource
+  delete query.highlight_resources
+  delete query.resource
+  currentPage.value = 1
+  Promise.resolve(router.replace({ path: '/resources', query })).finally(() => fetchResources())
 }
 
 const handleUpload = () => {
@@ -199,6 +278,7 @@ function debounce(fn, delay) {
 }
 
 onMounted(() => {
+  refreshRememberedTutorResources()
   if (route.query.resource) {
     selectedResourceId.value = Number(route.query.resource)
   }
@@ -211,39 +291,70 @@ watch(
     selectedResourceId.value = resourceId ? Number(resourceId) : null
   }
 )
+
+watch(
+  () => [route.query.highlight_resource, route.query.highlight_resources],
+  () => {
+    refreshRememberedTutorResources()
+    currentPage.value = 1
+    fetchResources()
+  }
+)
 </script>
 
 <style scoped>
 .resources-page {
-  max-width: 1400px;
+  width: min(1180px, calc(100% - 40px));
+  max-width: none;
   margin: 0 auto;
-  padding: 32px 24px;
+  padding: 42px 0 72px;
 }
+.resources-layout{display:block}.resource-content{min-width:0}
 
 .page-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 32px;
+  align-items: flex-end;
+  gap: 24px;
+  margin-bottom: 28px;
 }
 
 .header-content h1 {
-  font-size: 36px;
-  font-weight: 800;
+  margin-top: 6px;
+  font-size: 52px;
+  line-height: 1;
+  font-weight: 950;
   margin-bottom: 8px;
   color: var(--text-primary);
 }
 
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.btn-secondary {
+  background: rgba(255, 250, 242, 0.82);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+}
+
 .page-subtitle {
+  max-width: 620px;
   font-size: 16px;
+  line-height: 1.8;
   color: var(--text-secondary);
 }
 
 .filters-section {
-  background: white;
-  padding: 24px;
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-sm);
+  background: rgba(255, 250, 242, 0.74);
+  padding: 20px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  box-shadow: none;
   margin-bottom: 32px;
   display: flex;
   flex-direction: column;
@@ -257,8 +368,10 @@ watch(
 .search-input {
   width: 100%;
   padding: 14px 20px;
-  border: 2px solid #e8e8e8;
-  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  background: rgba(255, 250, 242, 0.82);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
   font-size: 15px;
   transition: all 0.3s;
 }
@@ -282,13 +395,15 @@ watch(
 
 .filter-group label {
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 850;
   color: var(--text-primary);
 }
 
 .filter-select {
   padding: 8px 16px;
-  border: 1px solid #d9d9d9;
+  color: var(--text-primary);
+  background: rgba(255, 250, 242, 0.82);
+  border: 1px solid var(--border-color);
   border-radius: var(--radius-sm);
   font-size: 14px;
   cursor: pointer;
@@ -307,7 +422,7 @@ watch(
 .loading-spinner {
   width: 48px;
   height: 48px;
-  border: 4px solid #f0f0f0;
+  border: 4px solid var(--bg-paper-2);
   border-top-color: var(--primary-color);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
@@ -344,8 +459,8 @@ watch(
 
 .resources-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 24px;
+  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+  gap: 18px;
   margin-bottom: 32px;
 }
 
@@ -359,8 +474,8 @@ watch(
 
 .page-btn {
   padding: 10px 24px;
-  background: white;
-  border: 1px solid #d9d9d9;
+  background: rgba(255, 250, 242, 0.82);
+  border: 1px solid var(--text-primary);
   border-radius: var(--radius-sm);
   cursor: pointer;
   transition: all 0.3s;
@@ -368,7 +483,7 @@ watch(
 
 .page-btn:hover:not(:disabled) {
   background: var(--primary-color);
-  color: white;
+  color: #fbf7ef;
   border-color: var(--primary-color);
 }
 
@@ -384,6 +499,7 @@ watch(
 }
 
 @media (max-width: 768px) {
+  .resources-layout{grid-template-columns:1fr}
   .page-header {
     flex-direction: column;
     align-items: flex-start;

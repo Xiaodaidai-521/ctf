@@ -1,4 +1,4 @@
-﻿from rest_framework import viewsets, status, permissions
+from rest_framework import viewsets, status, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.db.models import Q, Count, F
@@ -36,15 +36,15 @@ class TheoryQuestionViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         queryset = TheoryQuestion.objects.filter(is_active=True)
 
-        # 棰樼洰绫诲瀷绛涢€?        question_type = self.request.query_params.get('question_type')
+        question_type = self.request.query_params.get('question_type')
         if question_type:
             queryset = queryset.filter(question_type=question_type)
 
-        # 鍒嗙被绛涢€?        category = self.request.query_params.get('category')
+        category = self.request.query_params.get('category')
         if category:
             queryset = queryset.filter(category=category)
 
-        # 闅惧害绛涢€?        difficulty = self.request.query_params.get('difficulty')
+        difficulty = self.request.query_params.get('difficulty')
         if difficulty:
             queryset = queryset.filter(difficulty=difficulty)
 
@@ -235,11 +235,11 @@ class ExamRecordViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         queryset = ExamRecord.objects.filter(user=self.request.user)
 
-        # 鑰冭瘯绫诲瀷绛涢€?        exam_type = self.request.query_params.get('exam_type')
+        exam_type = self.request.query_params.get('exam_type')
         if exam_type:
             queryset = queryset.filter(exam_type=exam_type)
 
-        # 鐘舵€佺瓫閫?        record_status = self.request.query_params.get('status')
+        record_status = self.request.query_params.get('status')
         if record_status:
             queryset = queryset.filter(status=record_status)
 
@@ -312,6 +312,17 @@ class ExamRecordViewSet(viewsets.ModelViewSet):
 
         record.save()
 
+        normalized_score = 0
+        if record.total_points:
+            normalized_score = round(float(record.score) / record.total_points * 100, 2)
+        from learning_analytics.events import record_learning_event
+        record_learning_event(request.user, 'exam_submitted', {
+            'exam_record_id': record.id,
+            'exam_type': record.exam_type,
+            'normalized_score': normalized_score,
+            'passed': bool(record.is_passed),
+        })
+
         if record.theory_exam and record.theory_exam.title.startswith('缁煎悎鑰冭瘯-鐞嗚閮ㄥ垎-'):
             suffix = record.theory_exam.title.replace('缁煎悎鑰冭瘯-鐞嗚閮ㄥ垎-', '', 1)
             practice_record = ExamRecord.objects.filter(
@@ -343,13 +354,21 @@ class ExamRecordViewSet(viewsets.ModelViewSet):
             return Response(serializer.errors, status=400)
 
         data = serializer.validated_data
+        if data.get('exam_record_id') != record.id:
+            return Response({'error': 'exam_record_id does not match the requested record'}, status=400)
 
         # 鍒ゆ柇绛旀鏄惁姝ｇ‘
         is_correct = False
         points_earned = 0
 
         if data.get('theory_question_id'):
-            question = TheoryQuestion.objects.get(id=data['theory_question_id'])
+            exam_question = TheoryExamQuestion.objects.filter(
+                exam=record.theory_exam,
+                question_id=data['theory_question_id'],
+            ).select_related('question').first()
+            if not exam_question:
+                return Response({'error': 'Question does not belong to this exam'}, status=400)
+            question = exam_question.question
             user_answer = data['user_answer'].strip()
 
             if question.question_type == 'single_choice':
@@ -362,24 +381,24 @@ class ExamRecordViewSet(viewsets.ModelViewSet):
             elif question.question_type == 'true_false':
                 is_correct = user_answer.lower() == question.correct_answer.lower()
 
-            exam_question = TheoryExamQuestion.objects.filter(
-                exam=record.theory_exam,
-                question_id=data['theory_question_id']
-            ).first()
-            if exam_question:
-                points_earned = exam_question.points if is_correct else 0
+            points_earned = exam_question.points if is_correct else 0
 
         elif data.get('practice_question_id'):
             # 瀹炴垬棰橀渶瑕佹彁浜lag
-            practice_q = PracticeExamQuestion.objects.get(id=data['practice_question_id'])
-            from challenges.models import Submission
+            practice_q = PracticeExamQuestion.objects.filter(
+                exam=record.practice_exam,
+                id=data['practice_question_id'],
+            ).select_related('challenge').first()
+            if not practice_q:
+                return Response({'error': 'Question does not belong to this exam'}, status=400)
+            from submissions.models import Submission
             from challenges.utils import check_flag
 
             flag = data['user_answer'].strip()
             is_correct = check_flag(flag, practice_q.challenge.flag)
 
             if is_correct:
-                points_earned = practice_q.challenge.points
+                points_earned = practice_q.challenge.score
                 Submission.objects.create(
                     challenge=practice_q.challenge,
                     user=request.user,

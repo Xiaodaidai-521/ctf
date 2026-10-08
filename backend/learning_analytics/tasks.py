@@ -5,9 +5,15 @@ from django.contrib.auth import get_user_model
 
 from learning_paths.models import UserLearningBehavior, UserKnowledgeState
 
-from .models import LearningInsight, WeeklyLearningSummary
+from .models import LearningBehaviorEvent, LearningInsight, WeeklyLearningSummary
 
 User = get_user_model()
+
+
+def cleanup_expired_behavior_events(days=90):
+    cutoff = timezone.now() - timedelta(days=days)
+    deleted, _ = LearningBehaviorEvent.objects.filter(occurred_at__lt=cutoff).delete()
+    return deleted
 
 # CTF 六方向对应的 challenge category 名称
 CTF_CATEGORIES = ['web', 'crypto', 'misc', 'pwn', 'reverse', 'forensics']
@@ -209,3 +215,18 @@ def compute_personas():
             errors += 1
 
     return f'已处理 {processed} 个用户画像，{errors} 个失败'
+
+
+def run_daily_learning_analytics(reference_date=None):
+    from .scheduler import run_analytics_job
+    return run_analytics_job(job_type='daily', days=30, reference_date=reference_date)
+
+
+def run_weekly_learning_analytics(reference_date=None):
+    from .scheduler import run_analytics_job
+    return run_analytics_job(job_type='weekly', days=7, reference_date=reference_date)
+
+
+def run_monthly_learning_analytics(reference_date=None):
+    from .scheduler import run_analytics_job
+    return run_analytics_job(job_type='monthly', days=90, reference_date=reference_date)

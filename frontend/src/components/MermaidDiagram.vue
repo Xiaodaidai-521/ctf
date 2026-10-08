@@ -53,6 +53,7 @@
 <script setup>
 import { ref, watch, onMounted } from 'vue'
 import { Message } from '@arco-design/web-vue'
+import DOMPurify from 'dompurify'
 import mermaid from 'mermaid'
 
 const props = defineProps({
@@ -74,8 +75,13 @@ let renderIdCounter = 0
 mermaid.initialize({
   startOnLoad: false,
   theme: 'default',
-  securityLevel: 'loose',
+  securityLevel: 'strict',
   fontFamily: 'inherit'
+})
+
+const sanitizeSvg = (svg) => DOMPurify.sanitize(svg, {
+  USE_PROFILES: { svg: true, svgFilters: true },
+  FORBID_TAGS: ['foreignObject', 'iframe', 'object', 'embed', 'script']
 })
 
 const renderDiagram = async () => {
@@ -91,7 +97,7 @@ const renderDiagram = async () => {
   try {
     const id = `mermaid-${Date.now()}-${++renderIdCounter}`
     const { svg } = await mermaid.render(id, props.mermaidCode)
-    svgContent.value = svg
+    svgContent.value = sanitizeSvg(svg)
     error.value = false
   } catch (e) {
     error.value = true

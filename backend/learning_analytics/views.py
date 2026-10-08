@@ -1,3 +1,5 @@
+import logging
+
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -8,13 +10,21 @@ from datetime import timedelta
 
 from learning_paths.models import UserKnowledgeState, ConceptRelation, UserPathProgress
 
-from .models import AdminLearningScore, LearningInsight, TeachingInterventionPlan, WeeklyLearningSummary
+from .models import (
+    AdminLearningScore, LearningAdjustmentProposal, LearningBehaviorEvent,
+    LearningInsight, ResourceLearningFeedback, TeachingInterventionPlan, WeeklyLearningSummary,
+)
 from .serializers import (
     AdminLearningScoreSerializer,
+    LearningAdjustmentProposalSerializer,
     LearningInsightSerializer,
+    ResourceLearningFeedbackSerializer,
     TeachingInterventionPlanSerializer,
     WeeklyLearningSummarySerializer,
 )
+
+
+logger = logging.getLogger(__name__)
 
 
 VALID_SCORE_DAYS = 90
@@ -31,6 +41,52 @@ class IsAnalyticsAdmin(BasePermission):
             and request.user.is_authenticated
             and (request.user.is_staff or getattr(request.user, 'role', '') == 'admin')
         )
+
+
+class IsTeacherOnly(BasePermission):
+    def has_permission(self, request, view):
+        return bool(
+            request.user
+            and request.user.is_authenticated
+            and getattr(request.user, 'role', '') == 'teacher'
+            and not request.user.is_staff
+        )
+
+
+def build_effect_score(student, since=None):
+    queryset = LearningBehaviorEvent.objects.filter(student=student)
+    if since:
+        queryset = queryset.filter(occurred_at__gte=since)
+
+    event_groups = {
+        item['event_type']: item['count']
+        for item in queryset.values('event_type').annotate(count=Count('id'))
+    }
+    challenge_events = list(queryset.filter(event_type='challenge_submitted').values_list('metadata', flat=True))
+    challenge_success = [event.get('success', False) for event in challenge_events]
+    exam_events = list(queryset.filter(event_type='exam_submitted').values_list('metadata', flat=True))
+    exam_scores = [float(event.get('normalized_score', 0)) for event in exam_events]
+
+    signals = {
+        'resource_retrieval': min(event_groups.get('resource_retrieved', 0) / 5 * 100, 100),
+        'resource_download': min(event_groups.get('resource_downloaded', 0) / 3 * 100, 100),
+        'module_completion': min(event_groups.get('module_completed', 0) / 3 * 100, 100),
+        'challenge_success': (sum(challenge_success) / len(challenge_success) * 100) if challenge_success else 0,
+        'exam_performance': (sum(exam_scores) / len(exam_scores)) if exam_scores else 0,
+    }
+    return {
+        'effect_score': round(sum(signals.values()) / len(signals), 2),
+        'signals': {
+            key: {'score': round(value, 2), 'event_count': {
+                'resource_retrieval': event_groups.get('resource_retrieved', 0),
+                'resource_download': event_groups.get('resource_downloaded', 0),
+                'module_completion': event_groups.get('module_completed', 0),
+                'challenge_success': len(challenge_success),
+                'exam_performance': len(exam_scores),
+            }[key]}
+            for key, value in signals.items()
+        },
+    }
 
 
 def get_effective_admin_scores(student):
@@ -295,8 +351,14 @@ class InsightsView(APIView):
                             'action_link': di.get('action_link', ''),
                         })
                 return Response(rule_insights[:12])
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.warning(
+                'learning_analytics_rule_insight_build_failed',
+                extra={
+                    'event': 'learning_analytics_rule_insight_build_failed',
+                    'error_type': type(exc).__name__,
+                },
+            )
 
         insights = LearningInsight.objects.filter(
             student=request.user,
@@ -466,8 +528,14 @@ class AdminLearningScoreView(APIView):
         try:
             from student_profiles.persona_service import ensure_learning_persona
             ensure_learning_persona(score.student, force=False)
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.warning(
+                'learning_analytics_persona_sync_failed',
+                extra={
+                    'event': 'learning_analytics_persona_sync_failed',
+                    'error_type': type(exc).__name__,
+                },
+            )
         return Response(output.data, status=status.HTTP_201_CREATED)
 
 
@@ -563,3 +631,165 @@ class AdminStudentReportView(APIView):
             'misc': '综合杂项',
         }
         return labels.get(key, key)
+
+
+class ResourceLearningFeedbackView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def _save_feedback(self, request, resource_id=None):
+        data = request.data.copy()
+        if resource_id is not None:
+            data['resource'] = resource_id
+        serializer = ResourceLearningFeedbackSerializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        feedback, _ = ResourceLearningFeedback.objects.update_or_create(
+            student=request.user,
+            resource_id=serializer.validated_data['resource'].id,
+            defaults={
+                'rating': serializer.validated_data['rating'],
+                'helpful': serializer.validated_data.get('helpful', True),
+                'comment': serializer.validated_data.get('comment', ''),
+            },
+        )
+        return Response(ResourceLearningFeedbackSerializer(feedback).data, status=status.HTTP_201_CREATED)
+
+    def post(self, request):
+        return self._save_feedback(request)
+
+
+class ResourceLearningFeedbackDetailView(ResourceLearningFeedbackView):
+    def get(self, request, resource_id):
+        feedback = ResourceLearningFeedback.objects.filter(
+            student=request.user,
+            resource_id=resource_id,
+        ).first()
+        if not feedback:
+            return Response(None)
+        return Response(ResourceLearningFeedbackSerializer(feedback).data)
+
+    def post(self, request, resource_id):
+        return self._save_feedback(request, resource_id=resource_id)
+
+
+class TeacherStudentBehaviorView(APIView):
+    permission_classes = [IsTeacherOnly]
+
+    def get(self, request, student_id):
+        from users.models import CTFUser
+
+        student = CTFUser.objects.filter(id=student_id, role='student').first()
+        if not student:
+            return Response({'detail': 'Student not found.'}, status=status.HTTP_404_NOT_FOUND)
+        days = min(max(int(request.query_params.get('days', 30)), 1), 90)
+        since = timezone.now() - timedelta(days=days)
+        events = LearningBehaviorEvent.objects.filter(student=student, occurred_at__gte=since)
+        return Response({
+            'student': {'id': student.id, 'username': student.username},
+            'days': days,
+            'events': list(events.values('id', 'event_type', 'metadata', 'occurred_at')),
+            'effect': build_effect_score(student, since=since),
+        })
+
+
+class TeacherAdjustmentProposalView(APIView):
+    permission_classes = [IsTeacherOnly]
+
+    def get(self, request):
+        queryset = LearningAdjustmentProposal.objects.filter(teacher=request.user).select_related('student')
+        student_id = request.query_params.get('student_id')
+        if student_id:
+            queryset = queryset.filter(student_id=student_id)
+        return Response(LearningAdjustmentProposalSerializer(queryset, many=True).data)
+
+    def post(self, request):
+        serializer = LearningAdjustmentProposalSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        student = serializer.validated_data['student']
+        if student.role != 'student':
+            return Response({'student': ['A student account is required.']}, status=status.HTTP_400_BAD_REQUEST)
+        proposal = serializer.save(teacher=request.user)
+        return Response(LearningAdjustmentProposalSerializer(proposal).data, status=status.HTTP_201_CREATED)
+
+
+class TeacherAdjustmentEffectView(APIView):
+    permission_classes = [IsTeacherOnly]
+
+    def get(self, request, proposal_id):
+        proposal = LearningAdjustmentProposal.objects.filter(
+            id=proposal_id,
+            teacher=request.user,
+        ).select_related('student').first()
+        if not proposal:
+            return Response({'detail': 'Proposal not found.'}, status=status.HTTP_404_NOT_FOUND)
+        effect = build_effect_score(proposal.student, since=proposal.created_at)
+        return Response({
+            'proposal_id': proposal.id,
+            'student_id': proposal.student_id,
+            'since': proposal.created_at,
+            **effect,
+        })
+
+
+class TeacherLearningEffectView(APIView):
+    permission_classes = [IsTeacherOnly]
+
+    def _get_student(self, request):
+        from users.models import CTFUser
+
+        student_id = request.data.get('student_id') if request.method == 'POST' else request.query_params.get('student_id')
+        if not student_id:
+            return None
+        return CTFUser.objects.filter(id=student_id, role='student').first()
+
+    def _effect_response(self, request):
+        student = self._get_student(request)
+        if not student:
+            return Response({'detail': 'A valid student_id is required.'}, status=status.HTTP_400_BAD_REQUEST)
+        raw_days = request.data.get('days', 30) if request.method == 'POST' else request.query_params.get('days', 30)
+        try:
+            days = min(max(int(raw_days), 1), 90)
+        except (TypeError, ValueError):
+            return Response({'days': ['A whole number between 1 and 90 is required.']}, status=status.HTTP_400_BAD_REQUEST)
+        since = timezone.now() - timedelta(days=days)
+        return Response({
+            'student': {'id': student.id, 'username': student.username},
+            'days': days,
+            'effect': build_effect_score(student, since=since),
+        })
+
+    def get(self, request):
+        return self._effect_response(request)
+
+    def post(self, request):
+        return self._effect_response(request)
+
+
+class TeacherAdjustmentView(APIView):
+    permission_classes = [IsTeacherOnly]
+
+    def post(self, request, adjustment_id):
+        proposal = LearningAdjustmentProposal.objects.filter(
+            id=adjustment_id,
+            teacher=request.user,
+        ).first()
+        if not proposal:
+            return Response({'detail': 'Adjustment not found.'}, status=status.HTTP_404_NOT_FOUND)
+        data = request.data.copy()
+        data.pop('teacher', None)
+        data.pop('student', None)
+        serializer = LearningAdjustmentProposalSerializer(proposal, data=data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        updated = serializer.save(teacher=request.user, student=proposal.student)
+        return Response(LearningAdjustmentProposalSerializer(updated).data)
+
+
+class TeacherLearningScoreView(AdminLearningScoreView):
+    permission_classes = [IsTeacherOnly]
+
+
+class TeacherTeachingPlanView(AdminTeachingPlanView):
+    permission_classes = [IsTeacherOnly]
+
+
+class TeacherStudentReportView(AdminStudentReportView):
+    permission_classes = [IsTeacherOnly]

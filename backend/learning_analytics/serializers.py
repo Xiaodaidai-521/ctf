@@ -3,7 +3,9 @@ from django.utils import timezone
 
 from .models import (
     AdminLearningScore,
+    LearningAdjustmentProposal,
     LearningInsight,
+    ResourceLearningFeedback,
     TeachingInterventionPlan,
     WeeklyLearningSummary,
 )
@@ -110,3 +112,23 @@ class TeachingInterventionPlanSerializer(serializers.ModelSerializer):
             'data_age_days', 'validity_label', 'generated_at',
         ]
         read_only_fields = fields
+
+
+class ResourceLearningFeedbackSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ResourceLearningFeedback
+        fields = ['id', 'resource', 'rating', 'helpful', 'comment', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'created_at', 'updated_at']
+
+
+class LearningAdjustmentProposalSerializer(serializers.ModelSerializer):
+    teacher_name = serializers.CharField(source='teacher.username', read_only=True)
+    student_name = serializers.CharField(source='student.username', read_only=True)
+
+    class Meta:
+        model = LearningAdjustmentProposal
+        fields = [
+            'id', 'teacher', 'teacher_name', 'student', 'student_name', 'title',
+            'rationale', 'adjustments', 'status', 'created_at', 'updated_at',
+        ]
+        read_only_fields = ['id', 'teacher', 'teacher_name', 'student_name', 'created_at', 'updated_at']

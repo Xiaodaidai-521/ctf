@@ -241,6 +241,15 @@ class SubmitAnswerSerializer(serializers.Serializer):
     user_answer = serializers.CharField()
     time_spent = serializers.IntegerField(default=0)
 
+    def validate(self, attrs):
+        theory_question_id = attrs.get('theory_question_id')
+        practice_question_id = attrs.get('practice_question_id')
+        if bool(theory_question_id) == bool(practice_question_id):
+            raise serializers.ValidationError('Provide exactly one question identifier.')
+        if attrs.get('time_spent', 0) < 0:
+            raise serializers.ValidationError({'time_spent': 'Must be non-negative.'})
+        return attrs
+
     def validate(self, data):
         if not data.get('theory_question_id') and not data.get('practice_question_id'):
             raise serializers.ValidationError("必须提供题目ID")

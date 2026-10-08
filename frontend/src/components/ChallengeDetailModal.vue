@@ -20,7 +20,7 @@
                   {{ difficultyText }}
                 </span>
                 <span class="badge badge-primary">{{ challenge?.category_name }}</span>
-                <span class="badge badge-success">{{ challenge?.score }} 分</span>
+                <span class="badge badge-success">{{ challenge?.submission_mode === 'practice' ? '自由练习' : `${challenge?.score} 分` }}</span>
               </div>
             </div>
 
@@ -186,7 +186,7 @@
                       @click="handleStartContainer"
                       :disabled="startingContainer"
                     >
-                      {{ startingContainer ? '⏳ 启动中...' : '🚀 启动容器（30分钟）' }}
+                      {{ startingContainer ? '⏳ 正在启动并检查环境...' : '🚀 启动容器' }}
                     </button>
                   </div>
                 </div>
@@ -204,8 +204,13 @@
               </div>
             </div>
 
-            <h2 class="section-title">🚩 提交 Flag</h2>
-            <div class="submit-form">
+            <div v-if="challenge?.submission_mode === 'practice'" class="submit-hint">
+              <h2 class="section-title">自由练习</h2>
+              <p>启动环境后，在新窗口中练习。平台暂不自动同步靶场积分。</p>
+              <p>停止或到期回收后，再次启动会重置练习数据。</p>
+            </div>
+            <h2 v-else class="section-title">🚩 提交 Flag</h2>
+            <div v-if="challenge?.submission_mode !== 'practice'" class="submit-form">
               <input
                 v-model="flagInput"
                 type="text"
@@ -236,7 +241,7 @@
               {{ message }}
             </div>
 
-            <div class="submit-hint">
+            <div v-if="challenge?.submission_mode !== 'practice'" class="submit-hint">
               <p>💡 提示：Flag 格式通常为 flag{...}</p>
             </div>
           </div>
@@ -568,14 +573,19 @@ const handleStartContainer = async () => {
       messageType.value = 'success'
       containerInfo.value = result.container
 
-      // 开始检查容器就绪状态
-      startContainerReadinessCheck()
+      if (challenge.value?.submission_mode === 'practice') {
+        // Practice runtimes return only after their HTTP health check passes.
+        containerReadyState.value = 'ready'
+        startCountdown()
+      } else {
+        startContainerReadinessCheck()
+      }
     } else {
       message.value = result.message
       messageType.value = 'error'
     }
   } catch (error) {
-    message.value = '启动容器失败，请稍后重试'
+    message.value = error.response?.data?.message || error.response?.data?.detail || '启动容器失败，请稍后重试'
     messageType.value = 'error'
   } finally {
     startingContainer.value = false

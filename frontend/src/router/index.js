@@ -1,5 +1,8 @@
 ﻿import { createRouter, createWebHistory } from 'vue-router'
 import { useUserStore } from '@/store/user'
+import TeacherLayout from '@/teacher/TeacherLayout.vue'
+import TeacherDashboard from '@/teacher/TeacherDashboard.vue'
+import LearningEffectAnalysis from '@/teacher/LearningEffectAnalysis.vue'
 
 const routes = [
   // 前台路由
@@ -141,6 +144,20 @@ const routes = [
     name: 'Register',
     component: () => import('@/views/Register.vue'),
     meta: { title: '注册' }
+  },
+
+  {
+    path: '/teacher',
+    component: TeacherLayout,
+    meta: { requiresTeacherOnly: true },
+    children: [
+      { path: '', name: 'TeacherHome', component: TeacherDashboard, meta: { title: '教师中心', requiresTeacherOnly: true } },
+      { path: 'learning-paths', name: 'TeacherLearningPaths', component: () => import('@/views/LearningPaths/LearningPathsManageList.vue'), meta: { title: '学习路径', requiresTeacherOnly: true } },
+      { path: 'learning-scores', name: 'TeacherLearningScores', component: () => import('@/admin/views/LearningScores.vue'), meta: { title: '学习评分', requiresTeacherOnly: true } },
+      { path: 'learning-effect', name: 'TeacherLearningEffect', component: LearningEffectAnalysis, meta: { title: '学习成效', requiresTeacherOnly: true } },
+      { path: 'challenges', name: 'TeacherChallenges', component: () => import('@/admin/views/Challenges.vue'), meta: { title: '题目管理', requiresTeacherOnly: true } },
+      { path: 'resources', name: 'TeacherResources', component: () => import('@/admin/views/Resources.vue'), meta: { title: '资源审核', requiresTeacherOnly: true } },
+    ]
   },
 
   // 管理员后台路由
@@ -289,12 +306,124 @@ const routes = [
     ],
     meta: { requiresAdmin: true }
   },
+  {
+    path: '/admin/legal/dashboard',
+    name: 'AdminLegalDashboard',
+    component: () => import('@/admin/components/AdminLayout.vue'),
+    children: [
+      {
+        path: '',
+        name: 'AdminLegalDashboardHome',
+        component: () => import('@/admin/views/legal/ComplianceCenter.vue'),
+        meta: { title: '合规中心', requiresAdmin: true }
+      }
+    ],
+    meta: { requiresAdmin: true }
+  },
+  {
+    path: '/admin/legal/agent',
+    name: 'AdminLegalAgent',
+    component: () => import('@/admin/components/AdminLayout.vue'),
+    children: [
+      {
+        path: '',
+        name: 'AdminLegalAgentHome',
+        component: () => import('@/admin/views/legal/ComplianceAgentCenter.vue'),
+        meta: { title: '数智合规官', requiresAdmin: true }
+      }
+    ],
+    meta: { requiresAdmin: true }
+  },
+  {
+    path: '/admin/legal/audit',
+    name: 'AdminLegalAudit',
+    component: () => import('@/admin/components/AdminLayout.vue'),
+    children: [
+      {
+        path: '',
+        name: 'AdminLegalAuditHome',
+        component: () => import('@/admin/views/legal/AuditLogs.vue'),
+        meta: { title: '合规审计', requiresAdmin: true }
+      }
+    ],
+    meta: { requiresAdmin: true }
+  },
+  {
+    path: '/admin/legal/violations',
+    name: 'AdminLegalViolations',
+    component: () => import('@/admin/components/AdminLayout.vue'),
+    children: [
+      {
+        path: '',
+        name: 'AdminLegalViolationsHome',
+        component: () => import('@/admin/views/legal/ViolationRecords.vue'),
+        meta: { title: '违规记录', requiresAdmin: true }
+      }
+    ],
+    meta: { requiresAdmin: true }
+  },
+  {
+    path: '/admin/legal/reports',
+    name: 'AdminLegalReports',
+    component: () => import('@/admin/components/AdminLayout.vue'),
+    children: [
+      {
+        path: '',
+        name: 'AdminLegalReportsHome',
+        component: () => import('@/admin/views/legal/ComplianceReports.vue'),
+        meta: { title: '合规报告', requiresAdmin: true }
+      }
+    ],
+    meta: { requiresAdmin: true }
+  },
+  {
+    path: '/admin/legal/protocols',
+    name: 'AdminLegalProtocols',
+    component: () => import('@/admin/components/AdminLayout.vue'),
+    children: [
+      {
+        path: '',
+        name: 'AdminLegalProtocolsHome',
+        component: () => import('@/admin/views/legal/ProtocolSigning.vue'),
+        meta: { title: '协议签署', requiresAdmin: true }
+      }
+    ],
+    meta: { requiresAdmin: true }
+  },
+  {
+    path: '/admin/legal/kb',
+    name: 'AdminLegalKb',
+    component: () => import('@/admin/components/AdminLayout.vue'),
+    children: [
+      {
+        path: '',
+        name: 'AdminLegalKbHome',
+        component: () => import('@/admin/views/legal/KnowledgeBase.vue'),
+        meta: { title: '法律知识库', requiresAdmin: true }
+      }
+    ],
+    meta: { requiresAdmin: true }
+  },
+  {
+    path: '/admin/legal/exercises',
+    name: 'AdminLegalExercises',
+    component: () => import('@/admin/components/AdminLayout.vue'),
+    children: [
+      {
+        path: '',
+        name: 'AdminLegalExercisesHome',
+        component: () => import('@/admin/views/legal/ComplianceExercises.vue'),
+        meta: { title: '合规演练', requiresAdmin: true }
+      }
+    ],
+    meta: { requiresAdmin: true }
+  },
 
   // 智能学习平台路由
   {
     path: '/dashboard',
     name: 'StudentDashboard',
-    component: () => import('@/views/StudentDashboard.vue'),
+    component: () => import('@/teacher/DashboardEntry.vue'),
     meta: { title: '学习仪表盘', requiresAuth: true }
   },
   {
@@ -338,7 +467,16 @@ router.beforeEach((to, from, next) => {
   document.title = to.meta.title ? `${to.meta.title} - 在线学习平台` : '在线学习平台'
 
   // 检查是否需要登录
-  if (to.meta.requiresAuth && !userStore.isAuthenticated) {
+  if (to.meta.requiresTeacherOnly && !userStore.isAuthenticated) {
+    next('/login')
+  }
+  else if (to.meta.requiresTeacherOnly && userStore.userInfo?.role !== 'teacher') {
+    next(userStore.userInfo?.role === 'admin' ? '/admin/dashboard' : '/')
+  }
+  else if (to.path === '/dashboard' && userStore.userInfo?.role === 'admin') {
+    next('/admin/dashboard')
+  }
+  else if (to.meta.requiresAuth && !userStore.isAuthenticated) {
     next('/login')
   }
   // 检查是否需要管理员权限
@@ -364,3 +502,10 @@ router.beforeEach((to, from, next) => {
 })
 
 export default router
+
+
+
+
+
+
+

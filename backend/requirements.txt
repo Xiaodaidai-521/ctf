@@ -8,6 +8,7 @@ gunicorn==23.0.0
 
 # Database (PostgreSQL)
 psycopg2-binary==2.9.10
+pgvector==0.3.6
 
 # Docker support (容器题目管理)
 docker==7.1.0

@@ -2,16 +2,36 @@ from rest_framework import generics, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated, BasePermission
 from rest_framework.response import Response
-from rest_framework.authtoken.models import Token
-from django.contrib.auth import authenticate, login
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
+from rest_framework.throttling import AnonRateThrottle
+from rest_framework.exceptions import PermissionDenied
+from django.conf import settings
+from django.contrib.auth import authenticate, login, logout
+from django.middleware.csrf import CsrfViewMiddleware
+from django.views.decorators.csrf import ensure_csrf_cookie
+from django.db import transaction
 from django.db.models import Q
 from .models import CTFUser
 from .serializers import (
     UserSerializer, UserRegisterSerializer, UserLoginSerializer, LeaderboardSerializer,
     AdminUserCreateSerializer, AdminUserUpdateSerializer
 )
+
+
+def enforce_csrf(request):
+    middleware = CsrfViewMiddleware(lambda _: None)
+    rejection = middleware.process_view(request._request, lambda: None, (), {})
+    if rejection is not None:
+        raise PermissionDenied('CSRF token missing or incorrect.')
+
+DEMO_TEACHER_USERNAME = 'Teacher_\u674e'
+
+
+def normalize_login_username(username):
+    value = str(username or '').strip()
+    normalized = '_'.join(value.split())
+    if normalized.lower() in {'teacher_li', 'teacher_\u674e'}:
+        return DEMO_TEACHER_USERNAME
+    return value
 
 
 class IsAdminUser(BasePermission):
@@ -24,51 +44,85 @@ class IsAdminUser(BasePermission):
         )
 
 
-@method_decorator(csrf_exempt, name='dispatch')
 class RegisterView(generics.CreateAPIView):
     """用户注册"""
     queryset = CTFUser.objects.all()
     permission_classes = [AllowAny]
     serializer_class = UserRegisterSerializer
+    throttle_classes = [AnonRateThrottle]
 
+    def initial(self, request, *args, **kwargs):
+        enforce_csrf(request)
+        super().initial(request, *args, **kwargs)
+
+    @transaction.atomic
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
+        from student_profiles.models import (
+            DynamicGrowthProfile,
+            LearningPersona,
+            LearningPreference,
+            OnboardingInterview,
+            StudentProfile,
+        )
+
+        profile, _ = StudentProfile.objects.get_or_create(user=user)
+        LearningPreference.objects.get_or_create(profile=profile)
+        LearningPersona.objects.get_or_create(profile=profile)
+        DynamicGrowthProfile.objects.get_or_create(profile=profile)
+        OnboardingInterview.objects.get_or_create(profile=profile)
         # 创建token
-        token, created = Token.objects.get_or_create(user=user)
+        login(request, user)
+        request.session.set_expiry(settings.SESSION_COOKIE_AGE)
         return Response({
             'user': UserSerializer(user).data,
-            'token': token.key,
             'message': '注册成功'
         }, status=status.HTTP_201_CREATED)
 
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
-@csrf_exempt
 def login_view(request):
     """用户登录"""
+    enforce_csrf(request)
     serializer = UserLoginSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
 
+    username = normalize_login_username(serializer.validated_data['username'])
     user = authenticate(
-        username=serializer.validated_data['username'],
+        username=username,
         password=serializer.validated_data['password']
     )
 
     if user:
         login(request, user)
-        token, created = Token.objects.get_or_create(user=user)
+        request.session.set_expiry(settings.SESSION_COOKIE_AGE)
         return Response({
             'user': UserSerializer(user).data,
-            'token': token.key,
             'message': '登录成功'
         })
     else:
         return Response({
             'error': '用户名或密码错误'
         }, status=status.HTTP_401_UNAUTHORIZED)
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+@ensure_csrf_cookie
+def csrf_view(request):
+    return Response({'detail': 'CSRF cookie set.'})
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def logout_view(request):
+    logout(request)
+    response = Response(status=status.HTTP_204_NO_CONTENT)
+    response.delete_cookie(settings.SESSION_COOKIE_NAME)
+    return response
 
 
 @api_view(['GET'])

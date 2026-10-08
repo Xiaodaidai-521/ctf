@@ -2,7 +2,10 @@
   <div class="dashboard-page">
     <!-- ===== 管理员视图：用户学习报表 ===== -->
     <div v-if="userStore.userInfo?.role === 'admin'" class="container">
-      <h1 class="page-title">用户学习进度与掌握报表</h1>
+      <div class="report-heading">
+        <p class="section-kicker">VIEW 03 / Capability Profile</p>
+        <h1 class="page-title">用户学习进度与掌握报表</h1>
+      </div>
       <div class="summary-row">
         <div class="summary-card"><span class="s-num">{{ adminStudents.length }}</span><span class="s-label">用户总数</span></div>
         <div class="summary-card"><span class="s-num">{{ adminOnboarded }}</span><span class="s-label">已完成引导</span></div>
@@ -10,19 +13,21 @@
         <div class="summary-card"><span class="s-num">{{ adminTotalSolved }}</span><span class="s-label">总解题数</span></div>
       </div>
 
-      <a-input-search v-model="adminSearch" placeholder="搜索用户..." style="width:260px;margin-bottom:16px" allow-clear />
+      <div class="admin-toolbar">
+        <a-input-search v-model="adminSearch" placeholder="搜索用户..." allow-clear />
+      </div>
 
       <a-table :data="adminFiltered" :columns="adminColumns" :loading="adminLoading" row-key="id"
         :pagination="{ pageSize: 10 }" @row-click="showStudentDetail" style="cursor:pointer">
         <template #onboarded="{ record }">
-          <a-tag :color="record.onboarded ? 'green' : 'orange'" size="small">{{ record.onboarded ? '已引导' : '未引导' }}</a-tag>
+          <span class="status-pill" :class="record.onboarded ? 'is-guided' : 'is-pending'">{{ record.onboarded ? '已引导' : '未引导' }}</span>
         </template>
         <template #skills="{ record }">
-          <span v-for="(v,k) in record.skills" :key="k" class="admin-skill-dot" :style="{background:v>=4?'#52c41a':v>=2?'#faad14':'#f5222d'}" :title="dirLabel(k)+':'+v"></span>
+          <span v-for="(v,k) in record.skills" :key="k" class="admin-skill-dot" :class="'level-' + skillLevel(v)" :title="dirLabel(k)+':'+v"></span>
         </template>
         <template #mastery="{ record }">
-          <a-progress :percent="record.mastery" :size="16" :show-text="false" :stroke-width="6" style="width:80px" />
-          <span style="margin-left:6px;font-size:13px">{{ record.mastery }}%</span>
+          <a-progress :percent="record.mastery" :size="16" :show-text="false" :stroke-width="6" color="#181713" style="width:80px" />
+          <span class="mastery-value">{{ record.mastery }}%</span>
         </template>
       </a-table>
 
@@ -50,7 +55,7 @@
           <div v-if="adminDetail.concepts?.length">
             <div v-for="c in adminDetail.concepts" :key="c.name" class="admin-concept-row">
               <span class="concept-name">{{ c.name }}</span>
-              <div class="concept-bar-bg"><div class="concept-bar" :style="{width:c.mastery*100+'%',background:c.mastery>.7?'#52c41a':c.mastery>.4?'#faad14':'#f5222d'}"></div></div>
+              <div class="concept-bar-bg"><div class="concept-bar" :class="'level-' + masteryLevel(c.mastery)" :style="{width:c.mastery*100+'%'}"></div></div>
               <span class="concept-val">{{ Math.round(c.mastery*100) }}%</span>
             </div>
           </div>
@@ -64,6 +69,7 @@
       <!-- 顶部：用户信息 + 画像标签 -->
       <div class="dashboard-header">
         <div class="header-left">
+          <p class="section-kicker">STUDENT DESK / Personal Brief</p>
           <h1 class="greeting">{{ greeting }}，{{ userStore.userName }}</h1>
           <div class="persona-tags" v-if="personaTags.length">
             <a-tag v-for="t in personaTags" :key="t" :color="tagColor(t)">{{ t }}</a-tag>
@@ -251,6 +257,18 @@ const adminColumns = [
   { title: 'CTF方向', slotName: 'skills', width: 130 },
   { title: '掌握度', slotName: 'mastery', width: 140 },
 ]
+const skillLevel = (value) => {
+  const score = Number(value) || 0
+  if (score >= 4) return 'high'
+  if (score >= 2) return 'mid'
+  return 'low'
+}
+const masteryLevel = (value) => {
+  const score = Number(value) || 0
+  if (score > 0.7) return 'high'
+  if (score > 0.4) return 'mid'
+  return 'low'
+}
 const adminFiltered = computed(() => {
   const q = adminSearch.value.toLowerCase()
   return q ? adminStudents.value.filter(s => s.username.toLowerCase().includes(q)) : adminStudents.value
@@ -974,7 +992,52 @@ onMounted(async () => {
 .summary-card { flex:1; background:#fff; border-radius:8px; padding:16px 20px; text-align:center; box-shadow:0 1px 4px rgba(0,0,0,.06); }
 .s-num { display:block; font-size:22px; font-weight:700; color:#1f1f1f }
 .s-label { display:block; font-size:12px; color:#9499a0; margin-top:2px }
-.admin-skill-dot { width:10px; height:10px; border-radius:50%; display:inline-block; margin-right:2px }
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 2px 10px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 850;
+  line-height: 1;
+}
+.status-pill.is-guided {
+  color: var(--text-primary);
+  background: var(--bg-paper-2);
+}
+.status-pill.is-pending {
+  color: var(--text-secondary);
+  background: rgba(24, 23, 19, 0.06);
+  border-style: dashed;
+}
+.admin-skill-dot {
+  width: 12px;
+  height: 8px;
+  border-radius: 2px;
+  display: inline-block;
+  margin-right: 4px;
+  border: 1px solid rgba(24, 23, 19, 0.12);
+}
+.admin-skill-dot.level-high,
+.concept-bar.level-high {
+  background: var(--text-primary);
+}
+.admin-skill-dot.level-mid,
+.concept-bar.level-mid {
+  background: #8b7356;
+}
+.admin-skill-dot.level-low,
+.concept-bar.level-low {
+  background: #d6c6b2;
+}
+.mastery-value {
+  margin-left: 8px;
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 700;
+}
 .skill-row { display:flex; align-items:center; gap:10px; margin-bottom:6px }
 .skill-label { width:80px; font-size:13px; text-align:right }
 .skill-score { font-size:13px; font-weight:600; width:30px }
@@ -1027,6 +1090,278 @@ onMounted(async () => {
 
   .progress-ring-wrap {
     justify-items: center;
+  }
+}
+
+/* Phase 2 Editorial UI override */
+.dashboard-page {
+  background:
+    linear-gradient(90deg, rgba(24, 23, 19, 0.045) 1px, transparent 1px) 0 0 / 44px 44px,
+    linear-gradient(180deg, #faf7f0 0%, var(--bg-paper) 100%);
+  padding: 42px 0 72px;
+}
+
+.container {
+  width: min(1180px, calc(100% - 40px));
+  max-width: none;
+  padding: 0;
+}
+
+.report-heading,
+.dashboard-header {
+  margin-bottom: 24px;
+}
+
+.dashboard-header {
+  align-items: flex-end;
+}
+
+.page-title,
+.greeting {
+  margin: 6px 0 8px;
+  color: var(--text-primary);
+  font-size: 44px;
+  line-height: 1;
+  font-weight: 950;
+}
+
+.dashboard-grid {
+  grid-template-columns: minmax(320px, 0.95fr) minmax(320px, 1fr) minmax(300px, 0.9fr);
+  gap: 16px;
+}
+
+.card,
+.summary-card {
+  background: rgba(255, 250, 242, 0.74);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  box-shadow: none;
+}
+
+.card {
+  padding: 18px;
+}
+
+.card-title {
+  margin: 0 0 14px;
+  color: var(--text-primary);
+  font-size: 20px;
+  line-height: 1.1;
+  font-weight: 950;
+}
+
+.recommend-item,
+.insight-item,
+.review-item,
+.article-recommend-item {
+  background: transparent;
+  border-radius: 0;
+}
+
+.recommend-item {
+  padding: 13px 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.recommend-item:hover,
+.article-recommend-item:hover {
+  color: var(--primary-color);
+  background: var(--bg-paper-2);
+  border-color: var(--primary-color);
+}
+
+.review-item,
+.article-recommend-item,
+.plan-step,
+.progress-ring-meta div {
+  background: rgba(255, 250, 242, 0.66);
+  border: 1px solid var(--border-color);
+}
+
+.rec-title,
+.insight-text,
+.review-title,
+.article-recommend-title,
+.plan-step-head strong,
+.progress-ring-meta strong {
+  color: var(--text-primary);
+  font-weight: 850;
+}
+
+.rec-reason,
+.insight-desc,
+.review-meta,
+.article-recommend-desc,
+.plan-summary,
+.plan-step-head span,
+.plan-step ul,
+.progress-ring-meta div {
+  color: var(--text-secondary);
+}
+
+.insight-dot,
+.meta-dot.done {
+  background: var(--primary-color);
+}
+
+.plan-validity,
+.source-resource {
+  color: #785313;
+  background: rgba(239, 196, 107, 0.32);
+}
+
+.source-path {
+  color: var(--primary-color);
+  background: rgba(183, 53, 45, 0.1);
+}
+
+.source-community {
+  color: var(--success-color);
+  background: rgba(79, 124, 82, 0.12);
+}
+
+.progress-ring {
+  background: conic-gradient(var(--primary-color) var(--progress-deg), var(--bg-paper-2) 0deg);
+  box-shadow: none;
+}
+
+.progress-ring-center {
+  background: #fffaf2;
+  box-shadow: inset 0 0 0 1px var(--border-color);
+}
+
+.progress-ring-center strong {
+  color: var(--primary-color);
+}
+
+.progress-ring-center span,
+.rec-time,
+.rec-gain,
+.article-meta,
+.empty-mini {
+  color: var(--text-muted);
+}
+
+.meta-dot.remaining {
+  background: var(--bg-paper-2);
+}
+
+.summary-row {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.summary-card {
+  min-height: 118px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  padding: 18px 20px;
+}
+
+.s-num {
+  color: var(--text-primary);
+  font-size: 34px;
+  line-height: 1;
+  font-weight: 950;
+}
+
+.s-label {
+  margin-top: 12px;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+/* 学生学习概览：采用两列留白布局，避免空数据时出现拥挤的小卡片。 */
+.dashboard-page {
+  padding: 56px 0 88px;
+}
+
+.container {
+  width: min(1220px, calc(100% - 64px));
+}
+
+.dashboard-header {
+  margin-bottom: 34px;
+}
+
+.dashboard-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-areas:
+    "recommend insights"
+    "review teaching"
+    "articles progress";
+  gap: 24px;
+}
+
+.card {
+  min-height: 218px;
+  padding: 26px;
+}
+
+.empty-mini {
+  display: grid;
+  min-height: 112px;
+  place-items: center;
+  padding: 0;
+  text-align: center;
+}
+
+@media (max-width: 760px) {
+  .dashboard-page { padding: 28px 0 48px; }
+  .container { width: min(100% - 32px, 620px); }
+  .dashboard-header { margin-bottom: 24px; }
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+    grid-template-areas: "recommend" "review" "insights" "teaching" "articles" "progress";
+    gap: 16px;
+  }
+  .card { min-height: 190px; padding: 20px; }
+}
+
+.admin-toolbar {
+  width: min(360px, 100%);
+  margin-bottom: 18px;
+}
+
+.concept-bar-bg {
+  background: var(--bg-paper-2);
+  border-radius: 999px;
+}
+
+:deep(.arco-table-container) {
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  overflow: hidden;
+  background: rgba(255, 250, 242, 0.78);
+}
+
+:deep(.arco-table-th) {
+  background: var(--bg-paper-2);
+  color: var(--text-primary);
+  font-weight: 850;
+}
+
+:deep(.arco-table-td) {
+  background: rgba(255, 250, 242, 0.5);
+  border-color: var(--border-color);
+}
+
+:deep(.arco-input-wrapper) {
+  background: rgba(255, 250, 242, 0.78);
+  border-radius: 4px;
+}
+
+@media (max-width: 760px) {
+  .page-title,
+  .greeting {
+    font-size: 34px;
+  }
+
+  .summary-row {
+    grid-template-columns: 1fr;
   }
 }
 </style>

@@ -75,6 +75,7 @@
 <script setup>
 import { ref, onMounted, nextTick, watch } from 'vue'
 import { marked } from 'marked'
+import { sanitizeHtml } from '@/utils/sanitize'
 
 const props = defineProps({
   messages: {
@@ -100,7 +101,7 @@ const formatTime = (ts) => {
 
 const renderMarkdown = (content) => {
   if (!content) return ''
-  return marked.parse(content)
+  return sanitizeHtml(marked.parse(content))
 }
 
 const scrollToBottom = () => {

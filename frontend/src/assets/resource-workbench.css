@@ -1,0 +1,53 @@
+.resource-workbench {
+  display: grid;
+  grid-template-columns: minmax(0, 1.13fr) minmax(300px, 0.87fr);
+  gap: 18px;
+  margin-bottom: 28px;
+}
+
+.workbench-links { display: grid; grid-template-rows: 1fr 1fr; gap: 18px; }
+
+.workbench-card {
+  position: relative;
+  display: flex;
+  min-height: 170px;
+  padding: 24px;
+  border: 1px solid #d9d2c5;
+  background: #fffdf8;
+  color: #201d19;
+  text-align: left;
+  flex-direction: column;
+  align-items: flex-start;
+  cursor: pointer;
+  transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+}
+
+.workbench-card:hover { border-color: #a73725; box-shadow: 6px 6px 0 #eadfd0; transform: translate(-2px, -2px); }
+.dashboard-card { min-height: 358px; padding: 30px; background: #fffdf8; color: #201d19; border-color: #d9d2c5; justify-content: center; }
+.workbench-kicker { font-size: 10px; font-weight: 850; letter-spacing: .13em; color: #9a6a20; }
+.dashboard-card .workbench-kicker { color: #9a6a20; }
+.card-icon { position: absolute; right: 24px; top: 24px; color: #b7352b; font-size: 28px; }
+.dashboard-card .card-icon { right: 30px; top: 28px; color: #b7352b; font-size: 34px; }
+.workbench-card strong { max-width: 82%; font-size: 23px; line-height: 1.2; }
+.dashboard-card strong { font-size: 38px; }
+.workbench-card small { max-width: 82%; margin-top: 9px; color: #71695f; font-size: 13px; line-height: 1.55; }
+.dashboard-summary { max-width: 80%; margin-top: 18px; color: #71695f; font-size: 14px; line-height: 1.65; }
+.dashboard-stat { display: flex; align-items: baseline; gap: 7px; margin-top: 24px; padding-top: 16px; border-top: 1px solid #e5ddd1; color: #71695f; font-size: 12px; }
+.dashboard-stat b { margin-left: 10px; color: #b7352b; font-size: 25px; }
+.dashboard-stat b:first-child { margin-left: 0; }
+.card-action { margin-top: auto; color: #a73725; font-size: 12px; font-weight: 850; }
+.dashboard-card .card-action { color: #a73725; }
+
+@media (max-width: 760px) {
+  .resource-workbench { grid-template-columns: 1fr; }
+  .dashboard-card { min-height: 260px; }
+  .workbench-links { grid-template-columns: 1fr 1fr; grid-template-rows: none; }
+  .workbench-card { min-height: 190px; }
+}
+
+@media (max-width: 620px) {
+  .workbench-links { grid-template-columns: 1fr; }
+  .dashboard-card strong { font-size: 32px; }
+  .workbench-card { min-height: 160px; }
+  .dashboard-card { min-height: 240px; }
+}

@@ -77,8 +77,15 @@ class LearningOrchestrator:
                     'daily_hours': pref.daily_study_hours,
                     'difficulty_bias': pref.difficulty_bias,
                 }
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.warning(
+                'learning_orchestrator_preference_lookup_failed',
+                extra={
+                    'event': 'learning_orchestrator_preference_lookup_failed',
+                    'error_type': type(exc).__name__,
+                    'student_id': student_id,
+                },
+            )
         return None
 
     def _get_teaching_plan_snapshot(self, student_id: int) -> Dict:
@@ -642,7 +649,10 @@ class LearningOrchestrator:
         student_id: int,
         concept_name: str,
         question: str,
-        student_level: str = 'beginner'
+        student_level: str = 'beginner',
+        model_id: str = None,
+        teaching_context: Optional[Dict] = None,
+        context_summary: str = '',
     ) -> Dict:
         """委托 service.tutoring_session 执行4步教学闭环"""
         results = await self.service.tutoring_session(
@@ -650,6 +660,9 @@ class LearningOrchestrator:
             concept_name=concept_name,
             question=question,
             student_level=student_level,
+            model_id=model_id,
+            teaching_context=teaching_context,
+            context_summary=context_summary,
         )
         return {
             'student_id': student_id,

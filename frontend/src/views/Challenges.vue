@@ -5,9 +5,13 @@
         <!-- 左侧题目列表 -->
         <div class="challenges-main">
           <div class="page-header">
-            <h1 class="page-title">题目矩阵</h1>
+            <div>
+              <p class="section-kicker">VIEW 02 / Challenge Selection</p>
+              <h1 class="page-title">题目矩阵</h1>
+            </div>
             <button class="btn btn-primary random-btn" @click="handleRandom">
-              🎲 随机一题
+              <i class="bi bi-shuffle"></i>
+              随机一题
             </button>
           </div>
 
@@ -102,8 +106,12 @@
 
         <!-- 右侧边栏 -->
         <div class="challenges-sidebar">
-          <div class="sidebar-card">
-            <h3 class="sidebar-title">📊 解题统计</h3>
+          <div class="sidebar-card sidebar-card-dark">
+            <div class="sidebar-top">
+              <span>LAB BRIEF</span>
+              <span>LIVE</span>
+            </div>
+            <h3 class="sidebar-title">解题统计</h3>
             <div v-if="userStore.isAuthenticated">
               <div class="stat-row">
                 <span class="stat-label">我的积分</span>
@@ -127,7 +135,7 @@
           </div>
 
           <div class="sidebar-card">
-            <h3 class="sidebar-title">🔥 实时动态</h3>
+            <h3 class="sidebar-title">实时动态</h3>
             <div class="activity-list">
               <div v-for="(activity, index) in recentActivities" :key="index" class="activity-item">
                 <span class="activity-time">{{ activity.time }}</span>
@@ -258,14 +266,14 @@ onMounted(async () => {
 
 <style scoped>
 .challenges-page {
-  padding: 16px 0;
+  padding: 42px 0 72px;
   min-height: calc(100vh - 60px);
 }
 
 .challenges-layout {
   display: grid;
-  grid-template-columns: 1fr 260px;
-  gap: 16px;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: 24px;
   align-items: start;
 }
 
@@ -276,13 +284,16 @@ onMounted(async () => {
 .page-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
+  align-items: end;
+  gap: 20px;
+  margin-bottom: 24px;
 }
 
 .page-title {
-  font-size: 20px;
-  font-weight: bold;
+  margin-top: 6px;
+  font-size: 48px;
+  line-height: 1;
+  font-weight: 950;
   color: var(--text-primary);
 }
 
@@ -293,17 +304,21 @@ onMounted(async () => {
 }
 
 .filter-section {
-  background: white;
-  padding: 16px;
-  border-radius: var(--radius-sm);
-  margin-bottom: 16px;
-  box-shadow: var(--shadow-sm);
+  background: rgba(255, 250, 242, 0.72);
+  padding: 18px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  margin-bottom: 18px;
+  box-shadow: none;
 }
 
 .filter-row {
   display: flex;
-  align-items: center;
-  margin-bottom: 12px;
+  align-items: flex-start;
+  gap: 14px;
+  padding-bottom: 14px;
+  margin-bottom: 14px;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .filter-row:last-child {
@@ -311,10 +326,11 @@ onMounted(async () => {
 }
 
 .filter-label {
+  padding-top: 6px;
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 850;
   color: var(--text-primary);
-  min-width: 70px;
+  min-width: 78px;
 }
 
 .filter-buttons {
@@ -324,13 +340,16 @@ onMounted(async () => {
 }
 
 .filter-btn {
+  min-height: 32px;
   padding: 5px 12px;
   border: 1px solid var(--border-color);
-  background: white;
+  background: rgba(255, 250, 242, 0.72);
   border-radius: var(--radius-sm);
   font-size: 13px;
+  font-weight: 750;
   cursor: pointer;
-  transition: all 0.3s;
+  color: var(--text-secondary);
+  transition: all 0.2s ease;
 }
 
 .filter-btn:hover {
@@ -339,23 +358,24 @@ onMounted(async () => {
 }
 
 .filter-btn.active {
-  border-color: var(--primary-color);
-  background: var(--primary-color);
-  color: white;
+  border-color: var(--text-primary);
+  background: var(--text-primary);
+  color: #fbf7ef;
 }
 
 .challenges-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
 }
 
 .empty-state {
-  background: white;
+  background: rgba(255, 250, 242, 0.72);
   padding: 60px 20px;
   text-align: center;
-  border-radius: var(--radius-sm);
-  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  box-shadow: none;
 }
 
 .empty-icon {
@@ -371,29 +391,62 @@ onMounted(async () => {
 .challenges-sidebar {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
+  position: sticky;
+  top: 84px;
 }
 
 .sidebar-card {
-  background: white;
-  padding: 16px;
-  border-radius: var(--radius-sm);
-  box-shadow: var(--shadow-sm);
+  background: rgba(255, 250, 242, 0.74);
+  padding: 18px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  box-shadow: none;
+}
+
+.sidebar-card-dark {
+  color: #fff8ed !important;
+  background: #181713 !important;
+  border-color: #181713 !important;
+  box-shadow: 12px 12px 0 rgba(24, 23, 19, 0.12) !important;
+}
+
+.sidebar-top {
+  display: flex;
+  justify-content: space-between;
+  padding-bottom: 14px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid rgba(248, 241, 232, 0.18);
+  color: var(--secondary-color);
+  font-size: 12px;
+  font-weight: 950;
+  text-transform: uppercase;
 }
 
 .sidebar-title {
-  font-size: 14px;
-  font-weight: bold;
-  margin-bottom: 12px;
-  padding-bottom: 10px;
-  border-bottom: 2px solid #f0f0f0;
+  font-size: 22px;
+  font-weight: 950;
+  margin-bottom: 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.sidebar-card-dark .sidebar-title {
+  border-color: rgba(248, 241, 232, 0.18);
+  color: #fff8ed;
 }
 
 .stat-row {
   display: flex;
   justify-content: space-between;
-  padding: 8px 0;
-  border-bottom: 1px solid #f0f0f0;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.sidebar-card-dark .stat-row {
+  min-height: 40px;
+  border-bottom-color: rgba(255, 248, 237, 0.18);
 }
 
 .stat-row:last-child {
@@ -405,10 +458,18 @@ onMounted(async () => {
   color: var(--text-secondary);
 }
 
+.sidebar-card-dark .stat-label {
+  color: rgba(255, 248, 237, 0.82);
+}
+
 .stat-value {
-  font-size: 13px;
-  font-weight: bold;
+  font-size: 14px;
+  font-weight: 950;
   color: var(--text-primary);
+}
+
+.sidebar-card-dark .stat-value {
+  color: #ffd56f;
 }
 
 .stat-hint {
@@ -426,19 +487,21 @@ onMounted(async () => {
 .activity-list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 0;
+  border-top: 1px solid var(--border-color);
 }
 
 .activity-item {
-  padding: 8px;
-  background: #fafafa;
-  border-radius: var(--radius-sm);
+  padding: 12px 0;
+  background: transparent;
+  border-bottom: 1px solid var(--border-color);
+  border-radius: 0;
   font-size: 12px;
 }
 
 .activity-time {
   color: var(--text-secondary);
-  font-size: 10px;
+  font-size: 11px;
   display: block;
   margin-bottom: 4px;
 }
@@ -459,6 +522,15 @@ onMounted(async () => {
 }
 
 @media (max-width: 640px) {
+  .page-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .page-title {
+    font-size: 38px;
+  }
+
   .challenges-grid {
     grid-template-columns: 1fr;
   }

@@ -25,7 +25,7 @@ class Command(BaseCommand):
             self.stdout.write(self.style.WARNING('Dry-run 模式：只显示将要清理的容器'))
 
         # 清理过期容器
-        count = container_manager.cleanup_expired_containers()
+        count = container_manager.cleanup_expired_containers(dry_run=options['dry_run'])
 
         if options['dry_run']:
             self.stdout.write(self.style.SUCCESS(f'将清理 {count} 个过期容器'))

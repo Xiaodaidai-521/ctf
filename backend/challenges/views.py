@@ -1,16 +1,45 @@
 from rest_framework import generics, status, viewsets
-from rest_framework.decorators import api_view, permission_classes, action
+from rest_framework.decorators import api_view, permission_classes, authentication_classes, action
 from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.authentication import SessionAuthentication, TokenAuthentication
 from rest_framework.response import Response
+from django.conf import settings
 from django.db.models import Min
 from django.http import HttpResponse, StreamingHttpResponse
+from django.views.decorators.csrf import csrf_exempt
 from .models import Category, Challenge, ChallengeContainer
 from .serializers import CategorySerializer, ChallengeSerializer, ChallengeListSerializer, SubmissionSerializer
 from .container_manager import get_container_manager
+from .container_audit import record_container_audit, record_flag_submission_audit
+from .access import (
+    COOKIE_NAME,
+    access_cookie_max_age,
+    build_access_cookie_value,
+    build_access_url,
+    validate_access_token,
+)
 import requests
+import logging
+import docker
+from rest_framework.exceptions import APIException
 
 # 使用端口池直接访问，不通过FRP
 FRP_SERVER = 'http://localhost:8000'
+logger = logging.getLogger(__name__)
+SENSITIVE_PROXY_HEADERS = {'authorization', 'cookie', 'referer'}
+
+
+class DockerUnavailable(APIException):
+    status_code = 503
+    default_detail = 'Docker 服务未启动或无法连接，请启动 Docker Desktop（Linux 服务器请启动 Docker daemon）后重试。'
+
+
+def available_container_manager():
+    try:
+        return get_container_manager()
+    except docker.errors.DockerException as exc:
+        logger.warning('Docker connection unavailable: %s', exc)
+        raise DockerUnavailable() from exc
 
 
 class IsTeacherOrAdmin(IsAuthenticated):
@@ -27,7 +56,7 @@ class IsTeacherOrAdmin(IsAuthenticated):
 
 class CategoryListView(generics.ListAPIView):
     """分类列表"""
-    queryset = Category.objects.all()
+    queryset = Category.objects.all().order_by('name')
     permission_classes = [AllowAny]
     serializer_class = CategorySerializer
 
@@ -49,6 +78,20 @@ class ChallengeViewSet(viewsets.ModelViewSet):
         if self.action == 'list':
             return ChallengeListSerializer
         return ChallengeSerializer
+
+    def set_container_access_cookie(self, response, container):
+        if container.runtime_metadata.get('profile') == 'juice-shop':
+            return response
+        response.set_cookie(
+            COOKIE_NAME,
+            build_access_cookie_value(container),
+            max_age=access_cookie_max_age(container),
+            httponly=True,
+            secure=getattr(settings, 'SESSION_COOKIE_SECURE', False),
+            samesite='Lax',
+            path=f'/challenge/{container.user_id}-{container.container_id}/',
+        )
+        return response
 
     def get_queryset(self):
         """支持按分类和难度筛选，管理员可以看到所有题目"""
@@ -130,6 +173,20 @@ class ChallengeViewSet(viewsets.ModelViewSet):
             ip_address=self.get_client_ip(request),
             user_agent=request.META.get('HTTP_USER_AGENT', '')
         )
+        latest_container = ChallengeContainer.objects.filter(
+            user=request.user,
+            challenge=challenge,
+        ).order_by('-created_at').first()
+        try:
+            record_flag_submission_audit(submission=submission, container=latest_container)
+        except Exception as exc:
+            logger.warning("Failed to write flag submission audit: %s", exc)
+
+        from learning_analytics.events import record_learning_event
+        record_learning_event(request.user, 'challenge_submitted', {
+            'challenge_id': challenge.id,
+            'success': submission.is_correct,
+        })
 
         if submission.is_correct:
             self.update_review_progress(request.user, challenge)
@@ -171,12 +228,22 @@ class ChallengeViewSet(viewsets.ModelViewSet):
 
         # 检查题目是否有Docker镜像
         if not challenge.docker_image:
+            try:
+                record_container_audit(
+                    action='start_failed',
+                    result='failed',
+                    user=request.user,
+                    challenge=challenge,
+                    error_message='challenge has no docker image configured',
+                )
+            except Exception as exc:
+                logger.warning("Failed to write container audit event: %s", exc)
             return Response({
                 'success': False,
                 'message': '该题目没有配置Docker镜像，无法启动容器'
             }, status=status.HTTP_400_BAD_REQUEST)
 
-        container_manager = get_container_manager()
+        container_manager = available_container_manager()
 
         # 启动容器
         success, message, container = container_manager.start_container(
@@ -185,19 +252,20 @@ class ChallengeViewSet(viewsets.ModelViewSet):
         )
 
         if success and container:
-            return Response({
+            response = Response({
                 'success': True,
                 'message': message,
                 'container': {
                     'container_id': container.container_id,
                     'status': container.status,  # 使用英文状态码，不是显示文本
                     'status_display': container.get_status_display(),  # 添加显示文本
-                    'access_url': container.access_url,
+                    'access_url': build_access_url(container),
                     'expires_at': container.expires_at.isoformat() if container.expires_at else None,
                     'is_running': container.is_running,
                     'is_expired': container.is_expired
                 }
             })
+            return self.set_container_access_cookie(response, container)
         else:
             return Response({
                 'success': False,
@@ -208,13 +276,13 @@ class ChallengeViewSet(viewsets.ModelViewSet):
     def stop(self, request, pk=None):
         """停止题目容器"""
         challenge = self.get_object()
-        container_manager = get_container_manager()
+        container_manager = available_container_manager()
 
         # 获取用户的容器
         container = ChallengeContainer.objects.filter(
             user=request.user,
             challenge=challenge,
-            status='running'
+            status__in=['running', 'error']
         ).first()
 
         if not container:
@@ -239,7 +307,7 @@ class ChallengeViewSet(viewsets.ModelViewSet):
     def container(self, request, pk=None):
         """获取容器状态"""
         challenge = self.get_object()
-        container_manager = get_container_manager()
+        container_manager = available_container_manager()
 
         # 获取容器状态
         container = container_manager.get_container_status(
@@ -254,17 +322,18 @@ class ChallengeViewSet(viewsets.ModelViewSet):
                 'message': '容器未启动'
             })
 
-        return Response({
+        response = Response({
             'container_id': container.container_id,
             'status': container.status,
             'status_display': container.get_status_display(),
-            'access_url': container.access_url,
+            'access_url': build_access_url(container),
             'is_expired': container.is_expired,
             'is_running': container.is_running,
             'created_at': container.created_at.isoformat(),
             'started_at': container.started_at.isoformat() if container.started_at else None,
             'expires_at': container.expires_at.isoformat() if container.expires_at else None
         })
+        return self.set_container_access_cookie(response, container)
 
     def get_client_ip(self, request):
         """获取客户端IP"""
@@ -277,7 +346,7 @@ class ChallengeViewSet(viewsets.ModelViewSet):
 
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@permission_classes([AllowAny])
 def challenge_detail_view(request, pk):
     """题目详情"""
     try:
@@ -290,7 +359,9 @@ def challenge_detail_view(request, pk):
 
 # ==================== CTF代理视图 ====================
 
+@csrf_exempt
 @api_view(['GET', 'POST', 'PUT', 'DELETE', 'HEAD', 'OPTIONS'])
+@authentication_classes([])
 @permission_classes([AllowAny])
 def proxy_challenge_view(request, path):
     """
@@ -310,36 +381,64 @@ def proxy_challenge_view(request, path):
     except (ValueError, IndexError):
         return HttpResponse("Invalid container ID format", status=400)
 
+    access_cookie = request.COOKIES.get(COOKIE_NAME)
+    access_query_token = request.GET.get('access_token')
+    cookie_is_valid = (
+        validate_access_token(access_cookie, user_id, container_uuid)
+        or validate_access_token(access_query_token, user_id, container_uuid)
+    )
+
+    proxy_user = request.user
+    if not proxy_user.is_authenticated:
+        proxy_user = getattr(request._request, 'user', None)
+    if proxy_user and proxy_user.is_authenticated and proxy_user.id != user_id:
+        return HttpResponse("Container owner mismatch", status=403)
+    if (not proxy_user or not proxy_user.is_authenticated) and not cookie_is_valid:
+        return HttpResponse("Authentication required", status=401)
+
+    container_filter = ChallengeContainer.objects.filter(
+        container_id=container_uuid,
+        user_id=user_id,
+        status='running',
+    )
+    if proxy_user and proxy_user.is_authenticated:
+        container_filter = container_filter.filter(user=proxy_user)
+    container = container_filter.first()
+    if not container or container.is_expired:
+        return HttpResponse("Container not found or expired", status=404)
+
     # 查找容器记录
     try:
         from .port_pool import get_port_pool
         from .coze_injector import is_html_response, inject_coze_sdk
         from django.conf import settings
 
-        port_pool = get_port_pool()
-        pool_port = port_pool.get_port(container_uuid)
-
-        if not pool_port:
-            return HttpResponse("Container not found or expired", status=404)
-
-        # 构建目标URL（直接转发到容器的端口）
-        target_url = f"http://localhost:{pool_port}/"
+        proxy_mode = getattr(settings, 'CONTAINER_PROXY_MODE', 'host_port')
+        if proxy_mode == 'host_port':
+            target_url = f"http://127.0.0.1:{container.port}/"
+        else:
+            container_port = container.challenge.redirect_port or 80
+            target_url = f"http://{user_id}-{container_uuid}:{container_port}/"
 
         # 添加剩余路径
         if len(parts) > 1:
             target_url += '/'.join(parts[1:])
 
         # 转发查询参数
-        if request.META.get('QUERY_STRING'):
-            target_url += f"?{request.META.get('QUERY_STRING')}"
+        query = request.GET.copy()
+        query.pop('access_token', None)
+        if query:
+            target_url += f"?{query.urlencode()}"
 
         # 准备请求头
         headers = {}
         for key, value in request.META.items():
             if key.startswith('HTTP_'):
                 header_name = key[5:].replace('_', '-')
-                if header_name.lower() != 'host':
+                if header_name.lower() not in SENSITIVE_PROXY_HEADERS | {'host'}:
                     headers[header_name] = value
+        if request.content_type:
+            headers['Content-Type'] = request.content_type
 
         try:
             # 转发请求
@@ -348,7 +447,7 @@ def proxy_challenge_view(request, path):
                 url=target_url,
                 headers=headers,
                 data=request.body,
-                cookies=request.COOKIES,
+                cookies={},
                 allow_redirects=False,
                 timeout=30,
                 stream=False  # 不使用流式，以便注入 Coze SDK
@@ -385,11 +484,12 @@ def proxy_challenge_view(request, path):
                     response_headers.append((key, value))
 
             # 返回响应
-            return HttpResponse(
+            response = HttpResponse(
                 final_content,
                 status=resp.status_code,
                 headers=dict(response_headers)
             )
+            return response
 
         except requests.exceptions.Timeout:
             return HttpResponse("Gateway Timeout", status=504)

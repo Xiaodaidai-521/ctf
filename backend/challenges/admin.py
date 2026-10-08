@@ -29,7 +29,8 @@ class ChallengeAdmin(admin.ModelAdmin):
             'fields': ('title', 'description', 'category', 'difficulty', 'score')
         }),
         ('题目设置', {
-            'fields': ('flag', 'hint', 'attachment', 'is_active')
+            'fields': ('flag', 'submission_mode', 'hint', 'attachment', 'is_active',
+                       'docker_image', 'redirect_port', 'redirect_type')
         }),
         ('统计信息', {
             'fields': ('solve_count', 'created_at', 'updated_at'),

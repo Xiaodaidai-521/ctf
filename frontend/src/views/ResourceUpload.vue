@@ -37,6 +37,7 @@
                 <option value="video">视频</option>
                 <option value="report">报告</option>
                 <option value="zip">压缩包</option>
+                <option value="ai_resource">AI资源</option>
               </select>
             </div>
 

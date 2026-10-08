@@ -7,6 +7,12 @@
 backend/.env
 
 # 数据库
+*.sqlite3
+*.sqlite
+*.db
+*.dump
+backend/data/migration_backups/
+../database/postgres-data/
 
 # Python
 __pycache__/
@@ -14,16 +20,23 @@ __pycache__/
 *.pyo
 venv/
 .venv/
+.venv-local/
 ctf-env/
 
 # Node.js
 node_modules/
 dist/
+.pnpm-store/
 
 # Docker
 postgres_data/
 
 # 日志
+*.log
+*.out
+*.err
+logs/
+backend/logs/
 
 # 媒体文件
 backend/media/

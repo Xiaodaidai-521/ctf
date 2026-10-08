@@ -17,7 +17,7 @@
           class="menu-item"
           :class="{ active: $route.path === item.path }"
         >
-          <span class="menu-icon">{{ item.icon }}</span>
+          <span class="menu-icon"><i :class="['bi', item.icon]"></i></span>
           <span>{{ item.title }}</span>
         </router-link>
       </nav>
@@ -35,12 +35,16 @@
         </div>
 
         <div class="header-right">
-          <button class="header-action" @click="goBackToFront">🏠 返回前台</button>
+          <button class="header-action" @click="goBackToFront">
+            <i class="bi bi-house-door"></i>
+            返回前台
+          </button>
           <button class="header-action" @click="handleRefresh">
-            🔄
+            <i class="bi bi-arrow-clockwise"></i>
           </button>
           <button class="header-action" @click="handleLogout">
-            🚪 退出
+            <i class="bi bi-box-arrow-right"></i>
+            退出
           </button>
           <div class="user-dropdown" @click="goToProfile">
             <div class="admin-avatar">{{ userStore.userName.charAt(0) }}</div>
@@ -75,54 +79,48 @@ const menuItems = [
   {
     path: '/admin/dashboard',
     title: '仪表盘',
-    icon: '📊'
-  },
-  {
-    path: '/admin/student-learning',
-    title: '用户学习报表',
-    icon: '📋'
-  },
-  {
-    path: '/admin/learning-scores',
-    title: '动态评分管理',
-    icon: '📈'
+    icon: 'bi-speedometer2'
   },
   {
     path: '/admin/users',
     title: '用户管理',
-    icon: '👥'
+    icon: 'bi-people'
   },
   {
     path: '/admin/challenges',
     title: '题目管理',
-    icon: '📝'
+    icon: 'bi-file-earmark-code'
   },
   {
     path: '/admin/submissions',
     title: '提交记录',
-    icon: '📋'
+    icon: 'bi-list-check'
   },
   {
     path: '/admin/categories',
     title: '分类管理',
-    icon: '🏷️'
+    icon: 'bi-tags'
   },
   {
     path: '/admin/resources',
     title: '资源审核',
-    icon: '📦'
+    icon: 'bi-box-seam'
   },
   {
     path: '/admin/articles',
     title: '文章审核',
-    icon: '📰'
+    icon: 'bi-newspaper'
   },
   {
     path: '/admin/announcements',
     title: '公告管理',
-    icon: '📢'
+    icon: 'bi-megaphone'
   }
 ]
+
+menuItems.push(
+  { path: '/admin/legal/dashboard', title: '合规中心', icon: 'bi-bank' }
+)
 
 const pageTitle = computed(() => {
   const item = menuItems.find(i => route.path.startsWith(i.path))

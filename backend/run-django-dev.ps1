@@ -1,5 +1,11 @@
 $ErrorActionPreference = "Continue"
-$BackendDir = "E:\c4\6.14\ctf-platform-export-20260315_184335\project-code\backend"
+$BackendDir = $PSScriptRoot
 Set-Location -LiteralPath $BackendDir
 $env:PYTHONWARNINGS = "ignore"
-& ".\.venv-local\Scripts\python.exe" "manage.py" "runserver" "127.0.0.1:8000" "--noreload" *>> "django-dev.log"
+
+$PythonExe = Join-Path $BackendDir "venv\Scripts\python.exe"
+if (-not (Test-Path -LiteralPath $PythonExe)) {
+  $PythonExe = "python"
+}
+
+& $PythonExe "manage.py" "runserver" "127.0.0.1:8000" "--noreload" *>> "django-dev.log"

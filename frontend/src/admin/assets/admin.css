@@ -2,16 +2,16 @@
 :root {
   --admin-sidebar-width: 240px;
   --admin-header-height: 60px;
-  --admin-primary-color: #1890ff;
-  --admin-dark-color: #001529;
-  --admin-bg-light: #f0f2f5;
-  --admin-border-color: #e8e8e8;
+  --admin-primary-color: #b7352d;
+  --admin-dark-color: #181713;
+  --admin-bg-light: #fbf7ef;
+  --admin-border-color: #e4d8c8;
 }
 
 .admin-layout {
   display: flex;
   min-height: 100vh;
-  background: var(--admin-bg-light);
+  background: var(--bg-page, var(--admin-bg-light));
   position: relative;
 }
 
@@ -36,13 +36,13 @@
 /* 侧边栏 */
 .admin-sidebar {
   width: var(--admin-sidebar-width);
-  background: #002140;
-  color: white;
+  background: var(--admin-dark-color);
+  color: #fbf7ef;
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
   z-index: 1000;
-  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.15);
+  box-shadow: 8px 0 0 rgba(24, 23, 19, 0.04);
 }
 
 .sidebar-logo {
@@ -50,18 +50,19 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #001529;
+  background: var(--admin-dark-color);
   font-size: 18px;
   font-weight: bold;
-  color: white;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  color: #fbf7ef;
+  border-bottom: 1px solid rgba(248, 241, 232, 0.16);
   letter-spacing: 0.5px;
 }
 
 .sidebar-logo-icon {
   width: 32px;
   height: 32px;
-  background: var(--admin-primary-color);
+  background: #fbf7ef;
+  color: var(--admin-dark-color);
   border-radius: 6px;
   display: flex;
   align-items: center;
@@ -79,7 +80,7 @@
 
 .menu-item {
   padding: 14px 24px;
-  color: rgba(255, 255, 255, 0.85);
+  color: rgba(248, 241, 232, 0.74);
   cursor: pointer;
   transition: all 0.3s;
   display: flex;
@@ -91,19 +92,25 @@
 }
 
 .menu-item:hover {
-  color: white;
-  background: rgba(255, 255, 255, 0.1);
+  color: #fbf7ef;
+  background: rgba(248, 241, 232, 0.08);
 }
 
 .menu-item.active {
-  color: white;
+  color: #fbf7ef;
   background: var(--admin-primary-color);
-  font-weight: 500;
+  font-weight: 850;
 }
 
 .menu-icon {
-  font-size: 18px;
-  width: 20px;
+  width: 26px;
+  height: 26px;
+  display: inline-grid;
+  place-items: center;
+  border: 1px solid rgba(248, 241, 232, 0.16);
+  border-radius: 4px;
+  color: inherit;
+  font-size: 14px;
   text-align: center;
 }
 
@@ -113,13 +120,14 @@
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  background: var(--admin-bg-light);
+  background: transparent;
 }
 
 .admin-header {
   height: var(--admin-header-height);
-  background: white;
-  box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08);
+  background: rgba(255, 250, 242, 0.86);
+  border-bottom: 1px solid var(--admin-border-color);
+  box-shadow: none;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -137,7 +145,7 @@
 
 .header-title {
   font-size: 16px;
-  font-weight: 500;
+  font-weight: 950;
   color: var(--text-primary);
 }
 
@@ -148,6 +156,11 @@
 }
 
 .header-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 0;
+  background: transparent;
   cursor: pointer;
   color: var(--text-secondary);
   transition: color 0.3s;
@@ -174,8 +187,8 @@
 .admin-avatar {
   width: 32px;
   height: 32px;
-  border-radius: 50%;
-  background: var(--admin-primary-color);
+  border-radius: 6px;
+  background: var(--admin-dark-color);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -210,9 +223,10 @@
 
 /* 页面卡片 */
 .page-card {
-  background: white;
+  background: #fffaf2bd;
+  border: 1px solid var(--admin-border-color);
   border-radius: 8px;
-  box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08);
+  box-shadow: 10px 10px 0 rgba(24, 23, 19, 0.04);
   padding: 24px;
 }
 
@@ -243,7 +257,7 @@
 }
 
 .admin-table th {
-  background: #fafafa;
+  background: #fffaf2;
   padding: 12px 16px;
   text-align: left;
   font-weight: 600;
@@ -257,7 +271,7 @@
 }
 
 .admin-table tr:hover {
-  background: #fafafa;
+  background: #fffaf2;
 }
 
 /* 统计卡片 */
@@ -269,10 +283,11 @@
 }
 
 .stat-card {
-  background: white;
+  background: #fffaf2bd;
+  border: 1px solid var(--admin-border-color);
   border-radius: 8px;
   padding: 24px;
-  box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08);
+  box-shadow: 8px 8px 0 rgba(24, 23, 19, 0.04);
 }
 
 .stat-header {
@@ -285,36 +300,19 @@
 .stat-icon {
   width: 48px;
   height: 48px;
-  border-radius: 8px;
+  border-radius: 6px;
+  background: #fffaf2;
+  border: 1px solid rgba(24, 23, 19, 0.16);
+  color: var(--admin-primary-color);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 24px;
 }
 
-.stat-icon-blue {
-  background: #e6f7ff;
-  color: #1890ff;
-}
-
-.stat-icon-green {
-  background: #f6ffed;
-  color: #52c41a;
-}
-
-.stat-icon-orange {
-  background: #fff7e6;
-  color: #faad14;
-}
-
-.stat-icon-red {
-  background: #fff1f0;
-  color: #ff4d4f;
-}
-
 .stat-value {
   font-size: 30px;
-  font-weight: bold;
+  font-weight: 950;
   color: var(--text-primary);
   margin-bottom: 8px;
 }
@@ -333,11 +331,11 @@
 }
 
 .trend-up {
-  color: #52c41a;
+  color: var(--admin-primary-color);
 }
 
 .trend-down {
-  color: #ff4d4f;
+  color: var(--admin-primary-color);
 }
 
 /* 表单样式 */
@@ -361,7 +359,7 @@
 
 .form-label.required::before {
   content: '*';
-  color: #ff4d4f;
+  color: var(--admin-primary-color);
   margin-right: 4px;
 }
 
@@ -380,7 +378,7 @@
 .form-textarea:focus {
   outline: none;
   border-color: var(--admin-primary-color);
-  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.1);
+  box-shadow: 0 0 0 2px rgba(183, 53, 45, 0.12);
 }
 
 .form-textarea {
@@ -401,33 +399,33 @@
 
 .btn-primary {
   background: var(--admin-primary-color);
-  color: white;
+  color: #fbf7ef;
 }
 
 .btn-primary:hover {
-  background: #40a9ff;
+  background: #8e2721;
 }
 
 .btn-danger {
-  background: #ff4d4f;
-  color: white;
+  background: #181713;
+  color: #fbf7ef;
 }
 
 .btn-danger:hover {
-  background: #ff7875;
+  background: #2b2924;
 }
 
 .btn-success {
-  background: #52c41a;
-  color: white;
+  background: #4f7c52;
+  color: #fbf7ef;
 }
 
 .btn-success:hover {
-  background: #73d13d;
+  background: #416844;
 }
 
 .btn-default {
-  background: white;
+  background: #fffaf2;
   border: 1px solid var(--admin-border-color);
   color: var(--text-primary);
 }
@@ -446,27 +444,182 @@
 }
 
 .badge-success {
-  background: #f6ffed;
-  color: #52c41a;
-  border: 1px solid #b7eb8f;
+  background: rgba(79, 124, 82, 0.12);
+  color: #4f7c52;
+  border: 1px solid rgba(79, 124, 82, 0.28);
 }
 
 .badge-warning {
-  background: #fffbe6;
-  color: #faad14;
-  border: 1px solid #ffe58f;
+  background: rgba(213, 139, 37, 0.12);
+  color: #785313;
+  border: 1px solid rgba(213, 139, 37, 0.28);
 }
 
 .badge-error {
-  background: #fff1f0;
-  color: #ff4d4f;
-  border: 1px solid #ffccc7;
+  background: rgba(183, 53, 45, 0.1);
+  color: var(--admin-primary-color);
+  border: 1px solid rgba(183, 53, 45, 0.28);
 }
 
 .badge-info {
-  background: #e6f7ff;
-  color: #1890ff;
-  border: 1px solid #91d5ff;
+  background: rgba(24, 23, 19, 0.08);
+  color: var(--text-primary);
+  border: 1px solid rgba(24, 23, 19, 0.18);
+}
+
+/* Editorial UI override: 管理后台只换视觉壳层，不改变路由和操作行为 */
+:root {
+  --admin-primary-color: #b7352d;
+  --admin-dark-color: #191a1c;
+  --admin-bg-light: #f4efe7;
+  --admin-border-color: rgba(24, 23, 19, 0.16);
+  --admin-sidebar-text: #d9d1c7;
+  --admin-sidebar-hover: #303236;
+  --admin-sidebar-accent: #f2c26b;
+}
+
+.admin-layout,
+.admin-main {
+  background:
+    linear-gradient(90deg, rgba(24, 23, 19, 0.045) 1px, transparent 1px) 0 0 / 44px 44px,
+    var(--admin-bg-light);
+}
+
+.admin-sidebar {
+  background: #1d1f23;
+  color: var(--admin-sidebar-text);
+  border-right: 1px solid rgba(242, 194, 107, 0.18);
+  box-shadow: none;
+}
+
+.sidebar-logo {
+  background: #111214;
+  color: #f5eee4;
+  font-weight: 950;
+  border-bottom-color: rgba(242, 194, 107, 0.2);
+}
+
+.sidebar-logo-icon {
+  color: var(--admin-primary-color);
+  background: #f5eee4;
+  border-radius: 6px;
+}
+
+.menu-item {
+  color: #fbf7ef;
+  font-weight: 650;
+  transition: background-color 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.menu-item .menu-icon {
+  color: var(--admin-sidebar-accent);
+  border-color: rgba(242, 194, 107, 0.34);
+  background: rgba(242, 194, 107, 0.06);
+}
+
+.menu-item:hover {
+  color: #fbf7ef;
+  background: var(--admin-sidebar-hover);
+}
+
+.menu-item:hover .menu-icon {
+  color: #ffe3aa;
+  border-color: rgba(242, 194, 107, 0.66);
+  background: rgba(242, 194, 107, 0.13);
+}
+
+.menu-item.active,
+.menu-item.router-link-exact-active {
+  color: #ffe3aa;
+  background: var(--admin-primary-color);
+  font-weight: 850;
+  box-shadow: inset 4px 0 0 var(--admin-sidebar-accent);
+}
+
+.menu-item.active .menu-icon,
+.menu-item.router-link-exact-active .menu-icon {
+  color: #fffaf2;
+  border-color: rgba(255, 250, 242, 0.62);
+  background: rgba(255, 250, 242, 0.14);
+}
+
+.menu-item:focus-visible {
+  outline: 2px solid var(--admin-sidebar-accent);
+  outline-offset: -2px;
+}
+
+.admin-header {
+  background: rgba(250, 247, 240, 0.92);
+  border-bottom: 1px solid var(--admin-border-color);
+  box-shadow: none;
+}
+
+.header-title,
+.page-title {
+  font-weight: 950;
+}
+
+.header-action {
+  border: 0;
+  background: transparent;
+}
+
+.user-dropdown {
+  border-radius: 4px;
+}
+
+.user-dropdown:hover {
+  background: var(--bg-paper-2);
+}
+
+.admin-avatar,
+.btn-primary,
+.action-btn.btn-primary {
+  background: var(--admin-primary-color);
+  color: #fbf7ef;
+}
+
+.page-card,
+.stat-card {
+  background: rgba(255, 250, 242, 0.78);
+  border: 1px solid var(--admin-border-color);
+  box-shadow: none;
+}
+
+.admin-table th {
+  background: var(--bg-paper-2);
+}
+
+.admin-table tr:hover {
+  background: rgba(232, 221, 206, 0.45);
+}
+
+.stat-icon-blue,
+.stat-icon-green,
+.stat-icon-orange,
+.stat-icon-red,
+.badge-info {
+  background: rgba(183, 53, 45, 0.1);
+  color: var(--admin-primary-color);
+  border-color: rgba(183, 53, 45, 0.28);
+}
+
+.form-input,
+.form-select,
+.form-textarea {
+  background: rgba(255, 250, 242, 0.8);
+}
+
+.form-input:focus,
+.form-select:focus,
+.form-textarea:focus {
+  border-color: var(--admin-primary-color);
+  box-shadow: 0 0 0 3px rgba(183, 53, 45, 0.12);
+}
+
+.btn-primary:hover,
+.action-btn.btn-primary:hover {
+  background: #8e2721;
 }
 
 /* 响应式 */

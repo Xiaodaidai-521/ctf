@@ -18,9 +18,16 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from django.http import HttpResponseNotFound
 from challenges import views as challenge_views
 
+
+def resource_media_disabled(request, path):
+    return HttpResponseNotFound()
+
+
 urlpatterns = [
+    path('media/resources/<path:path>', resource_media_disabled, name='resource-media-disabled'),
     path('admin/', admin.site.urls),
     path('api/users/', include('users.urls')),
     path('api/challenges/', include('challenges.urls')),
@@ -32,6 +39,10 @@ urlpatterns = [
     path('api/ai/', include('ai_assistant.urls')),
     path('api/ai/learning/', include('ai_assistant.urls_learning')),
     path('api/announcements/', include('announcements.urls')),
+    path('api/audit/', include('audit.urls')),
+    path('api/legal/', include('legal.urls')),
+    path('api/legal-kb/', include('legal_kb.urls')),
+    path('api/agent-runtime/', include('agent_runtime.urls')),
     path('api-auth/', include('rest_framework.urls')),
     # CTF代理路由 - 处理/challenge/路径转发到FRP
     # 必须在API路由之后，避免冲突

@@ -1,6 +1,7 @@
 from rest_framework import viewsets, status, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.exceptions import PermissionDenied
 from django.db.models import Q, Count, F
 from django.utils import timezone
 from .models import Article, Category, Comment, ArticleLike, CommentLike, ArticleCollect
@@ -110,11 +111,14 @@ class ArticleViewSet(viewsets.ModelViewSet):
         serializer.save()
 
     def perform_update(self, serializer):
+        if serializer.instance.author != self.request.user and not self.request.user.is_staff:
+            raise PermissionDenied('Only the author or an administrator can update an article.')
         serializer.save()
 
     def perform_destroy(self, instance):
         """删除文章时需要检查权限"""
         if instance.author != self.request.user and not self.request.user.is_staff:
+            raise PermissionDenied('Only the author or an administrator can delete an article.')
             return Response(
                 {'error': '只有作者和管理员可以删除文章'},
                 status=status.HTTP_403_FORBIDDEN
@@ -297,6 +301,7 @@ class CommentViewSet(viewsets.ModelViewSet):
     def perform_destroy(self, instance):
         """删除评论时需要检查权限"""
         if instance.author != self.request.user and not self.request.user.is_staff:
+            raise PermissionDenied('Only the author or an administrator can delete a comment.')
             return Response(
                 {'error': '只有评论者和管理员可以删除评论'},
                 status=status.HTTP_403_FORBIDDEN

@@ -356,7 +356,7 @@ const suggestions = computed(() => [
 const nextActions = computed(() => [
   `完成 1 套 ${focusArea.value} 方向专项练习`,
   '整理今天遇到的 3 个关键概念',
-  '使用教学智能体复盘一道错题',
+  '使用教学辅导师复盘一道错题',
   '明天继续保持 30 分钟以上学习',
 ])
 

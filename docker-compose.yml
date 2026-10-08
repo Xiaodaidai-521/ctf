@@ -1,20 +1,18 @@
 version: '3.8'
 
 services:
-  # PostgreSQL 数据库服务
+  # PostgreSQL 鏁版嵁搴撴湇鍔?
   postgres:
-    image: postgres:16-alpine
+    image: pgvector/pgvector:pg16
     container_name: ctf-postgres
-    ports:
-      - "5432:5432"
     environment:
       - POSTGRES_DB=ctf_platform
       - POSTGRES_USER=ctf_user
       - POSTGRES_PASSWORD=${DB_PASSWORD:?Set DB_PASSWORD in .env}
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - ../database/postgres-data:/var/lib/postgresql/data
     networks:
-      - ctf-network
+      - ctf-control
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ctf_user -d ctf_platform"]
@@ -35,12 +33,11 @@ services:
     volumes:
       # 挂载媒体文件
       - ./backend/media:/app/media
-      # 挂载 Django 静态文件，供前端 Nginx 读取
+      # 挂载 Django 闈欐€佹枃浠讹紝渚涘墠绔?Nginx 读取
       - ./backend/staticfiles:/app/staticfiles
       # 挂载日志文件
       - ./backend/logs:/app/logs
-      # 挂载 Docker socket（用于容器管理 - 注意安全风险）
-      - /var/run/docker.sock:/var/run/docker.sock
+      # 挂载 Docker socket锛堢敤浜庡鍣ㄧ鐞?- 娉ㄦ剰瀹夊叏椋庨櫓锛?
     environment:
       - DEBUG=${DEBUG:-False}
       - SECRET_KEY=${SECRET_KEY:?Set SECRET_KEY in .env}
@@ -48,19 +45,31 @@ services:
       - SECURE_SSL_REDIRECT=${SECURE_SSL_REDIRECT:-False}
       - SESSION_COOKIE_SECURE=${SESSION_COOKIE_SECURE:-False}
       - CSRF_COOKIE_SECURE=${CSRF_COOKIE_SECURE:-False}
-      # 数据库（PostgreSQL）
-      - DATABASE_URL=postgres://ctf_user:${DB_PASSWORD:?Set DB_PASSWORD in .env}@postgres:5432/ctf_platform
+      # 数据库（PostgreSQL锛?      - DATABASE_URL=postgres://ctf_user:${DB_PASSWORD:?Set DB_PASSWORD in .env}@postgres:5432/ctf_platform
       # AI 配置
       # FRP 配置
       - FRP_API_URL=http://frp-server:7500
       - FRP_HTTP_DOMAIN=${FRP_HTTP_DOMAIN:-ctf.local}
       - FRP_HTTP_PORT=9123
-      # CORS（生产环境填实际域名，如 https://ctf.example.com）
+      - CONTAINER_PROXY_MODE=network
+      - DOCKER_HOST=tcp://docker-socket-proxy:2375
+      - CONTAINER_RUN_USER=${CONTAINER_RUN_USER:-65532:65532}
+      - DATABASE_BACKEND=postgres
+      - DATABASE_URL=postgres://ctf_user:${DB_PASSWORD:?Set DB_PASSWORD in .env}@postgres:5432/ctf_platform
+      - JUICE_SHOP_BIND_IP=${JUICE_SHOP_BIND_IP:-127.0.0.1}
+      - JUICE_SHOP_PUBLIC_HOST=${JUICE_SHOP_PUBLIC_HOST:-127.0.0.1}
+      - JUICE_SHOP_PORT_MIN=${JUICE_SHOP_PORT_MIN:-18080}
+      - JUICE_SHOP_PORT_MAX=${JUICE_SHOP_PORT_MAX:-18179}
+      # CORS（生产环境填实际域名，如 https://ctf.example.com锛?
       - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-}
-      # 管理员账户（首次启动自动创建）
+      # 绠＄悊鍛樿处鎴凤紙棣栨鍚姩鑷姩鍒涘缓锛?
       - DJANGO_SUPERUSER_USERNAME=${ADMIN_USERNAME:-admin}
       - DJANGO_SUPERUSER_EMAIL=${ADMIN_EMAIL:-admin@example.com}
       - DJANGO_SUPERUSER_PASSWORD=${ADMIN_PASSWORD:?Set ADMIN_PASSWORD in .env}
+      - TEACHER_USERNAME=${TEACHER_USERNAME:-Teacher_李}
+      - TEACHER_PASSWORD=${TEACHER_PASSWORD:-123456}
+      - TEACHER_EMAIL=${TEACHER_EMAIL:-teacher_li@example.com}
+      - TEACHER_RESET_PASSWORD=${TEACHER_RESET_PASSWORD:-false}
       # Gunicorn 配置
       - GUNICORN_WORKERS=${GUNICORN_WORKERS:-4}
       - GUNICORN_TIMEOUT=${GUNICORN_TIMEOUT:-120}
@@ -69,8 +78,11 @@ services:
         condition: service_healthy
       frp-server:
         condition: service_started
+      docker-socket-proxy:
+        condition: service_started
     networks:
-      - ctf-network
+      - ctf-control
+      - ctf-challenge
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/api/"]
@@ -78,6 +90,49 @@ services:
       timeout: 10s
       retries: 3
 
+  container-cleanup:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    environment:
+      - DATABASE_BACKEND=postgres
+      - DATABASE_URL=postgres://ctf_user:${DB_PASSWORD:?Set DB_PASSWORD in .env}@postgres:5432/ctf_platform
+      - DOCKER_HOST=tcp://docker-socket-proxy:2375
+    command: /bin/sh -c 'while true; do python manage.py cleanup_containers; sleep 60; done'
+    depends_on:
+      backend:
+        condition: service_started
+    networks:
+      - ctf-control
+    restart: unless-stopped
+
+  analytics-scheduler:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: ctf-analytics-scheduler
+    env_file:
+      - .env
+    environment:
+      - DATABASE_URL=postgres://ctf_user:${DB_PASSWORD:?Set DB_PASSWORD in .env}@postgres:5432/ctf_platform
+      - DATABASE_BACKEND=postgres
+      - SECRET_KEY=${SECRET_KEY:?Set SECRET_KEY in .env}
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS:?Set ALLOWED_HOSTS in .env}
+    command: >
+      /bin/sh -c "while true; do
+      python manage.py refresh_learning_analytics --days 30 --job-type daily;
+      python manage.py refresh_learning_analytics --days 7 --job-type weekly;
+      python manage.py refresh_learning_analytics --days 90 --job-type monthly;
+      sleep 86400;
+      done"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - ctf-control
+    restart: unless-stopped
   # Vue 前端服务
   frontend:
     build:
@@ -92,7 +147,7 @@ services:
     depends_on:
       - backend
     networks:
-      - ctf-network
+      - ctf-control
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/"]
@@ -100,23 +155,58 @@ services:
       timeout: 10s
       retries: 3
 
-  # FRP 服务器（用于容器题目代理）
+  # FRP 鏈嶅姟鍣紙鐢ㄤ簬瀹瑰櫒棰樼洰浠ｇ悊锛?
   frp-server:
     image: snowdreamtech/frps:0.52.3
     container_name: frp-server
-    ports:
-      - "7500:7500"   # API/管理端口
-      - "7000:7000"   # FRP bind 端口
-      - "9123:9123"   # HTTP 代理端口
+    environment:
+      - FRP_TOKEN=${FRP_TOKEN:?Set FRP_TOKEN in .env}
+      - FRP_DASHBOARD_USER=${FRP_DASHBOARD_USER:?Set FRP_DASHBOARD_USER in .env}
+      - FRP_DASHBOARD_PASSWORD=${FRP_DASHBOARD_PASSWORD:?Set FRP_DASHBOARD_PASSWORD in .env}
     volumes:
       - ./frp/frps.ini:/etc/frp/frps.ini
     networks:
-      - ctf-network
+      - ctf-control
+    restart: unless-stopped
+
+  docker-socket-proxy:
+    image: tecnativa/docker-socket-proxy:v0.4.2
+    container_name: ctf-docker-socket-proxy
+    environment:
+      - CONTAINERS=1
+      - IMAGES=1
+      - NETWORKS=1
+      - PING=1
+      - VERSION=1
+      - POST=1
+      - AUTH=0
+      - BUILD=0
+      - COMMIT=0
+      - CONFIGS=0
+      - DISTRIBUTION=0
+      - EVENTS=0
+      - EXEC=0
+      - INFO=0
+      - NODES=0
+      - PLUGINS=0
+      - SECRETS=0
+      - SERVICES=0
+      - SESSION=0
+      - SWARM=0
+      - SYSTEM=0
+      - TASKS=0
+      - VOLUMES=0
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - ctf-control
     restart: unless-stopped
 
 networks:
-  ctf-network:
+  ctf-control:
     driver: bridge
+  ctf-challenge:
+    driver: bridge
+    internal: true
 
-volumes:
-  postgres_data:
+

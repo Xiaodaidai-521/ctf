@@ -4,6 +4,7 @@ from .models import (
     StudentProfile,
     LearningPreference,
     LearningPersona,
+    StudentProfileReport,
 )
 
 
@@ -34,7 +35,7 @@ class LearningPersonaSerializer(serializers.ModelSerializer):
     class Meta:
         model = LearningPersona
         fields = [
-            'id', 'profile', 'persona_label', 'confidence_score',
+            'id', 'profile', 'source_report', 'persona_label', 'confidence_score',
             'persona_traits', 'recommended_agent_roster', 'last_computed',
             'generation_status', 'generation_provider', 'input_signature',
         ]
@@ -86,3 +87,18 @@ class OnboardingSerializer(serializers.Serializer):
     prefers_code_examples = serializers.BooleanField(default=True)
     daily_hours = serializers.FloatField(default=2, min_value=0)
     difficulty_bias = serializers.FloatField(default=0)
+
+
+class StudentProfileReportSerializer(serializers.ModelSerializer):
+    user_id = serializers.IntegerField(source='profile.user_id', read_only=True)
+    username = serializers.CharField(source='profile.user.username', read_only=True)
+
+    class Meta:
+        model = StudentProfileReport
+        fields = [
+            'id', 'profile', 'user_id', 'username', 'source_interview',
+            'report_type', 'version', 'raw_interview', 'report_data',
+            'summary', 'generation_provider', 'generation_status',
+            'input_signature', 'created_at',
+        ]
+        read_only_fields = fields

@@ -41,6 +41,11 @@ class Challenge(models.Model):
     difficulty = models.CharField(max_length=20, choices=DIFFICULTY_CHOICES, verbose_name='难度')
     score = models.IntegerField(verbose_name='分数')
     flag = models.CharField(max_length=200, verbose_name='Flag')
+    submission_mode = models.CharField(
+        max_length=20, default='flag',
+        choices=[('flag', 'Flag 计分'), ('practice', '自由练习')],
+        verbose_name='练习模式',
+    )
     hint = models.TextField(blank=True, verbose_name='提示')
     attachment = models.FileField(upload_to='attachments/', blank=True, verbose_name='附件')
     is_active = models.BooleanField(default=True, verbose_name='是否启用')
@@ -267,6 +272,7 @@ class ChallengeContainer(models.Model):
     port = models.IntegerField(default=0, verbose_name='映射端口')
     access_url = models.CharField(max_length=500, blank=True, verbose_name='访问URL')
     frp_config = models.TextField(blank=True, verbose_name='FRP配置')
+    runtime_metadata = models.JSONField(default=dict, blank=True, verbose_name='运行资源')
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='创建时间')
     started_at = models.DateTimeField(null=True, blank=True, verbose_name='启动时间')
     expires_at = models.DateTimeField(null=True, blank=True, verbose_name='过期时间')

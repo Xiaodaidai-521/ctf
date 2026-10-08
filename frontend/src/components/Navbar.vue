@@ -2,7 +2,10 @@
   <nav class="navbar">
     <div class="navbar-left">
       <div class="navbar-brand">
-        <router-link to="/" class="brand-logo">EDU</router-link>
+        <router-link to="/" class="brand-logo">
+          <span class="brand-mark"><i class="bi bi-shield-lock"></i></span>
+          <span>SECURITY LEARNING</span>
+        </router-link>
       </div>
       <div class="navbar-menu">
         <router-link to="/" class="nav-item" active-class="active">
@@ -11,14 +14,8 @@
         <router-link to="/challenges" class="nav-item" active-class="active">
           题库练习
         </router-link>
-        <router-link to="/dashboard" class="nav-item" active-class="active" v-if="userStore.isAuthenticated">
-          学习看板
-        </router-link>
-        <router-link to="/multi-agent?mode=learning" class="nav-item" active-class="active">
-          学习中心
-        </router-link>
-        <router-link to="/learning-paths" class="nav-item" active-class="active">
-          学习路径
+        <router-link v-if="userStore.userInfo?.role !== 'teacher' && userStore.userInfo?.role !== 'admin'" to="/multi-agent?mode=learning" class="nav-item" active-class="active">
+          智能辅导
         </router-link>
         <router-link to="/resources" class="nav-item" active-class="active">
           资源中心
@@ -26,10 +23,13 @@
         <router-link to="/community" class="nav-item" active-class="active">
           社区
         </router-link>
-        <router-link to="/exam-center" class="nav-item" active-class="active">
+        <router-link v-if="userStore.userInfo?.role !== 'teacher'" to="/exam-center" class="nav-item" active-class="active">
           测试中心
         </router-link>
-        <router-link v-if="userStore.userInfo?.role === 'teacher' || userStore.userInfo?.role === 'admin'" to="/admin/dashboard" class="nav-item" active-class="active">
+        <router-link v-if="userStore.userInfo?.role === 'teacher'" to="/teacher" class="nav-item" active-class="active">
+          教师中心
+        </router-link>
+        <router-link v-if="userStore.userInfo?.role === 'admin'" to="/admin/dashboard" class="nav-item" active-class="active">
           管理中心
         </router-link>
       </div>
@@ -79,27 +79,23 @@
           </div>
           <div class="dropdown-divider"></div>
           <div class="dropdown-menu">
-            <router-link to="/dashboard" class="dropdown-item">
+            <router-link v-if="userStore.userInfo?.role !== 'teacher'" to="/dashboard" class="dropdown-item">
               <span class="dropdown-icon">📊</span>
               <span>学习看板</span>
             </router-link>
-            <router-link to="/profile" class="dropdown-item">
+            <router-link v-if="userStore.userInfo?.role !== 'teacher'" to="/profile" class="dropdown-item">
               <span class="dropdown-icon">👤</span>
               <span>个人中心</span>
             </router-link>
-            <router-link v-if="userStore.userInfo?.role !== 'admin'" to="/analytics" class="dropdown-item">
+            <router-link v-if="userStore.userInfo?.role !== 'teacher'" to="/analytics" class="dropdown-item">
               <span class="dropdown-icon">📈</span>
               <span>学习分析</span>
             </router-link>
-            <router-link to="/multi-agent?mode=learning" class="dropdown-item">
+            <router-link v-if="userStore.userInfo?.role !== 'teacher' && userStore.userInfo?.role !== 'admin'" to="/multi-agent?mode=learning" class="dropdown-item">
               <span class="dropdown-icon">🧠</span>
-              <span>学习中心</span>
+              <span>智能辅导</span>
             </router-link>
             <router-link v-if="userStore.userInfo?.role === 'admin'" to="/learning-paths/manage" class="dropdown-item">
-              <span class="dropdown-icon">🎯</span>
-              <span>学习路径管理</span>
-            </router-link>
-            <router-link v-if="userStore.userInfo?.role === 'teacher'" to="/learning-paths/manage" class="dropdown-item">
               <span class="dropdown-icon">🎯</span>
               <span>学习路径管理</span>
             </router-link>
@@ -107,7 +103,7 @@
               <span class="dropdown-icon">⚙️</span>
               <span>管理后台</span>
             </router-link>
-            <router-link v-if="userStore.userInfo?.role === 'teacher'" to="/admin/dashboard" class="dropdown-item">
+            <router-link v-if="userStore.userInfo?.role === 'teacher'" to="/teacher" class="dropdown-item">
               <span class="dropdown-icon">📚</span>
               <span>教师中心</span>
             </router-link>
@@ -170,20 +166,22 @@ document.addEventListener('click', (e) => {
   left: 0;
   right: 0;
   height: 64px;
-  background: white;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  background: rgba(250, 247, 240, 0.92);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border-color);
+  box-shadow: none;
   z-index: 1000;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 0;
+  padding: 0 28px;
 }
 
 .navbar-left {
   display: flex;
   align-items: center;
-  padding-left: 24px;
-  gap: 40px;
+  min-width: 0;
+  gap: 28px;
 }
 
 .navbar-brand {
@@ -191,38 +189,60 @@ document.addEventListener('click', (e) => {
 }
 
 .brand-logo {
-  font-size: 24px;
-  font-weight: 700;
-  color: var(--color-primary);
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--text-primary);
+  font-size: 15px;
+  font-weight: 950;
   text-decoration: none;
+  white-space: nowrap;
+}
+
+.brand-mark {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--text-primary);
+  border-radius: 50%;
+  color: var(--primary-color);
+  background: rgba(255, 250, 242, 0.6);
 }
 
 .navbar-menu {
   flex: 1;
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 8px;
+  justify-content: flex-start;
+  gap: 4px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.navbar-menu::-webkit-scrollbar {
+  display: none;
 }
 
 .nav-item {
-  padding: 10px 20px;
-  color: var(--color-text-1);
+  padding: 8px 12px;
+  color: var(--text-secondary);
   text-decoration: none;
-  border-radius: 6px;
-  transition: all 0.3s;
+  border-radius: 4px;
+  transition: all 0.2s ease;
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 850;
+  white-space: nowrap;
 }
 
 .nav-item:hover {
-  color: var(--color-primary);
-  background: var(--color-fill-1);
+  color: var(--text-primary);
+  background: var(--bg-paper-2);
 }
 
 .nav-item.active {
-  color: var(--color-primary);
-  background: var(--color-primary-light-1);
+  color: var(--text-primary);
+  background: var(--bg-paper-2);
 }
 
 .nav-item.highlight {
@@ -244,7 +264,7 @@ document.addEventListener('click', (e) => {
 .navbar-right {
   display: flex;
   align-items: center;
-  padding-right: 24px;
+  flex-shrink: 0;
 }
 
 .user-menu {
@@ -257,12 +277,14 @@ document.addEventListener('click', (e) => {
   gap: 8px;
   cursor: pointer;
   padding: 4px 8px;
-  border-radius: 20px;
-  transition: background 0.3s;
+  border-radius: 4px;
+  border: 1px solid transparent;
+  transition: background 0.2s ease, border-color 0.2s ease;
 }
 
 .user-avatar-container:hover {
-  background: var(--color-fill-1);
+  background: var(--bg-paper-2);
+  border-color: var(--border-color);
 }
 
 .user-avatar-img {
@@ -276,7 +298,7 @@ document.addEventListener('click', (e) => {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: var(--color-fill-2);
+  background: var(--bg-paper-2);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -285,24 +307,24 @@ document.addEventListener('click', (e) => {
 
 .role-badge {
   padding: 2px 8px;
-  border-radius: 10px;
+  border-radius: 2px;
   font-size: 12px;
-  font-weight: 500;
+  font-weight: 850;
 }
 
 .role-student {
-  background: #e6f7ff;
-  color: #1890ff;
+  background: rgba(183, 53, 45, 0.1);
+  color: var(--primary-color);
 }
 
 .role-teacher {
-  background: #fff7e6;
-  color: #faad14;
+  background: rgba(239, 196, 107, 0.35);
+  color: #785313;
 }
 
 .role-admin {
-  background: #fff1f0;
-  color: #ff4d4f;
+  background: var(--text-primary);
+  color: #fbf7ef;
 }
 
 .user-dropdown {
@@ -311,9 +333,10 @@ document.addEventListener('click', (e) => {
   right: 0;
   margin-top: 8px;
   width: 280px;
-  background: white;
+  background: rgba(255, 250, 242, 0.98);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  box-shadow: 10px 10px 0 rgba(24, 23, 19, 0.1);
   opacity: 0;
   visibility: hidden;
   transform: translateY(-8px);
@@ -331,7 +354,7 @@ document.addEventListener('click', (e) => {
   align-items: center;
   gap: 12px;
   padding: 20px;
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--border-color);
 }
 
 .dropdown-avatar-img {
@@ -345,7 +368,7 @@ document.addEventListener('click', (e) => {
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  background: var(--color-fill-2);
+  background: var(--bg-paper-2);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -359,24 +382,24 @@ document.addEventListener('click', (e) => {
 .dropdown-name {
   font-size: 16px;
   font-weight: 600;
-  color: var(--color-text-1);
+  color: var(--text-primary);
   margin-bottom: 4px;
 }
 
 .dropdown-role {
   font-size: 14px;
-  color: var(--color-text-2);
+  color: var(--text-secondary);
   margin-bottom: 2px;
 }
 
 .dropdown-score {
   font-size: 12px;
-  color: var(--color-text-3);
+  color: var(--text-muted);
 }
 
 .dropdown-divider {
   height: 1px;
-  background: var(--color-border);
+  background: var(--border-color);
 }
 
 .dropdown-menu {
@@ -388,7 +411,7 @@ document.addEventListener('click', (e) => {
   align-items: center;
   gap: 12px;
   padding: 12px 20px;
-  color: var(--color-text-1);
+  color: var(--text-primary);
   text-decoration: none;
   transition: background 0.2s;
   border: none;
@@ -400,15 +423,15 @@ document.addEventListener('click', (e) => {
 }
 
 .dropdown-item:hover {
-  background: var(--color-fill-1);
+  background: var(--bg-paper-2);
 }
 
 .dropdown-item-danger {
-  color: var(--color-error);
+  color: var(--error-color);
 }
 
 .dropdown-item-danger:hover {
-  background: #fff1f0;
+  background: rgba(183, 53, 45, 0.1);
 }
 
 .dropdown-icon {
@@ -422,9 +445,9 @@ document.addEventListener('click', (e) => {
 
 .btn {
   padding: 8px 20px;
-  border-radius: 6px;
+  border-radius: 4px;
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 850;
   cursor: pointer;
   border: none;
   transition: all 0.2s;
@@ -433,22 +456,50 @@ document.addEventListener('click', (e) => {
 }
 
 .btn-outline {
-  background: var(--color-bg-light);
-  border: 1px solid var(--color-border);
-  color: var(--color-text-1);
+  background: rgba(255, 250, 242, 0.68);
+  border: 1px solid var(--text-primary);
+  color: var(--text-primary);
 }
 
 .btn-outline:hover {
-  border-color: var(--color-primary);
-  color: var(--color-primary);
+  border-color: var(--primary-color);
+  color: var(--primary-color);
 }
 
 .btn-primary {
-  background: var(--color-primary);
-  color: white;
+  background: var(--text-primary);
+  color: #fbf7ef;
 }
 
 .btn-primary:hover {
-  background: #40a9ff;
+  background: #2a2823;
+}
+
+@media (max-width: 980px) {
+  .navbar {
+    padding: 0 16px;
+  }
+
+  .navbar-left {
+    gap: 16px;
+  }
+
+  .brand-logo span:last-child {
+    display: none;
+  }
+}
+
+@media (max-width: 720px) {
+  .navbar-menu {
+    max-width: calc(100vw - 152px);
+  }
+
+  .auth-buttons {
+    gap: 8px;
+  }
+
+  .btn {
+    padding: 7px 12px;
+  }
 }
 </style>

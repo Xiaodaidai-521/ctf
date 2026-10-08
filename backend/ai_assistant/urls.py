@@ -13,6 +13,7 @@ urlpatterns = [
     path('solve/', views.solve_challenge, name='solve_challenge'),
     # 多智能体相关 API
     path('multi-agent/chat/', views.multi_agent_chat, name='multi_agent_chat'),
+    path('multi-agent/chat/stream/', views.multi_agent_chat_stream, name='multi_agent_chat_stream'),
     path('multi-agent/handoff/', views.multi_agent_handoff, name='multi_agent_handoff'),
     path('multi-agent/agents/', views.list_agents, name='list_agents'),
     path('multi-agent/presets/', views.list_agent_presets, name='list_agent_presets'),

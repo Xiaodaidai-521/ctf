@@ -89,6 +89,8 @@
 
 <script setup>
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
+import { http } from '@/api'
+import { sanitizeHtml } from '@/utils/sanitize'
 
 const props = defineProps({
   challengeId: {
@@ -120,10 +122,10 @@ const hasReadingGuidance = computed(() => {
 
 const formatMessage = (content) => {
   const safeContent = String(content || '')
-  return safeContent
+  return sanitizeHtml(safeContent
     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
     .replace(/`(.*?)`/g, '<code>$1</code>')
-    .replace(/\n/g, '<br>')
+    .replace(/\n/g, '<br>'))
 }
 
 const formatTime = (timestamp) => {
@@ -147,16 +149,7 @@ const toggleAssistant = () => {
 
 const loadConversation = async () => {
   try {
-    const token = localStorage.getItem('token')
-    const response = await fetch('http://localhost:8000/api/ai/conversations/', {
-      headers: {
-        Authorization: `Token ${token}`,
-      },
-    })
-
-    if (!response.ok) return
-
-    const conversations = await response.json()
+    const conversations = await http.get('/ai/conversations/')
     const relevantConversation = conversations.find((item) => item.challenge_id == props.challengeId)
     if (relevantConversation) {
       conversationId.value = relevantConversation.id
@@ -169,16 +162,7 @@ const loadConversation = async () => {
 
 const loadMessages = async (convId) => {
   try {
-    const token = localStorage.getItem('token')
-    const response = await fetch(`http://localhost:8000/api/ai/conversations/${convId}/messages/`, {
-      headers: {
-        Authorization: `Token ${token}`,
-      },
-    })
-
-    if (!response.ok) return
-
-    messages.value = await response.json()
+    messages.value = await http.get(`/ai/conversations/${convId}/messages/`)
     scrollToBottom()
   } catch (error) {
     console.error('加载消息失败:', error)
@@ -187,19 +171,7 @@ const loadMessages = async (convId) => {
 
 const createConversation = async () => {
   try {
-    const token = localStorage.getItem('token')
-    const response = await fetch('http://localhost:8000/api/ai/conversations/', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Token ${token}`,
-      },
-      body: JSON.stringify({ challenge_id: props.challengeId }),
-    })
-
-    if (!response.ok) return
-
-    const data = await response.json()
+    const data = await http.post('/ai/conversations/', { challenge_id: props.challengeId })
     conversationId.value = data.id
   } catch (error) {
     console.error('创建对话失败:', error)
@@ -227,21 +199,12 @@ const sendMessage = async () => {
   isTyping.value = true
 
   try {
-    const token = localStorage.getItem('token')
-    const response = await fetch(`http://localhost:8000/api/ai/conversations/${conversationId.value}/chat/`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Token ${token}`,
-      },
-      body: JSON.stringify({ message: content }),
-    })
+    const data = await http.post(`/ai/conversations/${conversationId.value}/chat/`, { message: content })
 
-    if (!response.ok) {
+    if (!data) {
       throw new Error('发送失败')
     }
 
-    const data = await response.json()
     messages.value.push({
       id: Date.now() + 1,
       role: 'assistant',

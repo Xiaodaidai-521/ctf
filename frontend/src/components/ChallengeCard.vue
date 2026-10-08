@@ -12,15 +12,15 @@
     </div>
     <div class="card-footer">
       <div class="meta-item">
-        <span class="meta-icon">📊</span>
+        <span class="meta-icon"><i class="bi bi-bar-chart"></i></span>
         <span class="meta-text">积分: {{ challenge.score }}</span>
       </div>
       <div class="meta-item">
-        <span class="meta-icon">👥</span>
+        <span class="meta-icon"><i class="bi bi-people"></i></span>
         <span class="meta-text">解出: {{ challenge.solve_count }}</span>
       </div>
       <div class="meta-item solved-indicator" v-if="challenge.is_solved">
-        <span class="meta-icon">✅</span>
+        <span class="meta-icon"><i class="bi bi-check2-circle"></i></span>
         <span class="meta-text">已解决</span>
       </div>
     </div>
@@ -60,82 +60,91 @@ const handleClick = () => {
 
 <style scoped>
 .challenge-card {
-  background: white;
-  border-radius: var(--radius-sm);
+  position: relative;
+  background: rgba(255, 250, 242, 0.72);
+  border-radius: var(--radius-md);
   overflow: hidden;
-  box-shadow: var(--shadow-sm);
+  box-shadow: none;
   cursor: pointer;
-  transition: all 0.3s;
-  border: 1px solid #e8e8e8;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  border: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
+  min-height: 178px;
 }
 
 .challenge-card:hover {
-  box-shadow: var(--shadow-md);
+  box-shadow: 8px 8px 0 rgba(24, 23, 19, 0.1);
   transform: translateY(-2px);
   border-color: var(--primary-color);
 }
 
 .challenge-card.solved {
-  border-color: var(--success-color);
-  background: #f6ffed;
+  border-color: var(--border-color);
+  background: rgba(255, 250, 242, 0.72);
 }
 
 .card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 12px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  padding: 12px 14px;
+  background: var(--text-primary);
+  color: #fbf7ef;
 }
 
 .challenge-card.solved .card-header {
-  background: linear-gradient(135deg, #52c41a 0%, #73d13d 100%);
+  background: var(--text-primary);
 }
 
 .challenge-id {
-  font-size: 11px;
-  font-weight: 500;
-  opacity: 0.9;
+  color: var(--secondary-color);
+  font-size: 12px;
+  font-weight: 950;
+  opacity: 1;
 }
 
 .difficulty-badge {
-  padding: 2px 6px;
-  border-radius: 8px;
-  font-size: 10px;
-  font-weight: 500;
-  background: rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(4px);
+  padding: 3px 8px;
+  border-radius: 2px;
+  font-size: 11px;
+  font-weight: 850;
+  color: var(--text-primary);
+  background: var(--bg-paper-2);
+  border: 1px solid rgba(24, 23, 19, 0.18);
 }
 
 .difficulty-easy {
-  background: rgba(82, 196, 26, 0.8);
+  color: var(--text-primary);
+  background: var(--bg-paper-2);
 }
 
 .difficulty-medium {
-  background: rgba(250, 173, 20, 0.8);
+  color: #181713;
+  background: rgba(239, 196, 107, 0.95);
 }
 
 .difficulty-hard {
-  background: rgba(255, 77, 79, 0.8);
+  color: #f5eee4;
+  background: rgba(183, 53, 45, 0.92);
 }
 
 .difficulty-expert {
-  background: rgba(114, 46, 209, 0.8);
+  color: #f5eee4;
+  background: #5c2f2a;
 }
 
 .card-body {
-  padding: 12px;
+  padding: 16px 14px 18px;
   flex: 1;
 }
 
 .challenge-title {
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 18px;
+  line-height: 1.25;
+  font-weight: 950;
   color: var(--text-primary);
-  margin-bottom: 8px;
+  margin-bottom: 14px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -148,40 +157,49 @@ const handleClick = () => {
 }
 
 .category-tag {
-  padding: 2px 6px;
-  background: #e6f7ff;
+  padding: 3px 8px;
+  background: var(--bg-paper-2);
   color: var(--primary-color);
   border-radius: 2px;
-  font-size: 11px;
-  font-weight: 500;
+  font-size: 12px;
+  font-weight: 850;
 }
 
 .card-footer {
-  display: flex;
-  justify-content: space-around;
-  padding: 10px 12px;
-  background: #fafafa;
-  border-top: 1px solid #f0f0f0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  padding: 0;
+  background: transparent;
+  border-top: 1px solid var(--border-color);
 }
 
 .meta-item {
   display: flex;
   align-items: center;
-  gap: 4px;
-  font-size: 11px;
+  justify-content: center;
+  gap: 5px;
+  min-height: 42px;
+  padding: 8px 6px;
+  border-right: 1px solid var(--border-color);
+  font-size: 12px;
   color: var(--text-secondary);
 }
 
+.meta-item:last-child {
+  border-right: 0;
+}
+
 .meta-icon {
-  font-size: 12px;
+  color: var(--primary-color);
+  font-size: 13px;
 }
 
 .meta-text {
-  font-weight: 500;
+  font-weight: 750;
 }
 
 .solved-indicator {
-  color: var(--success-color);
-  font-weight: 600;
+  color: var(--text-primary);
+  font-weight: 850;
 }
 </style>

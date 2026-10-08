@@ -1,5 +1,6 @@
 <template>
-  <div class="challenge-modal" @click.self="handleClose">
+  <ChallengeDetailModal v-if="challenge?.submission_mode === 'practice'" :challenge-id="Number(route.params.id)" @close="handleClose" />
+  <div v-else class="challenge-modal" @click.self="handleClose">
     <div class="modal-overlay" @click.self="handleClose">
       <div class="modal-container">
         <button class="close-btn" @click="handleClose" aria-label="Close">
@@ -98,6 +99,7 @@
 
 <script setup>
 import { computed, ref, watch } from 'vue'
+import ChallengeDetailModal from '@/components/ChallengeDetailModal.vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useChallengeStore } from '@/store/challenge'
 import { useUserStore } from '@/store/user'
@@ -159,7 +161,7 @@ const handleSubmit = async () => {
   try {
     const result = await challengeStore.submitFlag(route.params.id, flagInput.value)
     if (result.success) {
-      message.value = result.message
+      message.value = result.portrait_refreshed ? `${result.message} 学习数据已计入，画像已更新。` : result.message
       messageType.value = 'success'
       flagInput.value = ''
       await fetchChallenge()
@@ -167,7 +169,7 @@ const handleSubmit = async () => {
         await userStore.fetchProfile()
       }
     } else {
-      message.value = result.message
+      message.value = result.portrait_refreshed ? `${result.message} 学习数据已计入，画像已更新。` : result.message
       messageType.value = 'error'
     }
   } catch (error) {

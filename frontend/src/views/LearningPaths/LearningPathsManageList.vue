@@ -184,10 +184,11 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import api from '@/api'
 
 const router = useRouter()
+const route = useRoute()
 
 // 数据
 const loading = ref(false)
@@ -288,7 +289,7 @@ const confirmDelete = async () => {
 }
 
 const goBack = () => {
-  router.push('/admin/dashboard')
+  router.push(route.path.startsWith('/teacher/') ? '/teacher' : '/admin/dashboard')
 }
 
 const resetFilters = () => {
@@ -732,5 +733,168 @@ onMounted(() => {
   background: white;
   color: #333;
   border: 1px solid #d9d9d9;
+}
+
+/* 教师端路径管理：与工作台统一为清晰、留白充足的纸张式布局 */
+.learning-paths-manage-page {
+  max-width: 1260px;
+  padding: 48px 36px 72px;
+  background: transparent;
+}
+
+.page-header,
+.filter-bar,
+.stat-card,
+.path-card {
+  border: 1px solid #d9cfbe;
+  border-radius: 8px;
+  box-shadow: none;
+  background: rgba(255, 250, 242, .94);
+}
+
+.page-header {
+  min-height: 128px;
+  margin-bottom: 28px;
+  padding: 28px 30px;
+}
+
+.page-title {
+  margin-bottom: 7px;
+  color: #1e1c18;
+  font-size: 32px;
+  font-weight: 900;
+  letter-spacing: -.04em;
+}
+
+.page-subtitle { color: #6b6256; }
+.header-actions { gap: 10px; }
+
+.btn,
+.action-btn {
+  min-height: 38px;
+  border-radius: 5px;
+  font-weight: 700;
+}
+
+.btn-primary,
+.action-btn.btn-primary {
+  background: #1e1c18;
+  color: #fffaf2;
+}
+
+.btn-primary:hover,
+.action-btn.btn-primary:hover { background: #b42318; }
+
+.btn-secondary,
+.action-btn.btn-secondary {
+  background: transparent;
+  color: #4b453b;
+  border: 1px solid #cfc3b2;
+}
+
+.btn-secondary:hover,
+.action-btn.btn-secondary:hover {
+  color: #b42318;
+  border-color: #b42318;
+  background: #fff6ef;
+}
+
+.stats-grid { gap: 18px; margin-bottom: 28px; }
+
+.stat-card {
+  min-height: 104px;
+  padding: 20px;
+  gap: 15px;
+}
+
+.stat-icon {
+  width: 46px;
+  height: 46px;
+  border-radius: 7px;
+  font-size: 21px;
+}
+
+.stat-value {
+  color: #1e1c18;
+  font-size: 28px;
+  font-weight: 900;
+}
+
+.stat-label { color: #786f64; font-weight: 600; }
+
+.filter-bar {
+  display: grid;
+  grid-template-columns: minmax(240px, 1.2fr) minmax(160px, .85fr) minmax(160px, .85fr) auto;
+  gap: 16px;
+  margin-bottom: 28px;
+  padding: 20px;
+  align-items: end;
+}
+
+.filter-label { color: #4b453b; font-weight: 800; }
+
+.search-input,
+.filter-select {
+  min-width: 0;
+  height: 40px;
+  box-sizing: border-box;
+  border-color: #cfc3b2;
+  border-radius: 5px;
+  background: #fffaf2;
+  color: #1e1c18;
+}
+
+.search-input:focus,
+.filter-select:focus {
+  border-color: #b42318;
+  box-shadow: 0 0 0 3px rgba(180, 35, 24, .1);
+}
+
+.filter-actions { margin-left: 0; }
+.paths-grid { gap: 22px; }
+
+.path-card {
+  min-height: 278px;
+  padding: 24px;
+  border-top: 4px solid var(--path-color, #b42318);
+}
+
+.path-card:hover {
+  box-shadow: 0 10px 22px rgba(55, 42, 24, .09);
+  transform: translateY(-3px);
+}
+
+.path-badge {
+  border-radius: 4px;
+  background: #f5eee2;
+  color: #8b5e18;
+  font-weight: 800;
+}
+
+.path-status { border-radius: 4px; font-weight: 800; }
+.path-status.published { background: #eaf5eb; color: #28713c; }
+.path-title { color: #1e1c18; font-size: 20px; font-weight: 900; }
+.path-description { color: #665d51; margin-bottom: 22px; }
+.path-meta { border-color: #e5dccf; }
+.meta-item { color: #6b6256; }
+.meta-item i { color: #a28f77; }
+.action-btn.btn-danger { border-color: #c84343; color: #b42318; }
+
+@media (max-width: 900px) {
+  .learning-paths-manage-page { padding: 30px 20px 56px; }
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .filter-bar { grid-template-columns: repeat(2, 1fr); }
+  .filter-actions { justify-self: end; }
+}
+
+@media (max-width: 600px) {
+  .learning-paths-manage-page { padding: 24px 16px 44px; }
+  .page-header { align-items: flex-start; flex-direction: column; gap: 20px; }
+  .page-title { font-size: 28px; }
+  .stats-grid,
+  .filter-bar { grid-template-columns: 1fr; }
+  .filter-actions { justify-self: stretch; }
+  .filter-actions .action-btn { flex: 1; justify-content: center; }
+  .path-actions { flex-wrap: wrap; }
 }
 </style>

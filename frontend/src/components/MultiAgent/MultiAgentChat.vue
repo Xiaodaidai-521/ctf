@@ -1,48 +1,51 @@
-﻿<template>
+<template>
   <div class="multi-agent-chat">
-    <div class="chat-toolbar">
-      <div class="toolbar-summary">
-        <span class="summary-label">参与智能体</span>
-        <div class="summary-badges">
-          <span
-            v-for="agent in selectedAgents"
-            :key="agent.id"
-            class="summary-badge"
-            :style="{ background: agent.color }"
-          >
-            {{ agent.icon }} {{ agent.name }}
-          </span>
+    <div
+      v-if="isTutorSelected || currentTutorStep > 0"
+      class="tutor-progress-shell"
+      :class="{ collapsed: tutorProgressCollapsed }"
+    >
+      <button class="tutor-progress-toggle" type="button" @click="tutorProgressCollapsed = !tutorProgressCollapsed">
+        <span>进度</span>
+        <i :class="['bi', tutorProgressCollapsed ? 'bi-chevron-down' : 'bi-chevron-up']"></i>
+      </button>
+
+      <div v-if="tutorProgressCollapsed" class="tutor-progress-compact">
+        <span class="compact-title">教学进度</span>
+        <span class="compact-step">{{ Math.min(currentTutorStep || 0, 4) }}/4</span>
+        <span class="compact-hint">{{ currentTutorStep >= 4 ? '学习报告已完成' : '四步教学进行中' }}</span>
+      </div>
+
+      <template v-else>
+        <!-- 教学授课完成报告 -->
+        <div v-if="currentTutorStep >= 4" class="tutor-report">
+          <div class="report-icon"><i class="bi bi-clipboard2-check"></i></div>
+          <div class="report-content">
+            <h4>学习报告</h4>
+            <p>四步教学已完成。评估→讲解→练习→检验 闭环结束。</p>
+            <p class="report-hint">你可以继续提问或切换到其他学习主题。</p>
+          </div>
         </div>
-      </div>
-    </div>
 
-    <!-- 教学授课完成报告 -->
-    <div v-if="currentTutorStep >= 4" class="tutor-report">
-      <div class="report-icon">📋</div>
-      <div class="report-content">
-        <h4>学习报告</h4>
-        <p>四步教学已完成。评估→讲解→练习→检验 闭环结束。</p>
-        <p class="report-hint">你可以继续提问或切换到其他学习主题。</p>
-      </div>
-    </div>
-
-    <!-- 教学授课模式步骤进度条 -->
-    <div v-if="isTutorSelected || currentTutorStep > 0" class="tutor-steps-bar">
-      <div
-        v-for="(s, i) in ['评估', '讲解', '练习', '检验']"
-        :key="i"
-        class="tutor-step-item"
-        :class="{ active: currentTutorStep >= i + 1, done: currentTutorStep > i + 1 }"
-      >
-        <span class="step-dot">{{ currentTutorStep > i + 1 ? '✓' : i + 1 }}</span>
-        <span class="step-label">{{ s }}</span>
-      </div>
+        <!-- 教学授课模式步骤进度条 -->
+        <div class="tutor-steps-bar">
+          <div
+            v-for="(s, i) in ['评估', '讲解', '练习', '检验']"
+            :key="i"
+            class="tutor-step-item"
+            :class="{ active: currentTutorStep >= i + 1, done: currentTutorStep > i + 1 }"
+          >
+            <span class="step-dot">{{ currentTutorStep > i + 1 ? '✓' : i + 1 }}</span>
+            <span class="step-label">{{ s }}</span>
+          </div>
+        </div>
+      </template>
     </div>
 
     <!-- 消息区域 -->
     <div class="messages-area" ref="messagesRef" :class="{ 'has-messages': messages.length > 0 }">
       <div v-if="messages.length === 0" class="empty-state">
-        <div class="empty-icon">🤖</div>
+        <div class="empty-icon"><i class="bi bi-cpu"></i></div>
         <p>选择智能体开始协作</p>
         <p class="hint">多个智能体可以协同处理复杂任务</p>
       </div>
@@ -61,13 +64,13 @@
         
         <!-- 智能体消息 -->
         <template v-else-if="msg.type === 'agent'">
-          <div class="agent-avatar" :style="{ background: getAgentColor(msg.agent_id) }">
-            {{ getAgentIcon(msg.agent_id) }}
+          <div class="agent-avatar">
+            <i :class="['bi', getAgentIcon(msg.agent_id)]"></i>
           </div>
           <div class="message-content agent-message">
             <!-- 标签行：[智能体名称]·[AI厂商] -->
             <div class="message-label-row">
-              <span class="agent-label" :style="{ background: getAgentColor(msg.agent_id) }">
+              <span class="agent-label">
                 {{ msg.agent_name }}
               </span>
               <span v-if="shouldShowProvider(msg)" class="label-separator">·</span>
@@ -86,6 +89,47 @@
               <span class="time">{{ formatTime(msg.timestamp) }}</span>
             </div>
             <div class="text" v-html="renderMarkdown(msg.content)"></div>
+            <img
+              v-if="msg.image_url"
+              class="demo-report-image"
+              :src="msg.image_url"
+              alt="学习分析演示图"
+            />
+            <div v-if="msg.agent_id === 'tutor' && messageResources(msg).length" class="tutor-resource-panel">
+              <div class="tutor-resource-panel-title">资源中心资料</div>
+              <div
+                v-for="resource in messageResources(msg)"
+                :key="`${resource.type}_${resource.id}_${resource.entry}`"
+                class="tutor-resource-card"
+              >
+                <div class="tutor-resource-card-head">
+                  <span class="tutor-resource-title">{{ resource.title }}</span>
+                  <span v-if="resource.ai_generated_label" class="tutor-resource-badge">
+                    {{ resource.ai_generated_label }}
+                  </span>
+                </div>
+                <div class="tutor-resource-location">
+                  {{ resource.location || ('资源中心 / AI多模态生成 / ' + resource.title) }}
+                </div>
+                <p v-if="resource.summary" class="tutor-resource-summary">{{ resource.summary }}</p>
+                <button type="button" class="tutor-resource-link" @click="openTutorResource(resource)">
+                  跳转学习
+                </button>
+              </div>
+            </div>
+            <div v-else-if="msg.agent_id === 'tutor' && msg.noMatchedResource" class="tutor-resource-empty">
+              当前未检索到匹配的资源中心资料
+            </div>
+            <details v-if="msg.agent_id !== 'tutor' && msg.rag_sources?.length" class="rag-reference-panel">
+              <summary><i class="bi bi-journal-bookmark"></i> 参考资料 {{ msg.rag_sources.length }}</summary>
+              <a v-for="source in msg.rag_sources" :key="`${source.type}_${source.entry}`" :href="source.entry">
+                <span>{{ source.title }}</span>
+                <small>{{ source.type === 'article' ? '文章' : '资源' }}</small>
+              </a>
+            </details>
+            <div v-if="msg.agent_id === 'legal_reviewer' && hasLegalEvidenceMeta(msg)" class="legal-evidence-note">
+              已检索法规 {{ msg.legal_evidence_count || 0 }} 条，题目知识 {{ msg.challenge_knowledge_count || 0 }} 条
+            </div>
             
             <!-- 委托提示 -->
             <div v-if="msg.handoff" class="handoff-tag">
@@ -117,7 +161,7 @@
         <!-- 思考中 -->
         <template v-else-if="msg.type === 'thinking'">
           <div class="agent-avatar thinking">
-            {{ getAgentIcon(msg.agent_id) }}
+            <i :class="['bi', getAgentIcon(msg.agent_id)]"></i>
           </div>
           <div class="thinking-message">
             <span class="agent-name">{{ msg.agent_name }}</span>
@@ -132,7 +176,7 @@
     <!-- 输入区域 -->
     <div class="input-area">
       <div class="current-agent" v-if="currentAgent">
-        当前: <span class="badge">{{ currentAgent.icon }} {{ currentAgent.name }}</span>
+        当前: <span class="badge"><i :class="['bi', currentAgent.icon]"></i>{{ currentAgent.name }}</span>
       </div>
       
       <div class="input-row">
@@ -166,7 +210,7 @@
           :class="{ current: agent.id === currentAgent?.id }"
           @click="confirmSwitch(agent)"
         >
-          <div class="avatar" :style="{ background: agent.color }">{{ agent.icon }}</div>
+          <div class="avatar"><i :class="['bi', agent.icon]"></i></div>
           <div class="info">
             <div class="name">{{ agent.name }}</div>
             <div class="role">{{ agent.role }}</div>
@@ -176,14 +220,13 @@
         </div>
       </div>
     </a-modal>
-
     <!-- 委托弹窗 -->
     <a-modal v-model:visible="showHandoffDialog_" title="委托任务" @ok="confirmHandoff">
       <a-form :model="handoffForm" layout="vertical">
         <a-form-item label="目标智能体">
           <a-select v-model="handoffForm.targetId">
             <a-option v-for="agent in otherAgents" :key="agent.id" :value="agent.id">
-              {{ agent.icon }} {{ agent.name }} - {{ agent.role }}
+              {{ agent.name }} - {{ agent.role }}
             </a-option>
           </a-select>
         </a-form-item>
@@ -204,6 +247,13 @@ import { useRouter } from 'vue-router'
 import { Message } from '@arco-design/web-vue'
 import { marked } from 'marked'
 import api, { http } from '@/api'
+import { useUserStore } from '@/store/user'
+import { sanitizeHtml } from '@/utils/sanitize'
+import {
+  clearRememberedTutorResources,
+  rememberTutorResources,
+  tutorResourceListFromResponse
+} from '@/utils/tutorResources'
 
 const props = defineProps({
   challengeId: { type: [Number, String], default: null },
@@ -214,24 +264,24 @@ const props = defineProps({
 
 const emit = defineEmits(['session-created', 'handoff', 'complete', 'mode-change', 'message-sent', 'agent-switch'])
 const router = useRouter()
+const userStore = useUserStore()
 
-// 智能体配置，父组件会传入包含教学智能体的统一列表
+const HIDDEN_AGENT_IDS = new Set(['analyst', 'architect', 'developer', 'security', 'tester'])
+const isVisibleAgent = (agent) => agent && !HIDDEN_AGENT_IDS.has(agent.id)
+
+// 智能体配置，父组件会传入包含教学辅导师的统一列表
 const agents = ref([
-  { id: 'xiaohei', name: '小黑本地AI', role: 'CTF全能助手', icon: '🤖', color: '#8b5cf6', status: 'available' },
-  { id: 'analyst', name: '分析师', role: '题目拆解专家', icon: '🔍', color: '#00f5ff', status: 'available' },
-  { id: 'architect', name: '架构师', role: '系统规划师', icon: '🏗️', color: '#ff00ff', status: 'available' },
-  { id: 'developer', name: '开发专家', role: '代码实战派', icon: '⌨️', color: '#39ff14', status: 'available' },
-  { id: 'security', name: '安全专家', role: '渗透测试老兵', icon: '🔓', color: '#ff0055', status: 'available' },
-  { id: 'tester', name: '测试专家', role: '边界测试员', icon: '🧪', color: '#ff6b35', status: 'available' },
-  { id: 'tutor', name: '教学智能体', role: '学习教学与四步闭环辅导', icon: '🎓', color: '#4fc3f7', status: 'available' }
+  { id: 'tutor', name: '教学辅导师', role: '学习教学与四步闭环辅导', icon: 'bi-mortarboard', color: '#181713', status: 'available' },
+  { id: 'xiaohei', name: '小黑本地AI', role: 'CTF全能助手', icon: 'bi-cpu', color: '#181713', status: 'available' },
+  { id: 'legal_reviewer', name: '法律审核师', role: '题目与靶场实验合规审查', icon: 'bi-bank', color: '#181713', status: 'available' }
 ])
 
 // 监听父组件传入的智能体列表变化
 watch(() => props.initialAgents, (newAgents) => {
   if (newAgents?.length) {
-    agents.value = newAgents
+    agents.value = newAgents.filter(isVisibleAgent)
     if (!currentAgent.value || !agents.value.find(a => a.id === currentAgent.value?.id)) {
-      currentAgent.value = agents.value[0]
+      currentAgent.value = agents.value[0] || null
     }
   }
 }, { deep: true })
@@ -266,6 +316,7 @@ watch(collaborationMode, (newVal) => {
 })
 const messagesRef = ref(null)
 const showSwitchDialog = ref(false)
+const tutorProgressCollapsed = ref(true)
 const showHandoffDialog_ = ref(false)
 const handoffFromAgent = ref(null)
 
@@ -278,17 +329,79 @@ const handoffForm = ref({
 // 强制使用真AI开关（勾选后跳过预设答案，直接调真AI）
 const forceAI = ref(false)
 
-const availableAgents = computed(() => agents.value)
+const MODEL_STORAGE_KEY = 'learningCenterConversationModel'
+const CHART_MODE_STORAGE_KEY = 'learningCenterChartMode'
+const conversationModels = [
+  {
+    id: 'auto',
+    name: '智能推荐',
+    provider: 'auto',
+    icon: 'bi-stars',
+    desc: '保持当前会话的默认调度策略'
+  },
+  {
+    id: 'deepseek',
+    name: 'DeepSeek',
+    provider: 'deepseek',
+    icon: 'bi-lightning-charge',
+    desc: '适合推理、代码分析和安全题拆解'
+  },
+  {
+    id: 'moonshot',
+    name: 'Kimi',
+    provider: 'moonshot',
+    icon: 'bi-moon-stars',
+    desc: '适合长上下文阅读和学习资料整理'
+  },
+  {
+    id: 'qwen',
+    name: '通义千问',
+    provider: 'qwen',
+    icon: 'bi-chat-square-text',
+    desc: '适合中文讲解、步骤化辅导和知识问答'
+  }
+]
+
+const loadConversationModel = () => {
+  const storedId = sessionStorage.getItem(MODEL_STORAGE_KEY)
+  return conversationModels.find((model) => model.id === storedId) || conversationModels[0]
+}
+
+const selectedConversationModel = ref(loadConversationModel())
+const chartModeEnabled = ref(sessionStorage.getItem(CHART_MODE_STORAGE_KEY) === 'enabled')
+
+const chartImageTriggers = [
+  {
+    keyword: '请分析我当前在SQL注入学习中遇到的具体问题',
+    imageUrl: '/assets/demo_images/sql_injection_user_analysis.png?v=2'
+  },
+  {
+    keyword: '请分析我的学习进度表',
+    imageUrl: '/assets/demo_images/learning_progress_analysis.png?v=2'
+  },
+  {
+    keyword: '请评估我对SQL注入知识的掌握情况并给出可视化总结',
+    imageUrl: '/assets/demo_images/knowledge_mastery_summary.png'
+  }
+]
+
+const getChartImageForMessage = (message) => {
+  if (!chartModeEnabled.value) return null
+  const text = String(message || '')
+  return chartImageTriggers.find((item) => text.includes(item.keyword))?.imageUrl || null
+}
+
+const availableAgents = computed(() => agents.value.filter(isVisibleAgent))
 const selectedAgents = computed(() => {
-  const selected = agents.value.filter((agent) => props.selectedAgentIds.includes(agent.id))
-  return selected.length ? selected : agents.value.slice(0, 1)
+  const selected = availableAgents.value.filter((agent) => props.selectedAgentIds.includes(agent.id))
+  return selected.length ? selected : availableAgents.value.slice(0, 1)
 })
 const isTutorSelected = computed(() => selectedAgents.value.some((agent) => agent.id === 'tutor'))
-const otherAgents = computed(() => agents.value.filter(a => a.id !== handoffFromAgent.value))
+const otherAgents = computed(() => availableAgents.value.filter(a => a.id !== handoffFromAgent.value))
 
 // 辅助函数
 const getAgentColor = (id) => agents.value.find(a => a.id === id)?.color || '#00f5ff'
-const getAgentIcon = (id) => agents.value.find(a => a.id === id)?.icon || '🤖'
+const getAgentIcon = (id) => agents.value.find(a => a.id === id)?.icon || 'bi-cpu'
 const getAgentById = (id) => agents.value.find(a => a.id === id)
 
 // 厂商名称映射
@@ -323,8 +436,26 @@ const shouldShowProvider = (message) => {
   const hiddenProviders = new Set(['fallback', 'local_tutor', 'knowledge_pack', 'none', 'error'])
   if (!message || hiddenProviders.has(message.provider)) return false
   if (message.agent_id === 'xiaohei' || message.agent_name === '小黑本地AI') return false
-  if (message.agent_id === 'tutor' || message.agent_name === '教学智能体') return false
+  if (message.agent_id === 'tutor' || message.agent_name === '教学辅导师') return false
   return true
+}
+
+const hasLegalEvidenceMeta = (message) => {
+  return message?.legal_evidence_count !== undefined || message?.challenge_knowledge_count !== undefined
+}
+
+const messageResources = (message) => tutorResourceListFromResponse(message)
+
+const openTutorResource = (resourceOrEntry) => {
+  const resource = typeof resourceOrEntry === 'object' && resourceOrEntry !== null ? resourceOrEntry : null
+  if (resource) rememberTutorResources([resource])
+  const target = String(resource?.entry || resourceOrEntry || '').trim()
+  if (!target) return
+  if (/^https?:\/\//i.test(target)) {
+    window.open(target, '_blank', 'noopener,noreferrer')
+    return
+  }
+  router.push(target)
 }
 
 const formatTime = (ts) => {
@@ -335,7 +466,7 @@ const formatTime = (ts) => {
 
 const renderMarkdown = (content) => {
   if (!content) return ''
-  return marked.parse(content)
+  return sanitizeHtml(marked.parse(content))
 }
 
 const scrollToBottom = () => {
@@ -347,7 +478,7 @@ const scrollToBottom = () => {
 }
 
 const requireLogin = () => {
-  if (localStorage.getItem('token')) return true
+  if (userStore.isAuthenticated) return true
   Message.warning('请先登录后使用多智能体')
   router.push('/login')
   return false
@@ -362,7 +493,7 @@ const rememberConversation = (id) => {
 }
 
 const restoreConversation = async () => {
-  if (!localStorage.getItem('token')) return
+  if (!userStore.isAuthenticated) return
 
   try {
     if (!conversationId.value) {
@@ -386,15 +517,27 @@ const restoreConversation = async () => {
           }
         }
 
+        const structuredResources = tutorResourceListFromResponse(metadata)
+        rememberTutorResources(structuredResources)
+
         return {
           id: `history_${item.id}`,
           type: 'agent',
           agent_id: item.agent_id || 'tutor',
-          agent_name: item.agent_name || '教学智能体',
+          agent_name: item.agent_id === 'tutor' ? '教学辅导师' : (item.agent_name || '教学辅导师'),
           content: item.content,
           provider: item.provider || 'unknown',
           step: metadata.step,
           step_name: metadata.step_name,
+          legal_evidence_count: metadata.legal_evidence_count,
+          challenge_knowledge_count: metadata.challenge_knowledge_count,
+          legal_sources: metadata.legal_sources,
+          rag_mode: metadata.rag_mode,
+          rag_sources: metadata.rag_sources || [],
+          resources: structuredResources,
+          resourceList: structuredResources,
+          noMatchedResource: Boolean(metadata.noMatchedResource),
+          image_url: metadata.image_url,
           timestamp: item.created_at
         }
       })
@@ -603,12 +746,21 @@ const sendMessage = async () => {
       return String(content || '').trim().length > 0
     })
 
+    const chartImageUrl = getChartImageForMessage(text)
+    const structuredResources = tutorResourceListFromResponse(response)
+    rememberTutorResources(structuredResources)
+    const lastTutorResponseIndex = agentResponses.reduce((lastIndex, agentResp, index) => {
+      const responseAgentId = agentResp.agent_id || activeAgent.id
+      return responseAgentId === 'tutor' ? index : lastIndex
+    }, -1)
+
     if (agentResponses.length > 0) {
-      agentResponses.forEach((agentResp) => {
+      agentResponses.forEach((agentResp, index) => {
         let displayContent = agentResp.content
         if (typeof displayContent === 'object' && displayContent !== null) {
           displayContent = displayContent.content || JSON.stringify(displayContent)
         }
+        const fallbackChartImage = index === agentResponses.length - 1 ? chartImageUrl : null
 
         messages.value.push({
           id: uniqueId(),
@@ -620,6 +772,15 @@ const sendMessage = async () => {
           step: agentResp.step,
           step_name: agentResp.step_name,
           handoff: agentResp.handoff,
+          legal_evidence_count: agentResp.legal_evidence_count,
+          challenge_knowledge_count: agentResp.challenge_knowledge_count,
+          legal_sources: agentResp.legal_sources,
+          rag_mode: agentResp.rag_mode,
+          rag_sources: agentResp.rag_sources || [],
+          resources: index === lastTutorResponseIndex ? structuredResources : [],
+          resourceList: index === lastTutorResponseIndex ? structuredResources : [],
+          noMatchedResource: index === lastTutorResponseIndex ? Boolean(response.noMatchedResource) : false,
+          image_url: chartModeEnabled.value ? (agentResp.image_url || fallbackChartImage) : null,
           timestamp: new Date().toISOString()
         })
       })
@@ -630,6 +791,10 @@ const sendMessage = async () => {
         agent_id: activeAgent.id,
         agent_name: activeAgent.name,
         content: response.content || '未收到有效响应',
+        resources: structuredResources,
+        resourceList: structuredResources,
+        noMatchedResource: Boolean(response.noMatchedResource),
+        image_url: chartImageUrl,
         timestamp: new Date().toISOString()
       })
     }
@@ -705,25 +870,36 @@ const callAgentAPI = async (agentIds, message, activeAgent) => {
       concept_name: message,
       question: message,
       student_level: studentLevel,
-      conversation_id: conversationId.value
+      conversation_id: conversationId.value,
+      selected_model: selectedConversationModel.value.id,
+      selected_provider: selectedConversationModel.value.provider
     })
+    const structuredResources = tutorResourceListFromResponse(res)
+    rememberTutorResources(structuredResources)
+    const noMatchedSignal = res.noMatchedResource ?? res.resourcePreparation?.noMatchedResource
+    const noMatchedResource = noMatchedSignal === undefined ? false : Boolean(noMatchedSignal)
+
     return {
       conversation_id: res.conversation_id,
       mode: 'tutoring',
+      resources: structuredResources,
+      resourceList: structuredResources,
+      noMatchedResource,
       responses: (res.steps || []).map((step, index) => ({
         agent_id: 'tutor',
-        agent_name: activeAgent?.id === 'tutor' ? activeAgent.name : '教学智能体',
+        agent_name: activeAgent?.id === 'tutor' ? activeAgent.name : '教学辅导师',
         content: step.content || '',
         provider: step.provider || 'unknown',
         step: step.step || index + 1,
-        step_name: step.step_name
+        step_name: step.step_name,
+        rag_mode: step.rag_mode,
+        rag_sources: step.rag_sources || [],
+        image_url: step.image_url
       }))
     }
   }
 
-  const requestAgentIds = shouldUseChallengeWorkflow
-    ? ['analyst', 'security', 'developer', 'tester', 'xiaohei']
-    : agentIds
+  const requestAgentIds = agentIds
 
   const res = await http.post('/ai/multi-agent/chat/', {
     message,
@@ -732,6 +908,8 @@ const callAgentAPI = async (agentIds, message, activeAgent) => {
     challenge_id: props.challengeId || null,
     force_ai: forceAI.value,
     conversation_id: conversationId.value,
+    selected_model: selectedConversationModel.value.id,
+    selected_provider: selectedConversationModel.value.provider,
     knowledge_scope: shouldUseChallengeWorkflow ? 'current' : knowledgeScope.value
   })
   return res
@@ -745,10 +923,15 @@ const clearSession = async () => {
   inputText.value = ''
   isProcessing.value = false
   sessionStorage.removeItem('multiAgentConversationId')
+  sessionStorage.removeItem(MODEL_STORAGE_KEY)
+  sessionStorage.removeItem(CHART_MODE_STORAGE_KEY)
+  clearRememberedTutorResources()
   conversationId.value = null
+  selectedConversationModel.value = conversationModels[0]
+  chartModeEnabled.value = false
   agents.value.forEach(a => a.status = 'available')
 
-  if (oldConversationId && localStorage.getItem('token')) {
+  if (oldConversationId && userStore.isAuthenticated) {
     try {
       await api.conversation.remove(oldConversationId)
     } catch (error) {
@@ -767,9 +950,9 @@ defineExpose({ setCurrentAgent, addSystemMessage, clearSession })
 
 onMounted(async () => {
   if (props.initialAgents?.length) {
-    agents.value = props.initialAgents
+    agents.value = props.initialAgents.filter(isVisibleAgent)
   }
-  currentAgent.value = selectedAgents.value[0] || agents.value[0]
+  currentAgent.value = selectedAgents.value[0] || availableAgents.value[0] || null
   await restoreConversation()
 })
 </script>
@@ -782,45 +965,6 @@ onMounted(async () => {
   background: var(--color-bg-1);
   border-radius: 8px;
   overflow: hidden;
-}
-
-.chat-toolbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 12px;
-  padding: 10px 16px;
-  background: var(--color-bg-2);
-  border-bottom: 1px solid var(--color-border);
-  flex-shrink: 0;
-}
-
-.toolbar-summary {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  min-width: 0;
-}
-
-.summary-label {
-  font-size: 12px;
-  color: var(--color-text-3);
-}
-
-.summary-badges {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-}
-
-.summary-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 4px 10px;
-  border-radius: 999px;
-  color: #fff;
-  font-size: 12px;
 }
 
 .thinking-indicator {
@@ -880,7 +1024,15 @@ onMounted(async () => {
 }
 
 .empty-icon {
-  font-size: 48px;
+  width: 58px;
+  height: 58px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--primary-color);
+  background: rgba(255, 250, 242, 0.74);
+  font-size: 24px;
   margin-bottom: 16px;
   opacity: 0.5;
 }
@@ -902,16 +1054,157 @@ onMounted(async () => {
 .agent-avatar {
   width: 36px;
   height: 36px;
-  border-radius: 8px;
+  border-radius: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 18px;
+  color: var(--text-primary);
+  background: var(--bg-paper-2);
+  border: 1px solid rgba(24, 23, 19, 0.2);
+  font-size: 17px;
   flex-shrink: 0;
 }
 
 .agent-avatar.thinking {
   animation: pulse 1s infinite;
+}
+
+.demo-report-image {
+  display: block;
+  width: min(100%, 520px);
+  margin-top: 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: #fff;
+}
+
+.tutor-resource-panel,
+.tutor-resource-empty {
+  margin-top: 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: rgba(255, 250, 242, 0.7);
+  padding: 10px;
+}
+
+.tutor-resource-panel-title {
+  font-size: 12px;
+  font-weight: 900;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+
+.tutor-resource-card {
+  display: grid;
+  gap: 6px;
+  padding: 9px;
+  border: 1px solid rgba(24, 23, 19, 0.12);
+  border-radius: 6px;
+  background: #fffaf2;
+}
+
+.tutor-resource-card + .tutor-resource-card {
+  margin-top: 8px;
+}
+
+.tutor-resource-card-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.tutor-resource-title {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-primary);
+  font-weight: 900;
+}
+
+.tutor-resource-badge {
+  flex-shrink: 0;
+  padding: 2px 7px;
+  border-radius: 3px;
+  background: #1f7a5c;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.tutor-resource-location,
+.tutor-resource-summary,
+.tutor-resource-empty {
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.tutor-resource-summary {
+  margin: 0;
+}
+
+.tutor-resource-link {
+  justify-self: start;
+  height: 28px;
+  padding: 0 10px;
+  border: 1px solid var(--primary-color);
+  border-radius: 4px;
+  background: var(--primary-color);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.tutor-resource-link:hover {
+  filter: brightness(0.94);
+}
+.rag-reference-panel {
+  margin-top: 10px;
+  border-top: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.rag-reference-panel summary {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 0 4px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  list-style: none;
+}
+
+.rag-reference-panel summary::-webkit-details-marker {
+  display: none;
+}
+
+.rag-reference-panel a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 5px 0;
+  color: var(--text-primary);
+  text-decoration: none;
+}
+
+.rag-reference-panel a:hover span {
+  color: var(--primary-color);
+}
+
+.rag-reference-panel a span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rag-reference-panel a small {
+  flex-shrink: 0;
+  color: var(--text-secondary);
 }
 
 .message-content {
@@ -936,10 +1229,12 @@ onMounted(async () => {
 }
 
 .agent-label {
-  padding: 2px 10px;
-  border-radius: 10px;
-  color: #fff;
-  font-weight: 500;
+  padding: 2px 8px;
+  border: 1px solid rgba(24, 23, 19, 0.2);
+  border-radius: 4px;
+  color: var(--text-primary);
+  background: var(--bg-paper-2);
+  font-weight: 850;
   font-size: 12px;
 }
 
@@ -960,6 +1255,84 @@ onMounted(async () => {
   background: #9CA3AF;
 }
 
+.tutor-progress-shell {
+  position: relative;
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--color-border);
+  background: rgba(255, 250, 242, 0.9);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72);
+}
+
+.tutor-progress-shell.collapsed {
+  min-height: 40px;
+}
+
+.tutor-progress-toggle {
+  position: absolute;
+  top: 7px;
+  right: 12px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 26px;
+  padding: 0 9px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  color: var(--text-secondary);
+  background: rgba(255, 250, 242, 0.92);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.tutor-progress-toggle:hover {
+  color: #fbf7ef;
+  border-color: var(--primary-color);
+  background: var(--primary-color);
+}
+
+.tutor-progress-compact {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 40px;
+  padding: 0 120px 0 16px;
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.compact-title,
+.compact-step {
+  color: var(--text-primary);
+  font-weight: 900;
+}
+
+.compact-step {
+  padding: 2px 7px;
+  border: 1px solid rgba(24, 23, 19, 0.2);
+  border-radius: 4px;
+  background: var(--bg-paper-2);
+}
+
+.compact-hint {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.legal-evidence-note {
+  background: #f0fdfa;
+  border: 1px solid #99f6e4;
+  border-radius: 8px;
+  color: #0f766e;
+  font-size: 12px;
+  font-weight: 600;
+  margin-top: 10px;
+  padding: 6px 9px;
+}
+
 .step-badge {
   margin-left: auto;
   padding: 1px 8px;
@@ -974,10 +1347,10 @@ onMounted(async () => {
 .tutor-report {
   display: flex; gap: 12px;
   padding: 16px 20px;
-  margin: 0 16px 8px;
+  margin: 0;
   background: linear-gradient(135deg, #f0f5ff, #e6f7ff);
   border: 1px solid #91d5ff;
-  border-radius: 10px;
+  border-radius: 0;
   flex-shrink: 0;
 }
 .report-icon { font-size: 28px; }
@@ -991,7 +1364,7 @@ onMounted(async () => {
   justify-content: space-around;
   padding: 12px 16px;
   background: var(--color-bg-2);
-  border-bottom: 1px solid var(--color-border);
+  border-top: 1px solid var(--color-border);
   flex-shrink: 0;
 }
 .tutor-step-item {
@@ -1133,11 +1506,16 @@ onMounted(async () => {
 }
 
 .current-agent .badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   padding: 2px 8px;
-  background: rgb(var(--primary-6));
-  color: #fff;
-  border-radius: 10px;
+  background: var(--bg-paper-2);
+  color: var(--text-primary);
+  border: 1px solid rgba(24, 23, 19, 0.2);
+  border-radius: 4px;
   font-size: 12px;
+  font-weight: 850;
 }
 
 .input-row {
@@ -1184,11 +1562,14 @@ onMounted(async () => {
 .agent-select-item .avatar {
   width: 40px;
   height: 40px;
-  border-radius: 8px;
+  border-radius: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 20px;
+  color: var(--text-primary);
+  background: var(--bg-paper-2);
+  border: 1px solid rgba(24, 23, 19, 0.2);
+  font-size: 18px;
 }
 
 .agent-select-item .info {
@@ -1204,9 +1585,148 @@ onMounted(async () => {
   color: var(--color-text-3);
 }
 
-@media (max-width: 768px) {
-  .chat-toolbar {
-    flex-direction: column;
-  }
+/* Phase 2 Editorial chat override */
+.multi-agent-chat {
+  background: transparent;
+}
+
+.tutor-steps-bar,
+.input-area {
+  background: rgba(255, 250, 242, 0.86);
+  border-color: var(--border-color);
+}
+
+.summary-label {
+  color: var(--text-secondary);
+  font-weight: 850;
+}
+
+.summary-badge,
+.agent-label,
+.provider-label,
+.step-badge,
+.current-agent .badge {
+  border-radius: 2px;
+}
+
+.messages-area {
+  padding: 20px;
+}
+
+.empty-state,
+.time,
+.hint {
+  color: var(--text-muted);
+}
+
+.message-content,
+.thinking-message {
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: rgba(255, 250, 242, 0.82);
+}
+
+.user-message {
+  color: #fbf7ef;
+  background: var(--text-primary);
+  border-color: var(--text-primary);
+}
+
+.legal-evidence-note {
+  color: var(--success-color);
+  background: rgba(79, 124, 82, 0.12);
+  border: 1px solid rgba(79, 124, 82, 0.28);
+  border-radius: 4px;
+}
+
+.step-badge,
+.thinking-indicator,
+.dots span {
+  background: var(--primary-color);
+  color: #fbf7ef;
+}
+
+.report-icon {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(24, 23, 19, 0.18);
+  border-radius: 6px;
+  color: var(--primary-color);
+  background: rgba(255, 250, 242, 0.74);
+  flex-shrink: 0;
+}
+
+.tutor-report {
+  background: rgba(239, 196, 107, 0.22);
+  border: 1px solid rgba(239, 196, 107, 0.42);
+  border-radius: 6px;
+}
+
+.tutor-progress-shell .tutor-report {
+  padding-right: 150px;
+  border-right: 0;
+  border-left: 0;
+  border-radius: 0;
+}
+
+.tutor-progress-shell .tutor-steps-bar {
+  border-bottom: 0;
+}
+
+.report-content h4 {
+  color: var(--text-primary);
+}
+
+.report-content p,
+.current-agent,
+.system-message,
+.agent-select-item .role {
+  color: var(--text-secondary);
+}
+
+.report-hint {
+  color: var(--text-muted) !important;
+}
+
+.step-dot {
+  background: var(--bg-paper-2);
+}
+
+.tutor-step-item.active .step-dot {
+  background: var(--primary-color);
+  color: #fbf7ef;
+}
+
+.tutor-step-item.done .step-dot {
+  background: var(--success-color);
+  color: #fbf7ef;
+}
+
+.handoff-tag {
+  color: #785313;
+  background: rgba(239, 196, 107, 0.22);
+  border-radius: 4px;
+}
+
+.system-message,
+.agent-select-item {
+  background: rgba(255, 250, 242, 0.74);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+}
+
+.agent-select-item:hover {
+  background: var(--bg-paper-2);
+}
+
+.agent-select-item.current {
+  border-color: var(--primary-color);
+}
+
+.agent-select-item .name {
+  color: var(--text-primary);
+  font-weight: 850;
 }
 </style>

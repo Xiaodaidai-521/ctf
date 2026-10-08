@@ -9,6 +9,7 @@ class Resource(models.Model):
         ('video', '视频'),
         ('report', '报告'),
         ('zip', '压缩包'),
+        ('ai_resource', 'AI资源'),
     ]
 
     STATUS_CHOICES = [
@@ -40,6 +41,7 @@ class Resource(models.Model):
         default='pending',
         verbose_name='审核状态'
     )
+    is_tutoring_reserved = models.BooleanField(default=False, db_index=True, verbose_name='Tutoring reserved only')
     uploader = models.ForeignKey(
         CTFUser,
         on_delete=models.CASCADE,
@@ -84,3 +86,31 @@ class Resource(models.Model):
         """增加下载次数"""
         self.download_count += 1
         self.save(update_fields=['download_count'])
+
+
+class ResourceCache(models.Model):
+    """Cache ResourceAgent output by student and normalized knowledge point."""
+
+    studentId = models.PositiveIntegerField(db_index=True)
+    knowledgePoint = models.CharField(max_length=160, db_index=True)
+    resourceList = models.JSONField(default=list, blank=True)
+    studentLevel = models.CharField(max_length=40, blank=True)
+    cacheHitCount = models.PositiveIntegerField(default=0)
+    createdTime = models.DateTimeField(auto_now_add=True)
+    updatedTime = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-updatedTime']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['studentId', 'knowledgePoint'],
+                name='unique_resource_cache_student_knowledge',
+            ),
+        ]
+        indexes = [
+            models.Index(fields=['studentId', 'knowledgePoint'], name='resources_r_student_607628_idx'),
+            models.Index(fields=['studentLevel'], name='resources_r_student_4cc080_idx'),
+        ]
+
+    def __str__(self):
+        return f"{self.studentId}:{self.knowledgePoint}"

@@ -74,6 +74,7 @@ import { Message } from '@arco-design/web-vue'
 import { marked } from 'marked'
 import api from '@/api'
 import MermaidDiagram from '@/components/MermaidDiagram.vue'
+import { sanitizeHtml } from '@/utils/sanitize'
 
 const route = useRoute()
 const content = ref(null)
@@ -101,7 +102,7 @@ const typeColor = computed(() => {
 const renderedMarkdown = computed(() => {
   const body = content.value?.body
   if (!body) return ''
-  return typeof body === 'string' ? marked(body) : marked(JSON.stringify(body))
+  return sanitizeHtml(typeof body === 'string' ? marked(body) : marked(JSON.stringify(body)))
 })
 
 const fetchContent = async () => {

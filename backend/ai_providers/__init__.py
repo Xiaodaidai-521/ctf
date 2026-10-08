@@ -151,12 +151,11 @@ class ProviderRegistry:
     _providers: Dict[str, BaseProvider] = {}
     _configs: Dict[str, ProviderConfig] = {}
     
-    # 智能体到厂商的映射（优先使用有API Key的厂商）
-    # volcano=火山引擎, moonshot=月之暗面, wenxin=文心一言, qwen=通义千问, spark=讯飞星火
+    # 智能体到厂商的映射；未配置的智能体默认使用 DeepSeek。
     AGENT_PROVIDER_MAP = {
         # CTF 解题智能体
         'xiaohei':   'volcano',
-        'analyst':   'moonshot',
+        'analyst':   'deepseek',
         'architect': 'wenxin',
         'developer': 'volcano',
         'security':  'qwen',
@@ -167,6 +166,9 @@ class ProviderRegistry:
         'content_gen':  'volcano',
         'code_mentor':  'volcano',
         'assessor':     'volcano',
+        # Legal compliance agent
+        'compliance_officer': 'qwen',
+        'legal_reviewer': 'deepseek',
     }
     
     @classmethod
@@ -184,7 +186,7 @@ class ProviderRegistry:
     @classmethod
     def get_provider_for_agent(cls, agent_id: str) -> str:
         """获取智能体对应的默认厂商"""
-        return cls.AGENT_PROVIDER_MAP.get(agent_id, 'volcano')
+        return cls.AGENT_PROVIDER_MAP.get(agent_id, 'deepseek')
     
     @classmethod
     def set_agent_provider_map(cls, mapping: Dict[str, str]):

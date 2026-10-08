@@ -1,0 +1,72 @@
+{
+  "checked_on": "2026-10-08",
+  "windows": {
+    "Caption": "Microsoft Windows 11 家庭版 中文版",
+    "Version": "10.0.26200",
+    "BuildNumber": "26200"
+  },
+  "hypervisor_present": true,
+  "virtualbox": "5.2.44r139111",
+  "ensp": "1.2.00.510",
+  "docker_desktop": "4.81.0.232925",
+  "wsl": "2.7.3.0",
+  "services": [
+    {
+      "Name": "com.docker.service",
+      "Status": "Stopped",
+      "StartType": "Manual"
+    },
+    {
+      "Name": "hns",
+      "Status": "Running",
+      "StartType": "Manual"
+    },
+    {
+      "Name": "LanmanServer",
+      "Status": "Running",
+      "StartType": "Automatic"
+    },
+    {
+      "Name": "vmcompute",
+      "Status": "Running",
+      "StartType": "Manual"
+    },
+    {
+      "Name": "WSLService",
+      "Status": "Running",
+      "StartType": "Automatic"
+    }
+  ],
+  "vbox_drivers": [
+    {
+      "Name": "VBoxDrv",
+      "State": "Running",
+      "StartMode": "System"
+    },
+    {
+      "Name": "VBoxNetAdp",
+      "State": "Running",
+      "StartMode": "Manual"
+    },
+    {
+      "Name": "VBoxNetLwf",
+      "State": "Running",
+      "StartMode": "System"
+    },
+    {
+      "Name": "VBoxUSBMon",
+      "State": "Running",
+      "StartMode": "System"
+    }
+  ],
+  "docker_fatal_log": [
+    "[2026-10-08T12:19:35.693695000Z][com.docker.backend.exe] backend crashed, dumping error to file and reporting to user: starting services: initializing Secrets Engine: listening on unix://C:/Users/29681/AppData/Local/docker-secrets-engine/engine.sock: remove C:/Users/29681/AppData/Local/docker-secrets-engine/engine.sock: The file cannot be accessed by the system. (listener: The filename, directory name, or volume label syntax is incorrect.)",
+    "[2026-10-08T12:20:32.482067700Z][com.docker.backend.exe] backend crashed, dumping error to file and reporting to user: starting services: initializing Secrets Engine: listening on unix://C:/Users/29681/AppData/Local/docker-secrets-engine/engine.sock: remove C:/Users/29681/AppData/Local/docker-secrets-engine/engine.sock: The file cannot be accessed by the system. (listener: The filename, directory name, or volume label syntax is incorrect.)",
+    "[2026-10-08T12:20:41.815998000Z][com.docker.backend.exe] backend crashed, dumping error to file and reporting to user: starting services: initializing Secrets Engine: listening on unix://C:/Users/29681/AppData/Local/docker-secrets-engine/engine.sock: remove C:/Users/29681/AppData/Local/docker-secrets-engine/engine.sock: The file cannot be accessed by the system. (listener: The filename, directory name, or volume label syntax is incorrect.)"
+  ],
+  "limitations": [
+    "Optional feature states require elevation; not verified",
+    "No controlled VirtualBox driver enable/disable comparison was performed",
+    "Docker daemon has not recovered"
+  ]
+}

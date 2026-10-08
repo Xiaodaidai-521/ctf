@@ -33,6 +33,8 @@ class SubmissionCreateSerializer(serializers.Serializer):
         from challenges.models import Challenge
         try:
             challenge = Challenge.objects.get(id=value, is_active=True)
+            if challenge.submission_mode == 'practice':
+                raise serializers.ValidationError('此靶场为自由练习，不接受 Flag 计分提交')
             return value
         except Challenge.DoesNotExist:
             raise serializers.ValidationError("题目不存在或未启用")

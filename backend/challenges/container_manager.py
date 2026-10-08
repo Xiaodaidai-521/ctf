@@ -4,6 +4,7 @@
 """
 
 import docker
+import logging
 import os
 import uuid
 from datetime import timedelta
@@ -11,8 +12,11 @@ from django.conf import settings
 from django.utils import timezone
 from typing import Optional, Tuple
 from .models import ChallengeContainer, Challenge
+from .container_audit import record_container_audit
 from .frp_config import get_frp_manager
 from .port_pool import get_port_pool
+
+logger = logging.getLogger(__name__)
 
 
 class ContainerManager:
@@ -29,6 +33,7 @@ class ContainerManager:
         self.container_lifetime = getattr(settings, 'CONTAINER_LIFETIME', 7200)  # 默认2小时
         self.cpu_limit = getattr(settings, 'CONTAINER_CPU_LIMIT', 0.5)
         self.memory_limit = getattr(settings, 'CONTAINER_MEMORY_LIMIT', '512m')
+        self.run_user = os.environ.get('CONTAINER_RUN_USER', '65532:65532')
 
         # 确保Docker网络存在
         self._ensure_network()
@@ -43,9 +48,9 @@ class ContainerManager:
                     self.network_name,
                     driver="bridge"
                 )
-                print(f"✅ Docker网络 '{self.network_name}' 创建成功")
+                logger.info("Docker network '%s' created", self.network_name)
             except Exception as e:
-                print(f"❌ 创建Docker网络失败: {str(e)}")
+                logger.error("Failed to create Docker network '%s': %s", self.network_name, e)
 
     def start_container(self, user, challenge: Challenge) -> Tuple[bool, str, Optional[ChallengeContainer]]:
         """
@@ -59,9 +64,52 @@ class ContainerManager:
             Tuple[bool, str, Optional[ChallengeContainer]]:
                 (是否成功, 消息, 容器实例)
         """
+        from .juice_shop import JuiceShopRuntime, is_juice_shop
+        if is_juice_shop(challenge):
+            return JuiceShopRuntime(self.docker_client).start(user, challenge)
+
         # 检查题目是否有Docker镜像
         if not challenge.docker_image:
-            return False, "该题目没有配置Docker镜像", None
+            self._audit_container_action(
+                action='start_failed',
+                result='failed',
+                user=user,
+                challenge=challenge,
+                error_message='challenge has no docker image configured',
+            )
+            return False, "该题目没有配置 Docker 镜像", None
+
+        image_name = self._resolve_image_name(challenge.docker_image)
+        self._audit_container_action(
+            action='start_requested',
+            result='requested',
+            user=user,
+            challenge=challenge,
+            image=image_name,
+        )
+        if not self._is_docker_available():
+            self._audit_container_action(
+                action='start_failed',
+                result='failed',
+                user=user,
+                challenge=challenge,
+                image=image_name,
+                error_message='docker daemon unavailable',
+            )
+            return False, "Docker 服务不可用，请确认 Docker Desktop 已启动并且后端可以访问 Docker daemon", None
+        if not self.get_docker_image_status(image_name):
+            alias_note = ''
+            if image_name != challenge.docker_image:
+                alias_note = f"（已从 {challenge.docker_image} 映射）"
+            self._audit_container_action(
+                action='start_failed',
+                result='failed',
+                user=user,
+                challenge=challenge,
+                image=image_name,
+                error_message='docker image missing',
+            )
+            return False, f"Docker 镜像 '{image_name}' 不存在{alias_note}，请先从 docker-images 目录执行 docker load", None
 
         # 检查是否已有运行中的容器
         existing = ChallengeContainer.objects.filter(
@@ -71,6 +119,15 @@ class ContainerManager:
         ).first()
 
         if existing and existing.is_running:
+            self._audit_container_action(
+                action='start_failed',
+                result='failed',
+                user=user,
+                challenge=challenge,
+                container=existing,
+                image=image_name,
+                error_message='running container already exists',
+            )
             return False, "已有运行中的容器", existing
 
         # 停止旧的容器
@@ -87,6 +144,15 @@ class ContainerManager:
             # 分配端口池
             pool_port = self.port_pool.allocate_port(user_id, challenge.id, container_uuid)
             if not pool_port:
+                self._audit_container_action(
+                    action='start_failed',
+                    result='failed',
+                    user=user,
+                    challenge=challenge,
+                    image=image_name,
+                    error_message='port pool exhausted',
+                    extra={'container_id': container_uuid},
+                )
                 return False, "端口池已满，无法分配端口", None
 
             # 创建容器记录
@@ -109,22 +175,40 @@ class ContainerManager:
             # 创建Docker容器
             # 映射端口：主机端口(池端口) -> 容器内部端口
             container_port = challenge.redirect_port or 80
-            port_mapping = {
-                container_port: pool_port  # 主机端口:容器端口
-            }
+            proxy_mode = getattr(settings, 'CONTAINER_PROXY_MODE', 'host_port')
+            port_mapping = None
+            if proxy_mode == 'host_port':
+                port_mapping = {container_port: ('127.0.0.1', pool_port)}
+            runtime_options = self._get_runtime_options(challenge.docker_image, image_name)
+            run_user = runtime_options.get('user', self.run_user)
+            read_only_rootfs = runtime_options.get('read_only', True)
 
-            docker_container = self.docker_client.containers.run(
-                image=challenge.docker_image,
-                name=container_name,
-                detach=True,
-                network=self.network_name,
-                networking_config=networking_config,
-                ports=port_mapping,
-                mem_limit=self.memory_limit,
-                cpu_quota=int(self.cpu_limit * 100000),
-                cpu_period=100000,
-                remove=False,
-            )
+            run_kwargs = {
+                'image': image_name,
+                'name': container_name,
+                'detach': True,
+                'network': self.network_name,
+                'networking_config': networking_config,
+                'ports': port_mapping,
+                'mem_limit': self.memory_limit,
+                'cpu_quota': int(self.cpu_limit * 100000),
+                'cpu_period': 100000,
+                'pids_limit': 256,
+                'cap_drop': ['ALL'],
+                'security_opt': ['no-new-privileges:true'],
+                'read_only': read_only_rootfs,
+                'tmpfs': {
+                    '/tmp': 'rw,noexec,nosuid,size=64m',
+                    '/run': 'rw,noexec,nosuid,size=16m',
+                    '/var/tmp': 'rw,noexec,nosuid,size=32m',
+                },
+                'privileged': False,
+                'remove': False,
+            }
+            if run_user:
+                run_kwargs['user'] = run_user
+
+            docker_container = self.docker_client.containers.run(**run_kwargs)
 
             # 更新容器记录状态
             container_record.status = 'running'
@@ -132,27 +216,89 @@ class ContainerManager:
             container_record.expires_at = timezone.now() + timedelta(seconds=self.container_lifetime)
 
             # 生成访问URL（使用Django代理，格式：http://localhost:8000/challenge/<user_id>-<uuid>/）
-            access_url = f"http://localhost:8000/challenge/{user_id}-{container_uuid}/"
+            proxy_host = getattr(settings, 'CONTAINER_PROXY_HOST', 'localhost:8000')
+            access_url = f"http://{proxy_host}/challenge/{user_id}-{container_uuid}/"
             container_record.access_url = access_url
 
             container_record.save()
+            self._audit_container_action(
+                action='start_succeeded',
+                result='success',
+                user=user,
+                challenge=challenge,
+                container=container_record,
+                image=image_name,
+                port=pool_port,
+                network=self.network_name,
+                cpu_limit=self.cpu_limit,
+                memory_limit=self.memory_limit,
+                access_url=access_url,
+            )
 
-            print(f"✅ 容器启动成功: {container_name}, 端口: {pool_port}, URL: {access_url}")
+            logger.info("Challenge container started: %s, port=%s, url=%s", container_name, pool_port, access_url)
             return True, "容器启动成功", container_record
 
         except docker.errors.ImageNotFound:
-            container_record.status = 'error'
-            container_record.save()
-            return False, f"Docker镜像 '{challenge.docker_image}' 不存在，请先拉取镜像", None
-        except docker.errors.APIError as e:
-            container_record.status = 'error'
-            container_record.save()
-            return False, f"Docker API错误: {str(e)}", None
-        except Exception as e:
-            if 'container_record' in locals():
+            if container_record:
                 container_record.status = 'error'
                 container_record.save()
+            self._audit_container_action(
+                action='start_failed',
+                result='failed',
+                user=user,
+                challenge=challenge,
+                container=container_record,
+                image=image_name,
+                error_message='docker image not found during run',
+            )
+            return False, f"Docker 镜像 '{image_name}' 不存在，请先从 docker-images 目录执行 docker load", None
+        except docker.errors.APIError as e:
+            if container_record:
+                container_record.status = 'error'
+                container_record.save()
+            self._audit_container_action(
+                action='start_failed',
+                result='failed',
+                user=user,
+                challenge=challenge,
+                container=container_record,
+                image=image_name,
+                error_message=str(e),
+            )
+            return False, f"Docker API 错误: {str(e)}", None
+        except Exception as e:
+            if container_record:
+                container_record.status = 'error'
+                container_record.save()
+            self._audit_container_action(
+                action='start_failed',
+                result='failed',
+                user=user,
+                challenge=challenge,
+                container=container_record,
+                image=image_name,
+                error_message=str(e),
+            )
             return False, f"容器启动失败: {str(e)}", None
+
+    def _resolve_image_name(self, image_name: str) -> str:
+        aliases = getattr(settings, 'CONTAINER_IMAGE_ALIASES', {})
+        return aliases.get(image_name, image_name)
+
+    def _get_runtime_options(self, original_image_name: str, resolved_image_name: str) -> dict:
+        overrides = getattr(settings, 'CONTAINER_IMAGE_RUNTIME_OVERRIDES', {})
+        runtime_options = {}
+        for image_name in (original_image_name, resolved_image_name):
+            if image_name and image_name in overrides:
+                runtime_options.update(overrides.get(image_name) or {})
+        return runtime_options
+
+    def _is_docker_available(self) -> bool:
+        try:
+            self.docker_client.ping()
+            return True
+        except Exception:
+            return False
 
     def stop_container(self, container: ChallengeContainer) -> bool:
         """
@@ -164,6 +310,15 @@ class ContainerManager:
         Returns:
             bool: 是否停止成功
         """
+        if container.runtime_metadata.get('profile') == 'juice-shop':
+            from .juice_shop import JuiceShopRuntime
+            return JuiceShopRuntime(self.docker_client).stop(container)
+
+        self._audit_container_action(
+            action='stop_requested',
+            result='requested',
+            container=container,
+        )
         try:
             # 停止Docker容器
             docker_container = self.docker_client.containers.get(
@@ -179,8 +334,13 @@ class ContainerManager:
             container.status = 'stopped'
             container.destroyed_at = timezone.now()
             container.save()
+            self._audit_container_action(
+                action='stop_succeeded',
+                result='success',
+                container=container,
+            )
 
-            print(f"✅ 容器已停止: {container.docker_container_name}")
+            logger.info("Challenge container stopped: %s", container.docker_container_name)
             return True
 
         except docker.errors.NotFound:
@@ -188,12 +348,30 @@ class ContainerManager:
             container.status = 'destroyed'
             container.destroyed_at = timezone.now()
             container.save()
+            self._audit_container_action(
+                action='stop_succeeded',
+                result='success',
+                container=container,
+                extra={'docker_result': 'not_found_marked_destroyed'},
+            )
             return True
         except docker.errors.APIError as e:
-            print(f"❌ 停止容器失败: {str(e)}")
+            logger.error("Failed to stop challenge container %s: %s", container.docker_container_name, e)
+            self._audit_container_action(
+                action='stop_failed',
+                result='failed',
+                container=container,
+                error_message=str(e),
+            )
             return False
         except Exception as e:
-            print(f"❌ 停止容器异常: {str(e)}")
+            logger.error("Unexpected error stopping challenge container %s: %s", container.docker_container_name, e)
+            self._audit_container_action(
+                action='stop_failed',
+                result='failed',
+                container=container,
+                error_message=str(e),
+            )
             return False
 
     def get_container_status(self, user, challenge: Challenge) -> Optional[ChallengeContainer]:
@@ -213,7 +391,24 @@ class ContainerManager:
         ).order_by('-created_at').first()
 
         if not container:
+            self._audit_container_action(
+                action='status_checked',
+                result='not_found',
+                user=user,
+                challenge=challenge,
+            )
             return None
+        self._audit_container_action(
+            action='status_checked',
+            result=container.status,
+            user=user,
+            challenge=challenge,
+            container=container,
+        )
+
+        if container.runtime_metadata.get('profile') == 'juice-shop':
+            from .juice_shop import JuiceShopRuntime
+            return JuiceShopRuntime(self.docker_client).refresh(container)
 
         # 如果容器已过期，标记为已停止
         if container.is_expired and container.status == 'running':
@@ -231,28 +426,52 @@ class ContainerManager:
             self.frp_manager.update_frp_config(running_containers)
         except Exception as e:
             # 如果FRP服务器不可用，只记录警告，不影响容器启动
-            print(f"⚠️  FRP配置更新失败（FRP服务器可能未启动）: {str(e)}")
+            logger.warning("Failed to update FRP config: %s", e)
             # 注意：容器仍然可以启动，只是外部无法通过FRP URL访问
 
-    def cleanup_expired_containers(self) -> int:
+    def cleanup_expired_containers(self, dry_run=False) -> int:
         """
         清理过期容器
 
         Returns:
             int: 清理的容器数量
         """
+        from django.db.models import Q
         expired_containers = ChallengeContainer.objects.filter(
-            status='running'
+            Q(status='running') | Q(
+                status__in=['pending', 'error'], runtime_metadata__profile='juice-shop',
+                destroyed_at__isnull=True,
+            )
         ).select_related('challenge', 'user')
 
         count = 0
         for container in expired_containers:
             if container.is_expired:
-                if self.stop_container(container):
+                if dry_run:
                     count += 1
+                    continue
+                self._audit_container_action(
+                    action='expired_cleanup',
+                    result='requested',
+                    container=container,
+                )
+                if self.stop_container(container):
+                    self._audit_container_action(
+                        action='expired_cleanup',
+                        result='success',
+                        container=container,
+                    )
+                    count += 1
+                else:
+                    self._audit_container_action(
+                        action='expired_cleanup',
+                        result='failed',
+                        container=container,
+                        error_message='stop_container returned false',
+                    )
 
         if count > 0:
-            print(f"✅ 清理了 {count} 个过期容器")
+            logger.info("Cleaned up %s expired challenge containers", count)
 
         return count
 
@@ -307,13 +526,23 @@ class ContainerManager:
             bool: 是否拉取成功
         """
         try:
-            print(f"⏳ 正在拉取镜像: {image_name}")
+            logger.info("Pulling Docker image: %s", image_name)
             self.docker_client.images.pull(image_name)
-            print(f"✅ 镜像拉取成功: {image_name}")
+            logger.info("Docker image pulled: %s", image_name)
             return True
         except Exception as e:
-            print(f"❌ 镜像拉取失败: {str(e)}")
+            logger.error("Failed to pull Docker image %s: %s", image_name, e)
             return False
+
+    def _audit_container_action(self, **kwargs):
+        kwargs.setdefault('network', self.network_name)
+        kwargs.setdefault('cpu_limit', self.cpu_limit)
+        kwargs.setdefault('memory_limit', self.memory_limit)
+        try:
+            return record_container_audit(**kwargs)
+        except Exception as exc:
+            logger.warning("Failed to write container audit event: %s", exc)
+            return None
 
     def _start_frpc_sidecar(self, container: ChallengeContainer) -> bool:
         """
@@ -326,13 +555,18 @@ class ContainerManager:
             bool: 是否启动成功
         """
         try:
+            frp_token = os.environ.get('FRP_TOKEN')
+            if not frp_token:
+                logger.warning("FRP client container was not started because FRP_TOKEN is not configured")
+                return False
+
             # 确保 FRP 客户端镜像存在
             frpc_image = 'snowdreamtech/frpc:0.52.3'
             try:
                 self.docker_client.images.get(frpc_image)
             except docker.errors.ImageNotFound:
                 self.docker_client.images.pull(frpc_image)
-                print(f"✅ FRP 客户端镜像拉取成功: {frpc_image}")
+                logger.info("FRP client image pulled: %s", frpc_image)
 
             # 获取容器网络信息
             container_info = self.docker_client.containers.get(
@@ -352,7 +586,7 @@ class ContainerManager:
                     break
 
             if not frps_ip:
-                print("⚠️  FRP 服务器未启动，跳过 FRP 客户端启动")
+                logger.warning("FRP server is not running, skipping FRP client startup")
                 return False
 
             # 生成 FRP 客户端配置（使用路径路由模式）
@@ -360,7 +594,7 @@ class ContainerManager:
             frpc_config = f"""[common]
 server_addr = {frps_ip}
 server_port = 7000
-token = ctf_platform_secret
+token = {frp_token}
 
 [http_{container.user.id}-{container.container_id}]
 type = http
@@ -405,11 +639,11 @@ host_header_rewrite = ctf.local
             # 启动容器
             frpc_container.start()
 
-            print(f"✅ FRP 客户端容器启动成功: {frpc_container_name}")
+            logger.info("FRP client container started: %s", frpc_container_name)
             return True
 
         except Exception as e:
-            print(f"⚠️  FRP 客户端容器启动失败（不影响题目容器使用）: {str(e)}")
+            logger.warning("Failed to start FRP client container: %s", e)
             return False
 
     def _stop_frpc_sidecar(self, container: ChallengeContainer) -> bool:
@@ -427,12 +661,12 @@ host_header_rewrite = ctf.local
             frpc_container = self.docker_client.containers.get(frpc_container_name)
             frpc_container.stop()
             frpc_container.remove()
-            print(f"✅ FRP 客户端容器已停止: {frpc_container_name}")
+            logger.info("FRP client container stopped: %s", frpc_container_name)
             return True
         except docker.errors.NotFound:
             return True
         except Exception as e:
-            print(f"⚠️  停止 FRP 客户端容器失败: {str(e)}")
+            logger.warning("Failed to stop FRP client container: %s", e)
             return False
 
 

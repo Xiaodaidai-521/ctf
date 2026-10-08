@@ -11,6 +11,7 @@ For the full list of settings and their values, see
 """
 
 import os
+import sys
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -39,7 +40,7 @@ if _root_dotenv.exists():
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-^^aw6n^!6$wyb4@e6-vjgfulromcdn*5tzd&**)kpo*#_3rrk1')
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-development-only')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 # 未设环境变量时自动为开发模式（DEBUG=True），
@@ -51,7 +52,10 @@ if _env_debug:
 else:
     DEBUG = not bool(_db_url)  # 有数据库URL → 生产模式，没有 → 开发模式
 
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '*').split(',')
+_allowed_hosts = [host.strip() for host in os.environ.get('ALLOWED_HOSTS', '').split(',') if host.strip()]
+if not DEBUG and (not os.environ.get('SECRET_KEY') or not _allowed_hosts):
+    raise RuntimeError('SECRET_KEY and ALLOWED_HOSTS must be set when DEBUG is disabled.')
+ALLOWED_HOSTS = _allowed_hosts or ['localhost', '127.0.0.1']
 
 
 # Application definition
@@ -76,6 +80,9 @@ INSTALLED_APPS = [
     'ai_assistant',
     'announcements',
     'audit',
+    'legal',
+    'legal_kb',
+    'agent_runtime',
     'student_profiles',
     'content_generator',
     'learning_analytics',
@@ -136,8 +143,23 @@ WSGI_APPLICATION = 'ctf_backend.wsgi.application'
 # 支持 PostgreSQL（通过 DATABASE_URL 环境变量）或 SQLite（开发环境回退）
 
 DATABASE_URL = os.environ.get('DATABASE_URL', '')
+DATABASE_BACKEND = os.environ.get('DATABASE_BACKEND', 'postgres').lower()
+SQLITE_DATABASE_PATH = os.environ.get(
+    'SQLITE_DATABASE_PATH',
+    str(ROOT_DIR.parent / 'database' / 'db.sqlite3'),
+)
 
-if DATABASE_URL and DATABASE_URL.startswith('postgres'):
+if DATABASE_BACKEND == 'sqlite':
+    sqlite_path = Path(SQLITE_DATABASE_PATH)
+    if not sqlite_path.is_absolute():
+        sqlite_path = BASE_DIR / sqlite_path
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': sqlite_path,
+        }
+    }
+elif DATABASE_URL and DATABASE_URL.startswith('postgres'):
     # PostgreSQL 配置（生产环境推荐）
     import urllib.parse
     parsed = urllib.parse.urlparse(DATABASE_URL)
@@ -153,10 +175,17 @@ if DATABASE_URL and DATABASE_URL.startswith('postgres'):
     }
 else:
     # SQLite 回退（仅限开发环境）
+    sqlite_path = Path(SQLITE_DATABASE_PATH)
+    if not sqlite_path.is_absolute():
+        sqlite_path = BASE_DIR / sqlite_path
     DATABASES = {
         'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.environ.get('DB_NAME', 'ctf_platform'),
+            'USER': os.environ.get('DB_USER', 'ctf_user'),
+            'PASSWORD': os.environ.get('DB_PASSWORD', ''),
+            'HOST': os.environ.get('DB_HOST', 'postgres'),
+            'PORT': os.environ.get('DB_PORT', '5432'),
         }
     }
 
@@ -227,9 +256,11 @@ except ImportError:
 
 # REST Framework settings
 REST_FRAMEWORK = {
+    'EXCEPTION_HANDLER': 'ctf_backend.api_exceptions.api_exception_handler',
     # Use only Token authentication for API
     # SessionAuthentication requires CSRF protection
     'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.TokenAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
@@ -238,11 +269,34 @@ REST_FRAMEWORK = {
     # Pagination settings
     'PAGE_SIZE': 20,
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle',
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': os.environ.get('API_ANON_RATE_LIMIT', '6000/hour' if DEBUG else '60/hour'),
+        'user': os.environ.get('API_USER_RATE_LIMIT', '6000/hour' if DEBUG else '600/hour'),
+    },
 }
+
+SESSION_COOKIE_AGE = int(os.environ.get('SESSION_COOKIE_AGE', '3600'))
+SESSION_SAVE_EVERY_REQUEST = True
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = 'Lax'
+SESSION_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_HTTPONLY = False
+CSRF_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_SECURE = not DEBUG
 
 # Media files
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+RESOURCE_MAX_UPLOAD_SIZE = int(os.environ.get('RESOURCE_MAX_UPLOAD_SIZE_MB', '50')) * 1024 * 1024
+RESOURCE_MAX_COVER_IMAGE_SIZE = int(os.environ.get('RESOURCE_MAX_COVER_IMAGE_SIZE_MB', '5')) * 1024 * 1024
+RESOURCE_MAX_ARCHIVE_UNCOMPRESSED_SIZE = int(
+    os.environ.get('RESOURCE_MAX_ARCHIVE_UNCOMPRESSED_SIZE_MB', '100')
+) * 1024 * 1024
+RESOURCE_MAX_ARCHIVE_ENTRIES = int(os.environ.get('RESOURCE_MAX_ARCHIVE_ENTRIES', '1000'))
 
 # Language and Time zone
 LANGUAGE_CODE = 'zh-hans'
@@ -258,13 +312,44 @@ FRP_HTTP_PORT = int(os.environ.get('FRP_HTTP_PORT', '9123'))
 FRP_TOKEN = os.environ.get('FRP_TOKEN', '')
 
 # Docker Configuration (用于题目容器管理)
-DOCKER_NETWORK = os.environ.get('DOCKER_NETWORK', 'ctf-network')
+DOCKER_NETWORK = os.environ.get('DOCKER_NETWORK', 'ctf-challenge')
 CONTAINER_LIFETIME = int(os.environ.get('CONTAINER_LIFETIME', '7200'))  # 默认2小时
 CONTAINER_CPU_LIMIT = float(os.environ.get('CONTAINER_CPU_LIMIT', '0.5'))  # CPU限制
 CONTAINER_MEMORY_LIMIT = os.environ.get('CONTAINER_MEMORY_LIMIT', '512m')  # 内存限制
 
+# Juice Shop uses its own root-origin endpoint and an isolated per-user network.
+JUICE_SHOP_IMAGE = 'bkimminich/juice-shop:v20.2.0@sha256:8739101ade29358abb5469ee66ae78e582c97ed0a5543a4ad102e5fa5193526b'
+JUICE_SHOP_BIND_IP = os.environ.get('JUICE_SHOP_BIND_IP', '127.0.0.1')
+JUICE_SHOP_PUBLIC_HOST = os.environ.get('JUICE_SHOP_PUBLIC_HOST', '127.0.0.1')
+JUICE_SHOP_PORT_MIN = int(os.environ.get('JUICE_SHOP_PORT_MIN', '18080'))
+JUICE_SHOP_PORT_MAX = int(os.environ.get('JUICE_SHOP_PORT_MAX', '18179'))
+JUICE_SHOP_START_TIMEOUT = 75
+
 # Coze SDK Configuration (容器中嵌入 AI 助手)
 # ⚠️ 生产环境必须通过环境变量配置，禁止硬编码！
+CONTAINER_PORT_MIN = int(os.environ.get('CONTAINER_PORT_MIN', '8080'))
+CONTAINER_PORT_MAX = int(os.environ.get('CONTAINER_PORT_MAX', '9000'))
+CONTAINER_PROXY_HOST = os.environ.get('CONTAINER_PROXY_HOST', 'localhost:8000')
+CONTAINER_PROXY_SCHEME = os.environ.get(
+    'CONTAINER_PROXY_SCHEME',
+    'https' if os.environ.get('SECURE_SSL_REDIRECT', 'false').lower() in ('true', '1', 'yes') else 'http',
+).lower()
+CONTAINER_PROXY_MODE = os.environ.get('CONTAINER_PROXY_MODE', 'host_port').lower()
+CONTAINER_IMAGE_ALIASES = {
+    'ctf-platform/sql-injection-basics:latest': 'ctf-platform/sql-inject-basic:latest',
+    'ctf-platform/sql-union-query:latest': 'ctf-platform/sql-union:latest',
+    'ctf-platform/blind-sql-timing:latest': 'ctf-platform/sql-inject-basic:latest',
+    'ctf-platform/web-flask:latest': 'ctf-platform/cors-basic:latest',
+    'ctf-platform/web-simple:latest': 'ctf-platform/cors-basic:latest',
+}
+CONTAINER_IMAGE_RUNTIME_OVERRIDES = {
+    # This legacy Flask/SQLite lab initializes a root-owned database at startup.
+    'ctf-platform/sql-inject-basic:latest': {
+        'user': None,
+        'read_only': False,
+    },
+}
+
 COZE_SDK_ENABLED = os.environ.get('COZE_SDK_ENABLED', 'false').lower() == 'true'
 COZE_BOT_ID = os.environ.get('COZE_BOT_ID', '')
 COZE_TOKEN = os.environ.get('COZE_TOKEN', '')  # 强制从环境变量读取，不再有默认值
@@ -305,6 +390,46 @@ SECURE_HSTS_SECONDS = int(os.environ.get(
     '31536000' if SECURE_SSL_REDIRECT else '0',
 ))
 SECURE_HSTS_INCLUDE_SUBDOMAINS = SECURE_HSTS_SECONDS > 0
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_REFERRER_POLICY = 'same-origin'
+X_FRAME_OPTIONS = 'DENY'
 
 CONTENT_GENERATOR_CACHE_TTL = 86400
 CONTENT_GENERATOR_MAX_CONCURRENT = 5
+
+# Legal KB / embedding configuration
+ENABLE_LEGAL_COMPLIANCE = os.environ.get('ENABLE_LEGAL_COMPLIANCE', 'true').lower() in ('true', '1', 'yes')
+LEGAL_AUDIT_CHAIN_VERSION = os.environ.get('LEGAL_AUDIT_CHAIN_VERSION', 'v1')
+EMBEDDING_PROVIDER = os.environ.get('EMBEDDING_PROVIDER', '')
+EMBEDDING_API_KEY = os.environ.get('EMBEDDING_API_KEY', '')
+EMBEDDING_BASE_URL = os.environ.get('EMBEDDING_BASE_URL', '')
+EMBEDDING_MODEL = os.environ.get('EMBEDDING_MODEL', 'local-hash-v1')
+EMBEDDING_DIMENSION = int(os.environ.get('EMBEDDING_DIMENSION', '128'))
+EMBEDDING_BATCH_SIZE = int(os.environ.get('EMBEDDING_BATCH_SIZE', '32'))
+if 'test' in sys.argv:
+    EMBEDDING_PROVIDER = ''
+    EMBEDDING_API_KEY = ''
+    EMBEDDING_BASE_URL = ''
+    EMBEDDING_MODEL = 'local-hash-v1'
+    EMBEDDING_DIMENSION = 128
+    EMBEDDING_BATCH_SIZE = 32
+LEGAL_KB_TOP_K = int(os.environ.get('LEGAL_KB_TOP_K', '8'))
+LEGAL_KB_SCORE_THRESHOLD = float(os.environ.get('LEGAL_KB_SCORE_THRESHOLD', '0.35'))
+LEGAL_KB_RAG_USE_LLM = os.environ.get('LEGAL_KB_RAG_USE_LLM', 'true').lower() in ('true', '1', 'yes')
+LEGAL_KB_RAG_AGENT_ID = os.environ.get('LEGAL_KB_RAG_AGENT_ID', 'compliance_officer')
+LEGAL_COMPLIANCE_AGENT_USE_LLM = os.environ.get(
+    'LEGAL_COMPLIANCE_AGENT_USE_LLM',
+    'false',
+).lower() in ('true', '1', 'yes')
+LEGAL_FACT_MAX_WINDOW_HOURS = int(os.environ.get('LEGAL_FACT_MAX_WINDOW_HOURS', '24'))
+LEGAL_FACT_MAX_EVENTS = int(os.environ.get('LEGAL_FACT_MAX_EVENTS', '500'))
+LEGAL_FACT_MAX_MANUAL_CHARS = int(os.environ.get('LEGAL_FACT_MAX_MANUAL_CHARS', '4000'))
+LEGAL_FACT_MAX_MODEL_CHARS = int(os.environ.get('LEGAL_FACT_MAX_MODEL_CHARS', '12000'))
+
+# Tutoring main-chain convergence switches. Defaults keep the converged chain active;
+# every stage has a structured fallback to the legacy answer path.
+TUTOR_AGENT_ROUTER_ENABLED = os.environ.get('TUTOR_AGENT_ROUTER_ENABLED', 'true').lower() in ('true', '1', 'yes')
+TUTOR_SPECIALISTS_ENABLED = os.environ.get('TUTOR_SPECIALISTS_ENABLED', 'true').lower() in ('true', '1', 'yes')
+TUTOR_CONTEXT_ENABLED = os.environ.get('TUTOR_CONTEXT_ENABLED', 'true').lower() in ('true', '1', 'yes')
+TUTOR_RESOURCE_CACHE_ENABLED = os.environ.get('TUTOR_RESOURCE_CACHE_ENABLED', 'true').lower() in ('true', '1', 'yes')
+TUTOR_METRICS_ENABLED = os.environ.get('TUTOR_METRICS_ENABLED', 'true').lower() in ('true', '1', 'yes')

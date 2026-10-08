@@ -2,10 +2,11 @@
   <div class="multi-agent-page">
     <div class="page-header">
       <div class="header-left">
+        <p class="section-kicker">INTELLIGENT TUTORING / LEARNING ASSISTANT</p>
         <h1 class="page-title">
-          多智能体协作
+          智能辅导
         </h1>
-        <p class="page-desc">多个AI智能体协同处理复杂任务，支持智能切换和任务委托</p>
+        <p class="page-desc">把智能体、任务预设和对话工作台组织成一套清晰的学习协作流程。</p>
       </div>
       <div class="header-right">
         <a-button type="outline" @click="showHelp = true">
@@ -15,7 +16,57 @@
       </div>
     </div>
 
-    <div class="layout-grid">
+    <div class="layout-grid" :class="{ 'brief-collapsed': briefCollapsed, 'info-collapsed': infoCollapsed }">
+      <aside class="brief-panel" :class="{ collapsed: briefCollapsed }">
+        <button
+          class="panel-collapse-control left"
+          type="button"
+          :title="briefCollapsed ? '展开协作面板' : '收起协作面板'"
+          @click="briefCollapsed = !briefCollapsed"
+        >
+          <i :class="['bi', briefCollapsed ? 'bi-chevron-right' : 'bi-chevron-left']"></i>
+        </button>
+        <template v-if="!briefCollapsed">
+        <div class="brief-card dark">
+          <div class="brief-top">
+            <span>AGENT BRIEF</span>
+            <span>{{ modeLabels[sessionMode] }}</span>
+          </div>
+          <strong>{{ selectedAgentIds.length }}</strong>
+          <p>参与智能体</p>
+          <div class="brief-stats">
+            <span>轮次 {{ processedCount }}</span>
+            <span>切换 {{ handoffCount }}</span>
+          </div>
+        </div>
+
+        <div class="info-card preset-card">
+          <h4>协作预设</h4>
+          <div class="preset-list">
+            <div v-for="preset in presets" :key="preset.id" class="preset-item" @click="loadPreset(preset)">
+              <span class="preset-icon"><i :class="['bi', presetIconClass(preset)]"></i></span>
+              <span class="preset-name">{{ preset.name }}</span>
+              <span class="preset-count">{{ preset.agents.length }} 个</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="info-card">
+          <h4>操作</h4>
+          <div class="action-buttons">
+            <a-button long @click="exportSession">
+              <template #icon><icon-download /></template>
+              导出记录
+            </a-button>
+            <a-button long status="danger" @click="resetSession">
+              <template #icon><icon-refresh /></template>
+              重新开始
+            </a-button>
+          </div>
+        </div>
+        </template>
+      </aside>
+
       <!-- 中间：对话区域 -->
       <div class="chat-panel">
         <MultiAgentChat
@@ -33,7 +84,16 @@
       </div>
 
       <!-- 右侧：任务信息 -->
-      <div class="info-panel">
+      <div class="info-panel" :class="{ collapsed: infoCollapsed }">
+        <button
+          class="panel-collapse-control right"
+          type="button"
+          :title="infoCollapsed ? '展开智能体面板' : '收起智能体面板'"
+          @click="infoCollapsed = !infoCollapsed"
+        >
+          <i :class="['bi', infoCollapsed ? 'bi-chevron-left' : 'bi-chevron-right']"></i>
+        </button>
+        <template v-if="!infoCollapsed">
         <div class="info-card">
           <h4>参与智能体</h4>
           <p class="card-desc">从右侧垂直列表中多选，至少保留一个智能体参与对话。</p>
@@ -55,8 +115,8 @@
                 :disabled="agent.status === 'thinking'"
                 @click.stop="toggleAgentSelection(agent.id)"
               />
-              <div class="agent-check-avatar" :style="{ background: agent.color }">
-                {{ agent.icon }}
+              <div class="agent-check-avatar">
+                <i :class="['bi', agent.icon]"></i>
               </div>
               <div class="agent-check-info">
                 <div class="agent-check-name-row">
@@ -70,31 +130,8 @@
             </div>
           </div>
         </div>
+        </template>
 
-        <div class="info-card">
-          <h4>协作预设</h4>
-          <div class="preset-list">
-            <div v-for="preset in presets" :key="preset.id" class="preset-item" @click="loadPreset(preset)">
-              <span class="preset-icon">{{ preset.icon }}</span>
-              <span class="preset-name">{{ preset.name }}</span>
-              <span class="preset-count">{{ preset.agents.length }} 个智能体</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="info-card">
-          <h4>操作</h4>
-          <div class="action-buttons">
-            <a-button long @click="exportSession">
-              <template #icon><icon-download /></template>
-              导出记录
-            </a-button>
-            <a-button long status="danger" @click="resetSession">
-              <template #icon><icon-refresh /></template>
-              重新开始
-            </a-button>
-          </div>
-        </div>
       </div>
     </div>
 
@@ -110,6 +147,7 @@
           <li>输入你的问题或任务</li>
           <li>智能体会分析并响应，可能委托给其他专家</li>
           <li>你可以手动切换智能体或委托任务</li>
+          <li>法律审核师会检索法规和题目知识，给出靶场边界与数据安全建议，不替代人工法律意见</li>
         </ol>
         
         <h4>协作模式</h4>
@@ -132,70 +170,37 @@ import api from '@/api'
 
 const route = useRoute()
 
+const HIDDEN_AGENT_IDS = new Set(['analyst', 'architect', 'developer', 'security', 'tester'])
+const isVisibleAgentId = (id) => !HIDDEN_AGENT_IDS.has(id)
+
 // 智能体配置
 const agents = ref([
+  {
+    id: 'tutor',
+    name: '教学辅导师',
+    role: '学习教学与四步闭环辅导',
+    icon: 'bi-mortarboard',
+    color: '#181713',
+    status: 'available',
+    capabilities: ['水平评估', '概念讲解', '练习出题', '学习检验']
+  },
   {
     id: 'xiaohei',
     name: '小黑本地AI',
     role: 'CTF全能助手',
-    icon: '🤖',
-    color: '#8b5cf6',
+    icon: 'bi-cpu',
+    color: '#181713',
     status: 'available',
     capabilities: ['智能问答', '解题分析', '代码调试']
   },
   {
-    id: 'analyst',
-    name: '分析师',
-    role: '题目拆解专家',
-    icon: '🔍',
-    color: '#00f5ff',
+    id: 'legal_reviewer',
+    name: '法律审核师',
+    role: '题目与靶场实验合规审查',
+    icon: 'bi-bank',
+    color: '#181713',
     status: 'available',
-    capabilities: ['信息提取', '知识点定位', '攻题规划']
-  },
-  {
-    id: 'architect',
-    name: '架构师',
-    role: '系统规划师',
-    icon: '🏗️',
-    color: '#ff00ff',
-    status: 'available',
-    capabilities: ['架构分析', '协议解析', '方案评审']
-  },
-  {
-    id: 'developer',
-    name: '开发专家',
-    role: '代码实战派',
-    icon: '⌨️',
-    color: '#39ff14',
-    status: 'available',
-    capabilities: ['POC/EXP', '脚本开发', '工具定制']
-  },
-  {
-    id: 'security',
-    name: '安全专家',
-    role: '渗透测试老兵',
-    icon: '🔓',
-    color: '#ff0055',
-    status: 'available',
-    capabilities: ['漏洞分析', 'Web渗透', '逆向分析']
-  },
-  {
-    id: 'tester',
-    name: '测试专家',
-    role: '边界测试员',
-    icon: '🧪',
-    color: '#ff6b35',
-    status: 'available',
-    capabilities: ['边界测试', 'Fuzzing', '鲁棒性验证']
-  },
-  {
-    id: 'tutor',
-    name: '教学智能体',
-    role: '学习教学与四步闭环辅导',
-    icon: '🎓',
-    color: '#4fc3f7',
-    status: 'available',
-    capabilities: ['水平评估', '概念讲解', '练习出题', '学习检验']
+    capabilities: ['法规检索', '题目合规分析', '靶场建议', '数据安全建议']
   }
 ])
 
@@ -207,6 +212,8 @@ const handoffCount = ref(0)
 const flowHistory = ref([])
 const chatRef = ref(null)
 const showHelp = ref(false)
+const briefCollapsed = ref(false)
+const infoCollapsed = ref(false)
 
 const challengeId = computed(() => route.params.challengeId || null)
 
@@ -224,19 +231,43 @@ const modeLabels = {
 }
 
 const defaultPresets = [
-  { id: 'code-review', name: '代码审查', icon: '🔍', agents: ['analyst', 'developer', 'tester', 'security'] },
-  { id: 'architecture', name: '架构设计', icon: '📐', agents: ['analyst', 'architect', 'developer'] },
-  { id: 'security', name: '安全审计', icon: '🛡️', agents: ['analyst', 'security', 'tester'] },
-  { id: 'full', name: '全流程', icon: '🔄', agents: ['xiaohei', 'analyst', 'architect', 'developer', 'tester', 'security'] },
-  { id: 'teaching', name: '教学辅导', icon: '🎓', agents: ['tutor'] },
-  { id: 'knowledge', name: '知识库问答', icon: '🧠', agents: ['xiaohei'] },
-  { id: 'ai-kb', name: 'AI+知识库', icon: '[!]', agents: ['analyst', 'security', 'xiaohei'] }
+  { id: 'teaching', name: '教学辅导', icon: 'bi-mortarboard', agents: ['tutor'] },
+  { id: 'knowledge', name: '知识库问答', icon: 'bi-journal-text', agents: ['xiaohei'] },
+  { id: 'ai-kb', name: 'AI+知识库', icon: 'bi-database-check', agents: ['xiaohei'] },
+  { id: 'legal-review', name: '法律合规审查', icon: 'bi-bank', agents: ['legal_reviewer', 'xiaohei'] },
+  { id: 'full', name: '全流程', icon: 'bi-arrow-repeat', agents: ['tutor', 'xiaohei', 'legal_reviewer'] }
 ]
 const presets = ref(defaultPresets)
 
+const presetIconMap = {
+  'code-review': 'bi-search',
+  architecture: 'bi-diagram-3',
+  security: 'bi-shield-check',
+  full: 'bi-arrow-repeat',
+  teaching: 'bi-mortarboard',
+  knowledge: 'bi-journal-text',
+  'ai-kb': 'bi-database-check',
+  'legal-review': 'bi-bank'
+}
+
+const presetIconClass = (preset) => {
+  if (presetIconMap[preset.id]) return presetIconMap[preset.id]
+  if (typeof preset.icon === 'string' && preset.icon.startsWith('bi-')) return preset.icon
+  return 'bi-list-check'
+}
+
+const normalizePresets = (list) => {
+  return list
+    .map((preset) => ({
+      ...preset,
+      agents: (preset.agents || []).filter(isVisibleAgentId)
+    }))
+    .filter((preset) => preset.agents.length > 0)
+}
+
 const syncSelectedAgents = (preferredIds = []) => {
   const availableIds = agents.value.map((agent) => agent.id)
-  const nextSelected = preferredIds.filter((id) => availableIds.includes(id))
+  const nextSelected = preferredIds.filter((id) => availableIds.includes(id) && isVisibleAgentId(id))
   selectedAgentIds.value = nextSelected.length ? nextSelected : availableIds.slice(0, 1)
   currentAgent.value = agents.value.find((agent) => agent.id === selectedAgentIds.value[0]) || null
 }
@@ -278,7 +309,8 @@ const loadPresets = async () => {
   try {
     const data = await api.multiAgent.presets()
     if (Array.isArray(data) && data.length > 0) {
-      presets.value = data
+      const visiblePresets = normalizePresets(data)
+      presets.value = visiblePresets.length > 0 ? visiblePresets : defaultPresets
     }
   } catch (error) {
     console.error('Failed to load multi-agent presets:', error)
@@ -361,26 +393,37 @@ onMounted(async () => {
 .multi-agent-page {
   display: flex;
   flex-direction: column;
-  height: 100vh;
-  max-width: 1400px;
+  min-height: calc(100vh - 64px);
+  height: calc(100vh - 64px);
+  width: min(1380px, calc(100% - 40px));
+  max-width: none;
   margin: 0 auto;
   overflow: hidden;
+  padding: 14px 0 18px;
 }
 
 .page-header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  padding: 16px 24px 12px;
+  align-items: center;
+  gap: 16px;
+  padding: 0 0 10px;
   flex-shrink: 0;
+}
+
+.page-header .section-kicker {
+  margin: 0 0 2px;
+  font-size: 11px;
+  line-height: 1.1;
 }
 
 .page-title {
   display: flex;
   align-items: center;
   gap: 12px;
-  font-size: 24px;
-  font-weight: 600;
+  font-size: 34px;
+  line-height: 1;
+  font-weight: 950;
   margin: 0;
 }
 
@@ -389,18 +432,36 @@ onMounted(async () => {
 }
 
 .page-desc {
-  margin-top: 8px;
-  color: var(--color-text-2);
-  font-size: 14px;
+  margin: 4px 0 0;
+  max-width: 640px;
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.header-right {
+  flex-shrink: 0;
 }
 
 .layout-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 340px;
+  grid-template-columns: 250px minmax(0, 1fr) 330px;
   gap: 16px;
   flex: 1;
   min-height: 0;
-  padding: 0 24px 24px;
+  padding: 0;
+}
+
+.layout-grid.brief-collapsed {
+  grid-template-columns: 44px minmax(0, 1fr) 330px;
+}
+
+.layout-grid.info-collapsed {
+  grid-template-columns: 250px minmax(0, 1fr) 44px;
+}
+
+.layout-grid.brief-collapsed.info-collapsed {
+  grid-template-columns: 44px minmax(0, 1fr) 44px;
 }
 
 .panels {
@@ -435,18 +496,29 @@ onMounted(async () => {
   align-items: center;
   gap: 8px;
   padding: 8px 12px;
-  background: var(--color-fill-1);
-  border-radius: 8px;
+  background: rgba(255, 250, 242, 0.58);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .preset-item:hover {
-  background: var(--color-fill-2);
+  background: var(--bg-paper-2);
+  border-color: var(--primary-color);
 }
 
 .preset-icon {
-  font-size: 16px;
+  width: 22px;
+  height: 22px;
+  display: inline-grid;
+  place-items: center;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  color: var(--primary-color);
+  background: rgba(255, 250, 242, 0.74);
+  font-size: 13px;
+  flex-shrink: 0;
 }
 
 .preset-name {
@@ -464,8 +536,12 @@ onMounted(async () => {
   flex-direction: column;
   min-height: 0;
   overflow: hidden;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: rgba(255, 250, 242, 0.62);
 }
 
+.brief-panel,
 .info-panel {
   display: flex;
   flex-direction: column;
@@ -474,22 +550,115 @@ onMounted(async () => {
   overflow-y: auto;
 }
 
+.brief-panel.collapsed,
+.info-panel.collapsed {
+  overflow: hidden;
+  align-items: center;
+  background: rgba(255, 250, 242, 0.74);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+}
+
+.panel-collapse-control {
+  width: 30px;
+  height: 30px;
+  display: inline-grid;
+  place-items: center;
+  margin: 8px;
+  padding: 0;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  color: var(--text-primary);
+  background: var(--bg-paper-2);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.panel-collapse-control:hover {
+  color: #fbf7ef;
+  border-color: var(--primary-color);
+  background: var(--primary-color);
+}
+
+.brief-panel > .panel-collapse-control,
+.info-panel > .panel-collapse-control {
+  align-self: flex-end;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+.brief-panel.collapsed > .panel-collapse-control,
+.info-panel.collapsed > .panel-collapse-control {
+  align-self: center;
+  position: static;
+  margin: 8px 0;
+}
+
 .info-card {
-  background: var(--color-bg-2);
-  border: 1px solid var(--color-border);
-  border-radius: 12px;
+  background: rgba(255, 250, 242, 0.74);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
   padding: 16px;
+}
+
+.brief-card.dark {
+  padding: 18px;
+  color: #f8f1e8;
+  background: var(--bg-dark);
+  border-radius: 8px;
+  box-shadow: 10px 10px 0 var(--bg-paper-2);
+}
+
+.brief-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 14px;
+  margin-bottom: 18px;
+  border-bottom: 1px solid rgba(248, 241, 232, 0.18);
+  color: var(--secondary-color);
+  font-size: 11px;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.brief-card strong {
+  display: block;
+  color: var(--secondary-color);
+  font-size: 52px;
+  line-height: 1;
+  font-weight: 950;
+}
+
+.brief-card p {
+  margin: 8px 0 18px;
+  color: rgba(248, 241, 232, 0.66);
+}
+
+.brief-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.brief-stats span {
+  padding: 8px;
+  border: 1px solid rgba(248, 241, 232, 0.18);
+  color: rgba(248, 241, 232, 0.76);
+  font-size: 12px;
 }
 
 .info-card h4 {
   margin: 0 0 12px;
-  font-size: 13px;
-  color: var(--color-text-1);
+  font-size: 18px;
+  color: var(--text-primary);
+  font-weight: 950;
 }
 
 .card-desc {
   margin: 0 0 12px;
-  color: var(--color-text-3);
+  color: var(--text-secondary);
   font-size: 12px;
   line-height: 1.5;
 }
@@ -505,21 +674,21 @@ onMounted(async () => {
   align-items: flex-start;
   gap: 10px;
   padding: 10px 12px;
-  border: 1px solid var(--color-border);
-  border-radius: 10px;
-  background: var(--color-fill-1);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: rgba(255, 250, 242, 0.58);
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .agent-check-item:hover {
-  border-color: rgb(var(--primary-6));
-  background: var(--color-fill-2);
+  border-color: var(--primary-color);
+  background: var(--bg-paper-2);
 }
 
 .agent-check-item.selected {
-  border-color: rgb(var(--primary-6));
-  background: rgba(var(--primary-6), 0.08);
+  border-color: var(--primary-color);
+  background: rgba(183, 53, 45, 0.08);
 }
 
 .agent-check-item.disabled {
@@ -529,18 +698,20 @@ onMounted(async () => {
 
 .agent-checkbox {
   margin-top: 4px;
-  accent-color: rgb(var(--primary-6));
+  accent-color: var(--primary-color);
 }
 
 .agent-check-avatar {
   width: 32px;
   height: 32px;
-  border-radius: 8px;
+  border-radius: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #fff;
-  font-size: 16px;
+  color: var(--text-primary);
+  background: var(--bg-paper-2);
+  border: 1px solid rgba(24, 23, 19, 0.2);
+  font-size: 15px;
   flex-shrink: 0;
 }
 
@@ -558,18 +729,19 @@ onMounted(async () => {
 
 .agent-check-name {
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 850;
+  color: var(--text-primary);
 }
 
 .agent-check-role {
   margin-top: 4px;
   font-size: 12px;
-  color: var(--color-text-3);
+  color: var(--text-secondary);
 }
 
 .agent-check-status {
   padding: 2px 8px;
-  border-radius: 999px;
+  border-radius: 2px;
   font-size: 10px;
   white-space: nowrap;
 }
@@ -661,6 +833,12 @@ onMounted(async () => {
   .layout-grid {
     grid-template-columns: 1fr;
   }
+  .layout-grid.brief-collapsed,
+  .layout-grid.info-collapsed,
+  .layout-grid.brief-collapsed.info-collapsed {
+    grid-template-columns: 1fr;
+  }
+  .brief-panel,
   .info-panel {
     order: 2;
   }

@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="540" viewBox="0 0 960 540">
+  <rect width="960" height="540" fill="#f8f5ed"/>
+  <rect x="42" y="38" width="876" height="464" rx="18" fill="#ffffff" stroke="#d8d0c3" stroke-width="2"/>
+  <text x="82" y="92" fill="#1d2d3c" font-family="Arial, sans-serif" font-size="28" font-weight="700">LEARNING PROGRESS</text>
+  <text x="82" y="124" fill="#6d7780" font-family="Arial, sans-serif" font-size="16">Recent learning activity</text>
+  <line x1="118" y1="408" x2="854" y2="408" stroke="#cfc7ba" stroke-width="2"/>
+  <line x1="118" y1="186" x2="118" y2="408" stroke="#cfc7ba" stroke-width="2"/>
+  <path d="M140 358 L258 306 L376 330 L494 246 L612 270 L730 186 L832 214" fill="none" stroke="#4f7c52" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M140 358 L258 306 L376 330 L494 246 L612 270 L730 186 L832 214 L832 408 L140 408 Z" fill="#4f7c52" fill-opacity=".13"/>
+  <g fill="#ffffff" stroke="#1d2d3c" stroke-width="4">
+    <circle cx="140" cy="358" r="8"/><circle cx="258" cy="306" r="8"/><circle cx="376" cy="330" r="8"/>
+    <circle cx="494" cy="246" r="8"/><circle cx="612" cy="270" r="8"/><circle cx="730" cy="186" r="8"/><circle cx="832" cy="214" r="8"/>
+  </g>
+  <rect x="118" y="442" width="216" height="18" rx="9" fill="#4f7c52"/>
+  <rect x="346" y="442" width="150" height="18" rx="9" fill="#d8a43d"/>
+  <rect x="508" y="442" width="116" height="18" rx="9" fill="#d74b42"/>
+  <text x="118" y="486" fill="#6d7780" font-family="Arial, sans-serif" font-size="15">Completed</text>
+  <text x="346" y="486" fill="#6d7780" font-family="Arial, sans-serif" font-size="15">Review</text>
+  <text x="508" y="486" fill="#6d7780" font-family="Arial, sans-serif" font-size="15">Focus</text>
+</svg>

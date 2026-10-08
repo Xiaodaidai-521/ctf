@@ -4,7 +4,7 @@
 import os
 import django
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'ctf_platform.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'ctf_backend.settings')
 django.setup()
 
 from learning_paths.models import PathModule, ModuleLab

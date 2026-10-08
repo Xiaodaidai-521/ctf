@@ -1,13 +1,13 @@
 from django.contrib import admin
 from django.utils.html import format_html
-from .models import Resource
+from .models import Resource, ResourceCache
 
 
 @admin.register(Resource)
 class ResourceAdmin(admin.ModelAdmin):
     # 简化配置，先测试基本功能
-    list_display = ['id', 'title', 'resource_type', 'category', 'status', 'uploader', 'created_at']
-    list_filter = ['status']  # 先只保留状态筛选
+    list_display = ['id', 'title', 'resource_type', 'category', 'status', 'is_tutoring_reserved', 'uploader', 'created_at']
+    list_filter = ['status', 'is_tutoring_reserved']  # 先只保留状态筛选
     search_fields = ['title', 'description', 'uploader__username']
     # list_editable = ['status']  # 暂时禁用 inline editing
     readonly_fields = ['view_count', 'download_count', 'created_at', 'updated_at']
@@ -37,3 +37,12 @@ class ResourceAdmin(admin.ModelAdmin):
             color, status_text
         )
     status_badge.short_description = '状态标签'
+
+
+@admin.register(ResourceCache)
+class ResourceCacheAdmin(admin.ModelAdmin):
+    list_display = ['id', 'studentId', 'knowledgePoint', 'studentLevel', 'cacheHitCount', 'updatedTime']
+    list_filter = ['studentLevel']
+    search_fields = ['studentId', 'knowledgePoint']
+    readonly_fields = ['createdTime', 'updatedTime', 'cacheHitCount']
+    ordering = ['-updatedTime']

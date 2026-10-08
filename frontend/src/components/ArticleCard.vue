@@ -34,22 +34,22 @@
 
       <div class="article-stats">
         <span class="stat-item">
-          <span class="stat-icon">👁️</span>
+          <i class="bi bi-eye stat-icon"></i>
           {{ formatNumber(article.view_count) }}
         </span>
         <span class="stat-item">
-          <span class="stat-icon">❤️</span>
+          <i class="bi bi-heart-fill stat-icon"></i>
           {{ formatNumber(article.like_count) }}
         </span>
         <span class="stat-item">
-          <span class="stat-icon">💬</span>
+          <i class="bi bi-chat-dots stat-icon"></i>
           {{ formatNumber(article.comment_count) }}
         </span>
       </div>
 
       <div class="article-badges">
-        <span v-if="article.is_top" class="badge badge-top">🔝 置顶</span>
-        <span v-if="article.is_recommend" class="badge badge-recommend">⭐ 推荐</span>
+        <span v-if="article.is_top" class="badge badge-top"><i class="bi bi-pin-angle"></i> 置顶</span>
+        <span v-if="article.is_recommend" class="badge badge-recommend"><i class="bi bi-bookmark-star"></i> 推荐</span>
         <span v-if="article.category_name" class="badge badge-category">
           {{ article.category_name }}
         </span>
@@ -59,8 +59,6 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
-
 const props = defineProps({
   article: {
     type: Object,
@@ -111,17 +109,17 @@ const formatTime = (dateStr) => {
 
 <style scoped>
 .article-card {
-  background: white;
+  background: transparent;
   border-radius: var(--radius-md);
   padding: 20px;
-  box-shadow: var(--shadow-sm);
+  box-shadow: none;
   cursor: pointer;
   transition: all 0.3s;
-  border: 1px solid transparent;
+  border: 1px solid var(--border-color);
 }
 
 .article-card:hover {
-  box-shadow: var(--shadow-md);
+  box-shadow: 8px 8px 0 rgba(24, 23, 19, 0.1);
   border-color: var(--primary-color);
   transform: translateY(-2px);
 }
@@ -139,7 +137,7 @@ const formatTime = (dateStr) => {
 
 .article-title {
   font-size: 18px;
-  font-weight: 600;
+  font-weight: 950;
   color: var(--text-primary);
   margin-bottom: 12px;
   line-height: 1.4;
@@ -170,16 +168,16 @@ const formatTime = (dateStr) => {
 
 .tag {
   padding: 4px 10px;
-  background: #e6f7ff;
+  background: var(--bg-paper-2);
   color: var(--primary-color);
-  border-radius: 12px;
+  border-radius: 4px;
   font-size: 12px;
   cursor: pointer;
   transition: all 0.3s;
 }
 
 .tag:hover {
-  background: #bae7ff;
+  background: rgba(183, 53, 45, 0.08);
 }
 
 .card-cover {
@@ -188,7 +186,7 @@ const formatTime = (dateStr) => {
   border-radius: var(--radius-sm);
   overflow: hidden;
   flex-shrink: 0;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--bg-dark);
 }
 
 .card-cover img {
@@ -202,7 +200,7 @@ const formatTime = (dateStr) => {
   justify-content: space-between;
   align-items: center;
   padding-top: 16px;
-  border-top: 1px solid #f0f0f0;
+  border-top: 1px solid var(--border-color);
   flex-wrap: wrap;
   gap: 12px;
 }
@@ -217,8 +215,8 @@ const formatTime = (dateStr) => {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  background: var(--text-primary);
+  color: #fbf7ef;
   font-size: 14px;
   font-weight: bold;
   display: flex;
@@ -235,7 +233,7 @@ const formatTime = (dateStr) => {
 
 .author-name {
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 850;
   color: var(--text-primary);
 }
 
@@ -267,25 +265,25 @@ const formatTime = (dateStr) => {
 }
 
 .badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   padding: 4px 8px;
   border-radius: 4px;
   font-size: 11px;
-  font-weight: 500;
+  font-weight: 850;
   white-space: nowrap;
+  border: 1px solid var(--border-color);
 }
 
-.badge-top {
-  background: #fff7e6;
-  color: #fa8c16;
-}
-
+.badge-top,
 .badge-recommend {
-  background: #f6ffed;
-  color: #52c41a;
+  background: var(--bg-paper-2);
+  color: var(--text-primary);
 }
 
 .badge-category {
-  background: #e6f7ff;
+  background: var(--bg-paper-2);
   color: var(--primary-color);
 }
 
