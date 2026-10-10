@@ -19,6 +19,8 @@ import json
 import re
 from datetime import datetime
 
+from django.conf import settings
+
 from .models import ChallengeKnowledgePack, CategoryKnowledgePack
 
 logger = logging.getLogger(__name__)
@@ -569,6 +571,8 @@ class MultiAgentChatService:
             'challenge': '题目',
             'article': '文章',
             'resource': '资源',
+            'knowledge_concept': '知识概念',
+            'legal_clause': '法规',
         }
         lines = [
             '以下是平台知识库检索结果。回答题目解答、题目编号或题目名称相关问题时，必须优先基于这些资料回答。',
@@ -1813,15 +1817,133 @@ class MultiAgentChatService:
             limit=limit,
         )
         result = dict(retrieval)
-        if not result.get('context_text'):
-            result['context_text'] = self._format_knowledge_context_text(result.get('items') or [])
+        keyword_items = result.get('items') or []
+        semantic_items = self._semantic_knowledge_items(query, limit)
+        fused_items = self._merge_knowledge_items(semantic_items, keyword_items, limit)
+        result['items'] = fused_items
+        result['semantic_count'] = len(semantic_items)
+        base_context = result.get('context_text')
+        if not base_context:
+            result['context_text'] = self._format_knowledge_context_text(fused_items)
         else:
-            result['context_text'] = (
+            # A pack already provided a (richer) context. Keep it, but still append
+            # the newly recalled semantic evidence so it reaches the answer chain
+            # instead of being dropped (it would otherwise only live in `items`).
+            prefixed = (
                 '以下是平台知识库检索结果。回答题目解答、题目编号或题目名称相关问题时，'
                 '必须优先基于这些资料回答；不要直接泄露 flag 或内部预设答案。\n\n'
-                f"{result['context_text']}"
+                f"{base_context}"
             )
+            supplement = self._format_semantic_supplement(semantic_items, base_context)
+            result['context_text'] = f'{prefixed}\n\n{supplement}' if supplement else prefixed
         return result
+
+    def _format_semantic_supplement(self, semantic_items: List[Dict], base_context: str) -> str:
+        """Render semantic items not already present in the pack context.
+
+        De-duplicates against the existing context by title and caps length so
+        the combined prompt stays bounded.
+        """
+        if not semantic_items:
+            return ''
+        source_names = {
+            'knowledge_concept': '知识概念',
+            'legal_clause': '法规',
+            'article': '文章',
+            'resource': '资源',
+        }
+        existing = base_context or ''
+        lines = ['补充语义检索证据（基于平台知识库，若与上文重复以上文为准）：']
+        added = 0
+        for item in semantic_items:
+            title = str(item.get('title') or '').strip()
+            summary = (item.get('summary') or item.get('text') or '').strip()
+            # De-dup on the actual knowledge body, NOT the title: a pack that only
+            # mentions the concept name must not suppress the concept's explanation.
+            if summary and summary in existing:
+                continue
+            label = source_names.get(item.get('source_type'), '资料')
+            lines.append(
+                f"{added + 1}. [{label}] {title or '未命名资料'}\n"
+                f"   摘要：{summary[:260] or '无摘要'}\n"
+                f"   链接：{item.get('url') or '无'}"
+            )
+            added += 1
+            if added >= 5:
+                break
+        return '\n'.join(lines) if added else ''
+
+    def _semantic_knowledge_items(self, query: str, limit: int) -> List[Dict]:
+        """Semantic recall over the shared vector store (teaching-safe sources).
+
+        Degrades to an empty list (never raises) so the keyword path and the
+        calling agents keep working when embeddings/DB are unavailable.
+        """
+        if not getattr(settings, 'KNOWLEDGE_RAG_SEMANTIC_ENABLED', True):
+            return []
+        text = str(query or '').strip()
+        if not text:
+            return []
+        try:
+            from legal_kb.services.knowledge_retrieval_service import (
+                SafeKnowledgeRetrievalService,
+            )
+
+            return SafeKnowledgeRetrievalService().retrieve(
+                query=text,
+                top_k=max(int(limit or 5), 5),
+            )
+        except Exception as exc:
+            logger.warning(
+                'semantic_knowledge_retrieval_failed',
+                extra={
+                    'event': 'semantic_knowledge_retrieval_failed',
+                    'error_type': type(exc).__name__,
+                },
+            )
+            return []
+
+    def _merge_knowledge_items(
+        self,
+        semantic_items: List[Dict],
+        keyword_items: List[Dict],
+        limit: int,
+    ) -> List[Dict]:
+        """Fuse semantic and keyword items, reserving slots for both.
+
+        Semantic items lead (they close the recall gap), but a quota keeps
+        keyword/pack hits from being starved when many semantic items match, and
+        vice versa. De-duplicated by (source_type, source_id), capped at limit.
+        """
+        cap = max(int(limit or 5), 1)
+        semantic = list(semantic_items)
+        keyword = list(keyword_items)
+        if not semantic:
+            ordered = keyword
+        elif not keyword:
+            ordered = semantic
+        else:
+            semantic_quota = min(len(semantic), max(cap // 2, 1))
+            keyword_slots = max(cap - semantic_quota, 0)
+            ordered = (
+                semantic[:semantic_quota]
+                + keyword[:keyword_slots]
+                + semantic[semantic_quota:]
+                + keyword[keyword_slots:]
+            )
+
+        merged: List[Dict] = []
+        seen = set()
+        for item in ordered:
+            key = (item.get('source_type'), item.get('source_id'))
+            if key in seen:
+                continue
+            seen.add(key)
+            merged.append(item)
+            if len(merged) >= cap:
+                break
+        return merged
+
 
     def _extract_practice_keywords(self, concept_name: str, question: str) -> List[str]:
         """Extract stable CTF keywords for local resource retrieval."""

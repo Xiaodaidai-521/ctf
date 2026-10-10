@@ -93,6 +93,11 @@ class LegalKnowledgeEmbeddingViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = LegalKnowledgeEmbeddingSerializer
     permission_classes = [IsLegalKbReader]
 
+    def get_queryset(self):
+        from .services.visibility import apply_embedding_visibility
+
+        return apply_embedding_visibility(super().get_queryset(), self.request.user)
+
 
 class KbIngestionJobViewSet(viewsets.ReadOnlyModelViewSet):
     """Read-only ingestion job API."""

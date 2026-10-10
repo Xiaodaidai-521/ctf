@@ -2,7 +2,7 @@ import asyncio
 from types import SimpleNamespace
 
 from django.contrib.auth import get_user_model
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from rest_framework.test import APIClient
 from unittest.mock import patch
 
@@ -392,3 +392,112 @@ class LegalReviewerAgentTests(TestCase):
         self.assertIn('event: conversation', body)
         self.assertIn('event: agent_response', body)
         self.assertIn('streamed answer', body)
+
+
+class KnowledgeContextSemanticFusionTests(TestCase):
+    """KnowledgeAgent context should reach the shared semantic store, not only keywords."""
+
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='kc-user',
+            password='pass12345',
+            role='admin',
+            is_staff=True,
+        )
+
+    def _seed_concept(self):
+        from learning_paths.models import KnowledgeConcept
+
+        KnowledgeConcept.objects.create(
+            name='SQL注入',
+            slug='sql-injection',
+            description='SQL 注入通过拼接恶意 SQL 语句读取数据库数据，应使用参数化查询防御。',
+            concept_type='vul',
+            difficulty_level=2,
+            importance=0.9,
+            cwe_id='CWE-89',
+        )
+        PlatformContentIndexingService().index_knowledge_concepts(actor=self.user)
+
+    def test_semantic_concepts_surface_without_challenge_context(self):
+        self._seed_concept()
+
+        package = MultiAgentChatService().build_knowledge_context(
+            'SQL 注入如何防御', None, 'category', 5,
+        )
+
+        self.assertGreaterEqual(package.get('semantic_count', 0), 1)
+        source_types = {item.get('source_type') for item in package['items']}
+        self.assertIn('knowledge_concept', source_types)
+        self.assertIn('SQL注入', ' '.join(item.get('title', '') for item in package['items']))
+
+    def test_semantic_disabled_setting_falls_back_to_keyword_only(self):
+        self._seed_concept()
+
+        with override_settings(KNOWLEDGE_RAG_SEMANTIC_ENABLED=False):
+            package = MultiAgentChatService().build_knowledge_context(
+                'SQL 注入如何防御', None, 'category', 5,
+            )
+
+        self.assertEqual(package.get('semantic_count', 0), 0)
+
+    def test_semantic_evidence_appended_when_pack_context_present(self):
+        """When a knowledge pack already set context_text, semantic recall must
+        still reach context_text (previously it was dropped into items only)."""
+        self._seed_concept()
+        pack_like = {
+            'scope': 'category',
+            'resolved_scope': 'category',
+            'keywords': [],
+            'cache_hit': False,
+            'items': [{
+                'source_type': 'challenge', 'source_id': 1,
+                'title': '某题目', 'summary': '题目摘要',
+            }],
+            'context_text': '【题目知识包】这是已有的题目解题上下文。',
+        }
+        with patch.object(MultiAgentChatService, 'search_simple_knowledge', return_value=pack_like):
+            package = MultiAgentChatService().build_knowledge_context(
+                'SQL 注入如何防御', {'title': 'x'}, 'category', 5,
+            )
+
+        self.assertGreaterEqual(package.get('semantic_count', 0), 1)
+        self.assertIn('题目知识包', package['context_text'])        # pack context preserved
+        self.assertIn('补充语义检索证据', package['context_text'])   # supplement header present
+        self.assertIn('SQL注入', package['context_text'])          # semantic evidence reached prompt
+
+    def test_merge_reserves_slots_for_both_sources(self):
+        """Many semantic hits must not starve keyword/pack items from `items`."""
+        service = MultiAgentChatService()
+        semantic = [
+            {'source_type': 'knowledge_concept', 'source_id': i, 'title': f'C{i}'}
+            for i in range(8)
+        ]
+        keyword = [{'source_type': 'challenge', 'source_id': 100, 'title': '题目X'}]
+
+        merged = service._merge_knowledge_items(semantic, keyword, 5)
+
+        types = [item['source_type'] for item in merged]
+        self.assertEqual(len(merged), 5)
+        self.assertIn('challenge', types)           # keyword/pack item kept
+        self.assertIn('knowledge_concept', types)   # semantic still represented
+
+    def test_semantic_body_included_even_when_pack_mentions_title(self):
+        """Reviewer repro #2: a pack mentioning only the concept NAME must not
+        suppress the concept's explanation body from the prompt."""
+        self._seed_concept()
+        pack_like = {
+            'scope': 'category', 'resolved_scope': 'category', 'keywords': [],
+            'cache_hit': False,
+            'items': [{'source_type': 'challenge', 'source_id': 1,
+                       'title': 'SQL注入', 'summary': '见题面'}],
+            # Mentions the concept title but NOT its explanation body.
+            'context_text': 'Topic: SQL注入. 请阅读题面说明。',
+        }
+        with patch.object(MultiAgentChatService, 'search_simple_knowledge', return_value=pack_like):
+            package = MultiAgentChatService().build_knowledge_context(
+                'SQL 注入如何防御', {'title': 'x'}, 'category', 5,
+            )
+
+        # Concept explanation body (not just the name) reached context_text.
+        self.assertIn('参数化查询', package['context_text'])

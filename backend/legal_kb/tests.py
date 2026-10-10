@@ -3,17 +3,20 @@
 import io
 import tempfile
 import zipfile
+from unittest import skipUnless
 from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
+from django.contrib.contenttypes.models import ContentType
 from django.core.management import call_command
-from django.db import IntegrityError
+from django.db import IntegrityError, connection
 from django.test import TestCase, override_settings
 from rest_framework.test import APIClient
 
 from audit.models import AuditLedgerEntry
 from articles.models import Article, Category as ArticleCategory
 from challenges.models import Category as ChallengeCategory, Challenge, ChallengeSolution
+from learning_paths.models import KnowledgeConcept
 from resources.models import Resource
 
 from .models import KbIngestionJob, LegalClause, LegalDocument, LegalKnowledgeEmbedding, LegalRetrievalLog
@@ -136,6 +139,21 @@ class LegalKbServiceTests(TestCase):
         self.assertIn('个人信息', results[0]['text'])
         self.assertEqual(LegalRetrievalLog.objects.count(), 1)
 
+    def test_retrieve_hybrid_fusion_exposes_rrf_scores_and_order(self):
+        LegalKbIngestionService().ingest_document(self.document, actor=self.admin)
+        results = LegalRetrievalService().retrieve(
+            query='个人信息处理原则 合法 正当 必要',
+            top_k=5,
+            user=self.admin,
+        )
+
+        self.assertTrue(results)
+        for item in results:
+            self.assertIn('score', item)
+            self.assertIn('rrf_score', item)
+        rrf_scores = [item['rrf_score'] for item in results]
+        self.assertEqual(rrf_scores, sorted(rrf_scores, reverse=True))
+
     @patch('legal_kb.services.rag_answer_service.get_manager', return_value=FakeProviderManager())
     def test_rag_uses_deepseek_when_configured_agent_provider_missing(self, _mock_manager):
         LegalKbIngestionService().ingest_document(self.document, actor=self.admin)
@@ -233,10 +251,22 @@ class PlatformContentIndexingTests(TestCase):
             status='approved',
             uploader=self.admin,
         )
+        KnowledgeConcept.objects.create(
+            name='SQL注入',
+            slug='sql-injection',
+            description='SQL 注入是指将恶意 SQL 语句注入到应用查询中的漏洞。',
+            concept_type='vul',
+            difficulty_level=2,
+            importance=0.9,
+            cwe_id='CWE-89',
+        )
 
         results = PlatformContentIndexingService().index_all(actor=self.admin)
 
-        self.assertEqual([item.source_type for item in results], ['challenge', 'challenge', 'article', 'resource'])
+        self.assertEqual(
+            [item.source_type for item in results],
+            ['challenge', 'challenge', 'article', 'resource', 'knowledge_concept'],
+        )
         self.assertTrue(LegalKnowledgeEmbedding.objects.filter(source_type='challenge').exists())
         self.assertTrue(LegalKnowledgeEmbedding.objects.filter(
             source_type='challenge',
@@ -244,7 +274,13 @@ class PlatformContentIndexingTests(TestCase):
         ).exists())
         self.assertTrue(LegalKnowledgeEmbedding.objects.filter(source_type='article').exists())
         self.assertTrue(LegalKnowledgeEmbedding.objects.filter(source_type='resource').exists())
-        self.assertEqual(AuditLedgerEntry.objects.filter(event_category='kb_ingestion').count(), 4)
+        concept_embedding = LegalKnowledgeEmbedding.objects.filter(
+            source_type='knowledge_concept',
+            text__icontains='SQL 注入',
+        ).first()
+        self.assertIsNotNone(concept_embedding)
+        self.assertEqual(concept_embedding.metadata.get('cwe_id'), 'CWE-89')
+        self.assertEqual(AuditLedgerEntry.objects.filter(event_category='kb_ingestion').count(), 5)
 
     def test_prepare_command_can_seed_sql_exercises_and_index_platform_content(self):
         call_command('prepare_legal_kb', '--seed-sql-exercises', '--platform-only')
@@ -479,3 +515,173 @@ class LegalKbApiTests(TestCase):
         )
         self.assertNotEqual(self.document.source_hash, old_hash)
         self.assertEqual(self.document.source_hash, expected_hash)
+
+
+class DocumentVisibilityTests(TestCase):
+    """Staff-only uploaded documents must not leak to teachers via any read path."""
+
+    def setUp(self):
+        self.client = APIClient()
+        self.admin = User.objects.create_user(
+            username='vis-admin', password='pass12345', role='admin', is_staff=True,
+        )
+        self.teacher = User.objects.create_user(
+            username='vis-teacher', password='pass12345', role='teacher',
+        )
+        from rag_ingestion.models import DocumentSource
+
+        self.doc = DocumentSource.objects.create(
+            title='内部红队手册', filename='redteam.md', source_hash='vis-hash-1',
+            status='completed', visibility='staff',
+        )
+        content_type = ContentType.objects.get_for_model(DocumentSource)
+        vector = EmbeddingService().embed_local_text('红队 内部 手册 高危 操作 仅限 员工')
+        self.secret = '红队内部手册 高危操作 仅限员工 机密内容'
+        LegalKnowledgeEmbedding.objects.create(
+            source_type='document', content_type=content_type, object_id=self.doc.id,
+            chunk_index=0, title='内部红队手册', text=self.secret,
+            text_hash=sha256_text(self.secret), embedding=vector,
+            embedding_model='local-hash-v1', embedding_dimension=len(vector),
+            metadata={'visibility': 'staff', 'source_type': 'document'},
+        )
+
+    def _texts(self, response):
+        data = response.data
+        rows = data.get('results', data) if isinstance(data, dict) else data
+        return ' '.join(row.get('text', '') for row in rows)
+
+    def test_embeddings_api_hides_staff_doc_from_teacher_but_not_admin(self):
+        self.client.force_authenticate(self.teacher)
+        teacher_resp = self.client.get('/api/legal-kb/embeddings/')
+        self.assertEqual(teacher_resp.status_code, 200)
+        self.assertNotIn('机密内容', self._texts(teacher_resp))
+
+        self.client.force_authenticate(self.admin)
+        admin_resp = self.client.get('/api/legal-kb/embeddings/')
+        self.assertEqual(admin_resp.status_code, 200)
+        self.assertIn('机密内容', self._texts(admin_resp))
+
+    def test_retrieve_hides_staff_doc_from_teacher_but_not_admin(self):
+        query = '红队内部手册 高危操作'
+        teacher_results = LegalRetrievalService().retrieve(query=query, top_k=10, user=self.teacher)
+        self.assertFalse(any(item['source_type'] == 'document' for item in teacher_results))
+
+        admin_results = LegalRetrievalService().retrieve(query=query, top_k=10, user=self.admin)
+        self.assertTrue(any(item['source_type'] == 'document' for item in admin_results))
+
+    def _make_document(self, *, doc_visibility, snapshot_visibility, text, hash_id):
+        from rag_ingestion.models import DocumentSource
+
+        doc = DocumentSource.objects.create(
+            title=text[:50], filename=f'{hash_id}.md', source_hash=hash_id,
+            status='completed', visibility=doc_visibility,
+        )
+        content_type = ContentType.objects.get_for_model(DocumentSource)
+        vector = EmbeddingService().embed_local_text(text)
+        LegalKnowledgeEmbedding.objects.create(
+            source_type='document', content_type=content_type, object_id=doc.id,
+            chunk_index=0, title=text[:50], text=text, text_hash=sha256_text(text),
+            embedding=vector, embedding_model='local-hash-v1', embedding_dimension=len(vector),
+            metadata={'visibility': snapshot_visibility, 'source_type': 'document'},
+        )
+        return doc
+
+    def test_tightening_visibility_after_ingest_blocks_teacher(self):
+        """Changing DocumentSource.visibility must take effect immediately, even
+        though the chunk's metadata snapshot still says 'internal'."""
+        doc = self._make_document(
+            doc_visibility='internal', snapshot_visibility='internal',
+            text='蓝队 内部 培训 资料 可见 性 测试 内容A', hash_id='vis-tighten-1',
+        )
+        query = '蓝队内部培训资料 可见性 内容A'
+
+        # Teacher can read while it is internal.
+        before = LegalRetrievalService().retrieve(query=query, top_k=10, user=self.teacher)
+        self.assertTrue(any(item['object_id'] == doc.id for item in before))
+
+        # Tighten to staff-only via the live model (snapshot left stale on purpose).
+        doc.visibility = 'staff'
+        doc.save(update_fields=['visibility'])
+
+        after = LegalRetrievalService().retrieve(query=query, top_k=10, user=self.teacher)
+        self.assertFalse(any(item['object_id'] == doc.id for item in after))
+
+        self.client.force_authenticate(self.teacher)
+        resp = self.client.get('/api/legal-kb/embeddings/')
+        self.assertNotIn('内容A', self._texts(resp))
+
+    def test_stale_internal_snapshot_does_not_grant_access_to_staff_doc(self):
+        """Reviewer repro #2: old index kept after a failed re-ingest. The chunk
+        snapshot says 'internal' but the live DocumentSource is 'staff'."""
+        doc = self._make_document(
+            doc_visibility='staff', snapshot_visibility='internal',
+            text='渗透 测试 旧 索引 快照 过期 内容B', hash_id='vis-stale-1',
+        )
+        query = '渗透测试 旧索引 快照 内容B'
+
+        teacher_results = LegalRetrievalService().retrieve(query=query, top_k=10, user=self.teacher)
+        self.assertFalse(any(item['object_id'] == doc.id for item in teacher_results))
+
+        admin_results = LegalRetrievalService().retrieve(query=query, top_k=10, user=self.admin)
+        self.assertTrue(any(item['object_id'] == doc.id for item in admin_results))
+
+
+@skipUnless(connection.vendor == 'postgresql', 'pgvector ANN path requires PostgreSQL')
+class PgvectorAnnRetrievalTests(TestCase):
+    """Exercise the real pgvector ANN branch (_retrieve_with_pgvector) + visibility."""
+
+    def _vec(self, index):
+        vector = [0.0] * 1024
+        vector[index] = 1.0
+        return vector
+
+    def setUp(self):
+        from rag_ingestion.models import DocumentSource
+
+        self.admin = User.objects.create_user(
+            username='pg-admin', password='pass12345', role='admin', is_staff=True,
+        )
+        self.teacher = User.objects.create_user(
+            username='pg-teacher', password='pass12345', role='teacher',
+        )
+        content_type = ContentType.objects.get_for_model(DocumentSource)
+        self.doc_internal = DocumentSource.objects.create(
+            title='A', filename='a.md', source_hash='pg-a', status='completed', visibility='internal',
+        )
+        self.doc_staff = DocumentSource.objects.create(
+            title='B', filename='b.md', source_hash='pg-b', status='completed', visibility='staff',
+        )
+        for doc, idx, vis in [(self.doc_internal, 0, 'internal'), (self.doc_staff, 1, 'staff')]:
+            LegalKnowledgeEmbedding.objects.create(
+                source_type='document', content_type=content_type, object_id=doc.id,
+                chunk_index=0, title=doc.title, text=f'doc {doc.title} body',
+                text_hash=f'pgh-{doc.id}', embedding=[0.0] * 4, embedding_vector=self._vec(idx),
+                embedding_model='fake-1024', embedding_dimension=1024,
+                metadata={'visibility': vis, 'source_type': 'document'},
+            )
+
+    def _service(self, query_index):
+        from legal_kb.services.retrieval_service import LegalRetrievalService
+
+        vec = self._vec
+
+        class Fake1024Embeddings:
+            model = 'fake-1024'
+
+            def embed_text(self, text):
+                return vec(query_index)
+
+            def embed_local_text(self, text):
+                return [0.0] * 4
+
+        return LegalRetrievalService(embedding_service=Fake1024Embeddings())
+
+    def test_ann_returns_nearest_for_admin(self):
+        results = self._service(1).retrieve(query='q', top_k=5, user=self.admin)
+        self.assertTrue(results)
+        self.assertEqual(results[0]['object_id'], self.doc_staff.id)  # nearest via pgvector ANN
+
+    def test_ann_respects_visibility_for_teacher(self):
+        results = self._service(1).retrieve(query='q', top_k=5, user=self.teacher)
+        # staff doc is the nearest vector, but must be filtered out for a teacher
+        self.assertFalse(any(item['object_id'] == self.doc_staff.id for item in results))

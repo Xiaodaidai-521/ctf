@@ -12,6 +12,7 @@ from audit.services import AuditLedgerService
 from ai_assistant.models import ChallengeKnowledgePack
 from articles.models import Article
 from challenges.models import Challenge
+from learning_paths.models import KnowledgeConcept
 from resources.models import Resource
 
 from ..models import LegalKnowledgeEmbedding
@@ -32,6 +33,14 @@ class PlatformIndexingResult:
 class PlatformContentIndexingService:
     """Vectorize challenges, articles, and resources for compliance retrieval."""
 
+    CONCEPT_TYPE_LABELS = {
+        'vul': '漏洞',
+        'tech': '技术',
+        'def': '防御',
+        'tool': '工具',
+        'pre': '预防',
+    }
+
     def __init__(self, embedding_service: EmbeddingService = None):
         self.embedding_service = embedding_service or EmbeddingService()
 
@@ -42,6 +51,7 @@ class PlatformContentIndexingService:
             self.index_challenge_knowledge_packs(actor=actor),
             self.index_articles(actor=actor),
             self.index_resources(actor=actor),
+            self.index_knowledge_concepts(actor=actor),
         ]
 
     @transaction.atomic
@@ -158,6 +168,52 @@ class PlatformContentIndexingService:
                 item.resource_type or '',
             ]),
         )
+
+    @transaction.atomic
+    def index_knowledge_concepts(self, *, actor=None) -> PlatformIndexingResult:
+        """Index knowledge concept definitions for semantic knowledge retrieval.
+
+        Concepts carry the canonical definition / prerequisite context that the
+        tutoring KnowledgeAgent should recall, so they belong in the shared
+        vector table under the ``knowledge_concept`` source type.
+        """
+        queryset = KnowledgeConcept.objects.all()
+        return self._index_queryset(
+            source_type='knowledge_concept',
+            queryset=queryset,
+            actor=actor,
+            title_getter=lambda item: item.name,
+            text_getter=self._build_knowledge_concept_text,
+            metadata_getter=lambda item, chunk: {
+                'source_type': 'knowledge_concept',
+                'concept_id': item.id,
+                'slug': item.slug,
+                'concept_type': item.concept_type,
+                'difficulty_level': item.difficulty_level,
+                'importance': item.importance,
+                'mitre_attack_id': item.mitre_attack_id,
+                'cwe_id': item.cwe_id,
+                'url': f'/learning/concepts/{item.slug}',
+                'chunk_key': chunk.clause_key,
+            },
+        )
+
+    def _build_knowledge_concept_text(self, concept: KnowledgeConcept) -> str:
+        """Build retrieval text for a knowledge concept."""
+        type_label = self.CONCEPT_TYPE_LABELS.get(
+            concept.concept_type, concept.concept_type or ''
+        )
+        parts = [
+            f'知识概念：{concept.name}',
+            f'类型：{type_label}',
+            f'难度级别：{concept.difficulty_level}',
+            f'描述：{concept.description or ""}',
+        ]
+        if concept.mitre_attack_id:
+            parts.append(f'MITRE ATT&CK：{concept.mitre_attack_id}')
+        if concept.cwe_id:
+            parts.append(f'CWE：{concept.cwe_id}')
+        return '\n'.join(parts)
 
     def _index_queryset(
         self,

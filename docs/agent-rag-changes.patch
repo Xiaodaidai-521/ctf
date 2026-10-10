@@ -1,0 +1,2774 @@
+diff -ruN '--exclude=__pycache__' '--exclude=*.pyc' '--exclude=.git' '--exclude=db.sqlite3' '--exclude=media' /tmp/ctf_clean/backend/agent_runtime/retrieval.py /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/agent_runtime/retrieval.py
+--- /tmp/ctf_clean/backend/agent_runtime/retrieval.py	2026-10-10 15:05:12.014990263 +0800
++++ /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/agent_runtime/retrieval.py	2026-10-10 13:47:17.131235200 +0800
+@@ -1,17 +1,29 @@
++import logging
+ from typing import Any, Dict, List, Optional
+ 
++from django.conf import settings
++
+ from .tool_registry import LearningToolRegistry
+ 
+ 
++logger = logging.getLogger(__name__)
++
++
+ class LearningRetrievalService:
+     """Build learning context from existing platform data."""
+ 
+-    def __init__(self, *, tool_registry: Optional[LearningToolRegistry] = None):
++    def __init__(
++        self,
++        *,
++        tool_registry: Optional[LearningToolRegistry] = None,
++        knowledge_service=None,
++    ):
+         self.tool_registry = tool_registry or LearningToolRegistry()
++        self._knowledge_service = knowledge_service
+ 
+     def retrieve(self, *, user, query: str) -> Dict[str, Any]:
+         used_tools = []
+-        retrieved_docs = []
++        tool_docs = []
+ 
+         for tool_name in self.tool_registry.available_learning_tools():
+             result = self.tool_registry.run(tool_name, user=user, query=query)
+@@ -21,8 +33,15 @@
+                 'item_count': len(result.get('items', [])),
+                 'error': result.get('error', ''),
+             })
+-            retrieved_docs.extend(self._documents_from_tool(tool_name, result.get('items', [])))
++            tool_docs.extend(self._documents_from_tool(tool_name, result.get('items', [])))
++
++        semantic_docs = self._semantic_documents(query=query, user=user)
+ 
++        # Select which docs enter the context BEFORE numbering, reserving a quota
++        # for semantic docs. This keeps source references, verifier evidence and
++        # the actual prompt consistent (semantic docs are no longer appended past
++        # the context cap and silently dropped).
++        retrieved_docs = self._select_context_docs(tool_docs, semantic_docs)
+         for index, doc in enumerate(retrieved_docs, start=1):
+             doc['source_ref'] = f'S{index}'
+ 
+@@ -32,6 +51,74 @@
+             'knowledge_context': self._build_context(retrieved_docs),
+         }
+ 
++    def _select_context_docs(self, tool_docs, semantic_docs):
++        """Cap total docs while guaranteeing a slot quota for semantic docs."""
++        limit = int(getattr(settings, 'AGENT_RUNTIME_CONTEXT_LIMIT', 12) or 12)
++        if limit <= 0:
++            return []
++        if not semantic_docs:
++            return list(tool_docs)[:limit]
++        quota = min(
++            len(semantic_docs),
++            int(getattr(settings, 'AGENT_RUNTIME_SEMANTIC_TOP_K', 4) or 4),
++            limit,
++        )
++        tool_slots = max(limit - quota, 0)
++        selected = list(tool_docs)[:tool_slots] + list(semantic_docs)[:quota]
++        if len(selected) < limit:
++            # Backfill any unused semantic slots with remaining tool docs.
++            selected += list(tool_docs)[tool_slots:][: limit - len(selected)]
++        return selected[:limit]
++
++    def _semantic_documents(self, *, query: str, user) -> List[Dict[str, Any]]:
++        """Append teaching-safe semantic recall from the shared vector store.
++
++        Opt-out via ``AGENT_RUNTIME_SEMANTIC_RETRIEVAL=false``. Any failure
++        degrades to no semantic docs so the tool-based context still returns.
++        """
++        if not getattr(settings, 'AGENT_RUNTIME_SEMANTIC_RETRIEVAL', True):
++            return []
++        text = str(query or '').strip()
++        if not text:
++            return []
++        top_k = int(getattr(settings, 'AGENT_RUNTIME_SEMANTIC_TOP_K', 4) or 4)
++        try:
++            items = self._get_knowledge_service().retrieve(
++                query=text,
++                top_k=top_k,
++                user=user if getattr(user, 'is_authenticated', False) else None,
++            )
++        except Exception as exc:
++            logger.warning(
++                'agent_runtime_semantic_retrieval_failed',
++                extra={
++                    'event': 'agent_runtime_semantic_retrieval_failed',
++                    'error_type': type(exc).__name__,
++                },
++            )
++            return []
++        documents = []
++        for item in items:
++            excerpt = item.get('summary') or self._safe_excerpt(item.get('text') or '', 280)
++            documents.append({
++                'source_type': item.get('source_type') or 'knowledge',
++                'source_id': item.get('object_id'),
++                'title': item.get('title') or 'Knowledge reference',
++                'excerpt': excerpt,
++                'metadata': item.get('metadata') or {},
++            })
++        return documents
++
++    def _get_knowledge_service(self):
++        if self._knowledge_service is None:
++            from legal_kb.services.knowledge_retrieval_service import (
++                SafeKnowledgeRetrievalService,
++            )
++
++            self._knowledge_service = SafeKnowledgeRetrievalService()
++        return self._knowledge_service
++
++
+     def _documents_from_tool(self, tool_name: str, items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+         builders = {
+             'read_student_profile': self._profile_doc,
+@@ -97,7 +184,7 @@
+             return ''
+ 
+         lines = ['Use the following platform learning context. Cite sources with [S1] style references:']
+-        for doc in docs[:12]:
++        for doc in docs:
+             lines.append(
+                 f"[{doc.get('source_ref')}] {doc.get('title')} "
+                 f"({doc.get('source_type')}): {doc.get('excerpt')}"
+diff -ruN '--exclude=__pycache__' '--exclude=*.pyc' '--exclude=.git' '--exclude=db.sqlite3' '--exclude=media' /tmp/ctf_clean/backend/agent_runtime/tests.py /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/agent_runtime/tests.py
+--- /tmp/ctf_clean/backend/agent_runtime/tests.py	2026-10-10 15:05:12.014990263 +0800
++++ /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/agent_runtime/tests.py	2026-10-10 13:48:07.175879500 +0800
+@@ -1,11 +1,12 @@
+ from django.contrib.auth import get_user_model
+-from django.test import TestCase
++from django.test import TestCase, override_settings
+ from rest_framework.test import APIClient
+ from unittest.mock import patch
+ 
+ from .gateway import AgentGateway
+ from .memory import UserMemoryStore
+ from .models import AgentRun, UserMemory
++from .retrieval import LearningRetrievalService
+ from .state_store import AgentRunStateStore
+ 
+ 
+@@ -454,3 +455,79 @@
+         results = response.data.get('results', response.data)
+         self.assertEqual(len(results), 1)
+         self.assertEqual(results[0]['final_result']['content'], 'own result')
++
++
++class LearningRetrievalSemanticTests(TestCase):
++    """agent_runtime retrieval should blend tool data with semantic recall."""
++
++    def setUp(self):
++        self.user = User.objects.create_user(username='semantic-learner', password='pass12345')
++
++    def _seed_concept(self):
++        from learning_paths.models import KnowledgeConcept
++        from legal_kb.services.platform_indexing_service import PlatformContentIndexingService
++
++        KnowledgeConcept.objects.create(
++            name='SQL注入',
++            slug='sql-injection',
++            description='SQL 注入通过拼接恶意语句读取数据库，应使用参数化查询进行防御。',
++            concept_type='vul',
++            difficulty_level=2,
++            importance=0.9,
++            cwe_id='CWE-89',
++        )
++        PlatformContentIndexingService().index_knowledge_concepts()
++
++    def test_semantic_docs_are_appended_with_source_refs(self):
++        self._seed_concept()
++
++        result = LearningRetrievalService().retrieve(user=self.user, query='SQL 注入 如何 防御')
++
++        source_types = {doc['source_type'] for doc in result['retrieved_docs']}
++        self.assertIn('knowledge_concept', source_types)
++        self.assertTrue(all(doc.get('source_ref') for doc in result['retrieved_docs']))
++        self.assertIn('SQL注入', result['knowledge_context'])
++
++    def test_semantic_retrieval_can_be_disabled(self):
++        self._seed_concept()
++
++        with override_settings(AGENT_RUNTIME_SEMANTIC_RETRIEVAL=False):
++            result = LearningRetrievalService().retrieve(user=self.user, query='SQL 注入 如何 防御')
++
++        source_types = {doc['source_type'] for doc in result['retrieved_docs']}
++        self.assertNotIn('knowledge_concept', source_types)
++
++    def test_semantic_docs_survive_context_cap_with_many_tool_docs(self):
++        """Reviewer repro: many tool docs must not push semantic docs past the
++        context cap. Semantic docs keep a reserved quota and stay numbered."""
++
++        class ManyStatesRegistry:
++            def available_learning_tools(self):
++                return ['read_user_knowledge_state']
++
++            def run(self, tool_name, *, user, query):
++                return {
++                    'status': 'success',
++                    'items': [{'id': i, 'concept_name': f'C{i}'} for i in range(17)],
++                }
++
++        class OneSemantic:
++            def retrieve(self, *, query, top_k, user=None):
++                return [{
++                    'source_type': 'knowledge_concept', 'object_id': 1,
++                    'title': '语义概念', 'summary': '语义摘要', 'metadata': {},
++                }]
++
++        service = LearningRetrievalService(
++            tool_registry=ManyStatesRegistry(), knowledge_service=OneSemantic(),
++        )
++        with override_settings(AGENT_RUNTIME_CONTEXT_LIMIT=12, AGENT_RUNTIME_SEMANTIC_TOP_K=4):
++            result = service.retrieve(user=self.user, query='SQL 注入')
++
++        docs = result['retrieved_docs']
++        self.assertLessEqual(len(docs), 12)
++        self.assertTrue(any(doc['source_type'] == 'knowledge_concept' for doc in docs))
++        # numbering, retrieved_docs and the actual prompt stay consistent
++        for doc in docs:
++            self.assertIn(f"[{doc['source_ref']}]", result['knowledge_context'])
++        self.assertIn('语义概念', result['knowledge_context'])
+diff -ruN '--exclude=__pycache__' '--exclude=*.pyc' '--exclude=.git' '--exclude=db.sqlite3' '--exclude=media' /tmp/ctf_clean/backend/ai_assistant/service.py /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/ai_assistant/service.py
+--- /tmp/ctf_clean/backend/ai_assistant/service.py	2026-10-10 15:05:12.015990263 +0800
++++ /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/ai_assistant/service.py	2026-10-10 14:41:13.310546800 +0800
+@@ -19,6 +19,8 @@
+ import re
+ from datetime import datetime
+ 
++from django.conf import settings
++
+ from .models import ChallengeKnowledgePack, CategoryKnowledgePack
+ 
+ logger = logging.getLogger(__name__)
+@@ -569,6 +571,8 @@
+             'challenge': '题目',
+             'article': '文章',
+             'resource': '资源',
++            'knowledge_concept': '知识概念',
++            'legal_clause': '法规',
+         }
+         lines = [
+             '以下是平台知识库检索结果。回答题目解答、题目编号或题目名称相关问题时，必须优先基于这些资料回答。',
+@@ -1813,16 +1817,134 @@
+             limit=limit,
+         )
+         result = dict(retrieval)
+-        if not result.get('context_text'):
+-            result['context_text'] = self._format_knowledge_context_text(result.get('items') or [])
++        keyword_items = result.get('items') or []
++        semantic_items = self._semantic_knowledge_items(query, limit)
++        fused_items = self._merge_knowledge_items(semantic_items, keyword_items, limit)
++        result['items'] = fused_items
++        result['semantic_count'] = len(semantic_items)
++        base_context = result.get('context_text')
++        if not base_context:
++            result['context_text'] = self._format_knowledge_context_text(fused_items)
+         else:
+-            result['context_text'] = (
++            # A pack already provided a (richer) context. Keep it, but still append
++            # the newly recalled semantic evidence so it reaches the answer chain
++            # instead of being dropped (it would otherwise only live in `items`).
++            prefixed = (
+                 '以下是平台知识库检索结果。回答题目解答、题目编号或题目名称相关问题时，'
+                 '必须优先基于这些资料回答；不要直接泄露 flag 或内部预设答案。\n\n'
+-                f"{result['context_text']}"
++                f"{base_context}"
+             )
++            supplement = self._format_semantic_supplement(semantic_items, base_context)
++            result['context_text'] = f'{prefixed}\n\n{supplement}' if supplement else prefixed
+         return result
+ 
++    def _format_semantic_supplement(self, semantic_items: List[Dict], base_context: str) -> str:
++        """Render semantic items not already present in the pack context.
++
++        De-duplicates against the existing context by title and caps length so
++        the combined prompt stays bounded.
++        """
++        if not semantic_items:
++            return ''
++        source_names = {
++            'knowledge_concept': '知识概念',
++            'legal_clause': '法规',
++            'article': '文章',
++            'resource': '资源',
++        }
++        existing = base_context or ''
++        lines = ['补充语义检索证据（基于平台知识库，若与上文重复以上文为准）：']
++        added = 0
++        for item in semantic_items:
++            title = str(item.get('title') or '').strip()
++            summary = (item.get('summary') or item.get('text') or '').strip()
++            # De-dup on the actual knowledge body, NOT the title: a pack that only
++            # mentions the concept name must not suppress the concept's explanation.
++            if summary and summary in existing:
++                continue
++            label = source_names.get(item.get('source_type'), '资料')
++            lines.append(
++                f"{added + 1}. [{label}] {title or '未命名资料'}\n"
++                f"   摘要：{summary[:260] or '无摘要'}\n"
++                f"   链接：{item.get('url') or '无'}"
++            )
++            added += 1
++            if added >= 5:
++                break
++        return '\n'.join(lines) if added else ''
++
++    def _semantic_knowledge_items(self, query: str, limit: int) -> List[Dict]:
++        """Semantic recall over the shared vector store (teaching-safe sources).
++
++        Degrades to an empty list (never raises) so the keyword path and the
++        calling agents keep working when embeddings/DB are unavailable.
++        """
++        if not getattr(settings, 'KNOWLEDGE_RAG_SEMANTIC_ENABLED', True):
++            return []
++        text = str(query or '').strip()
++        if not text:
++            return []
++        try:
++            from legal_kb.services.knowledge_retrieval_service import (
++                SafeKnowledgeRetrievalService,
++            )
++
++            return SafeKnowledgeRetrievalService().retrieve(
++                query=text,
++                top_k=max(int(limit or 5), 5),
++            )
++        except Exception as exc:
++            logger.warning(
++                'semantic_knowledge_retrieval_failed',
++                extra={
++                    'event': 'semantic_knowledge_retrieval_failed',
++                    'error_type': type(exc).__name__,
++                },
++            )
++            return []
++
++    def _merge_knowledge_items(
++        self,
++        semantic_items: List[Dict],
++        keyword_items: List[Dict],
++        limit: int,
++    ) -> List[Dict]:
++        """Fuse semantic and keyword items, reserving slots for both.
++
++        Semantic items lead (they close the recall gap), but a quota keeps
++        keyword/pack hits from being starved when many semantic items match, and
++        vice versa. De-duplicated by (source_type, source_id), capped at limit.
++        """
++        cap = max(int(limit or 5), 1)
++        semantic = list(semantic_items)
++        keyword = list(keyword_items)
++        if not semantic:
++            ordered = keyword
++        elif not keyword:
++            ordered = semantic
++        else:
++            semantic_quota = min(len(semantic), max(cap // 2, 1))
++            keyword_slots = max(cap - semantic_quota, 0)
++            ordered = (
++                semantic[:semantic_quota]
++                + keyword[:keyword_slots]
++                + semantic[semantic_quota:]
++                + keyword[keyword_slots:]
++            )
++
++        merged: List[Dict] = []
++        seen = set()
++        for item in ordered:
++            key = (item.get('source_type'), item.get('source_id'))
++            if key in seen:
++                continue
++            seen.add(key)
++            merged.append(item)
++            if len(merged) >= cap:
++                break
++        return merged
++
++
+     def _extract_practice_keywords(self, concept_name: str, question: str) -> List[str]:
+         """Extract stable CTF keywords for local resource retrieval."""
+         text = f"{concept_name or ''} {question or ''}".lower()
+diff -ruN '--exclude=__pycache__' '--exclude=*.pyc' '--exclude=.git' '--exclude=db.sqlite3' '--exclude=media' /tmp/ctf_clean/backend/ai_assistant/tests.py /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/ai_assistant/tests.py
+--- /tmp/ctf_clean/backend/ai_assistant/tests.py	2026-10-10 15:05:12.015990263 +0800
++++ /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/ai_assistant/tests.py	2026-10-10 14:44:58.499823500 +0800
+@@ -2,7 +2,7 @@
+ from types import SimpleNamespace
+ 
+ from django.contrib.auth import get_user_model
+-from django.test import TestCase
++from django.test import TestCase, override_settings
+ from rest_framework.test import APIClient
+ from unittest.mock import patch
+ 
+@@ -392,3 +392,112 @@
+         self.assertIn('event: conversation', body)
+         self.assertIn('event: agent_response', body)
+         self.assertIn('streamed answer', body)
++
++
++class KnowledgeContextSemanticFusionTests(TestCase):
++    """KnowledgeAgent context should reach the shared semantic store, not only keywords."""
++
++    def setUp(self):
++        self.user = User.objects.create_user(
++            username='kc-user',
++            password='pass12345',
++            role='admin',
++            is_staff=True,
++        )
++
++    def _seed_concept(self):
++        from learning_paths.models import KnowledgeConcept
++
++        KnowledgeConcept.objects.create(
++            name='SQL注入',
++            slug='sql-injection',
++            description='SQL 注入通过拼接恶意 SQL 语句读取数据库数据，应使用参数化查询防御。',
++            concept_type='vul',
++            difficulty_level=2,
++            importance=0.9,
++            cwe_id='CWE-89',
++        )
++        PlatformContentIndexingService().index_knowledge_concepts(actor=self.user)
++
++    def test_semantic_concepts_surface_without_challenge_context(self):
++        self._seed_concept()
++
++        package = MultiAgentChatService().build_knowledge_context(
++            'SQL 注入如何防御', None, 'category', 5,
++        )
++
++        self.assertGreaterEqual(package.get('semantic_count', 0), 1)
++        source_types = {item.get('source_type') for item in package['items']}
++        self.assertIn('knowledge_concept', source_types)
++        self.assertIn('SQL注入', ' '.join(item.get('title', '') for item in package['items']))
++
++    def test_semantic_disabled_setting_falls_back_to_keyword_only(self):
++        self._seed_concept()
++
++        with override_settings(KNOWLEDGE_RAG_SEMANTIC_ENABLED=False):
++            package = MultiAgentChatService().build_knowledge_context(
++                'SQL 注入如何防御', None, 'category', 5,
++            )
++
++        self.assertEqual(package.get('semantic_count', 0), 0)
++
++    def test_semantic_evidence_appended_when_pack_context_present(self):
++        """When a knowledge pack already set context_text, semantic recall must
++        still reach context_text (previously it was dropped into items only)."""
++        self._seed_concept()
++        pack_like = {
++            'scope': 'category',
++            'resolved_scope': 'category',
++            'keywords': [],
++            'cache_hit': False,
++            'items': [{
++                'source_type': 'challenge', 'source_id': 1,
++                'title': '某题目', 'summary': '题目摘要',
++            }],
++            'context_text': '【题目知识包】这是已有的题目解题上下文。',
++        }
++        with patch.object(MultiAgentChatService, 'search_simple_knowledge', return_value=pack_like):
++            package = MultiAgentChatService().build_knowledge_context(
++                'SQL 注入如何防御', {'title': 'x'}, 'category', 5,
++            )
++
++        self.assertGreaterEqual(package.get('semantic_count', 0), 1)
++        self.assertIn('题目知识包', package['context_text'])        # pack context preserved
++        self.assertIn('补充语义检索证据', package['context_text'])   # supplement header present
++        self.assertIn('SQL注入', package['context_text'])          # semantic evidence reached prompt
++
++    def test_merge_reserves_slots_for_both_sources(self):
++        """Many semantic hits must not starve keyword/pack items from `items`."""
++        service = MultiAgentChatService()
++        semantic = [
++            {'source_type': 'knowledge_concept', 'source_id': i, 'title': f'C{i}'}
++            for i in range(8)
++        ]
++        keyword = [{'source_type': 'challenge', 'source_id': 100, 'title': '题目X'}]
++
++        merged = service._merge_knowledge_items(semantic, keyword, 5)
++
++        types = [item['source_type'] for item in merged]
++        self.assertEqual(len(merged), 5)
++        self.assertIn('challenge', types)           # keyword/pack item kept
++        self.assertIn('knowledge_concept', types)   # semantic still represented
++
++    def test_semantic_body_included_even_when_pack_mentions_title(self):
++        """Reviewer repro #2: a pack mentioning only the concept NAME must not
++        suppress the concept's explanation body from the prompt."""
++        self._seed_concept()
++        pack_like = {
++            'scope': 'category', 'resolved_scope': 'category', 'keywords': [],
++            'cache_hit': False,
++            'items': [{'source_type': 'challenge', 'source_id': 1,
++                       'title': 'SQL注入', 'summary': '见题面'}],
++            # Mentions the concept title but NOT its explanation body.
++            'context_text': 'Topic: SQL注入. 请阅读题面说明。',
++        }
++        with patch.object(MultiAgentChatService, 'search_simple_knowledge', return_value=pack_like):
++            package = MultiAgentChatService().build_knowledge_context(
++                'SQL 注入如何防御', {'title': 'x'}, 'category', 5,
++            )
++
++        # Concept explanation body (not just the name) reached context_text.
++        self.assertIn('参数化查询', package['context_text'])
+diff -ruN '--exclude=__pycache__' '--exclude=*.pyc' '--exclude=.git' '--exclude=db.sqlite3' '--exclude=media' /tmp/ctf_clean/backend/ctf_backend/settings.py /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/ctf_backend/settings.py
+--- /tmp/ctf_clean/backend/ctf_backend/settings.py	2026-10-10 15:05:12.018990263 +0800
++++ /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/ctf_backend/settings.py	2026-10-10 13:47:30.618469900 +0800
+@@ -86,6 +86,7 @@
+     'student_profiles',
+     'content_generator',
+     'learning_analytics',
++    'rag_ingestion',
+ ]
+ 
+ 
+@@ -415,6 +416,32 @@
+     EMBEDDING_BATCH_SIZE = 32
+ LEGAL_KB_TOP_K = int(os.environ.get('LEGAL_KB_TOP_K', '8'))
+ LEGAL_KB_SCORE_THRESHOLD = float(os.environ.get('LEGAL_KB_SCORE_THRESHOLD', '0.35'))
++LEGAL_KB_RRF_K = int(os.environ.get('LEGAL_KB_RRF_K', '60'))
++# KnowledgeAgent / tutoring semantic recall over the shared vector store.
++KNOWLEDGE_RAG_SEMANTIC_ENABLED = os.environ.get(
++    'KNOWLEDGE_RAG_SEMANTIC_ENABLED', 'true'
++).lower() in ('true', '1', 'yes')
++# agent_runtime LearningRetrievalService semantic recall (teaching-safe sources).
++AGENT_RUNTIME_SEMANTIC_RETRIEVAL = os.environ.get(
++    'AGENT_RUNTIME_SEMANTIC_RETRIEVAL', 'true'
++).lower() in ('true', '1', 'yes')
++AGENT_RUNTIME_SEMANTIC_TOP_K = int(os.environ.get('AGENT_RUNTIME_SEMANTIC_TOP_K', '4'))
++AGENT_RUNTIME_CONTEXT_LIMIT = int(os.environ.get('AGENT_RUNTIME_CONTEXT_LIMIT', '12'))
++# Document ingestion pipeline (rag_ingestion app).
++RAG_INGESTION_CHUNK_SIZE = int(os.environ.get('RAG_INGESTION_CHUNK_SIZE', '1000'))
++RAG_INGESTION_CHUNK_OVERLAP = int(os.environ.get('RAG_INGESTION_CHUNK_OVERLAP', '120'))
++RAG_INGESTION_USE_LANGCHAIN_SPLITTER = os.environ.get(
++    'RAG_INGESTION_USE_LANGCHAIN_SPLITTER', 'true'
++).lower() in ('true', '1', 'yes')
++RAG_INGESTION_MAX_UPLOAD_MB = int(os.environ.get('RAG_INGESTION_MAX_UPLOAD_MB', '20'))
++RAG_INGESTION_ALLOWED_EXTENSIONS = [
++    ext.strip().lower()
++    for ext in os.environ.get(
++        'RAG_INGESTION_ALLOWED_EXTENSIONS',
++        '.md,.markdown,.txt,.text,.html,.htm,.csv,.json,.log,.docx,.pdf,.pptx,.xlsx',
++    ).split(',')
++    if ext.strip()
++]
+ LEGAL_KB_RAG_USE_LLM = os.environ.get('LEGAL_KB_RAG_USE_LLM', 'true').lower() in ('true', '1', 'yes')
+ LEGAL_KB_RAG_AGENT_ID = os.environ.get('LEGAL_KB_RAG_AGENT_ID', 'compliance_officer')
+ LEGAL_COMPLIANCE_AGENT_USE_LLM = os.environ.get(
+diff -ruN '--exclude=__pycache__' '--exclude=*.pyc' '--exclude=.git' '--exclude=db.sqlite3' '--exclude=media' /tmp/ctf_clean/backend/ctf_backend/urls.py /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/ctf_backend/urls.py
+--- /tmp/ctf_clean/backend/ctf_backend/urls.py	2026-10-10 15:05:12.018990263 +0800
++++ /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/ctf_backend/urls.py	2026-10-09 23:31:21.502018600 +0800
+@@ -43,6 +43,7 @@
+     path('api/legal/', include('legal.urls')),
+     path('api/legal-kb/', include('legal_kb.urls')),
+     path('api/agent-runtime/', include('agent_runtime.urls')),
++    path('api/rag-ingestion/', include('rag_ingestion.urls')),
+     path('api-auth/', include('rest_framework.urls')),
+     # CTF代理路由 - 处理/challenge/路径转发到FRP
+     # 必须在API路由之后，避免冲突
+diff -ruN '--exclude=__pycache__' '--exclude=*.pyc' '--exclude=.git' '--exclude=db.sqlite3' '--exclude=media' /tmp/ctf_clean/backend/legal_kb/migrations/0005_alter_legalknowledgeembedding_source_type.py /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/legal_kb/migrations/0005_alter_legalknowledgeembedding_source_type.py
+--- /tmp/ctf_clean/backend/legal_kb/migrations/0005_alter_legalknowledgeembedding_source_type.py	1970-01-01 08:00:00.000000000 +0800
++++ /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/legal_kb/migrations/0005_alter_legalknowledgeembedding_source_type.py	2026-10-09 23:31:58.911385700 +0800
+@@ -0,0 +1,18 @@
++# Generated by Django 6.0.3 on 2026-10-09 15:31
++
++from django.db import migrations, models
++
++
++class Migration(migrations.Migration):
++
++    dependencies = [
++        ('legal_kb', '0004_embedding_vector_hnsw'),
++    ]
++
++    operations = [
++        migrations.AlterField(
++            model_name='legalknowledgeembedding',
++            name='source_type',
++            field=models.CharField(choices=[('legal_document', 'Legal document'), ('legal_clause', 'Legal clause'), ('legal_case', 'Legal case'), ('legal_template', 'Legal template'), ('challenge', 'Challenge'), ('article', 'Article'), ('resource', 'Resource'), ('knowledge_concept', 'Knowledge concept'), ('document', 'Uploaded document')], db_index=True, max_length=40),
++        ),
++    ]
+diff -ruN '--exclude=__pycache__' '--exclude=*.pyc' '--exclude=.git' '--exclude=db.sqlite3' '--exclude=media' /tmp/ctf_clean/backend/legal_kb/models.py /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/legal_kb/models.py
+--- /tmp/ctf_clean/backend/legal_kb/models.py	2026-10-10 15:05:12.022990263 +0800
++++ /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/legal_kb/models.py	2026-10-09 23:16:28.644567100 +0800
+@@ -185,6 +185,7 @@
+         ('article', 'Article'),
+         ('resource', 'Resource'),
+         ('knowledge_concept', 'Knowledge concept'),
++        ('document', 'Uploaded document'),
+     ]
+ 
+     source_type = models.CharField(max_length=40, choices=SOURCE_TYPE_CHOICES, db_index=True)
+diff -ruN '--exclude=__pycache__' '--exclude=*.pyc' '--exclude=.git' '--exclude=db.sqlite3' '--exclude=media' /tmp/ctf_clean/backend/legal_kb/services/knowledge_retrieval_service.py /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/legal_kb/services/knowledge_retrieval_service.py
+--- /tmp/ctf_clean/backend/legal_kb/services/knowledge_retrieval_service.py	1970-01-01 08:00:00.000000000 +0800
++++ /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/legal_kb/services/knowledge_retrieval_service.py	2026-10-09 22:57:43.337561900 +0800
+@@ -0,0 +1,102 @@
++"""Leak-safe semantic knowledge retrieval shared by learning agents.
++
++This is a thin facade over :class:`LegalRetrievalService`. It keeps a single
++vector store / embedding entry point (no parallel RAG stack) while enforcing a
++teaching-safe source allowlist: challenge solution text is never exposed to the
++learner-facing agents, so only concepts, approved articles/resources and legal
++clauses are returned by default.
++"""
++
++from typing import Dict, List, Optional
++
++from django.conf import settings
++
++from .retrieval_service import LegalRetrievalService
++
++
++# Challenge chunks can embed solution material, so they stay out of the
++# learner-facing allowlist by default (same policy as the tutoring loop).
++DEFAULT_SAFE_SOURCE_TYPES = (
++    'knowledge_concept',
++    'article',
++    'resource',
++    'legal_clause',
++)
++
++
++class SafeKnowledgeRetrievalService:
++    """Return normalized, teaching-safe knowledge items via semantic retrieval."""
++
++    def __init__(
++        self,
++        retrieval_service: Optional[LegalRetrievalService] = None,
++        safe_source_types=None,
++    ):
++        self.retrieval_service = retrieval_service or LegalRetrievalService()
++        configured = safe_source_types or getattr(
++            settings, 'KNOWLEDGE_RAG_SAFE_SOURCE_TYPES', None
++        )
++        self.safe_source_types = tuple(configured or DEFAULT_SAFE_SOURCE_TYPES)
++
++    def retrieve(
++        self,
++        *,
++        query: str,
++        top_k: int = 8,
++        user=None,
++        extra_filters: Optional[Dict] = None,
++    ) -> List[Dict]:
++        """Return normalized knowledge items, or an empty list when query is blank."""
++        text = str(query or '').strip()
++        if not text:
++            return []
++        filters = {'source_type': list(self.safe_source_types)}
++        if extra_filters:
++            filters.update(extra_filters)
++        matches = self.retrieval_service.retrieve(
++            query=text,
++            top_k=top_k,
++            filters=filters,
++            user=user,
++        )
++        return [self._normalize(match) for match in matches]
++
++    def _normalize(self, match: Dict) -> Dict:
++        source_type = match.get('source_type') or ''
++        text = match.get('text') or ''
++        metadata = match.get('metadata') or {}
++        return {
++            'source_type': source_type,
++            'source_id': match.get('object_id'),
++            'object_id': match.get('object_id'),
++            'title': match.get('title') or '未命名资料',
++            'summary': self._excerpt(text, 260),
++            'text': text,
++            'category': self._category(source_type, metadata),
++            'score': match.get('score', 0),
++            'rrf_score': match.get('rrf_score', 0),
++            'url': self._entry_url(source_type, match.get('object_id'), metadata),
++            'metadata': metadata,
++            'retrieval': 'semantic',
++        }
++
++    def _category(self, source_type: str, metadata: Dict) -> str:
++        if source_type == 'knowledge_concept':
++            return str(metadata.get('concept_type') or '知识概念')
++        return str(metadata.get('category_name') or metadata.get('category') or '')
++
++    def _entry_url(self, source_type: str, object_id, metadata: Dict) -> str:
++        if metadata.get('url'):
++            return str(metadata['url'])
++        if source_type == 'article':
++            return f'/community/article/{object_id}'
++        if source_type == 'resource':
++            return f'/resources?highlight_resource={object_id}&resource={object_id}'
++        return ''
++
++    @staticmethod
++    def _excerpt(text: str, limit: int) -> str:
++        value = ' '.join(str(text or '').split())
++        if len(value) <= limit:
++            return value
++        return value[: limit - 3].rstrip() + '...'
+diff -ruN '--exclude=__pycache__' '--exclude=*.pyc' '--exclude=.git' '--exclude=db.sqlite3' '--exclude=media' /tmp/ctf_clean/backend/legal_kb/services/platform_indexing_service.py /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/legal_kb/services/platform_indexing_service.py
+--- /tmp/ctf_clean/backend/legal_kb/services/platform_indexing_service.py	2026-10-10 15:05:12.022990263 +0800
++++ /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/legal_kb/services/platform_indexing_service.py	2026-10-09 22:43:15.179752700 +0800
+@@ -12,6 +12,7 @@
+ from ai_assistant.models import ChallengeKnowledgePack
+ from articles.models import Article
+ from challenges.models import Challenge
++from learning_paths.models import KnowledgeConcept
+ from resources.models import Resource
+ 
+ from ..models import LegalKnowledgeEmbedding
+@@ -32,6 +33,14 @@
+ class PlatformContentIndexingService:
+     """Vectorize challenges, articles, and resources for compliance retrieval."""
+ 
++    CONCEPT_TYPE_LABELS = {
++        'vul': '漏洞',
++        'tech': '技术',
++        'def': '防御',
++        'tool': '工具',
++        'pre': '预防',
++    }
++
+     def __init__(self, embedding_service: EmbeddingService = None):
+         self.embedding_service = embedding_service or EmbeddingService()
+ 
+@@ -42,6 +51,7 @@
+             self.index_challenge_knowledge_packs(actor=actor),
+             self.index_articles(actor=actor),
+             self.index_resources(actor=actor),
++            self.index_knowledge_concepts(actor=actor),
+         ]
+ 
+     @transaction.atomic
+@@ -159,6 +169,52 @@
+             ]),
+         )
+ 
++    @transaction.atomic
++    def index_knowledge_concepts(self, *, actor=None) -> PlatformIndexingResult:
++        """Index knowledge concept definitions for semantic knowledge retrieval.
++
++        Concepts carry the canonical definition / prerequisite context that the
++        tutoring KnowledgeAgent should recall, so they belong in the shared
++        vector table under the ``knowledge_concept`` source type.
++        """
++        queryset = KnowledgeConcept.objects.all()
++        return self._index_queryset(
++            source_type='knowledge_concept',
++            queryset=queryset,
++            actor=actor,
++            title_getter=lambda item: item.name,
++            text_getter=self._build_knowledge_concept_text,
++            metadata_getter=lambda item, chunk: {
++                'source_type': 'knowledge_concept',
++                'concept_id': item.id,
++                'slug': item.slug,
++                'concept_type': item.concept_type,
++                'difficulty_level': item.difficulty_level,
++                'importance': item.importance,
++                'mitre_attack_id': item.mitre_attack_id,
++                'cwe_id': item.cwe_id,
++                'url': f'/learning/concepts/{item.slug}',
++                'chunk_key': chunk.clause_key,
++            },
++        )
++
++    def _build_knowledge_concept_text(self, concept: KnowledgeConcept) -> str:
++        """Build retrieval text for a knowledge concept."""
++        type_label = self.CONCEPT_TYPE_LABELS.get(
++            concept.concept_type, concept.concept_type or ''
++        )
++        parts = [
++            f'知识概念：{concept.name}',
++            f'类型：{type_label}',
++            f'难度级别：{concept.difficulty_level}',
++            f'描述：{concept.description or ""}',
++        ]
++        if concept.mitre_attack_id:
++            parts.append(f'MITRE ATT&CK：{concept.mitre_attack_id}')
++        if concept.cwe_id:
++            parts.append(f'CWE：{concept.cwe_id}')
++        return '\n'.join(parts)
++
+     def _index_queryset(
+         self,
+         *,
+diff -ruN '--exclude=__pycache__' '--exclude=*.pyc' '--exclude=.git' '--exclude=db.sqlite3' '--exclude=media' /tmp/ctf_clean/backend/legal_kb/services/retrieval_service.py /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/legal_kb/services/retrieval_service.py
+--- /tmp/ctf_clean/backend/legal_kb/services/retrieval_service.py	2026-10-10 15:05:12.022990263 +0800
++++ /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/legal_kb/services/retrieval_service.py	2026-10-10 14:42:32.288687200 +0800
+@@ -7,9 +7,11 @@
+ 
+ from django.conf import settings
+ from django.db import connection
++from django.db.models import Q
+ 
+ from ..models import LegalKnowledgeEmbedding, LegalRetrievalLog
+ from .embedding_service import EmbeddingService, cosine_similarity
++from .visibility import apply_embedding_visibility
+ 
+ 
+ logger = logging.getLogger(__name__)
+@@ -22,7 +24,7 @@
+         self.embedding_service = embedding_service or EmbeddingService()
+ 
+     def retrieve(self, *, query: str, top_k: int = 8, filters: Optional[Dict] = None, user=None) -> List[Dict]:
+-        """Return top matching chunks and write a retrieval log."""
++        """Return top chunks via hybrid (vector + lexical) RRF fusion, and log the query."""
+         started = time.perf_counter()
+         filters = filters or {}
+         query_embedding = (
+@@ -38,71 +40,158 @@
+             else:
+                 queryset = queryset.filter(source_type=source_type)
+ 
++        # Enforce uploaded-document visibility at the shared query layer so that
++        # teacher-facing RAG cannot surface staff-only documents. Non-document
++        # rows are unaffected; anonymous/internal callers fail closed.
++        queryset = apply_embedding_visibility(queryset, user)
++
++        results = None
+         if connection.vendor == 'postgresql' and len(query_embedding) == 1024:
+             try:
+-                from pgvector.django import CosineDistance
+-
+-                vector_items = list(
+-                    queryset.exclude(embedding_vector__isnull=True)
+-                    .annotate(distance=CosineDistance('embedding_vector', query_embedding))
+-                    .order_by('distance')[:top_k]
+-                )
+-                if vector_items:
+-                    results = [
+-                        {
+-                            'id': item.id,
+-                            'source_type': item.source_type,
+-                            'object_id': item.object_id,
+-                            'title': item.title,
+-                            'text': item.text,
+-                            'score': round(max(0.0, 1 - float(item.distance)), 6),
+-                            'metadata': item.metadata,
+-                        }
+-                        for item in vector_items
+-                    ]
+-                    return self._record_results(
+-                        query=query,
+-                        top_k=top_k,
+-                        filters=filters,
+-                        results=results,
+-                        started=started,
+-                        user=user,
+-                    )
++                results = self._retrieve_with_pgvector(query, query_embedding, queryset, top_k)
+             except Exception as exc:
+                 # Keep the portable JSON + lexical path available during a
+                 # partial deployment or when pgvector has not been rebuilt yet.
+                 logger.warning('pgvector retrieval unavailable; using fallback: %s', exc)
++                results = None
++        if not results:
++            results = self._retrieve_portable(query, query_embedding, queryset, top_k)
++
++        return self._record_results(
++            query=query,
++            top_k=top_k,
++            filters=filters,
++            results=results,
++            started=started,
++            user=user,
++        )
++
++    def _retrieve_with_pgvector(self, query, query_embedding, queryset, top_k):
++        """Use the pgvector ANN index for recall, then fuse with a lexical arm."""
++        from pgvector.django import CosineDistance
++
++        pool_size = max(top_k * 4, 40)
++        vector_items = list(
++            queryset.exclude(embedding_vector__isnull=True)
++            .annotate(distance=CosineDistance('embedding_vector', query_embedding))
++            .order_by('distance')[:pool_size]
++        )
++        if not vector_items:
++            return None
++        vector_scores = {item.id: max(0.0, 1 - float(item.distance)) for item in vector_items}
++        lexical_items = self._lexical_candidate_pool(queryset, query, pool_size)
++        candidates = self._dedupe_by_id(vector_items + lexical_items)
++        return self._fuse(
++            query=query,
++            query_embedding=query_embedding,
++            items=candidates,
++            top_k=top_k,
++            vector_scores=vector_scores,
++            apply_threshold=False,
++        )
++
++    def _retrieve_portable(self, query, query_embedding, queryset, top_k):
++        """Portable JSON + lexical path for SQLite/offline or pgvector fallback.
++
++        The stored JSON ``embedding`` is always the 128-dim local vector, so the
++        query must also be embedded locally here. (On PostgreSQL ``retrieve``
++        builds a 1024-dim remote query vector for ANN; reusing it against the
++        128-dim JSON vectors would mismatch and zero every vector score, silently
++        degrading this fallback to lexical-only.)
++        """
++        local_query_embedding = self.embedding_service.embed_local_text(query)
++        pool_items = list(queryset[:1000])
++        return self._fuse(
++            query=query,
++            query_embedding=local_query_embedding,
++            items=pool_items,
++            top_k=top_k,
++            vector_scores=None,
++            apply_threshold=True,
++        )
++
++    def _lexical_candidate_pool(self, queryset, query, limit):
++        """Fetch a bounded lexical candidate set so strong keyword hits survive."""
++        tokens = sorted(
++            {token for token in self._tokenize(query) if len(token) >= 3},
++            key=len,
++            reverse=True,
++        )[:6]
++        if not tokens:
++            return []
++        condition = Q()
++        for token in tokens:
++            condition |= Q(title__icontains=token) | Q(text__icontains=token)
++        return list(queryset.filter(condition)[:limit])
++
++    def _fuse(self, *, query, query_embedding, items, top_k, vector_scores=None, apply_threshold=False):
++        """Fuse vector and lexical rankings with Reciprocal Rank Fusion (RRF)."""
++        if not items:
++            return []
++        rrf_k = int(getattr(settings, 'LEGAL_KB_RRF_K', 60))
+ 
+         scored = []
+-        for item in queryset[:1000]:
+-            vector_score = cosine_similarity(query_embedding, item.embedding)
++        for item in items:
++            if vector_scores is not None and item.id in vector_scores:
++                vector_score = vector_scores[item.id]
++            else:
++                vector_score = cosine_similarity(query_embedding, item.embedding)
+             lexical_score = self._lexical_similarity(query, f'{item.title} {item.text}')
+-            score = max(vector_score, lexical_score)
+-            scored.append((score, item))
+-        scored.sort(key=lambda pair: pair[0], reverse=True)
+-
+-        score_threshold = float(getattr(settings, 'LEGAL_KB_SCORE_THRESHOLD', 0.35))
+-        results = [
+-            {
++            scored.append({'item': item, 'vector': vector_score, 'lexical': lexical_score})
++
++        vector_rank = self._rank_map(scored, 'vector')
++        lexical_rank = self._rank_map(scored, 'lexical')
++        for row in scored:
++            item_id = row['item'].id
++            fused = 0.0
++            if item_id in vector_rank:
++                fused += 1.0 / (rrf_k + vector_rank[item_id])
++            if item_id in lexical_rank:
++                fused += 1.0 / (rrf_k + lexical_rank[item_id])
++            row['fused'] = fused
++            row['display'] = round(max(row['vector'], row['lexical']), 6)
++        scored.sort(key=lambda row: (row['fused'], row['display']), reverse=True)
++
++        threshold = float(getattr(settings, 'LEGAL_KB_SCORE_THRESHOLD', 0.35)) if apply_threshold else 0.0
++        results = []
++        for row in scored:
++            if row['display'] < threshold:
++                continue
++            item = row['item']
++            results.append({
+                 'id': item.id,
+                 'source_type': item.source_type,
+                 'object_id': item.object_id,
+                 'title': item.title,
+                 'text': item.text,
+-                'score': round(score, 6),
++                'score': row['display'],
++                'rrf_score': round(row['fused'], 6),
+                 'metadata': item.metadata,
+-            }
+-            for score, item in scored[:top_k]
+-            if score >= score_threshold
+-        ]
+-        return self._record_results(
+-            query=query,
+-            top_k=top_k,
+-            filters=filters,
+-            results=results,
+-            started=started,
+-            user=user,
++            })
++            if len(results) >= top_k:
++                break
++        return results
++
++    @staticmethod
++    def _rank_map(scored, key):
++        """Map item id -> 0-based rank, including only items with positive signal."""
++        ranked = sorted(
++            (row for row in scored if row[key] > 0),
++            key=lambda row: row[key],
++            reverse=True,
+         )
++        return {row['item'].id: rank for rank, row in enumerate(ranked)}
++
++    @staticmethod
++    def _dedupe_by_id(items):
++        seen = set()
++        unique = []
++        for item in items:
++            if item.id in seen:
++                continue
++            seen.add(item.id)
++            unique.append(item)
++        return unique
+ 
+     def _record_results(self, *, query, top_k, filters, results, started, user):
+         latency_ms = int((time.perf_counter() - started) * 1000)
+diff -ruN '--exclude=__pycache__' '--exclude=*.pyc' '--exclude=.git' '--exclude=db.sqlite3' '--exclude=media' /tmp/ctf_clean/backend/legal_kb/services/visibility.py /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/legal_kb/services/visibility.py
+--- /tmp/ctf_clean/backend/legal_kb/services/visibility.py	1970-01-01 08:00:00.000000000 +0800
++++ /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/legal_kb/services/visibility.py	2026-10-10 14:40:08.266737700 +0800
+@@ -0,0 +1,79 @@
++"""Document visibility enforcement for the shared knowledge embedding table.
++
++Authorization is decided against the CURRENT ``rag_ingestion.DocumentSource``
++visibility, never the ``metadata.visibility`` snapshot stored on a chunk at
++ingest time. A snapshot can go stale (visibility tightened after ingest, or an
++old index kept after a failed re-ingest), so relying on it would leak content.
++When a chunk has no live DocumentSource, access is denied (fail closed).
++
++Platform content (legal clauses, challenges, articles, resources, knowledge
++concepts) has no restricted visibility and is never filtered here.
++
++This is the single place that decides who may read restricted documents, so it
++is reused by every read path (REST browse API and RAG retrieval) instead of
++only guarding the upload endpoint.
++"""
++
++from django.db.models import Q
++
++# Visibility values stored on rag_ingestion.DocumentSource.
++VISIBILITY_STAFF = 'staff'
++VISIBILITY_INTERNAL = 'internal'
++VISIBILITY_LEARNER = 'learner'
++
++ALL_VISIBILITIES = (VISIBILITY_STAFF, VISIBILITY_INTERNAL, VISIBILITY_LEARNER)
++
++
++def _is_staff_or_admin(user) -> bool:
++    return bool(
++        user
++        and getattr(user, 'is_authenticated', False)
++        and (getattr(user, 'is_staff', False) or getattr(user, 'role', '') == 'admin')
++    )
++
++
++def _is_teacher(user) -> bool:
++    return bool(
++        user
++        and getattr(user, 'is_authenticated', False)
++        and getattr(user, 'role', '') == 'teacher'
++    )
++
++
++def allowed_document_visibilities(user) -> set:
++    """Return the document visibility levels a user may read.
++
++    - staff/admin: everything, including staff-only uploads.
++    - teacher: internal + learner (NOT staff-only).
++    - everyone else (students, anonymous, internal service calls): learner only.
++    """
++    if _is_staff_or_admin(user):
++        return set(ALL_VISIBILITIES)
++    if _is_teacher(user):
++        return {VISIBILITY_INTERNAL, VISIBILITY_LEARNER}
++    return {VISIBILITY_LEARNER}
++
++
++def apply_embedding_visibility(queryset, user):
++    """Exclude document chunks the user may not read, by live DocumentSource.
++
++    A ``source_type='document'`` chunk is kept only if it is backed by a
++    DocumentSource whose CURRENT ``visibility`` the user is allowed to read.
++    Chunks whose DocumentSource is missing or over the user's clearance are
++    excluded. Non-document rows are never excluded.
++    """
++    # Lazy import avoids a legal_kb <-> rag_ingestion import cycle at load time.
++    from django.contrib.contenttypes.models import ContentType
++
++    from rag_ingestion.models import DocumentSource
++
++    allowed = list(allowed_document_visibilities(user))
++    document_ct = ContentType.objects.get_for_model(DocumentSource)
++    allowed_document_ids = DocumentSource.objects.filter(
++        visibility__in=allowed
++    ).values('id')
++
++    return queryset.exclude(
++        Q(source_type='document')
++        & ~Q(content_type=document_ct, object_id__in=allowed_document_ids)
++    )
+diff -ruN '--exclude=__pycache__' '--exclude=*.pyc' '--exclude=.git' '--exclude=db.sqlite3' '--exclude=media' /tmp/ctf_clean/backend/legal_kb/tests.py /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/legal_kb/tests.py
+--- /tmp/ctf_clean/backend/legal_kb/tests.py	2026-10-10 15:05:12.022990263 +0800
++++ /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/legal_kb/tests.py	2026-10-10 14:56:54.722133200 +0800
+@@ -3,17 +3,20 @@
+ import io
+ import tempfile
+ import zipfile
++from unittest import skipUnless
+ from unittest.mock import patch
+ 
+ from django.contrib.auth import get_user_model
++from django.contrib.contenttypes.models import ContentType
+ from django.core.management import call_command
+-from django.db import IntegrityError
++from django.db import IntegrityError, connection
+ from django.test import TestCase, override_settings
+ from rest_framework.test import APIClient
+ 
+ from audit.models import AuditLedgerEntry
+ from articles.models import Article, Category as ArticleCategory
+ from challenges.models import Category as ChallengeCategory, Challenge, ChallengeSolution
++from learning_paths.models import KnowledgeConcept
+ from resources.models import Resource
+ 
+ from .models import KbIngestionJob, LegalClause, LegalDocument, LegalKnowledgeEmbedding, LegalRetrievalLog
+@@ -136,6 +139,21 @@
+         self.assertIn('个人信息', results[0]['text'])
+         self.assertEqual(LegalRetrievalLog.objects.count(), 1)
+ 
++    def test_retrieve_hybrid_fusion_exposes_rrf_scores_and_order(self):
++        LegalKbIngestionService().ingest_document(self.document, actor=self.admin)
++        results = LegalRetrievalService().retrieve(
++            query='个人信息处理原则 合法 正当 必要',
++            top_k=5,
++            user=self.admin,
++        )
++
++        self.assertTrue(results)
++        for item in results:
++            self.assertIn('score', item)
++            self.assertIn('rrf_score', item)
++        rrf_scores = [item['rrf_score'] for item in results]
++        self.assertEqual(rrf_scores, sorted(rrf_scores, reverse=True))
++
+     @patch('legal_kb.services.rag_answer_service.get_manager', return_value=FakeProviderManager())
+     def test_rag_uses_deepseek_when_configured_agent_provider_missing(self, _mock_manager):
+         LegalKbIngestionService().ingest_document(self.document, actor=self.admin)
+@@ -233,10 +251,22 @@
+             status='approved',
+             uploader=self.admin,
+         )
++        KnowledgeConcept.objects.create(
++            name='SQL注入',
++            slug='sql-injection',
++            description='SQL 注入是指将恶意 SQL 语句注入到应用查询中的漏洞。',
++            concept_type='vul',
++            difficulty_level=2,
++            importance=0.9,
++            cwe_id='CWE-89',
++        )
+ 
+         results = PlatformContentIndexingService().index_all(actor=self.admin)
+ 
+-        self.assertEqual([item.source_type for item in results], ['challenge', 'challenge', 'article', 'resource'])
++        self.assertEqual(
++            [item.source_type for item in results],
++            ['challenge', 'challenge', 'article', 'resource', 'knowledge_concept'],
++        )
+         self.assertTrue(LegalKnowledgeEmbedding.objects.filter(source_type='challenge').exists())
+         self.assertTrue(LegalKnowledgeEmbedding.objects.filter(
+             source_type='challenge',
+@@ -244,7 +274,13 @@
+         ).exists())
+         self.assertTrue(LegalKnowledgeEmbedding.objects.filter(source_type='article').exists())
+         self.assertTrue(LegalKnowledgeEmbedding.objects.filter(source_type='resource').exists())
+-        self.assertEqual(AuditLedgerEntry.objects.filter(event_category='kb_ingestion').count(), 4)
++        concept_embedding = LegalKnowledgeEmbedding.objects.filter(
++            source_type='knowledge_concept',
++            text__icontains='SQL 注入',
++        ).first()
++        self.assertIsNotNone(concept_embedding)
++        self.assertEqual(concept_embedding.metadata.get('cwe_id'), 'CWE-89')
++        self.assertEqual(AuditLedgerEntry.objects.filter(event_category='kb_ingestion').count(), 5)
+ 
+     def test_prepare_command_can_seed_sql_exercises_and_index_platform_content(self):
+         call_command('prepare_legal_kb', '--seed-sql-exercises', '--platform-only')
+@@ -479,3 +515,173 @@
+         )
+         self.assertNotEqual(self.document.source_hash, old_hash)
+         self.assertEqual(self.document.source_hash, expected_hash)
++
++
++class DocumentVisibilityTests(TestCase):
++    """Staff-only uploaded documents must not leak to teachers via any read path."""
++
++    def setUp(self):
++        self.client = APIClient()
++        self.admin = User.objects.create_user(
++            username='vis-admin', password='pass12345', role='admin', is_staff=True,
++        )
++        self.teacher = User.objects.create_user(
++            username='vis-teacher', password='pass12345', role='teacher',
++        )
++        from rag_ingestion.models import DocumentSource
++
++        self.doc = DocumentSource.objects.create(
++            title='内部红队手册', filename='redteam.md', source_hash='vis-hash-1',
++            status='completed', visibility='staff',
++        )
++        content_type = ContentType.objects.get_for_model(DocumentSource)
++        vector = EmbeddingService().embed_local_text('红队 内部 手册 高危 操作 仅限 员工')
++        self.secret = '红队内部手册 高危操作 仅限员工 机密内容'
++        LegalKnowledgeEmbedding.objects.create(
++            source_type='document', content_type=content_type, object_id=self.doc.id,
++            chunk_index=0, title='内部红队手册', text=self.secret,
++            text_hash=sha256_text(self.secret), embedding=vector,
++            embedding_model='local-hash-v1', embedding_dimension=len(vector),
++            metadata={'visibility': 'staff', 'source_type': 'document'},
++        )
++
++    def _texts(self, response):
++        data = response.data
++        rows = data.get('results', data) if isinstance(data, dict) else data
++        return ' '.join(row.get('text', '') for row in rows)
++
++    def test_embeddings_api_hides_staff_doc_from_teacher_but_not_admin(self):
++        self.client.force_authenticate(self.teacher)
++        teacher_resp = self.client.get('/api/legal-kb/embeddings/')
++        self.assertEqual(teacher_resp.status_code, 200)
++        self.assertNotIn('机密内容', self._texts(teacher_resp))
++
++        self.client.force_authenticate(self.admin)
++        admin_resp = self.client.get('/api/legal-kb/embeddings/')
++        self.assertEqual(admin_resp.status_code, 200)
++        self.assertIn('机密内容', self._texts(admin_resp))
++
++    def test_retrieve_hides_staff_doc_from_teacher_but_not_admin(self):
++        query = '红队内部手册 高危操作'
++        teacher_results = LegalRetrievalService().retrieve(query=query, top_k=10, user=self.teacher)
++        self.assertFalse(any(item['source_type'] == 'document' for item in teacher_results))
++
++        admin_results = LegalRetrievalService().retrieve(query=query, top_k=10, user=self.admin)
++        self.assertTrue(any(item['source_type'] == 'document' for item in admin_results))
++
++    def _make_document(self, *, doc_visibility, snapshot_visibility, text, hash_id):
++        from rag_ingestion.models import DocumentSource
++
++        doc = DocumentSource.objects.create(
++            title=text[:50], filename=f'{hash_id}.md', source_hash=hash_id,
++            status='completed', visibility=doc_visibility,
++        )
++        content_type = ContentType.objects.get_for_model(DocumentSource)
++        vector = EmbeddingService().embed_local_text(text)
++        LegalKnowledgeEmbedding.objects.create(
++            source_type='document', content_type=content_type, object_id=doc.id,
++            chunk_index=0, title=text[:50], text=text, text_hash=sha256_text(text),
++            embedding=vector, embedding_model='local-hash-v1', embedding_dimension=len(vector),
++            metadata={'visibility': snapshot_visibility, 'source_type': 'document'},
++        )
++        return doc
++
++    def test_tightening_visibility_after_ingest_blocks_teacher(self):
++        """Changing DocumentSource.visibility must take effect immediately, even
++        though the chunk's metadata snapshot still says 'internal'."""
++        doc = self._make_document(
++            doc_visibility='internal', snapshot_visibility='internal',
++            text='蓝队 内部 培训 资料 可见 性 测试 内容A', hash_id='vis-tighten-1',
++        )
++        query = '蓝队内部培训资料 可见性 内容A'
++
++        # Teacher can read while it is internal.
++        before = LegalRetrievalService().retrieve(query=query, top_k=10, user=self.teacher)
++        self.assertTrue(any(item['object_id'] == doc.id for item in before))
++
++        # Tighten to staff-only via the live model (snapshot left stale on purpose).
++        doc.visibility = 'staff'
++        doc.save(update_fields=['visibility'])
++
++        after = LegalRetrievalService().retrieve(query=query, top_k=10, user=self.teacher)
++        self.assertFalse(any(item['object_id'] == doc.id for item in after))
++
++        self.client.force_authenticate(self.teacher)
++        resp = self.client.get('/api/legal-kb/embeddings/')
++        self.assertNotIn('内容A', self._texts(resp))
++
++    def test_stale_internal_snapshot_does_not_grant_access_to_staff_doc(self):
++        """Reviewer repro #2: old index kept after a failed re-ingest. The chunk
++        snapshot says 'internal' but the live DocumentSource is 'staff'."""
++        doc = self._make_document(
++            doc_visibility='staff', snapshot_visibility='internal',
++            text='渗透 测试 旧 索引 快照 过期 内容B', hash_id='vis-stale-1',
++        )
++        query = '渗透测试 旧索引 快照 内容B'
++
++        teacher_results = LegalRetrievalService().retrieve(query=query, top_k=10, user=self.teacher)
++        self.assertFalse(any(item['object_id'] == doc.id for item in teacher_results))
++
++        admin_results = LegalRetrievalService().retrieve(query=query, top_k=10, user=self.admin)
++        self.assertTrue(any(item['object_id'] == doc.id for item in admin_results))
++
++
++@skipUnless(connection.vendor == 'postgresql', 'pgvector ANN path requires PostgreSQL')
++class PgvectorAnnRetrievalTests(TestCase):
++    """Exercise the real pgvector ANN branch (_retrieve_with_pgvector) + visibility."""
++
++    def _vec(self, index):
++        vector = [0.0] * 1024
++        vector[index] = 1.0
++        return vector
++
++    def setUp(self):
++        from rag_ingestion.models import DocumentSource
++
++        self.admin = User.objects.create_user(
++            username='pg-admin', password='pass12345', role='admin', is_staff=True,
++        )
++        self.teacher = User.objects.create_user(
++            username='pg-teacher', password='pass12345', role='teacher',
++        )
++        content_type = ContentType.objects.get_for_model(DocumentSource)
++        self.doc_internal = DocumentSource.objects.create(
++            title='A', filename='a.md', source_hash='pg-a', status='completed', visibility='internal',
++        )
++        self.doc_staff = DocumentSource.objects.create(
++            title='B', filename='b.md', source_hash='pg-b', status='completed', visibility='staff',
++        )
++        for doc, idx, vis in [(self.doc_internal, 0, 'internal'), (self.doc_staff, 1, 'staff')]:
++            LegalKnowledgeEmbedding.objects.create(
++                source_type='document', content_type=content_type, object_id=doc.id,
++                chunk_index=0, title=doc.title, text=f'doc {doc.title} body',
++                text_hash=f'pgh-{doc.id}', embedding=[0.0] * 4, embedding_vector=self._vec(idx),
++                embedding_model='fake-1024', embedding_dimension=1024,
++                metadata={'visibility': vis, 'source_type': 'document'},
++            )
++
++    def _service(self, query_index):
++        from legal_kb.services.retrieval_service import LegalRetrievalService
++
++        vec = self._vec
++
++        class Fake1024Embeddings:
++            model = 'fake-1024'
++
++            def embed_text(self, text):
++                return vec(query_index)
++
++            def embed_local_text(self, text):
++                return [0.0] * 4
++
++        return LegalRetrievalService(embedding_service=Fake1024Embeddings())
++
++    def test_ann_returns_nearest_for_admin(self):
++        results = self._service(1).retrieve(query='q', top_k=5, user=self.admin)
++        self.assertTrue(results)
++        self.assertEqual(results[0]['object_id'], self.doc_staff.id)  # nearest via pgvector ANN
++
++    def test_ann_respects_visibility_for_teacher(self):
++        results = self._service(1).retrieve(query='q', top_k=5, user=self.teacher)
++        # staff doc is the nearest vector, but must be filtered out for a teacher
++        self.assertFalse(any(item['object_id'] == self.doc_staff.id for item in results))
+diff -ruN '--exclude=__pycache__' '--exclude=*.pyc' '--exclude=.git' '--exclude=db.sqlite3' '--exclude=media' /tmp/ctf_clean/backend/legal_kb/views.py /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/legal_kb/views.py
+--- /tmp/ctf_clean/backend/legal_kb/views.py	2026-10-10 15:05:12.022990263 +0800
++++ /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/legal_kb/views.py	2026-10-10 00:25:12.301980700 +0800
+@@ -93,6 +93,11 @@
+     serializer_class = LegalKnowledgeEmbeddingSerializer
+     permission_classes = [IsLegalKbReader]
+ 
++    def get_queryset(self):
++        from .services.visibility import apply_embedding_visibility
++
++        return apply_embedding_visibility(super().get_queryset(), self.request.user)
++
+ 
+ class KbIngestionJobViewSet(viewsets.ReadOnlyModelViewSet):
+     """Read-only ingestion job API."""
+diff -ruN '--exclude=__pycache__' '--exclude=*.pyc' '--exclude=.git' '--exclude=db.sqlite3' '--exclude=media' /tmp/ctf_clean/backend/rag_ingestion/__init__.py /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/rag_ingestion/__init__.py
+--- /tmp/ctf_clean/backend/rag_ingestion/__init__.py	1970-01-01 08:00:00.000000000 +0800
++++ /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/rag_ingestion/__init__.py	2026-10-09 23:41:19.016430600 +0800
+@@ -0,0 +1,11 @@
++"""Self-contained document ingestion pipeline for the shared RAG store.
++
++Design goals (see docs/agent-rag-analysis-and-plan.md section 7-8):
++- Low coupling: the pipeline core depends only on the Protocols in
++  ``interfaces.py``. Every third-party parser/library lives in ``adapters/``
++  and is imported lazily, so a missing optional dependency only disables that
++  one format instead of breaking the whole pipeline.
++- Single store: embeddings are written into the existing
++  ``legal_kb.LegalKnowledgeEmbedding`` table under ``source_type='document'``;
++  no parallel vector store is introduced.
++"""
+diff -ruN '--exclude=__pycache__' '--exclude=*.pyc' '--exclude=.git' '--exclude=db.sqlite3' '--exclude=media' /tmp/ctf_clean/backend/rag_ingestion/adapters/__init__.py /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/rag_ingestion/adapters/__init__.py
+--- /tmp/ctf_clean/backend/rag_ingestion/adapters/__init__.py	1970-01-01 08:00:00.000000000 +0800
++++ /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/rag_ingestion/adapters/__init__.py	2026-10-09 23:24:11.859635400 +0800
+@@ -0,0 +1 @@
++"""Pluggable adapters. Third-party libraries are imported lazily here only."""
+diff -ruN '--exclude=__pycache__' '--exclude=*.pyc' '--exclude=.git' '--exclude=db.sqlite3' '--exclude=media' /tmp/ctf_clean/backend/rag_ingestion/adapters/embedder_legalkb.py /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/rag_ingestion/adapters/embedder_legalkb.py
+--- /tmp/ctf_clean/backend/rag_ingestion/adapters/embedder_legalkb.py	1970-01-01 08:00:00.000000000 +0800
++++ /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/rag_ingestion/adapters/embedder_legalkb.py	2026-10-09 23:26:20.933981500 +0800
+@@ -0,0 +1,36 @@
++"""Embedder adapter wrapping the existing ``legal_kb`` EmbeddingService."""
++
++from typing import List
++
++from ..interfaces import Chunk, EmbeddedChunk
++
++
++class LegalKbEmbedder:
++    """Produce both the semantic vector and the portable local vector."""
++
++    def __init__(self, embedding_service=None):
++        if embedding_service is None:
++            from legal_kb.services.embedding_service import EmbeddingService
++
++            embedding_service = EmbeddingService()
++        self.embedding_service = embedding_service
++
++    def embed(self, chunks: List[Chunk]) -> List[EmbeddedChunk]:
++        if not chunks:
++            return []
++        texts = [chunk.text for chunk in chunks]
++        # embed_many returns remote semantic vectors when configured, else the
++        # deterministic local vector (never raises; it self-degrades).
++        semantic_vectors = self.embedding_service.embed_many(texts)
++        model = self.embedding_service.model
++        embedded = []
++        for chunk, vector in zip(chunks, semantic_vectors):
++            local_vector = self.embedding_service.embed_local_text(chunk.text)
++            embedded.append(EmbeddedChunk(
++                chunk=chunk,
++                vector=list(vector),
++                local_vector=local_vector,
++                model=model,
++                dimension=len(vector),
++            ))
++        return embedded
+diff -ruN '--exclude=__pycache__' '--exclude=*.pyc' '--exclude=.git' '--exclude=db.sqlite3' '--exclude=media' /tmp/ctf_clean/backend/rag_ingestion/adapters/parser_docx.py /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/rag_ingestion/adapters/parser_docx.py
+--- /tmp/ctf_clean/backend/rag_ingestion/adapters/parser_docx.py	1970-01-01 08:00:00.000000000 +0800
++++ /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/rag_ingestion/adapters/parser_docx.py	2026-10-10 15:03:35.632138800 +0800
+@@ -0,0 +1,60 @@
++"""Word .docx parser: python-docx if present, else a zipfile XML fallback."""
++
++import io
++import re
++import zipfile
++from typing import Set
++
++from ..interfaces import ParsedDocument
++
++_XML_PARA_RE = re.compile(r'<w:p\b[^>]*>.*?</w:p>', re.S)
++_XML_TEXT_RE = re.compile(r'<w:t\b[^>]*>(.*?)</w:t>', re.S)
++_XML_TAG_RE = re.compile(r'<[^>]+>')
++
++
++class DocxParser:
++    """Extract text from .docx without requiring a heavy dependency."""
++
++    name = 'docx'
++    EXTENSIONS: Set[str] = {'.docx'}
++
++    def supports(self, *, filename: str, mime: str) -> bool:
++        lowered = (filename or '').lower()
++        if any(lowered.endswith(ext) for ext in self.EXTENSIONS):
++            return True
++        return 'wordprocessingml' in (mime or '')
++
++    def parse(self, data: bytes, *, filename: str, mime: str) -> ParsedDocument:
++        # python-docx only reads body paragraphs (misses tables/headers/footers).
++        # If it yields nothing usable, fall back to the zipfile XML scan which
++        # recovers all <w:t> runs (tables included).
++        text = self._with_python_docx(data) or ''
++        if not text.strip():
++            text = self._with_zipfile(data) or ''
++        return ParsedDocument(text=text, metadata={'parser': self.name})
++
++    def _with_python_docx(self, data: bytes):
++        try:
++            import docx  # python-docx exposes docx.Document
++        except Exception:
++            return None
++        try:
++            document = docx.Document(io.BytesIO(data))
++        except Exception:
++            return None
++        paragraphs = [p.text for p in getattr(document, 'paragraphs', [])]
++        return '\n'.join(part for part in paragraphs if part is not None)
++
++    def _with_zipfile(self, data: bytes) -> str:
++        try:
++            with zipfile.ZipFile(io.BytesIO(data)) as archive:
++                xml = archive.read('word/document.xml').decode('utf-8', errors='ignore')
++        except Exception:
++            return ''
++        paragraphs = []
++        for para in _XML_PARA_RE.findall(xml):
++            texts = _XML_TEXT_RE.findall(para)
++            line = ''.join(_XML_TAG_RE.sub('', fragment) for fragment in texts)
++            if line.strip():
++                paragraphs.append(line)
++        return '\n'.join(paragraphs)
+diff -ruN '--exclude=__pycache__' '--exclude=*.pyc' '--exclude=.git' '--exclude=db.sqlite3' '--exclude=media' /tmp/ctf_clean/backend/rag_ingestion/adapters/parser_markitdown.py /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/rag_ingestion/adapters/parser_markitdown.py
+--- /tmp/ctf_clean/backend/rag_ingestion/adapters/parser_markitdown.py	1970-01-01 08:00:00.000000000 +0800
++++ /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/rag_ingestion/adapters/parser_markitdown.py	2026-10-10 13:53:10.029196000 +0800
+@@ -0,0 +1,65 @@
++"""Generic fallback parser via Microsoft markitdown (MIT), imported lazily.
++
++markitdown converts many formats (docx, pptx, xlsx, pdf, html, ...) to
++Markdown. It is optional: when it is not installed this adapter simply reports
++that it cannot handle the file, and the registry moves on.
++"""
++
++import os
++import tempfile
++from typing import Set
++
++from ..interfaces import ParsedDocument
++
++
++class MarkItDownParser:
++    name = 'markitdown'
++    # Broad fallback coverage; only used when markitdown is installed.
++    EXTENSIONS: Set[str] = {
++        '.docx', '.pptx', '.xlsx', '.xls', '.pdf', '.html', '.htm', '.csv', '.epub',
++    }
++
++    def __init__(self):
++        self._available = None
++
++    def _is_available(self) -> bool:
++        if self._available is None:
++            try:
++                import markitdown  # noqa: F401
++                self._available = True
++            except Exception:
++                self._available = False
++        return self._available
++
++    def supports(self, *, filename: str, mime: str) -> bool:
++        if not self._is_available():
++            return False
++        lowered = (filename or '').lower()
++        return any(lowered.endswith(ext) for ext in self.EXTENSIONS)
++
++    def parse(self, data: bytes, *, filename: str, mime: str) -> ParsedDocument:
++        from markitdown import MarkItDown
++
++        suffix = ''
++        lowered = (filename or '').lower()
++        if '.' in lowered:
++            suffix = lowered[lowered.rfind('.'):]
++
++        # Write and CLOSE the temp file before converting. markitdown reopens the
++        # file by path; on Windows a still-open handle would raise PermissionError
++        # (flush() alone does not release the lock). delete=False + manual cleanup
++        # keeps this cross-platform.
++        handle = tempfile.NamedTemporaryFile(suffix=suffix, delete=False)
++        temp_path = handle.name
++        try:
++            handle.write(data)
++            handle.close()
++            result = MarkItDown().convert(temp_path)
++            text = getattr(result, 'text_content', '') or ''
++        finally:
++            try:
++                os.unlink(temp_path)
++            except OSError:
++                pass
++        return ParsedDocument(text=text, metadata={'parser': self.name})
++
+diff -ruN '--exclude=__pycache__' '--exclude=*.pyc' '--exclude=.git' '--exclude=db.sqlite3' '--exclude=media' /tmp/ctf_clean/backend/rag_ingestion/adapters/parser_pdf.py /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/rag_ingestion/adapters/parser_pdf.py
+--- /tmp/ctf_clean/backend/rag_ingestion/adapters/parser_pdf.py	1970-01-01 08:00:00.000000000 +0800
++++ /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/rag_ingestion/adapters/parser_pdf.py	2026-10-10 15:03:13.281755600 +0800
+@@ -0,0 +1,63 @@
++"""PDF parser: pdfplumber (MIT) preferred, PyMuPDF (AGPL) optional fallback.
++
++Note on licensing: PyMuPDF is AGPL-3.0. It is only used if already installed
++and is imported lazily, so the default install stays MIT/Apache-only.
++"""
++
++import io
++from typing import Set
++
++from ..interfaces import ParsedDocument
++
++
++class PdfParser:
++    name = 'pdf'
++    EXTENSIONS: Set[str] = {'.pdf'}
++
++    def supports(self, *, filename: str, mime: str) -> bool:
++        lowered = (filename or '').lower()
++        return lowered.endswith('.pdf') or 'pdf' in (mime or '')
++
++    def parse(self, data: bytes, *, filename: str, mime: str) -> ParsedDocument:
++        text = self._with_pdfplumber(data)
++        if text is None:
++            text = self._with_pymupdf(data)
++        if text is None:
++            raise RuntimeError(
++                'No PDF parser available. Install pdfplumber (MIT) to enable PDF ingestion.'
++            )
++        return ParsedDocument(text=text, metadata={'parser': self.name})
++
++    def _with_pdfplumber(self, data: bytes):
++        try:
++            import pdfplumber
++        except Exception:
++            return None
++        try:
++            pages = []
++            with pdfplumber.open(io.BytesIO(data)) as pdf:
++                for index, page in enumerate(pdf.pages, start=1):
++                    page_text = page.extract_text() or ''
++                    if page_text.strip():
++                        pages.append(f'[page {index}]\n{page_text}')
++            text = '\n\n'.join(pages)
++            return text or None  # empty -> let the next parser try
++        except Exception:
++            return None  # corrupt/encrypted PDF -> fall through to pymupdf
++
++    def _with_pymupdf(self, data: bytes):
++        try:
++            import fitz  # PyMuPDF
++        except Exception:
++            return None
++        try:
++            pages = []
++            with fitz.open(stream=data, filetype='pdf') as doc:
++                for index, page in enumerate(doc, start=1):
++                    page_text = page.get_text() or ''
++                    if page_text.strip():
++                        pages.append(f'[page {index}]\n{page_text}')
++            text = '\n\n'.join(pages)
++            return text or None
++        except Exception:
++            return None
+diff -ruN '--exclude=__pycache__' '--exclude=*.pyc' '--exclude=.git' '--exclude=db.sqlite3' '--exclude=media' /tmp/ctf_clean/backend/rag_ingestion/adapters/parser_plain.py /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/rag_ingestion/adapters/parser_plain.py
+--- /tmp/ctf_clean/backend/rag_ingestion/adapters/parser_plain.py	1970-01-01 08:00:00.000000000 +0800
++++ /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/rag_ingestion/adapters/parser_plain.py	2026-10-09 23:24:44.124969900 +0800
+@@ -0,0 +1,51 @@
++"""Plain-text / Markdown / HTML parser (no mandatory third-party deps)."""
++
++import re
++from typing import Set
++
++from ..interfaces import ParsedDocument
++
++_TAG_RE = re.compile(r'<[^>]+>')
++_SCRIPT_STYLE_RE = re.compile(r'<(script|style)[^>]*>.*?</\1>', re.I | re.S)
++
++
++class PlainTextParser:
++    """Decode text-like formats; strip HTML tags when needed."""
++
++    name = 'plain'
++    EXTENSIONS: Set[str] = {'.md', '.markdown', '.txt', '.text', '.html', '.htm', '.csv', '.log', '.json'}
++    HTML_EXTENSIONS: Set[str] = {'.html', '.htm'}
++
++    def supports(self, *, filename: str, mime: str) -> bool:
++        lowered = (filename or '').lower()
++        if any(lowered.endswith(ext) for ext in self.EXTENSIONS):
++            return True
++        return (mime or '').startswith('text/')
++
++    def parse(self, data: bytes, *, filename: str, mime: str) -> ParsedDocument:
++        text = self._decode(data)
++        lowered = (filename or '').lower()
++        is_html = any(lowered.endswith(ext) for ext in self.HTML_EXTENSIONS) or 'html' in (mime or '')
++        if is_html:
++            text = self._html_to_text(text)
++        return ParsedDocument(text=text, metadata={'parser': self.name})
++
++    def _decode(self, data: bytes) -> str:
++        for encoding in ('utf-8-sig', 'utf-8', 'gb18030', 'latin-1'):
++            try:
++                return data.decode(encoding)
++            except UnicodeDecodeError:
++                continue
++        return data.decode('utf-8', errors='ignore')
++
++    def _html_to_text(self, html: str) -> str:
++        try:
++            from bs4 import BeautifulSoup
++
++            soup = BeautifulSoup(html, 'html.parser')
++            for tag in soup(['script', 'style']):
++                tag.decompose()
++            return soup.get_text('\n')
++        except Exception:
++            stripped = _SCRIPT_STYLE_RE.sub(' ', html)
++            return _TAG_RE.sub(' ', stripped)
+diff -ruN '--exclude=__pycache__' '--exclude=*.pyc' '--exclude=.git' '--exclude=db.sqlite3' '--exclude=media' /tmp/ctf_clean/backend/rag_ingestion/adapters/repository_legalkb.py /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/rag_ingestion/adapters/repository_legalkb.py
+--- /tmp/ctf_clean/backend/rag_ingestion/adapters/repository_legalkb.py	1970-01-01 08:00:00.000000000 +0800
++++ /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/rag_ingestion/adapters/repository_legalkb.py	2026-10-10 13:49:47.377609000 +0800
+@@ -0,0 +1,69 @@
++"""Repository adapter persisting chunks into legal_kb.LegalKnowledgeEmbedding.
++
++This keeps a single, shared vector store. Uploaded documents are written under
++``source_type='document'`` with the GenericForeignKey pointing at
++``rag_ingestion.DocumentSource``.
++"""
++
++from typing import Dict, List
++
++from django.contrib.contenttypes.models import ContentType
++from django.db import connection, transaction
++
++from ..interfaces import EmbeddedChunk
++
++
++class LegalKbChunkRepository:
++    """Write embedded chunks into the shared embedding table, idempotently."""
++
++    def replace(
++        self,
++        *,
++        document_id: int,
++        source_type: str,
++        embedded: List[EmbeddedChunk],
++        base_metadata: Dict,
++    ) -> int:
++        from legal_kb.models import LegalKnowledgeEmbedding
++        from legal_kb.services.hashing import sha256_text
++
++        from ..models import DocumentSource
++
++        content_type = ContentType.objects.get_for_model(DocumentSource)
++
++        # Atomic swap: deleting the old index and writing the new chunks happen in
++        # one transaction, so a mid-write failure rolls back and leaves the
++        # previous index intact instead of a half-rebuilt one. Parsing and (remote)
++        # embedding already happened before this call, so the transaction is short.
++        with transaction.atomic():
++            LegalKnowledgeEmbedding.objects.filter(
++                content_type=content_type,
++                object_id=document_id,
++                source_type=source_type,
++            ).delete()
++
++            created = 0
++            for item in embedded:
++                is_semantic = len(item.vector) == 1024
++                store_vector = item.vector if (is_semantic and connection.vendor == 'postgresql') else None
++                metadata = {
++                    **base_metadata,
++                    **(item.chunk.metadata or {}),
++                    'vector_model': item.model if is_semantic else 'local-hash-v1',
++                }
++                LegalKnowledgeEmbedding.objects.create(
++                    source_type=source_type,
++                    content_type=content_type,
++                    object_id=document_id,
++                    chunk_index=max(item.chunk.order - 1, 0),
++                    title=(item.chunk.title or base_metadata.get('title') or '')[:300],
++                    text=item.chunk.text,
++                    text_hash=sha256_text(item.chunk.text),
++                    embedding=item.local_vector,
++                    embedding_vector=store_vector,
++                    embedding_model='local-hash-v1',
++                    embedding_dimension=len(item.local_vector),
++                    metadata=metadata,
++                )
++                created += 1
++            return created
+diff -ruN '--exclude=__pycache__' '--exclude=*.pyc' '--exclude=.git' '--exclude=db.sqlite3' '--exclude=media' /tmp/ctf_clean/backend/rag_ingestion/admin.py /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/rag_ingestion/admin.py
+--- /tmp/ctf_clean/backend/rag_ingestion/admin.py	1970-01-01 08:00:00.000000000 +0800
++++ /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/rag_ingestion/admin.py	2026-10-09 23:31:07.682450400 +0800
+@@ -0,0 +1,12 @@
++from django.contrib import admin
++
++from .models import DocumentSource
++
++
++@admin.register(DocumentSource)
++class DocumentSourceAdmin(admin.ModelAdmin):
++    list_display = ['title', 'filename', 'status', 'visibility', 'parser',
++                    'chunk_count', 'embedded_count', 'updated_at']
++    list_filter = ['status', 'visibility', 'parser']
++    search_fields = ['title', 'filename', 'source_hash']
++    readonly_fields = ['source_hash', 'metadata', 'created_at', 'updated_at']
+diff -ruN '--exclude=__pycache__' '--exclude=*.pyc' '--exclude=.git' '--exclude=db.sqlite3' '--exclude=media' /tmp/ctf_clean/backend/rag_ingestion/apps.py /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/rag_ingestion/apps.py
+--- /tmp/ctf_clean/backend/rag_ingestion/apps.py	1970-01-01 08:00:00.000000000 +0800
++++ /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/rag_ingestion/apps.py	2026-10-09 23:17:57.445441700 +0800
+@@ -0,0 +1,7 @@
++from django.apps import AppConfig
++
++
++class RagIngestionConfig(AppConfig):
++    default_auto_field = 'django.db.models.BigAutoField'
++    name = 'rag_ingestion'
++    verbose_name = 'RAG document ingestion'
+diff -ruN '--exclude=__pycache__' '--exclude=*.pyc' '--exclude=.git' '--exclude=db.sqlite3' '--exclude=media' /tmp/ctf_clean/backend/rag_ingestion/chunking.py /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/rag_ingestion/chunking.py
+--- /tmp/ctf_clean/backend/rag_ingestion/chunking.py	1970-01-01 08:00:00.000000000 +0800
++++ /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/rag_ingestion/chunking.py	2026-10-09 23:23:42.117105800 +0800
+@@ -0,0 +1,98 @@
++"""Structure-aware chunking.
++
++Primary strategy reuses the project's existing ``legal_kb.ChunkingService``
++(zero new dependency). If ``langchain-text-splitters`` (MIT, standalone small
++package) is installed, a Markdown-header-aware splitter is used for richer
++heading metadata. Everything degrades gracefully to the built-in splitter.
++"""
++
++import logging
++from typing import Dict, List
++
++from django.conf import settings
++
++from .interfaces import Chunk
++
++logger = logging.getLogger(__name__)
++
++
++class StructureAwareChunker:
++    """Split Markdown/plain text into chunks, preserving heading paths."""
++
++    def __init__(self, chunk_size: int = None, chunk_overlap: int = None):
++        self.chunk_size = int(
++            chunk_size or getattr(settings, 'RAG_INGESTION_CHUNK_SIZE', 1000)
++        )
++        self.chunk_overlap = int(
++            chunk_overlap if chunk_overlap is not None
++            else getattr(settings, 'RAG_INGESTION_CHUNK_OVERLAP', 120)
++        )
++
++    def split(self, text: str, *, metadata: Dict = None) -> List[Chunk]:
++        base_metadata = dict(metadata or {})
++        clean = (text or '').strip()
++        if not clean:
++            return []
++        chunks = self._split_with_langchain(clean, base_metadata)
++        if chunks is None:
++            chunks = self._split_with_builtin(clean, base_metadata)
++        return chunks
++
++    def _split_with_langchain(self, text: str, base_metadata: Dict):
++        if not getattr(settings, 'RAG_INGESTION_USE_LANGCHAIN_SPLITTER', True):
++            return None
++        try:
++            from langchain_text_splitters import (
++                MarkdownHeaderTextSplitter,
++                RecursiveCharacterTextSplitter,
++            )
++        except Exception:
++            # Optional dependency absent: fall back to the built-in splitter.
++            return None
++
++        try:
++            headers = [('#', 'h1'), ('##', 'h2'), ('###', 'h3')]
++            header_docs = MarkdownHeaderTextSplitter(
++                headers_to_split_on=headers
++            ).split_text(text)
++            recursive = RecursiveCharacterTextSplitter(
++                chunk_size=self.chunk_size,
++                chunk_overlap=self.chunk_overlap,
++            )
++            documents = recursive.split_documents(header_docs)
++            chunks = []
++            for order, doc in enumerate(documents, start=1):
++                heading_path = [
++                    value for key, value in doc.metadata.items()
++                    if key in {'h1', 'h2', 'h3'} and value
++                ]
++                metadata = {**base_metadata, 'heading_path': heading_path}
++                chunks.append(Chunk(
++                    text=doc.page_content.strip(),
++                    order=order,
++                    title=heading_path[-1] if heading_path else '',
++                    metadata=metadata,
++                ))
++            chunks = [chunk for chunk in chunks if chunk.text]
++            return chunks or None
++        except Exception as exc:
++            logger.warning(
++                'rag_ingestion_langchain_splitter_failed',
++                extra={'event': 'rag_ingestion_langchain_splitter_failed',
++                       'error_type': type(exc).__name__},
++            )
++            return None
++
++    def _split_with_builtin(self, text: str, base_metadata: Dict) -> List[Chunk]:
++        from legal_kb.services.chunking_service import ChunkingService
++
++        pieces = ChunkingService.split_plain_text(text, max_chars=self.chunk_size)
++        chunks = []
++        for piece in pieces:
++            chunks.append(Chunk(
++                text=piece.text,
++                order=piece.order,
++                title=piece.title,
++                metadata={**base_metadata, 'chunk_key': piece.clause_key},
++            ))
++        return chunks
+diff -ruN '--exclude=__pycache__' '--exclude=*.pyc' '--exclude=.git' '--exclude=db.sqlite3' '--exclude=media' /tmp/ctf_clean/backend/rag_ingestion/cleaning.py /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/rag_ingestion/cleaning.py
+--- /tmp/ctf_clean/backend/rag_ingestion/cleaning.py	1970-01-01 08:00:00.000000000 +0800
++++ /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/rag_ingestion/cleaning.py	2026-10-09 23:19:12.013528400 +0800
+@@ -0,0 +1,17 @@
++"""Text normalization/cleaning before chunking."""
++
++import re
++
++
++_MULTI_BLANKLINE = re.compile(r'\n{3,}')
++_TRAILING_WS = re.compile(r'[ \t]+(\n)')
++
++
++def clean_text(text: str) -> str:
++    """Normalize whitespace while keeping heading/paragraph structure."""
++    if not text:
++        return ''
++    normalized = text.replace('\r\n', '\n').replace('\r', '\n')
++    normalized = _TRAILING_WS.sub(r'\1', normalized)
++    normalized = _MULTI_BLANKLINE.sub('\n\n', normalized)
++    return normalized.strip()
+diff -ruN '--exclude=__pycache__' '--exclude=*.pyc' '--exclude=.git' '--exclude=db.sqlite3' '--exclude=media' /tmp/ctf_clean/backend/rag_ingestion/interfaces.py /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/rag_ingestion/interfaces.py
+--- /tmp/ctf_clean/backend/rag_ingestion/interfaces.py	1970-01-01 08:00:00.000000000 +0800
++++ /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/rag_ingestion/interfaces.py	2026-10-09 23:18:29.756432300 +0800
+@@ -0,0 +1,68 @@
++"""Pipeline contracts. The orchestrator depends only on these abstractions.
++
++Keeping third-party libraries behind these Protocols is what lets us swap a
++parser (markitdown -> docling -> pdfplumber) or the vector backend without
++touching ``pipeline.py``.
++"""
++
++from dataclasses import dataclass, field
++from typing import Dict, List, Protocol, runtime_checkable
++
++
++@dataclass
++class ParsedDocument:
++    """Normalized output of a parser: Markdown-ish text plus structure hints."""
++
++    text: str
++    metadata: Dict = field(default_factory=dict)
++
++
++@dataclass
++class Chunk:
++    """A retrievable unit of text with ordering and provenance metadata."""
++
++    text: str
++    order: int
++    title: str = ''
++    metadata: Dict = field(default_factory=dict)
++
++
++@dataclass
++class EmbeddedChunk:
++    """A chunk plus its semantic vector and the portable local vector."""
++
++    chunk: Chunk
++    vector: List[float]
++    local_vector: List[float]
++    model: str
++    dimension: int
++
++
++@runtime_checkable
++class DocumentParser(Protocol):
++    """Turn raw bytes of one format into normalized text."""
++
++    def supports(self, *, filename: str, mime: str) -> bool: ...
++
++    def parse(self, data: bytes, *, filename: str, mime: str) -> ParsedDocument: ...
++
++
++@runtime_checkable
++class TextChunker(Protocol):
++    """Split normalized text into retrievable chunks."""
++
++    def split(self, text: str, *, metadata: Dict) -> List[Chunk]: ...
++
++
++@runtime_checkable
++class Embedder(Protocol):
++    """Embed chunk texts into vectors."""
++
++    def embed(self, chunks: List[Chunk]) -> List[EmbeddedChunk]: ...
++
++
++@runtime_checkable
++class ChunkRepository(Protocol):
++    """Persist embedded chunks into the shared vector store."""
++
++    def replace(self, *, document_id: int, source_type: str, embedded: List[EmbeddedChunk], base_metadata: Dict) -> int: ...
+diff -ruN '--exclude=__pycache__' '--exclude=*.pyc' '--exclude=.git' '--exclude=db.sqlite3' '--exclude=media' /tmp/ctf_clean/backend/rag_ingestion/management/commands/ingest_documents.py /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/rag_ingestion/management/commands/ingest_documents.py
+--- /tmp/ctf_clean/backend/rag_ingestion/management/commands/ingest_documents.py	1970-01-01 08:00:00.000000000 +0800
++++ /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/rag_ingestion/management/commands/ingest_documents.py	2026-10-09 23:29:22.844386500 +0800
+@@ -0,0 +1,74 @@
++"""Management command: ingest a file or directory into the shared RAG store."""
++
++from pathlib import Path
++
++from django.contrib.auth import get_user_model
++from django.core.management.base import BaseCommand, CommandError
++
++from rag_ingestion.services import IngestionService
++
++
++class Command(BaseCommand):
++    help = 'Ingest a document file or a directory of documents into the RAG store.'
++
++    def add_arguments(self, parser):
++        parser.add_argument('path', help='Path to a file or a directory of files.')
++        parser.add_argument('--actor', default='', help='Username recorded as uploader/audit actor.')
++        parser.add_argument('--visibility', default='internal',
++                            choices=['staff', 'internal', 'learner'],
++                            help='Who may retrieve the ingested content.')
++        parser.add_argument('--reingest', action='store_true',
++                            help='Re-ingest even if identical content already exists.')
++
++    def handle(self, *args, **options):
++        root = Path(options['path'])
++        if not root.exists():
++            raise CommandError(f'Path does not exist: {root}')
++
++        actor = self._resolve_actor(options.get('actor'))
++        files = sorted(p for p in ([root] if root.is_file() else root.rglob('*')) if p.is_file())
++        if not files:
++            self.stdout.write(self.style.WARNING('No files found to ingest.'))
++            return
++
++        service = IngestionService()
++        completed = 0
++        failed = 0
++        for file_path in files:
++            try:
++                data = file_path.read_bytes()
++            except OSError as exc:
++                failed += 1
++                self.stdout.write(self.style.ERROR(f'Read failed: {file_path} ({exc})'))
++                continue
++            document = service.ingest_bytes(
++                data=data,
++                filename=file_path.name,
++                title=file_path.stem,
++                visibility=options['visibility'],
++                uploaded_by=actor,
++                reingest=options['reingest'],
++            )
++            if document.status == 'completed':
++                completed += 1
++                self.stdout.write(self.style.SUCCESS(
++                    f'Ingested {file_path.name}: {document.embedded_count} chunks '
++                    f'(parser={document.parser})'
++                ))
++            else:
++                failed += 1
++                self.stdout.write(self.style.ERROR(
++                    f'Failed {file_path.name}: {document.error_message}'
++                ))
++        self.stdout.write(self.style.SUCCESS(
++            f'RAG ingestion done: {completed} completed, {failed} failed.'
++        ))
++
++    def _resolve_actor(self, username):
++        if not username:
++            return None
++        User = get_user_model()
++        try:
++            return User.objects.get(username=username)
++        except User.DoesNotExist as exc:
++            raise CommandError(f'Actor user not found: {username}') from exc
+diff -ruN '--exclude=__pycache__' '--exclude=*.pyc' '--exclude=.git' '--exclude=db.sqlite3' '--exclude=media' /tmp/ctf_clean/backend/rag_ingestion/migrations/0001_initial.py /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/rag_ingestion/migrations/0001_initial.py
+--- /tmp/ctf_clean/backend/rag_ingestion/migrations/0001_initial.py	1970-01-01 08:00:00.000000000 +0800
++++ /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/rag_ingestion/migrations/0001_initial.py	2026-10-09 23:31:59.179089100 +0800
+@@ -0,0 +1,44 @@
++# Generated by Django 6.0.3 on 2026-10-09 15:31
++
++import django.db.models.deletion
++from django.conf import settings
++from django.db import migrations, models
++
++
++class Migration(migrations.Migration):
++
++    initial = True
++
++    dependencies = [
++        migrations.swappable_dependency(settings.AUTH_USER_MODEL),
++    ]
++
++    operations = [
++        migrations.CreateModel(
++            name='DocumentSource',
++            fields=[
++                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
++                ('title', models.CharField(max_length=300, verbose_name='Title')),
++                ('filename', models.CharField(max_length=400, verbose_name='Original filename')),
++                ('mime', models.CharField(blank=True, max_length=120, verbose_name='MIME type')),
++                ('byte_size', models.PositiveIntegerField(default=0, verbose_name='Byte size')),
++                ('source_hash', models.CharField(max_length=64, unique=True, verbose_name='Content hash')),
++                ('status', models.CharField(choices=[('pending', 'Pending'), ('running', 'Running'), ('completed', 'Completed'), ('failed', 'Failed')], db_index=True, default='pending', max_length=20)),
++                ('visibility', models.CharField(choices=[('staff', 'Staff only'), ('internal', 'Internal (non-learner)'), ('learner', 'Learner visible')], default='internal', max_length=20)),
++                ('parser', models.CharField(blank=True, max_length=60, verbose_name='Parser used')),
++                ('chunk_count', models.PositiveIntegerField(default=0)),
++                ('embedded_count', models.PositiveIntegerField(default=0)),
++                ('error_message', models.TextField(blank=True)),
++                ('metadata', models.JSONField(blank=True, default=dict)),
++                ('created_at', models.DateTimeField(auto_now_add=True)),
++                ('updated_at', models.DateTimeField(auto_now=True)),
++                ('uploaded_by', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='uploaded_rag_documents', to=settings.AUTH_USER_MODEL)),
++            ],
++            options={
++                'verbose_name': 'RAG document source',
++                'verbose_name_plural': 'RAG document sources',
++                'ordering': ['-created_at'],
++                'indexes': [models.Index(fields=['status', 'visibility'], name='rag_ingesti_status_5e2734_idx')],
++            },
++        ),
++    ]
+diff -ruN '--exclude=__pycache__' '--exclude=*.pyc' '--exclude=.git' '--exclude=db.sqlite3' '--exclude=media' /tmp/ctf_clean/backend/rag_ingestion/models.py /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/rag_ingestion/models.py
+--- /tmp/ctf_clean/backend/rag_ingestion/models.py	1970-01-01 08:00:00.000000000 +0800
++++ /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/rag_ingestion/models.py	2026-10-09 23:27:45.196353500 +0800
+@@ -0,0 +1,54 @@
++"""Models tracking uploaded documents and their ingestion lifecycle."""
++
++from django.conf import settings
++from django.db import models
++
++
++class DocumentSource(models.Model):
++    """A user/admin-uploaded document ingested into the shared RAG store."""
++
++    STATUS_CHOICES = [
++        ('pending', 'Pending'),
++        ('running', 'Running'),
++        ('completed', 'Completed'),
++        ('failed', 'Failed'),
++    ]
++
++    VISIBILITY_CHOICES = [
++        ('staff', 'Staff only'),
++        ('internal', 'Internal (non-learner)'),
++        ('learner', 'Learner visible'),
++    ]
++
++    title = models.CharField(max_length=300, verbose_name='Title')
++    filename = models.CharField(max_length=400, verbose_name='Original filename')
++    mime = models.CharField(max_length=120, blank=True, verbose_name='MIME type')
++    byte_size = models.PositiveIntegerField(default=0, verbose_name='Byte size')
++    source_hash = models.CharField(max_length=64, unique=True, verbose_name='Content hash')
++    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', db_index=True)
++    visibility = models.CharField(max_length=20, choices=VISIBILITY_CHOICES, default='internal')
++    parser = models.CharField(max_length=60, blank=True, verbose_name='Parser used')
++    chunk_count = models.PositiveIntegerField(default=0)
++    embedded_count = models.PositiveIntegerField(default=0)
++    error_message = models.TextField(blank=True)
++    metadata = models.JSONField(default=dict, blank=True)
++    uploaded_by = models.ForeignKey(
++        settings.AUTH_USER_MODEL,
++        on_delete=models.SET_NULL,
++        null=True,
++        blank=True,
++        related_name='uploaded_rag_documents',
++    )
++    created_at = models.DateTimeField(auto_now_add=True)
++    updated_at = models.DateTimeField(auto_now=True)
++
++    class Meta:
++        verbose_name = 'RAG document source'
++        verbose_name_plural = 'RAG document sources'
++        ordering = ['-created_at']
++        indexes = [
++            models.Index(fields=['status', 'visibility']),
++        ]
++
++    def __str__(self):
++        return f'{self.title} ({self.status})'
+diff -ruN '--exclude=__pycache__' '--exclude=*.pyc' '--exclude=.git' '--exclude=db.sqlite3' '--exclude=media' /tmp/ctf_clean/backend/rag_ingestion/pipeline.py /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/rag_ingestion/pipeline.py
+--- /tmp/ctf_clean/backend/rag_ingestion/pipeline.py	1970-01-01 08:00:00.000000000 +0800
++++ /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/rag_ingestion/pipeline.py	2026-10-09 23:28:14.957576200 +0800
+@@ -0,0 +1,96 @@
++"""Ingestion orchestrator. Depends only on app abstractions, not third parties."""
++
++from dataclasses import dataclass, field
++from typing import Dict, Optional
++
++from .chunking import StructureAwareChunker
++from .cleaning import clean_text
++from .registry import select_parser
++
++
++class UnsupportedFormatError(ValueError):
++    """Raised when no registered parser can handle the uploaded file."""
++
++
++class EmptyDocumentError(ValueError):
++    """Raised when parsing yields no extractable text."""
++
++
++@dataclass
++class IngestionOutcome:
++    parser: str
++    chunk_count: int
++    embedded_count: int
++    metadata: Dict = field(default_factory=dict)
++
++
++class IngestionPipeline:
++    """loader(given bytes) -> parse -> clean -> chunk -> embed -> store."""
++
++    def __init__(self, *, chunker=None, embedder=None, repository=None, parser_selector=None):
++        self.chunker = chunker or StructureAwareChunker()
++        self._embedder = embedder
++        self._repository = repository
++        self.parser_selector = parser_selector or select_parser
++
++    @property
++    def embedder(self):
++        if self._embedder is None:
++            from .adapters.embedder_legalkb import LegalKbEmbedder
++
++            self._embedder = LegalKbEmbedder()
++        return self._embedder
++
++    @property
++    def repository(self):
++        if self._repository is None:
++            from .adapters.repository_legalkb import LegalKbChunkRepository
++
++            self._repository = LegalKbChunkRepository()
++        return self._repository
++
++    def run(
++        self,
++        *,
++        data: bytes,
++        filename: str,
++        document_id: int,
++        mime: str = '',
++        source_type: str = 'document',
++        base_metadata: Optional[Dict] = None,
++        title: str = '',
++    ) -> IngestionOutcome:
++        parser = self.parser_selector(filename, mime)
++        if parser is None:
++            raise UnsupportedFormatError(f'No parser available for: {filename} ({mime})')
++
++        parsed = parser.parse(data, filename=filename, mime=mime)
++        text = clean_text(parsed.text)
++        if not text.strip():
++            raise EmptyDocumentError(f'No extractable text in: {filename}')
++
++        metadata = {
++            'source_type': source_type,
++            'document_id': document_id,
++            'filename': filename,
++            'parser': parser.name,
++            'title': title or filename,
++        }
++        metadata.update(parsed.metadata or {})
++        if base_metadata:
++            metadata.update(base_metadata)
++
++        chunks = self.chunker.split(text, metadata={})
++        embedded = self.embedder.embed(chunks)
++        stored = self.repository.replace(
++            document_id=document_id,
++            source_type=source_type,
++            embedded=embedded,
++            base_metadata=metadata,
++        )
++        return IngestionOutcome(
++            parser=parser.name,
++            chunk_count=len(chunks),
++            embedded_count=stored,
++            metadata=metadata,
++        )
+diff -ruN '--exclude=__pycache__' '--exclude=*.pyc' '--exclude=.git' '--exclude=db.sqlite3' '--exclude=media' /tmp/ctf_clean/backend/rag_ingestion/registry.py /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/rag_ingestion/registry.py
+--- /tmp/ctf_clean/backend/rag_ingestion/registry.py	1970-01-01 08:00:00.000000000 +0800
++++ /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/rag_ingestion/registry.py	2026-10-09 23:27:24.605546400 +0800
+@@ -0,0 +1,50 @@
++"""Parser registry: choose a parser by filename/MIME, with graceful fallback.
++
++Default priority keeps dependency-free parsers first; the optional markitdown
++fallback only wins for formats the built-in parsers do not claim (and only when
++markitdown is installed).
++"""
++
++import logging
++from typing import List, Optional
++
++from django.conf import settings
++from django.utils.module_loading import import_string
++
++from .interfaces import DocumentParser
++
++logger = logging.getLogger(__name__)
++
++DEFAULT_PARSER_PATHS = [
++    'rag_ingestion.adapters.parser_plain.PlainTextParser',
++    'rag_ingestion.adapters.parser_docx.DocxParser',
++    'rag_ingestion.adapters.parser_pdf.PdfParser',
++    'rag_ingestion.adapters.parser_markitdown.MarkItDownParser',
++]
++
++
++def get_parsers() -> List[DocumentParser]:
++    """Instantiate the configured parsers, skipping any that fail to import."""
++    paths = getattr(settings, 'RAG_INGESTION_PARSERS', None) or DEFAULT_PARSER_PATHS
++    parsers: List[DocumentParser] = []
++    for path in paths:
++        try:
++            parsers.append(import_string(path)())
++        except Exception as exc:
++            logger.warning(
++                'rag_ingestion_parser_load_failed',
++                extra={'event': 'rag_ingestion_parser_load_failed',
++                       'parser': path, 'error_type': type(exc).__name__},
++            )
++    return parsers
++
++
++def select_parser(filename: str, mime: str = '', *, parsers=None) -> Optional[DocumentParser]:
++    """Return the first parser that claims the given file, or None."""
++    for parser in (parsers if parsers is not None else get_parsers()):
++        try:
++            if parser.supports(filename=filename, mime=mime):
++                return parser
++        except Exception:
++            continue
++    return None
+diff -ruN '--exclude=__pycache__' '--exclude=*.pyc' '--exclude=.git' '--exclude=db.sqlite3' '--exclude=media' /tmp/ctf_clean/backend/rag_ingestion/serializers.py /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/rag_ingestion/serializers.py
+--- /tmp/ctf_clean/backend/rag_ingestion/serializers.py	1970-01-01 08:00:00.000000000 +0800
++++ /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/rag_ingestion/serializers.py	2026-10-09 23:30:15.841194800 +0800
+@@ -0,0 +1,14 @@
++from rest_framework import serializers
++
++from .models import DocumentSource
++
++
++class DocumentSourceSerializer(serializers.ModelSerializer):
++    class Meta:
++        model = DocumentSource
++        fields = [
++            'id', 'title', 'filename', 'mime', 'byte_size', 'status',
++            'visibility', 'parser', 'chunk_count', 'embedded_count',
++            'error_message', 'created_at', 'updated_at',
++        ]
++        read_only_fields = fields
+diff -ruN '--exclude=__pycache__' '--exclude=*.pyc' '--exclude=.git' '--exclude=db.sqlite3' '--exclude=media' /tmp/ctf_clean/backend/rag_ingestion/services.py /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/rag_ingestion/services.py
+--- /tmp/ctf_clean/backend/rag_ingestion/services.py	1970-01-01 08:00:00.000000000 +0800
++++ /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/rag_ingestion/services.py	2026-10-10 15:02:52.329374000 +0800
+@@ -0,0 +1,106 @@
++"""Facade coordinating DocumentSource lifecycle with the ingestion pipeline."""
++
++import hashlib
++import logging
++from typing import Dict, Optional
++
++from .models import DocumentSource
++from .pipeline import IngestionPipeline
++
++logger = logging.getLogger(__name__)
++
++
++class IngestionService:
++    """Register an uploaded document, run the pipeline, track status + audit."""
++
++    def __init__(self, pipeline: Optional[IngestionPipeline] = None):
++        self.pipeline = pipeline or IngestionPipeline()
++
++    def ingest_bytes(
++        self,
++        *,
++        data: bytes,
++        filename: str,
++        mime: str = '',
++        title: str = '',
++        visibility: str = 'internal',
++        uploaded_by=None,
++        metadata: Optional[Dict] = None,
++        reingest: bool = False,
++    ) -> DocumentSource:
++        source_hash = hashlib.sha256(data or b'').hexdigest()
++        document = DocumentSource.objects.filter(source_hash=source_hash).first()
++        if document and document.status == 'completed' and not reingest:
++            return document  # idempotent: identical content already ingested
++
++        # update_or_create is race-safe (it retries the get on a unique-constraint
++        # IntegrityError), so two concurrent first-time uploads of identical
++        # content won't crash with a duplicate source_hash.
++        document, _ = DocumentSource.objects.update_or_create(
++            source_hash=source_hash,
++            defaults={
++                'title': title or filename,
++                'filename': filename,
++                'mime': mime or '',
++                'byte_size': len(data or b''),
++                'visibility': visibility,
++                'metadata': metadata or {},
++                'uploaded_by': uploaded_by,
++                'status': 'running',
++                'error_message': '',
++            },
++        )
++
++        try:
++            outcome = self.pipeline.run(
++                data=data,
++                filename=filename,
++                mime=mime,
++                document_id=document.id,
++                source_type='document',
++                base_metadata={'visibility': visibility, **(metadata or {})},
++                title=document.title,
++            )
++        except Exception as exc:
++            document.status = 'failed'
++            document.error_message = f'{type(exc).__name__}: {exc}'
++            document.save(update_fields=['status', 'error_message', 'updated_at'])
++            self._audit(document, action='ingest_failed', actor=uploaded_by)
++            logger.warning(
++                'rag_ingestion_failed',
++                extra={'event': 'rag_ingestion_failed',
++                       'document_id': document.id,
++                       'error_type': type(exc).__name__},
++            )
++            return document
++
++        document.status = 'completed'
++        document.parser = outcome.parser
++        document.chunk_count = outcome.chunk_count
++        document.embedded_count = outcome.embedded_count
++        document.save(update_fields=[
++            'status', 'parser', 'chunk_count', 'embedded_count', 'updated_at',
++        ])
++        self._audit(document, action='ingest_completed', actor=uploaded_by)
++        return document
++
++    def _audit(self, document: DocumentSource, *, action: str, actor=None):
++        try:
++            from audit.models import AuditEvent
++
++            AuditEvent.log(
++                category='kb_ingestion',
++                summary=f'RAG document {action}: {document.title}',
++                user=actor,
++                detail={
++                    'document_id': document.id,
++                    'action': action,
++                    'status': document.status,
++                    'parser': document.parser,
++                    'chunk_count': document.chunk_count,
++                    'embedded_count': document.embedded_count,
++                },
++            )
++        except Exception:
++            # Auditing is best-effort and must never break ingestion.
++            pass
+diff -ruN '--exclude=__pycache__' '--exclude=*.pyc' '--exclude=.git' '--exclude=db.sqlite3' '--exclude=media' /tmp/ctf_clean/backend/rag_ingestion/tests.py /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/rag_ingestion/tests.py
+--- /tmp/ctf_clean/backend/rag_ingestion/tests.py	1970-01-01 08:00:00.000000000 +0800
++++ /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/rag_ingestion/tests.py	2026-10-10 13:54:15.450675500 +0800
+@@ -0,0 +1,195 @@
++"""Tests for the rag_ingestion document pipeline."""
++
++from unittest.mock import patch
++
++from django.contrib.auth import get_user_model
++from django.contrib.contenttypes.models import ContentType
++from django.test import TestCase
++
++from legal_kb.models import LegalKnowledgeEmbedding
++
++from .interfaces import Chunk, EmbeddedChunk
++from .models import DocumentSource
++from .pipeline import EmptyDocumentError, IngestionPipeline, UnsupportedFormatError
++from .registry import select_parser
++from .services import IngestionService
++
++User = get_user_model()
++
++MARKDOWN = (
++    '# SQL 注入防御\n\n'
++    'SQL 注入通过拼接恶意 SQL 语句读取数据库数据。\n\n'
++    '## 防御手段\n\n'
++    '使用参数化查询（预编译语句）并对输入做白名单校验，可以有效防御 SQL 注入。\n'
++).encode('utf-8')
++
++
++class RegistryTests(TestCase):
++    def test_plain_parser_selected_for_markdown(self):
++        parser = select_parser('note.md', 'text/markdown')
++        self.assertIsNotNone(parser)
++        self.assertEqual(parser.name, 'plain')
++
++    def test_html_is_stripped_to_text(self):
++        parser = select_parser('page.html', 'text/html')
++        parsed = parser.parse(b'<html><body><h1>Hi</h1><script>bad()</script><p>Body</p></body></html>',
++                              filename='page.html', mime='text/html')
++        self.assertIn('Hi', parsed.text)
++        self.assertIn('Body', parsed.text)
++        self.assertNotIn('bad()', parsed.text)
++
++
++class IngestionServiceTests(TestCase):
++    def setUp(self):
++        self.user = User.objects.create_user(username='kb-admin', password='pass12345', is_staff=True)
++
++    def test_markdown_ingestion_writes_document_embeddings(self):
++        document = IngestionService().ingest_bytes(
++            data=MARKDOWN,
++            filename='sql-defense.md',
++            mime='text/markdown',
++            uploaded_by=self.user,
++        )
++
++        self.assertEqual(document.status, 'completed')
++        self.assertGreaterEqual(document.embedded_count, 1)
++        content_type = ContentType.objects.get_for_model(DocumentSource)
++        chunks = LegalKnowledgeEmbedding.objects.filter(
++            source_type='document',
++            content_type=content_type,
++            object_id=document.id,
++        )
++        self.assertEqual(chunks.count(), document.embedded_count)
++        self.assertTrue(chunks.filter(text__icontains='参数化查询').exists())
++        self.assertEqual(chunks.first().metadata.get('visibility'), 'internal')
++
++    def test_ingestion_is_idempotent_for_identical_content(self):
++        service = IngestionService()
++        first = service.ingest_bytes(data=MARKDOWN, filename='a.md', uploaded_by=self.user)
++        second = service.ingest_bytes(data=MARKDOWN, filename='a.md', uploaded_by=self.user)
++
++        self.assertEqual(first.id, second.id)
++        content_type = ContentType.objects.get_for_model(DocumentSource)
++        self.assertEqual(
++            LegalKnowledgeEmbedding.objects.filter(
++                source_type='document', content_type=content_type, object_id=first.id
++            ).count(),
++            first.embedded_count,
++        )
++
++    def test_empty_document_is_marked_failed(self):
++        document = IngestionService().ingest_bytes(
++            data=b'   \n  ', filename='empty.txt', uploaded_by=self.user,
++        )
++        self.assertEqual(document.status, 'failed')
++        self.assertIn('EmptyDocumentError', document.error_message)
++
++    def test_uploaded_documents_are_not_learner_facing_by_default(self):
++        """'document' is outside the teaching-safe allowlist, so KnowledgeAgent
++        and agent_runtime must not surface uploaded files to learners."""
++        from legal_kb.services.knowledge_retrieval_service import SafeKnowledgeRetrievalService
++
++        IngestionService().ingest_bytes(data=MARKDOWN, filename='sql.md', uploaded_by=self.user)
++        items = SafeKnowledgeRetrievalService().retrieve(query='参数化查询 防御 SQL 注入', top_k=10)
++
++        self.assertNotIn('document', {item['source_type'] for item in items})
++
++
++class PipelineUnitTests(TestCase):
++    def test_unsupported_format_raises(self):
++        pipeline = IngestionPipeline(parser_selector=lambda filename, mime: None)
++        with self.assertRaises(UnsupportedFormatError):
++            pipeline.run(data=b'x', filename='mystery.xyz', document_id=1)
++
++    def test_empty_text_raises(self):
++        document = DocumentSource.objects.create(
++            title='t', filename='t.txt', source_hash='hash-empty', status='running',
++        )
++        with self.assertRaises(EmptyDocumentError):
++            IngestionPipeline().run(data=b'   ', filename='t.txt', document_id=document.id)
++
++
++class RepositoryAtomicityTests(TestCase):
++    """replace() must swap the index atomically: a mid-write failure keeps the old one."""
++
++    def _embedded(self, order, text):
++        chunk = Chunk(text=text, order=order, title='new', metadata={})
++        return EmbeddedChunk(
++            chunk=chunk, vector=[0.0] * 8, local_vector=[0.0] * 8,
++            model='local-hash-v1', dimension=8,
++        )
++
++    def test_failed_rebuild_rolls_back_and_keeps_old_index(self):
++        from .adapters.repository_legalkb import LegalKbChunkRepository
++
++        doc = DocumentSource.objects.create(
++            title='t', filename='t.md', source_hash='atomic-1', status='completed',
++        )
++        content_type = ContentType.objects.get_for_model(DocumentSource)
++        LegalKnowledgeEmbedding.objects.create(
++            source_type='document', content_type=content_type, object_id=doc.id,
++            chunk_index=0, title='old', text='OLD_COMPLETE_INDEX', text_hash='oldhash',
++            embedding=[0.0], embedding_model='local-hash-v1', embedding_dimension=1, metadata={},
++        )
++
++        embedded = [self._embedded(1, 'NEW_1'), self._embedded(2, 'NEW_2')]
++        real_create = LegalKnowledgeEmbedding.objects.create
++        state = {'n': 0}
++
++        def failing_create(**kwargs):
++            state['n'] += 1
++            if state['n'] == 2:
++                raise RuntimeError('simulated disk failure on 2nd chunk')
++            return real_create(**kwargs)
++
++        with patch.object(LegalKnowledgeEmbedding.objects, 'create', side_effect=failing_create):
++            with self.assertRaises(RuntimeError):
++                LegalKbChunkRepository().replace(
++                    document_id=doc.id, source_type='document',
++                    embedded=embedded, base_metadata={'title': 't'},
++                )
++
++        remaining = list(
++            LegalKnowledgeEmbedding.objects
++            .filter(content_type=content_type, object_id=doc.id)
++            .values_list('text', flat=True)
++        )
++        self.assertEqual(remaining, ['OLD_COMPLETE_INDEX'])  # no partial NEW_1 left behind
++
++
++class MarkItDownParserTests(TestCase):
++    """markitdown adapter must close the temp file before convert reopens it."""
++
++    def test_tempfile_closed_before_convert_and_cleaned_up(self):
++        import os
++        import sys
++        import types
++
++        from .adapters.parser_markitdown import MarkItDownParser
++
++        captured = {}
++
++        class FakeResult:
++            def __init__(self, text):
++                self.text_content = text
++
++        class FakeMarkItDown:
++            def convert(self, path):
++                captured['path'] = path
++                # Reopen by path — would raise PermissionError on Windows if the
++                # writer handle were still open. Succeeds because parse() closes it.
++                with open(path, 'rb') as handle:
++                    data = handle.read()
++                return FakeResult('converted:' + data.decode('utf-8', 'ignore'))
++
++        fake_module = types.ModuleType('markitdown')
++        fake_module.MarkItDown = FakeMarkItDown
++
++        parser = MarkItDownParser()
++        parser._available = True  # pretend the optional dependency is installed
++
++        with patch.dict(sys.modules, {'markitdown': fake_module}):
++            parsed = parser.parse(b'hello pptx', filename='deck.pptx', mime='')
++
++        self.assertIn('converted:hello pptx', parsed.text)
++        self.assertFalse(os.path.exists(captured['path']))  # temp file cleaned up
+diff -ruN '--exclude=__pycache__' '--exclude=*.pyc' '--exclude=.git' '--exclude=db.sqlite3' '--exclude=media' /tmp/ctf_clean/backend/rag_ingestion/urls.py /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/rag_ingestion/urls.py
+--- /tmp/ctf_clean/backend/rag_ingestion/urls.py	1970-01-01 08:00:00.000000000 +0800
++++ /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/rag_ingestion/urls.py	2026-10-09 23:30:46.447091400 +0800
+@@ -0,0 +1,7 @@
++from django.urls import path
++
++from .views import DocumentIngestionView
++
++urlpatterns = [
++    path('documents/', DocumentIngestionView.as_view(), name='rag-ingestion-documents'),
++]
+diff -ruN '--exclude=__pycache__' '--exclude=*.pyc' '--exclude=.git' '--exclude=db.sqlite3' '--exclude=media' /tmp/ctf_clean/backend/rag_ingestion/views.py /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/rag_ingestion/views.py
+--- /tmp/ctf_clean/backend/rag_ingestion/views.py	1970-01-01 08:00:00.000000000 +0800
++++ /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/rag_ingestion/views.py	2026-10-09 23:30:34.729654800 +0800
+@@ -0,0 +1,70 @@
++"""Admin-only ingestion API. Uploads require staff privileges by design."""
++
++import logging
++
++from django.conf import settings
++from rest_framework import status
++from rest_framework.parsers import FormParser, MultiPartParser
++from rest_framework.permissions import IsAdminUser
++from rest_framework.response import Response
++from rest_framework.views import APIView
++
++from .models import DocumentSource
++from .serializers import DocumentSourceSerializer
++from .services import IngestionService
++
++logger = logging.getLogger(__name__)
++
++
++class DocumentIngestionView(APIView):
++    """POST a document file for ingestion; GET lists ingested documents.
++
++    Restricted to staff/admin users: ingestion writes into the shared knowledge
++    base, so it must never be an unauthenticated endpoint.
++    """
++
++    permission_classes = [IsAdminUser]
++    parser_classes = [MultiPartParser, FormParser]
++
++    def get(self, request):
++        documents = DocumentSource.objects.all()[:200]
++        return Response(DocumentSourceSerializer(documents, many=True).data)
++
++    def post(self, request):
++        upload = request.FILES.get('file')
++        if upload is None:
++            return Response({'detail': 'A file is required.'}, status=status.HTTP_400_BAD_REQUEST)
++
++        max_mb = int(getattr(settings, 'RAG_INGESTION_MAX_UPLOAD_MB', 20))
++        if upload.size > max_mb * 1024 * 1024:
++            return Response(
++                {'detail': f'File exceeds the {max_mb}MB upload limit.'},
++                status=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
++            )
++
++        allowed = getattr(settings, 'RAG_INGESTION_ALLOWED_EXTENSIONS', None)
++        name_lower = (upload.name or '').lower()
++        if allowed and not any(name_lower.endswith(ext) for ext in allowed):
++            return Response(
++                {'detail': f'Unsupported file type. Allowed: {", ".join(allowed)}'},
++                status=status.HTTP_400_BAD_REQUEST,
++            )
++
++        visibility = request.data.get('visibility', 'internal')
++        if visibility not in dict(DocumentSource.VISIBILITY_CHOICES):
++            visibility = 'internal'
++
++        document = IngestionService().ingest_bytes(
++            data=upload.read(),
++            filename=upload.name,
++            mime=upload.content_type or '',
++            title=request.data.get('title', '') or (upload.name or ''),
++            visibility=visibility,
++            uploaded_by=request.user,
++            reingest=str(request.data.get('reingest', '')).lower() in ('1', 'true', 'yes'),
++        )
++        http_status = (
++            status.HTTP_201_CREATED if document.status == 'completed'
++            else status.HTTP_422_UNPROCESSABLE_ENTITY
++        )
++        return Response(DocumentSourceSerializer(document).data, status=http_status)
+diff -ruN '--exclude=__pycache__' '--exclude=*.pyc' '--exclude=.git' '--exclude=db.sqlite3' '--exclude=media' /tmp/ctf_clean/backend/requirements.txt /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/requirements.txt
+--- /tmp/ctf_clean/backend/requirements.txt	2026-10-10 15:05:12.022990263 +0800
++++ /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/requirements.txt	2026-10-09 23:34:19.664668300 +0800
+@@ -28,6 +28,7 @@
+ # AI - LangChain + OpenAI Compatible API
+ langchain-openai==0.3.16
+ langchain-core>=0.3.58
++langchain-text-splitters>=0.3.0,<0.4
+ openai==1.68.2
+ 
+ # Document processing (service.py 延迟导入)
+@@ -36,6 +37,13 @@
+ openpyxl==3.1.5
+ numpy==2.2.3
+ 
++# RAG document ingestion (rag_ingestion app).
++# Parsers are imported lazily; these are optional and can be omitted if a
++# given format is not needed. License note: pdfplumber/markitdown are MIT.
++# PyMuPDF (fitz) is AGPL-3.0 and intentionally NOT listed here.
++pdfplumber>=0.11.0
++markitdown>=0.0.1a2
++
+ # Date and Time
+ python-dateutil==2.9.0
+ pytz==2024.2

@@ -1,11 +1,12 @@
 from django.contrib.auth import get_user_model
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from rest_framework.test import APIClient
 from unittest.mock import patch
 
 from .gateway import AgentGateway
 from .memory import UserMemoryStore
 from .models import AgentRun, UserMemory
+from .retrieval import LearningRetrievalService
 from .state_store import AgentRunStateStore
 
 
@@ -454,3 +455,79 @@ class AgentRuntimeApiTests(TestCase):
         results = response.data.get('results', response.data)
         self.assertEqual(len(results), 1)
         self.assertEqual(results[0]['final_result']['content'], 'own result')
+
+
+class LearningRetrievalSemanticTests(TestCase):
+    """agent_runtime retrieval should blend tool data with semantic recall."""
+
+    def setUp(self):
+        self.user = User.objects.create_user(username='semantic-learner', password='pass12345')
+
+    def _seed_concept(self):
+        from learning_paths.models import KnowledgeConcept
+        from legal_kb.services.platform_indexing_service import PlatformContentIndexingService
+
+        KnowledgeConcept.objects.create(
+            name='SQL注入',
+            slug='sql-injection',
+            description='SQL 注入通过拼接恶意语句读取数据库，应使用参数化查询进行防御。',
+            concept_type='vul',
+            difficulty_level=2,
+            importance=0.9,
+            cwe_id='CWE-89',
+        )
+        PlatformContentIndexingService().index_knowledge_concepts()
+
+    def test_semantic_docs_are_appended_with_source_refs(self):
+        self._seed_concept()
+
+        result = LearningRetrievalService().retrieve(user=self.user, query='SQL 注入 如何 防御')
+
+        source_types = {doc['source_type'] for doc in result['retrieved_docs']}
+        self.assertIn('knowledge_concept', source_types)
+        self.assertTrue(all(doc.get('source_ref') for doc in result['retrieved_docs']))
+        self.assertIn('SQL注入', result['knowledge_context'])
+
+    def test_semantic_retrieval_can_be_disabled(self):
+        self._seed_concept()
+
+        with override_settings(AGENT_RUNTIME_SEMANTIC_RETRIEVAL=False):
+            result = LearningRetrievalService().retrieve(user=self.user, query='SQL 注入 如何 防御')
+
+        source_types = {doc['source_type'] for doc in result['retrieved_docs']}
+        self.assertNotIn('knowledge_concept', source_types)
+
+    def test_semantic_docs_survive_context_cap_with_many_tool_docs(self):
+        """Reviewer repro: many tool docs must not push semantic docs past the
+        context cap. Semantic docs keep a reserved quota and stay numbered."""
+
+        class ManyStatesRegistry:
+            def available_learning_tools(self):
+                return ['read_user_knowledge_state']
+
+            def run(self, tool_name, *, user, query):
+                return {
+                    'status': 'success',
+                    'items': [{'id': i, 'concept_name': f'C{i}'} for i in range(17)],
+                }
+
+        class OneSemantic:
+            def retrieve(self, *, query, top_k, user=None):
+                return [{
+                    'source_type': 'knowledge_concept', 'object_id': 1,
+                    'title': '语义概念', 'summary': '语义摘要', 'metadata': {},
+                }]
+
+        service = LearningRetrievalService(
+            tool_registry=ManyStatesRegistry(), knowledge_service=OneSemantic(),
+        )
+        with override_settings(AGENT_RUNTIME_CONTEXT_LIMIT=12, AGENT_RUNTIME_SEMANTIC_TOP_K=4):
+            result = service.retrieve(user=self.user, query='SQL 注入')
+
+        docs = result['retrieved_docs']
+        self.assertLessEqual(len(docs), 12)
+        self.assertTrue(any(doc['source_type'] == 'knowledge_concept' for doc in docs))
+        # numbering, retrieved_docs and the actual prompt stay consistent
+        for doc in docs:
+            self.assertIn(f"[{doc['source_ref']}]", result['knowledge_context'])
+        self.assertIn('语义概念', result['knowledge_context'])
