@@ -2,6 +2,7 @@
 
 from dataclasses import dataclass, field
 from typing import Dict, Optional
+from uuid import UUID
 
 from .chunking import StructureAwareChunker
 from .cleaning import clean_text
@@ -59,6 +60,7 @@ class IngestionPipeline:
         source_type: str = 'document',
         base_metadata: Optional[Dict] = None,
         title: str = '',
+        ingestion_token: Optional[UUID] = None,
     ) -> IngestionOutcome:
         parser = self.parser_selector(filename, mime)
         if parser is None:
@@ -82,11 +84,14 @@ class IngestionPipeline:
 
         chunks = self.chunker.split(text, metadata={})
         embedded = self.embedder.embed(chunks)
+        # Keep legacy/custom repositories compatible for unversioned direct runs.
+        ownership = {'ingestion_token': ingestion_token} if ingestion_token is not None else {}
         stored = self.repository.replace(
             document_id=document_id,
             source_type=source_type,
             embedded=embedded,
             base_metadata=metadata,
+            **ownership,
         )
         return IngestionOutcome(
             parser=parser.name,

@@ -223,3 +223,83 @@
   - `VectorField(1024)` 列、`_retrieve_with_pgvector` 的 `CosineDistance` ANN 分支（`PgvectorAnnRetrievalTests` 断言最近邻命中）；
   - 文档可见范围过滤（`DocumentSource` 子查询 + `object_id__in`）在真实 PG 上同样生效（教师被挡在最近邻 staff 文档之外）。
 - 说明：补丁与测试计数已同步（SQLite 113 ran / PG 113 ran）。补丁 `agent-rag-changes.patch` 已重新生成，仅后端代码、38 文件、无 media/自引用。
+
+
+## 12. 第三轮审查后的本地修复
+
+本节记录本地修复，不覆盖前面各轮历史验证记录。
+
+### DOCX 混合正文和表格丢失
+- 正常 python-docx 路径按正文 XML 顺序遍历段落，包含普通段落、表格及嵌套表格中的段落。
+- XML 回退使用 ElementTree，保持顺序并正确解码实体、制表符和换行。
+- 新增 4 个用例：混合内容顺序、正常解析路径、XML 回退、表格证据实际入库。
+
+### 旧入库任务覆盖新任务
+- DocumentSource 新增不可编辑、可空的 UUID ingestion_token。真正入库时分配新 token，已完成内容的幂等请求保留 token。
+- 短事务锁定文档并领取任务；解析和向量化在事务外。
+- 仓储将当前 token 检查、删除旧索引、写入新索引放在同一文档行锁事务中。
+- 只有当前 token 的 running 任务可提交状态、错误和统计；过期任务不写误导性的审计事件。
+- 新增 5 个交错回归：旧失败、新索引保护、统计保护、幂等与重建 token、新失败阻断旧成功。
+- 新迁移：rag_ingestion/0002_documentsource_ingestion_token.py。部署前执行 python manage.py migrate；未对真实业务库应用迁移。
+
+### 本轮原始验证记录
+- SQLite：122 个用例，120 通过、2 个 PG 专用用例跳过。
+- check 和 makemigrations --check --dry-run 通过。
+- 当时尚未实跑 PG 多线程；该验证缺口已在第 13 节补齐。
+
+## 13. 真实 PostgreSQL 多线程并发验证
+
+### 环境与隔离
+- 本机 Windows，项目外审查 venv 中的 pgserver 0.1.4；独立 PostgreSQL 16.2 + pgvector 0.6.2。
+- 每次生成新的 PGDATA，位于 E:/xianmu/.review-venv/pg-concurrency-validation-*，仅监听 127.0.0.1，未使用项目真实 PGDATA、SQLite 或 dump。
+- Python pgvector 包始终必需；本地 pgserver Windows 包缺少 timezone 资源，测试环境使用 tzdata 的 zoneinfo 文件补齐，未更改业务配置。
+- 迁移仅应用于独立 test_postgres 库；结束后停止临时服务器。使用 --keepdb 时仅保留临时实例的测试库，不接触业务数据库。
+
+### 新增测试
+文件：backend/rag_ingestion/test_postgres_concurrency.py。
+- 使用 TransactionTestCase，不采用包裹整个用例的 TestCase 事务。
+- ThreadPoolExecutor 的每个 worker 使用独立 Django 连接，并断言 PostgreSQL backend PID 不同；finally 中关闭线程连接。
+- Barrier/Event 精确控制交错，不依赖随机 sleep 决定顺序；连接 statement_timeout、lock_timeout 和线程等待均有上限。
+- 6 个场景：4 线程相同内容首次上传；旧解析晚失败；旧嵌入晚成功；旧索引提交后终态晚更新；新重建失败阻断旧成功；索引事务中的新任务领取锁竞争。
+- 锁竞争场景在旧任务持有文档行锁时，通过 pg_blocking_pids(new_pid) 确认阻塞者就是旧任务 backend PID，释放后确认新任务索引获胜。
+- 验证单一 DocumentSource、完整两条切块、非空 pgvector 向量、正确最终 token/状态/统计，没有混合或半成品索引。
+
+### 实跑结果
+- PostgreSQL：5 个相关 app 共 128 个用例全部通过，无跳过，含 6 个新多线程测试和 2 个已有 PG 专用检索测试。
+- 并发用例再重复 10 轮：6 × 10 = 60 次，全部通过。
+- 查询临时测试库确认 vector 扩展实际版本为 0.6.2，存在 1 个 HNSW vector_cosine_ops 索引；这验证索引创建，不声称查询计划必然使用 HNSW。
+- SQLite：128 个用例，120 通过、8 个 PG 专用用例跳过。
+- manage.py check、makemigrations --check --dry-run 通过。
+
+### 已知测试清理限制
+- 首次全量 PG 回归 128 项测试本身通过，但销毁测试库时报 ObjectInUse（1 个残留会话）；因此首次命令整体退出码为 1，未计为完整命令成功。
+- AI 流式测试同时记录了异步写入外键警告，残留会话的归属尚未单独证明，不归因于新并发测试。
+- 改用全新临时实例和 --keepdb 后，全量 PG 命令及 60 次重复命令均返回 0，结束时停止临时服务器。
+- 并发测试是受控交错正确性验证，不等同于长期性能或生产压力测试。
+
+### 运行方式
+先指定独立 PostgreSQL 测试实例的 DATABASE_URL（用户须有建测试库权限），然后从 backend 目录运行：
+
+```powershell
+$env:DATABASE_BACKEND = 'postgres'
+$env:DATABASE_URL = '<独立测试实例连接串>'
+$env:DEBUG = 'true'
+$env:SECRET_KEY = 'dev-test-key'
+python manage.py test rag_ingestion.test_postgres_concurrency --noinput --verbosity 2
+```
+
+累计补丁包含 40 个后端文件；已经按当前代码重新生成和校验。
+
+## 14. 合并校验（本次更新）
+
+把协作者新增的「摄取所有权令牌 + 并发测试 + DOCX 增强」并入后，对整体做了一次独立复核：
+
+- 代码边界确认：协作者仅改动 `rag_ingestion/`（含新迁移 `0002_documentsource_ingestion_token.py`、新文件 `test_postgres_concurrency.py`、DOCX 解析与所有权令牌逻辑）；其余 14 个非 `rag_ingestion` 文件仍为前几轮我方改动，未被改写。
+- 所有权令牌机制与我方「原子替换」兼容：`pipeline.run` 仅在带令牌时把 `ingestion_token` 透传给仓储（无令牌的直接调用保持兼容）；仓储在同一行锁事务内「校验当前令牌→删旧→写新」，令牌失配即 `SupersededIngestionError`；`services._finish` 只允许当前 running 令牌发布状态。它取代了我上一轮的 `update_or_create` 并发写法。
+- 独立复跑（本会话 venv，`pgserver` 用户空间 PostgreSQL 16.2 + pgvector 0.6.2）：
+  - SQLite：5 个相关 app `Ran 128`，OK，PG 专用用例按 vendor 跳过。
+  - PostgreSQL：5 个相关 app `Ran 128`，OK（含 6 个多线程并发用例 + 2 个 pgvector 检索用例实际执行）。
+  - `manage.py check`、`makemigrations --check --dry-run` 通过（无待生成迁移）。
+- 交付物已同步：`agent-rag-changes.patch` 按当前代码重新生成（3357 行、40 文件、无 media/自引用）。
+
+> 历史小节（第 10–11 节）保留各自轮次的当时计数（如 113），以当前第 13–14 节的 128 为准。

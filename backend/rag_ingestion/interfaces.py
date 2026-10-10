@@ -6,7 +6,12 @@ touching ``pipeline.py``.
 """
 
 from dataclasses import dataclass, field
-from typing import Dict, List, Protocol, runtime_checkable
+from typing import Dict, List, Optional, Protocol, runtime_checkable
+from uuid import UUID
+
+
+class SupersededIngestionError(RuntimeError):
+    """An older ingestion attempt no longer owns this document."""
 
 
 @dataclass
@@ -65,4 +70,7 @@ class Embedder(Protocol):
 class ChunkRepository(Protocol):
     """Persist embedded chunks into the shared vector store."""
 
-    def replace(self, *, document_id: int, source_type: str, embedded: List[EmbeddedChunk], base_metadata: Dict) -> int: ...
+    def replace(
+        self, *, document_id: int, source_type: str, embedded: List[EmbeddedChunk],
+        base_metadata: Dict, ingestion_token: Optional[UUID] = None,
+    ) -> int: ...

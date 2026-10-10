@@ -5,12 +5,13 @@ This keeps a single, shared vector store. Uploaded documents are written under
 ``rag_ingestion.DocumentSource``.
 """
 
-from typing import Dict, List
+from typing import Dict, List, Optional
+from uuid import UUID
 
 from django.contrib.contenttypes.models import ContentType
 from django.db import connection, transaction
 
-from ..interfaces import EmbeddedChunk
+from ..interfaces import EmbeddedChunk, SupersededIngestionError
 
 
 class LegalKbChunkRepository:
@@ -23,6 +24,7 @@ class LegalKbChunkRepository:
         source_type: str,
         embedded: List[EmbeddedChunk],
         base_metadata: Dict,
+        ingestion_token: Optional[UUID] = None,
     ) -> int:
         from legal_kb.models import LegalKnowledgeEmbedding
         from legal_kb.services.hashing import sha256_text
@@ -36,6 +38,10 @@ class LegalKbChunkRepository:
         # previous index intact instead of a half-rebuilt one. Parsing and (remote)
         # embedding already happened before this call, so the transaction is short.
         with transaction.atomic():
+            if ingestion_token is not None:
+                document = DocumentSource.objects.select_for_update().get(pk=document_id)
+                if document.ingestion_token != ingestion_token or document.status != 'running':
+                    raise SupersededIngestionError('A newer ingestion owns this document.')
             LegalKnowledgeEmbedding.objects.filter(
                 content_type=content_type,
                 object_id=document_id,

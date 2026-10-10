@@ -1,5 +1,5 @@
 diff -ruN '--exclude=__pycache__' '--exclude=*.pyc' '--exclude=.git' '--exclude=db.sqlite3' '--exclude=media' /tmp/ctf_clean/backend/agent_runtime/retrieval.py /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/agent_runtime/retrieval.py
---- /tmp/ctf_clean/backend/agent_runtime/retrieval.py	2026-10-10 15:05:12.014990263 +0800
+--- /tmp/ctf_clean/backend/agent_runtime/retrieval.py	2026-10-10 16:54:16.899145877 +0800
 +++ /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/agent_runtime/retrieval.py	2026-10-10 13:47:17.131235200 +0800
 @@ -1,17 +1,29 @@
 +import logging
@@ -135,7 +135,7 @@ diff -ruN '--exclude=__pycache__' '--exclude=*.pyc' '--exclude=.git' '--exclude=
                  f"[{doc.get('source_ref')}] {doc.get('title')} "
                  f"({doc.get('source_type')}): {doc.get('excerpt')}"
 diff -ruN '--exclude=__pycache__' '--exclude=*.pyc' '--exclude=.git' '--exclude=db.sqlite3' '--exclude=media' /tmp/ctf_clean/backend/agent_runtime/tests.py /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/agent_runtime/tests.py
---- /tmp/ctf_clean/backend/agent_runtime/tests.py	2026-10-10 15:05:12.014990263 +0800
+--- /tmp/ctf_clean/backend/agent_runtime/tests.py	2026-10-10 16:54:16.899145877 +0800
 +++ /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/agent_runtime/tests.py	2026-10-10 13:48:07.175879500 +0800
 @@ -1,11 +1,12 @@
  from django.contrib.auth import get_user_model
@@ -232,7 +232,7 @@ diff -ruN '--exclude=__pycache__' '--exclude=*.pyc' '--exclude=.git' '--exclude=
 +            self.assertIn(f"[{doc['source_ref']}]", result['knowledge_context'])
 +        self.assertIn('语义概念', result['knowledge_context'])
 diff -ruN '--exclude=__pycache__' '--exclude=*.pyc' '--exclude=.git' '--exclude=db.sqlite3' '--exclude=media' /tmp/ctf_clean/backend/ai_assistant/service.py /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/ai_assistant/service.py
---- /tmp/ctf_clean/backend/ai_assistant/service.py	2026-10-10 15:05:12.015990263 +0800
+--- /tmp/ctf_clean/backend/ai_assistant/service.py	2026-10-10 16:54:16.902145877 +0800
 +++ /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/ai_assistant/service.py	2026-10-10 14:41:13.310546800 +0800
 @@ -19,6 +19,8 @@
  import re
@@ -392,7 +392,7 @@ diff -ruN '--exclude=__pycache__' '--exclude=*.pyc' '--exclude=.git' '--exclude=
          """Extract stable CTF keywords for local resource retrieval."""
          text = f"{concept_name or ''} {question or ''}".lower()
 diff -ruN '--exclude=__pycache__' '--exclude=*.pyc' '--exclude=.git' '--exclude=db.sqlite3' '--exclude=media' /tmp/ctf_clean/backend/ai_assistant/tests.py /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/ai_assistant/tests.py
---- /tmp/ctf_clean/backend/ai_assistant/tests.py	2026-10-10 15:05:12.015990263 +0800
+--- /tmp/ctf_clean/backend/ai_assistant/tests.py	2026-10-10 16:54:16.902145877 +0800
 +++ /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/ai_assistant/tests.py	2026-10-10 14:44:58.499823500 +0800
 @@ -2,7 +2,7 @@
  from types import SimpleNamespace
@@ -517,7 +517,7 @@ diff -ruN '--exclude=__pycache__' '--exclude=*.pyc' '--exclude=.git' '--exclude=
 +        # Concept explanation body (not just the name) reached context_text.
 +        self.assertIn('参数化查询', package['context_text'])
 diff -ruN '--exclude=__pycache__' '--exclude=*.pyc' '--exclude=.git' '--exclude=db.sqlite3' '--exclude=media' /tmp/ctf_clean/backend/ctf_backend/settings.py /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/ctf_backend/settings.py
---- /tmp/ctf_clean/backend/ctf_backend/settings.py	2026-10-10 15:05:12.018990263 +0800
+--- /tmp/ctf_clean/backend/ctf_backend/settings.py	2026-10-10 16:54:16.905145877 +0800
 +++ /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/ctf_backend/settings.py	2026-10-10 13:47:30.618469900 +0800
 @@ -86,6 +86,7 @@
      'student_profiles',
@@ -561,7 +561,7 @@ diff -ruN '--exclude=__pycache__' '--exclude=*.pyc' '--exclude=.git' '--exclude=
  LEGAL_KB_RAG_AGENT_ID = os.environ.get('LEGAL_KB_RAG_AGENT_ID', 'compliance_officer')
  LEGAL_COMPLIANCE_AGENT_USE_LLM = os.environ.get(
 diff -ruN '--exclude=__pycache__' '--exclude=*.pyc' '--exclude=.git' '--exclude=db.sqlite3' '--exclude=media' /tmp/ctf_clean/backend/ctf_backend/urls.py /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/ctf_backend/urls.py
---- /tmp/ctf_clean/backend/ctf_backend/urls.py	2026-10-10 15:05:12.018990263 +0800
+--- /tmp/ctf_clean/backend/ctf_backend/urls.py	2026-10-10 16:54:16.905145877 +0800
 +++ /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/ctf_backend/urls.py	2026-10-09 23:31:21.502018600 +0800
 @@ -43,6 +43,7 @@
      path('api/legal/', include('legal.urls')),
@@ -594,7 +594,7 @@ diff -ruN '--exclude=__pycache__' '--exclude=*.pyc' '--exclude=.git' '--exclude=
 +        ),
 +    ]
 diff -ruN '--exclude=__pycache__' '--exclude=*.pyc' '--exclude=.git' '--exclude=db.sqlite3' '--exclude=media' /tmp/ctf_clean/backend/legal_kb/models.py /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/legal_kb/models.py
---- /tmp/ctf_clean/backend/legal_kb/models.py	2026-10-10 15:05:12.022990263 +0800
+--- /tmp/ctf_clean/backend/legal_kb/models.py	2026-10-10 16:54:16.909145877 +0800
 +++ /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/legal_kb/models.py	2026-10-09 23:16:28.644567100 +0800
 @@ -185,6 +185,7 @@
          ('article', 'Article'),
@@ -711,7 +711,7 @@ diff -ruN '--exclude=__pycache__' '--exclude=*.pyc' '--exclude=.git' '--exclude=
 +            return value
 +        return value[: limit - 3].rstrip() + '...'
 diff -ruN '--exclude=__pycache__' '--exclude=*.pyc' '--exclude=.git' '--exclude=db.sqlite3' '--exclude=media' /tmp/ctf_clean/backend/legal_kb/services/platform_indexing_service.py /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/legal_kb/services/platform_indexing_service.py
---- /tmp/ctf_clean/backend/legal_kb/services/platform_indexing_service.py	2026-10-10 15:05:12.022990263 +0800
+--- /tmp/ctf_clean/backend/legal_kb/services/platform_indexing_service.py	2026-10-10 16:54:16.909145877 +0800
 +++ /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/legal_kb/services/platform_indexing_service.py	2026-10-09 22:43:15.179752700 +0800
 @@ -12,6 +12,7 @@
  from ai_assistant.models import ChallengeKnowledgePack
@@ -798,7 +798,7 @@ diff -ruN '--exclude=__pycache__' '--exclude=*.pyc' '--exclude=.git' '--exclude=
          self,
          *,
 diff -ruN '--exclude=__pycache__' '--exclude=*.pyc' '--exclude=.git' '--exclude=db.sqlite3' '--exclude=media' /tmp/ctf_clean/backend/legal_kb/services/retrieval_service.py /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/legal_kb/services/retrieval_service.py
---- /tmp/ctf_clean/backend/legal_kb/services/retrieval_service.py	2026-10-10 15:05:12.022990263 +0800
+--- /tmp/ctf_clean/backend/legal_kb/services/retrieval_service.py	2026-10-10 16:54:16.909145877 +0800
 +++ /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/legal_kb/services/retrieval_service.py	2026-10-10 14:42:32.288687200 +0800
 @@ -7,9 +7,11 @@
  
@@ -1113,7 +1113,7 @@ diff -ruN '--exclude=__pycache__' '--exclude=*.pyc' '--exclude=.git' '--exclude=
 +        & ~Q(content_type=document_ct, object_id__in=allowed_document_ids)
 +    )
 diff -ruN '--exclude=__pycache__' '--exclude=*.pyc' '--exclude=.git' '--exclude=db.sqlite3' '--exclude=media' /tmp/ctf_clean/backend/legal_kb/tests.py /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/legal_kb/tests.py
---- /tmp/ctf_clean/backend/legal_kb/tests.py	2026-10-10 15:05:12.022990263 +0800
+--- /tmp/ctf_clean/backend/legal_kb/tests.py	2026-10-10 16:54:16.909145877 +0800
 +++ /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/legal_kb/tests.py	2026-10-10 14:56:54.722133200 +0800
 @@ -3,17 +3,20 @@
  import io
@@ -1373,7 +1373,7 @@ diff -ruN '--exclude=__pycache__' '--exclude=*.pyc' '--exclude=.git' '--exclude=
 +        # staff doc is the nearest vector, but must be filtered out for a teacher
 +        self.assertFalse(any(item['object_id'] == self.doc_staff.id for item in results))
 diff -ruN '--exclude=__pycache__' '--exclude=*.pyc' '--exclude=.git' '--exclude=db.sqlite3' '--exclude=media' /tmp/ctf_clean/backend/legal_kb/views.py /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/legal_kb/views.py
---- /tmp/ctf_clean/backend/legal_kb/views.py	2026-10-10 15:05:12.022990263 +0800
+--- /tmp/ctf_clean/backend/legal_kb/views.py	2026-10-10 16:54:16.909145877 +0800
 +++ /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/legal_kb/views.py	2026-10-10 00:25:12.301980700 +0800
 @@ -93,6 +93,11 @@
      serializer_class = LegalKnowledgeEmbeddingSerializer
@@ -1449,24 +1449,22 @@ diff -ruN '--exclude=__pycache__' '--exclude=*.pyc' '--exclude=.git' '--exclude=
 +        return embedded
 diff -ruN '--exclude=__pycache__' '--exclude=*.pyc' '--exclude=.git' '--exclude=db.sqlite3' '--exclude=media' /tmp/ctf_clean/backend/rag_ingestion/adapters/parser_docx.py /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/rag_ingestion/adapters/parser_docx.py
 --- /tmp/ctf_clean/backend/rag_ingestion/adapters/parser_docx.py	1970-01-01 08:00:00.000000000 +0800
-+++ /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/rag_ingestion/adapters/parser_docx.py	2026-10-10 15:03:35.632138800 +0800
-@@ -0,0 +1,60 @@
-+"""Word .docx parser: python-docx if present, else a zipfile XML fallback."""
++++ /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/rag_ingestion/adapters/parser_docx.py	2026-10-10 15:38:17.468773300 +0800
+@@ -0,0 +1,67 @@
++"""Word .docx parser preserving body and table paragraphs in document order."""
 +
 +import io
-+import re
 +import zipfile
 +from typing import Set
++from xml.etree import ElementTree
 +
 +from ..interfaces import ParsedDocument
 +
-+_XML_PARA_RE = re.compile(r'<w:p\b[^>]*>.*?</w:p>', re.S)
-+_XML_TEXT_RE = re.compile(r'<w:t\b[^>]*>(.*?)</w:t>', re.S)
-+_XML_TAG_RE = re.compile(r'<[^>]+>')
++_WORD_NS = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main'
 +
 +
 +class DocxParser:
-+    """Extract text from .docx without requiring a heavy dependency."""
++    """Extract body text, including nested table cells, with an XML fallback."""
 +
 +    name = 'docx'
 +    EXTENSIONS: Set[str] = {'.docx'}
@@ -1478,39 +1476,48 @@ diff -ruN '--exclude=__pycache__' '--exclude=*.pyc' '--exclude=.git' '--exclude=
 +        return 'wordprocessingml' in (mime or '')
 +
 +    def parse(self, data: bytes, *, filename: str, mime: str) -> ParsedDocument:
-+        # python-docx only reads body paragraphs (misses tables/headers/footers).
-+        # If it yields nothing usable, fall back to the zipfile XML scan which
-+        # recovers all <w:t> runs (tables included).
-+        text = self._with_python_docx(data) or ''
-+        if not text.strip():
-+            text = self._with_zipfile(data) or ''
-+        return ParsedDocument(text=text, metadata={'parser': self.name})
++        text = self._with_python_docx(data)
++        if not text or not text.strip():
++            text = self._with_zipfile(data)
++        return ParsedDocument(text=text or '', metadata={'parser': self.name})
 +
 +    def _with_python_docx(self, data: bytes):
 +        try:
-+            import docx  # python-docx exposes docx.Document
-+        except Exception:
-+            return None
-+        try:
++            import docx
++            from docx.oxml.ns import qn
++            from docx.text.paragraph import Paragraph
++
 +            document = docx.Document(io.BytesIO(data))
++            # document.paragraphs excludes tables. Walk all body paragraphs so
++            # mixed content and nested table cells retain their original order.
++            paragraphs = (
++                Paragraph(element, document).text
++                for element in document.element.body.iter(qn('w:p'))
++            )
++            return '\n'.join(text for text in paragraphs if text.strip())
 +        except Exception:
 +            return None
-+        paragraphs = [p.text for p in getattr(document, 'paragraphs', [])]
-+        return '\n'.join(part for part in paragraphs if part is not None)
 +
 +    def _with_zipfile(self, data: bytes) -> str:
 +        try:
 +            with zipfile.ZipFile(io.BytesIO(data)) as archive:
-+                xml = archive.read('word/document.xml').decode('utf-8', errors='ignore')
-+        except Exception:
++                document = ElementTree.fromstring(archive.read('word/document.xml'))
++            paragraphs = []
++            for paragraph in document.iter(f'{{{_WORD_NS}}}p'):
++                fragments = []
++                for element in paragraph.iter():
++                    if element.tag == f'{{{_WORD_NS}}}t':
++                        fragments.append(element.text or '')
++                    elif element.tag == f'{{{_WORD_NS}}}tab':
++                        fragments.append('\t')
++                    elif element.tag in (f'{{{_WORD_NS}}}br', f'{{{_WORD_NS}}}cr'):
++                        fragments.append('\n')
++                text = ''.join(fragments)
++                if text.strip():
++                    paragraphs.append(text)
++            return '\n'.join(paragraphs)
++        except (OSError, ValueError, KeyError, zipfile.BadZipFile, ElementTree.ParseError):
 +            return ''
-+        paragraphs = []
-+        for para in _XML_PARA_RE.findall(xml):
-+            texts = _XML_TEXT_RE.findall(para)
-+            line = ''.join(_XML_TAG_RE.sub('', fragment) for fragment in texts)
-+            if line.strip():
-+                paragraphs.append(line)
-+        return '\n'.join(paragraphs)
 diff -ruN '--exclude=__pycache__' '--exclude=*.pyc' '--exclude=.git' '--exclude=db.sqlite3' '--exclude=media' /tmp/ctf_clean/backend/rag_ingestion/adapters/parser_markitdown.py /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/rag_ingestion/adapters/parser_markitdown.py
 --- /tmp/ctf_clean/backend/rag_ingestion/adapters/parser_markitdown.py	1970-01-01 08:00:00.000000000 +0800
 +++ /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/rag_ingestion/adapters/parser_markitdown.py	2026-10-10 13:53:10.029196000 +0800
@@ -1704,8 +1711,8 @@ diff -ruN '--exclude=__pycache__' '--exclude=*.pyc' '--exclude=.git' '--exclude=
 +            return _TAG_RE.sub(' ', stripped)
 diff -ruN '--exclude=__pycache__' '--exclude=*.pyc' '--exclude=.git' '--exclude=db.sqlite3' '--exclude=media' /tmp/ctf_clean/backend/rag_ingestion/adapters/repository_legalkb.py /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/rag_ingestion/adapters/repository_legalkb.py
 --- /tmp/ctf_clean/backend/rag_ingestion/adapters/repository_legalkb.py	1970-01-01 08:00:00.000000000 +0800
-+++ /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/rag_ingestion/adapters/repository_legalkb.py	2026-10-10 13:49:47.377609000 +0800
-@@ -0,0 +1,69 @@
++++ /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/rag_ingestion/adapters/repository_legalkb.py	2026-10-10 15:38:17.471011400 +0800
+@@ -0,0 +1,75 @@
 +"""Repository adapter persisting chunks into legal_kb.LegalKnowledgeEmbedding.
 +
 +This keeps a single, shared vector store. Uploaded documents are written under
@@ -1713,12 +1720,13 @@ diff -ruN '--exclude=__pycache__' '--exclude=*.pyc' '--exclude=.git' '--exclude=
 +``rag_ingestion.DocumentSource``.
 +"""
 +
-+from typing import Dict, List
++from typing import Dict, List, Optional
++from uuid import UUID
 +
 +from django.contrib.contenttypes.models import ContentType
 +from django.db import connection, transaction
 +
-+from ..interfaces import EmbeddedChunk
++from ..interfaces import EmbeddedChunk, SupersededIngestionError
 +
 +
 +class LegalKbChunkRepository:
@@ -1731,6 +1739,7 @@ diff -ruN '--exclude=__pycache__' '--exclude=*.pyc' '--exclude=.git' '--exclude=
 +        source_type: str,
 +        embedded: List[EmbeddedChunk],
 +        base_metadata: Dict,
++        ingestion_token: Optional[UUID] = None,
 +    ) -> int:
 +        from legal_kb.models import LegalKnowledgeEmbedding
 +        from legal_kb.services.hashing import sha256_text
@@ -1744,6 +1753,10 @@ diff -ruN '--exclude=__pycache__' '--exclude=*.pyc' '--exclude=.git' '--exclude=
 +        # previous index intact instead of a half-rebuilt one. Parsing and (remote)
 +        # embedding already happened before this call, so the transaction is short.
 +        with transaction.atomic():
++            if ingestion_token is not None:
++                document = DocumentSource.objects.select_for_update().get(pk=document_id)
++                if document.ingestion_token != ingestion_token or document.status != 'running':
++                    raise SupersededIngestionError('A newer ingestion owns this document.')
 +            LegalKnowledgeEmbedding.objects.filter(
 +                content_type=content_type,
 +                object_id=document_id,
@@ -1927,8 +1940,8 @@ diff -ruN '--exclude=__pycache__' '--exclude=*.pyc' '--exclude=.git' '--exclude=
 +    return normalized.strip()
 diff -ruN '--exclude=__pycache__' '--exclude=*.pyc' '--exclude=.git' '--exclude=db.sqlite3' '--exclude=media' /tmp/ctf_clean/backend/rag_ingestion/interfaces.py /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/rag_ingestion/interfaces.py
 --- /tmp/ctf_clean/backend/rag_ingestion/interfaces.py	1970-01-01 08:00:00.000000000 +0800
-+++ /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/rag_ingestion/interfaces.py	2026-10-09 23:18:29.756432300 +0800
-@@ -0,0 +1,68 @@
++++ /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/rag_ingestion/interfaces.py	2026-10-10 15:54:46.269021900 +0800
+@@ -0,0 +1,76 @@
 +"""Pipeline contracts. The orchestrator depends only on these abstractions.
 +
 +Keeping third-party libraries behind these Protocols is what lets us swap a
@@ -1937,7 +1950,12 @@ diff -ruN '--exclude=__pycache__' '--exclude=*.pyc' '--exclude=.git' '--exclude=
 +"""
 +
 +from dataclasses import dataclass, field
-+from typing import Dict, List, Protocol, runtime_checkable
++from typing import Dict, List, Optional, Protocol, runtime_checkable
++from uuid import UUID
++
++
++class SupersededIngestionError(RuntimeError):
++    """An older ingestion attempt no longer owns this document."""
 +
 +
 +@dataclass
@@ -1996,7 +2014,10 @@ diff -ruN '--exclude=__pycache__' '--exclude=*.pyc' '--exclude=.git' '--exclude=
 +class ChunkRepository(Protocol):
 +    """Persist embedded chunks into the shared vector store."""
 +
-+    def replace(self, *, document_id: int, source_type: str, embedded: List[EmbeddedChunk], base_metadata: Dict) -> int: ...
++    def replace(
++        self, *, document_id: int, source_type: str, embedded: List[EmbeddedChunk],
++        base_metadata: Dict, ingestion_token: Optional[UUID] = None,
++    ) -> int: ...
 diff -ruN '--exclude=__pycache__' '--exclude=*.pyc' '--exclude=.git' '--exclude=db.sqlite3' '--exclude=media' /tmp/ctf_clean/backend/rag_ingestion/management/commands/ingest_documents.py /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/rag_ingestion/management/commands/ingest_documents.py
 --- /tmp/ctf_clean/backend/rag_ingestion/management/commands/ingest_documents.py	1970-01-01 08:00:00.000000000 +0800
 +++ /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/rag_ingestion/management/commands/ingest_documents.py	2026-10-09 23:29:22.844386500 +0800
@@ -2123,10 +2144,32 @@ diff -ruN '--exclude=__pycache__' '--exclude=*.pyc' '--exclude=.git' '--exclude=
 +            },
 +        ),
 +    ]
+diff -ruN '--exclude=__pycache__' '--exclude=*.pyc' '--exclude=.git' '--exclude=db.sqlite3' '--exclude=media' /tmp/ctf_clean/backend/rag_ingestion/migrations/0002_documentsource_ingestion_token.py /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/rag_ingestion/migrations/0002_documentsource_ingestion_token.py
+--- /tmp/ctf_clean/backend/rag_ingestion/migrations/0002_documentsource_ingestion_token.py	1970-01-01 08:00:00.000000000 +0800
++++ /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/rag_ingestion/migrations/0002_documentsource_ingestion_token.py	2026-10-10 15:39:59.052772200 +0800
+@@ -0,0 +1,18 @@
++# Generated by Django 6.0.3 on 2026-10-10 07:39
++
++from django.db import migrations, models
++
++
++class Migration(migrations.Migration):
++
++    dependencies = [
++        ("rag_ingestion", "0001_initial"),
++    ]
++
++    operations = [
++        migrations.AddField(
++            model_name="documentsource",
++            name="ingestion_token",
++            field=models.UUIDField(blank=True, editable=False, null=True),
++        ),
++    ]
 diff -ruN '--exclude=__pycache__' '--exclude=*.pyc' '--exclude=.git' '--exclude=db.sqlite3' '--exclude=media' /tmp/ctf_clean/backend/rag_ingestion/models.py /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/rag_ingestion/models.py
 --- /tmp/ctf_clean/backend/rag_ingestion/models.py	1970-01-01 08:00:00.000000000 +0800
-+++ /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/rag_ingestion/models.py	2026-10-09 23:27:45.196353500 +0800
-@@ -0,0 +1,54 @@
++++ /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/rag_ingestion/models.py	2026-10-10 15:38:17.469345500 +0800
+@@ -0,0 +1,55 @@
 +"""Models tracking uploaded documents and their ingestion lifecycle."""
 +
 +from django.conf import settings
@@ -2155,6 +2198,7 @@ diff -ruN '--exclude=__pycache__' '--exclude=*.pyc' '--exclude=.git' '--exclude=
 +    byte_size = models.PositiveIntegerField(default=0, verbose_name='Byte size')
 +    source_hash = models.CharField(max_length=64, unique=True, verbose_name='Content hash')
 +    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', db_index=True)
++    ingestion_token = models.UUIDField(null=True, blank=True, editable=False)
 +    visibility = models.CharField(max_length=20, choices=VISIBILITY_CHOICES, default='internal')
 +    parser = models.CharField(max_length=60, blank=True, verbose_name='Parser used')
 +    chunk_count = models.PositiveIntegerField(default=0)
@@ -2183,12 +2227,13 @@ diff -ruN '--exclude=__pycache__' '--exclude=*.pyc' '--exclude=.git' '--exclude=
 +        return f'{self.title} ({self.status})'
 diff -ruN '--exclude=__pycache__' '--exclude=*.pyc' '--exclude=.git' '--exclude=db.sqlite3' '--exclude=media' /tmp/ctf_clean/backend/rag_ingestion/pipeline.py /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/rag_ingestion/pipeline.py
 --- /tmp/ctf_clean/backend/rag_ingestion/pipeline.py	1970-01-01 08:00:00.000000000 +0800
-+++ /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/rag_ingestion/pipeline.py	2026-10-09 23:28:14.957576200 +0800
-@@ -0,0 +1,96 @@
++++ /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/rag_ingestion/pipeline.py	2026-10-10 15:38:17.469992600 +0800
+@@ -0,0 +1,101 @@
 +"""Ingestion orchestrator. Depends only on app abstractions, not third parties."""
 +
 +from dataclasses import dataclass, field
 +from typing import Dict, Optional
++from uuid import UUID
 +
 +from .chunking import StructureAwareChunker
 +from .cleaning import clean_text
@@ -2246,6 +2291,7 @@ diff -ruN '--exclude=__pycache__' '--exclude=*.pyc' '--exclude=.git' '--exclude=
 +        source_type: str = 'document',
 +        base_metadata: Optional[Dict] = None,
 +        title: str = '',
++        ingestion_token: Optional[UUID] = None,
 +    ) -> IngestionOutcome:
 +        parser = self.parser_selector(filename, mime)
 +        if parser is None:
@@ -2269,11 +2315,14 @@ diff -ruN '--exclude=__pycache__' '--exclude=*.pyc' '--exclude=.git' '--exclude=
 +
 +        chunks = self.chunker.split(text, metadata={})
 +        embedded = self.embedder.embed(chunks)
++        # Keep legacy/custom repositories compatible for unversioned direct runs.
++        ownership = {'ingestion_token': ingestion_token} if ingestion_token is not None else {}
 +        stored = self.repository.replace(
 +            document_id=document_id,
 +            source_type=source_type,
 +            embedded=embedded,
 +            base_metadata=metadata,
++            **ownership,
 +        )
 +        return IngestionOutcome(
 +            parser=parser.name,
@@ -2355,14 +2404,18 @@ diff -ruN '--exclude=__pycache__' '--exclude=*.pyc' '--exclude=.git' '--exclude=
 +        read_only_fields = fields
 diff -ruN '--exclude=__pycache__' '--exclude=*.pyc' '--exclude=.git' '--exclude=db.sqlite3' '--exclude=media' /tmp/ctf_clean/backend/rag_ingestion/services.py /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/rag_ingestion/services.py
 --- /tmp/ctf_clean/backend/rag_ingestion/services.py	1970-01-01 08:00:00.000000000 +0800
-+++ /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/rag_ingestion/services.py	2026-10-10 15:02:52.329374000 +0800
-@@ -0,0 +1,106 @@
++++ /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/rag_ingestion/services.py	2026-10-10 15:54:46.269021900 +0800
+@@ -0,0 +1,127 @@
 +"""Facade coordinating DocumentSource lifecycle with the ingestion pipeline."""
 +
 +import hashlib
 +import logging
 +from typing import Dict, Optional
++from uuid import uuid4
 +
++from django.db import transaction
++
++from .interfaces import SupersededIngestionError
 +from .models import DocumentSource
 +from .pipeline import IngestionPipeline
 +
@@ -2388,27 +2441,27 @@ diff -ruN '--exclude=__pycache__' '--exclude=*.pyc' '--exclude=.git' '--exclude=
 +        reingest: bool = False,
 +    ) -> DocumentSource:
 +        source_hash = hashlib.sha256(data or b'').hexdigest()
-+        document = DocumentSource.objects.filter(source_hash=source_hash).first()
-+        if document and document.status == 'completed' and not reingest:
-+            return document  # idempotent: identical content already ingested
-+
-+        # update_or_create is race-safe (it retries the get on a unique-constraint
-+        # IntegrityError), so two concurrent first-time uploads of identical
-+        # content won't crash with a duplicate source_hash.
-+        document, _ = DocumentSource.objects.update_or_create(
-+            source_hash=source_hash,
-+            defaults={
-+                'title': title or filename,
-+                'filename': filename,
-+                'mime': mime or '',
-+                'byte_size': len(data or b''),
-+                'visibility': visibility,
-+                'metadata': metadata or {},
-+                'uploaded_by': uploaded_by,
-+                'status': 'running',
-+                'error_message': '',
-+            },
-+        )
++        # Serialize task claims, not parsing or remote embedding. get_or_create
++        # retries a concurrent unique-key insert; the row lock then protects the
++        # completed check and assignment of a new task token together.
++        with transaction.atomic():
++            document, _ = DocumentSource.objects.select_for_update().get_or_create(
++                source_hash=source_hash,
++            )
++            if document.status == 'completed' and not reingest:
++                return document
++            token = uuid4()
++            document.title = title or filename
++            document.filename = filename
++            document.mime = mime or ''
++            document.byte_size = len(data or b'')
++            document.visibility = visibility
++            document.metadata = metadata or {}
++            document.uploaded_by = uploaded_by
++            document.status = 'running'
++            document.ingestion_token = token
++            document.error_message = ''
++            document.save()
 +
 +        try:
 +            outcome = self.pipeline.run(
@@ -2419,29 +2472,46 @@ diff -ruN '--exclude=__pycache__' '--exclude=*.pyc' '--exclude=.git' '--exclude=
 +                source_type='document',
 +                base_metadata={'visibility': visibility, **(metadata or {})},
 +                title=document.title,
++                ingestion_token=token,
 +            )
++        except SupersededIngestionError:
++            document.refresh_from_db()
++            return document
 +        except Exception as exc:
-+            document.status = 'failed'
-+            document.error_message = f'{type(exc).__name__}: {exc}'
-+            document.save(update_fields=['status', 'error_message', 'updated_at'])
-+            self._audit(document, action='ingest_failed', actor=uploaded_by)
-+            logger.warning(
-+                'rag_ingestion_failed',
-+                extra={'event': 'rag_ingestion_failed',
-+                       'document_id': document.id,
-+                       'error_type': type(exc).__name__},
++            document, updated = self._finish(
++                document.id, token, status='failed',
++                error_message=f'{type(exc).__name__}: {exc}',
 +            )
++            if updated:
++                self._audit(document, action='ingest_failed', actor=uploaded_by)
++                logger.warning(
++                    'rag_ingestion_failed',
++                    extra={'event': 'rag_ingestion_failed',
++                           'document_id': document.id,
++                           'error_type': type(exc).__name__},
++                )
 +            return document
 +
-+        document.status = 'completed'
-+        document.parser = outcome.parser
-+        document.chunk_count = outcome.chunk_count
-+        document.embedded_count = outcome.embedded_count
-+        document.save(update_fields=[
-+            'status', 'parser', 'chunk_count', 'embedded_count', 'updated_at',
-+        ])
-+        self._audit(document, action='ingest_completed', actor=uploaded_by)
++        document, updated = self._finish(
++            document.id, token, status='completed', parser=outcome.parser,
++            chunk_count=outcome.chunk_count, embedded_count=outcome.embedded_count,
++            error_message='',
++        )
++        if updated:
++            self._audit(document, action='ingest_completed', actor=uploaded_by)
 +        return document
++
++    @staticmethod
++    def _finish(document_id, token, **changes):
++        """Only the current attempt may publish its state and statistics."""
++        with transaction.atomic():
++            document = DocumentSource.objects.select_for_update().get(pk=document_id)
++            if document.ingestion_token != token or document.status != 'running':
++                return document, False
++            for name, value in changes.items():
++                setattr(document, name, value)
++            document.save(update_fields=[*changes, 'updated_at'])
++            return document, True
 +
 +    def _audit(self, document: DocumentSource, *, action: str, actor=None):
 +        try:
@@ -2463,10 +2533,294 @@ diff -ruN '--exclude=__pycache__' '--exclude=*.pyc' '--exclude=.git' '--exclude=
 +        except Exception:
 +            # Auditing is best-effort and must never break ingestion.
 +            pass
+diff -ruN '--exclude=__pycache__' '--exclude=*.pyc' '--exclude=.git' '--exclude=db.sqlite3' '--exclude=media' /tmp/ctf_clean/backend/rag_ingestion/test_postgres_concurrency.py /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/rag_ingestion/test_postgres_concurrency.py
+--- /tmp/ctf_clean/backend/rag_ingestion/test_postgres_concurrency.py	1970-01-01 08:00:00.000000000 +0800
++++ /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/rag_ingestion/test_postgres_concurrency.py	2026-10-10 16:39:52.292956800 +0800
+@@ -0,0 +1,280 @@
++"""Real PostgreSQL concurrency tests; SQLite must skip, not simulate row locks.
++
++Run with DATABASE_BACKEND=postgres and a disposable DATABASE_URL:
++    python manage.py test rag_ingestion.test_postgres_concurrency --noinput
++
++Each worker has a separate Django connection/PostgreSQL backend PID. Events and
++barriers force the contested ordering; all waits and SQL statements are bounded.
++"""
++
++from concurrent.futures import ThreadPoolExecutor
++from threading import Barrier, Event, Lock
++from time import monotonic, sleep
++from unittest import skipUnless
++from unittest.mock import patch
++
++from django.db import close_old_connections, connection, connections
++from django.test import TransactionTestCase
++
++from legal_kb.models import LegalKnowledgeEmbedding
++
++from .adapters.repository_legalkb import LegalKbChunkRepository
++from .interfaces import Chunk, EmbeddedChunk, ParsedDocument
++from .models import DocumentSource
++from .pipeline import IngestionPipeline
++from .services import IngestionService
++
++
++@skipUnless(connection.vendor == 'postgresql', 'requires real PostgreSQL row locks')
++class PostgresIngestionConcurrencyTests(TransactionTestCase):
++    """Fence old tasks at index write and completion, across real connections."""
++
++    WAIT_SECONDS = 20
++    DATA = b'Concurrent upload fixture shared by independent PostgreSQL workers'
++
++    def setUp(self):
++        self.backend_pids = []
++        self.pid_lock = Lock()
++        # Avoid first-use ContentType creation being the unrelated race under test.
++        from django.contrib.contenttypes.models import ContentType
++        ContentType.objects.get_for_model(DocumentSource)
++
++    def _wait(self, event, description):
++        if not event.wait(self.WAIT_SECONDS):
++            raise TimeoutError(description)
++
++    def _worker(self, pipeline, *, filename, reingest=False, connected=None):
++        close_old_connections()
++        try:
++            with connection.cursor() as cursor:
++                cursor.execute("SET statement_timeout = '20s'")
++                cursor.execute("SET lock_timeout = '15s'")
++                cursor.execute('SELECT pg_backend_pid()')
++                pid = cursor.fetchone()[0]
++            with self.pid_lock:
++                self.backend_pids.append(pid)
++            if connected is not None:
++                connected.set()
++            document = IngestionService(pipeline=pipeline).ingest_bytes(
++                data=self.DATA, filename=filename, visibility='staff',
++                reingest=reingest,
++            )
++            return document.pk
++        finally:
++            connections.close_all()
++
++    @staticmethod
++    def _pipeline(name, *, parse_hook=None, embed_hook=None, repository=None):
++        class Parser:
++            def parse(self, data, **kwargs):
++                if parse_hook:
++                    parse_hook()
++                return ParsedDocument(text=name)
++
++        parser = Parser()
++        parser.name = name
++
++        class Chunker:
++            def split(self, text, **kwargs):
++                return [Chunk(text=f'{text}:{index}', order=index + 1)
++                        for index in range(2)]
++
++        class Embedder:
++            def embed(self, chunks):
++                if embed_hook:
++                    embed_hook()
++                vector = [1.0] + [0.0] * 1023
++                local = [1.0] + [0.0] * 127
++                return [EmbeddedChunk(chunk, vector, local, 'concurrency-fixture', 1024)
++                        for chunk in chunks]
++
++        return IngestionPipeline(
++            parser_selector=lambda filename, mime: parser,
++            chunker=Chunker(), embedder=Embedder(), repository=repository,
++        )
++
++    def _assert_connections(self, count):
++        self.assertEqual(len(self.backend_pids), count)
++        self.assertEqual(len(set(self.backend_pids)), count)
++
++    def _assert_winner(self, name, *, filename):
++        self.assertEqual(DocumentSource.objects.count(), 1)
++        document = DocumentSource.objects.get()
++        self.assertEqual(document.status, 'completed')
++        self.assertEqual(document.error_message, '')
++        self.assertEqual(document.parser, name)
++        self.assertEqual(document.filename, filename)
++        self.assertEqual(document.chunk_count, 2)
++        self.assertEqual(document.embedded_count, 2)
++        self.assertIsNotNone(document.ingestion_token)
++        chunks = LegalKnowledgeEmbedding.objects.filter(
++            source_type='document', object_id=document.pk,
++        ).order_by('chunk_index')
++        self.assertEqual(list(chunks.values_list('text', flat=True)),
++                         [f'{name}:0', f'{name}:1'])
++        self.assertTrue(all(chunk.embedding_vector is not None for chunk in chunks))
++        return document
++
++    def test_four_identical_first_uploads_create_one_complete_index(self):
++        barrier = Barrier(4, timeout=self.WAIT_SECONDS)
++        with ThreadPoolExecutor(max_workers=4) as pool:
++            futures = [pool.submit(
++                self._worker,
++                self._pipeline(f'worker-{index}', parse_hook=barrier.wait),
++                filename=f'worker-{index}.txt',
++            ) for index in range(4)]
++            try:
++                ids = [future.result(timeout=self.WAIT_SECONDS + 5) for future in futures]
++            finally:
++                barrier.abort()
++        self._assert_connections(4)
++        self.assertEqual(len(set(ids)), 1)
++        document = DocumentSource.objects.get()
++        self._assert_winner(document.parser, filename=f'{document.parser}.txt')
++
++    def test_old_failure_cannot_overwrite_newer_first_upload_success(self):
++        entered, release = Event(), Event()
++
++        def delayed_failure():
++            entered.set()
++            self._wait(release, 'old parse was never released')
++            raise RuntimeError('old parser failure after newer success')
++
++        with ThreadPoolExecutor(max_workers=2) as pool:
++            older = pool.submit(self._worker, self._pipeline('older', parse_hook=delayed_failure),
++                                filename='older.txt')
++            try:
++                self._wait(entered, 'older task did not enter parsing')
++                newer = pool.submit(self._worker, self._pipeline('newer'), filename='newer.txt')
++                newer_id = newer.result(timeout=self.WAIT_SECONDS)
++            finally:
++                release.set()
++            self.assertEqual(older.result(timeout=self.WAIT_SECONDS), newer_id)
++        self._assert_connections(2)
++        self._assert_winner('newer', filename='newer.txt')
++
++    def test_old_success_cannot_replace_newer_index(self):
++        entered, release = Event(), Event()
++
++        def delayed_embedding():
++            entered.set()
++            self._wait(release, 'old embedding was never released')
++
++        with ThreadPoolExecutor(max_workers=2) as pool:
++            older = pool.submit(self._worker, self._pipeline('older', embed_hook=delayed_embedding),
++                                filename='older.txt')
++            try:
++                self._wait(entered, 'older task did not enter embedding')
++                newer = pool.submit(self._worker, self._pipeline('newer'), filename='newer.txt')
++                newer_id = newer.result(timeout=self.WAIT_SECONDS)
++            finally:
++                release.set()
++            self.assertEqual(older.result(timeout=self.WAIT_SECONDS), newer_id)
++        self._assert_connections(2)
++        self._assert_winner('newer', filename='newer.txt')
++
++    def test_old_completion_cannot_overwrite_newer_statistics(self):
++        stored, release = Event(), Event()
++        owner = self
++
++        class PausingRepository(LegalKbChunkRepository):
++            def replace(self, **kwargs):
++                count = super().replace(**kwargs)  # old index commits first
++                stored.set()
++                owner._wait(release, 'old completion was never released')
++                return count
++
++        with ThreadPoolExecutor(max_workers=2) as pool:
++            older = pool.submit(
++                self._worker, self._pipeline('older', repository=PausingRepository()),
++                filename='older.txt',
++            )
++            try:
++                self._wait(stored, 'older task did not commit its index')
++                newer = pool.submit(self._worker, self._pipeline('newer'), filename='newer.txt')
++                newer_id = newer.result(timeout=self.WAIT_SECONDS)
++            finally:
++                release.set()
++            self.assertEqual(older.result(timeout=self.WAIT_SECONDS), newer_id)
++        self._assert_connections(2)
++        self._assert_winner('newer', filename='newer.txt')
++
++    def test_old_success_cannot_undo_newer_failed_rebuild(self):
++        # Seed a valid previous index without a worker; two subsequent workers race.
++        document = IngestionService(pipeline=self._pipeline('original')).ingest_bytes(
++            data=self.DATA, filename='original.txt',
++        )
++        entered, release = Event(), Event()
++
++        def delayed_embedding():
++            entered.set()
++            self._wait(release, 'old embedding was never released')
++
++        def newer_failure():
++            raise RuntimeError('newer parser failure')
++
++        with ThreadPoolExecutor(max_workers=2) as pool:
++            older = pool.submit(self._worker, self._pipeline('older', embed_hook=delayed_embedding),
++                                filename='older.txt', reingest=True)
++            try:
++                self._wait(entered, 'older rebuild did not enter embedding')
++                newer = pool.submit(self._worker, self._pipeline('newer', parse_hook=newer_failure),
++                                    filename='newer.txt', reingest=True)
++                self.assertEqual(newer.result(timeout=self.WAIT_SECONDS), document.pk)
++            finally:
++                release.set()
++            self.assertEqual(older.result(timeout=self.WAIT_SECONDS), document.pk)
++        self._assert_connections(2)
++        document.refresh_from_db()
++        self.assertEqual(document.status, 'failed')
++        self.assertEqual(document.filename, 'newer.txt')
++        self.assertIn('newer parser failure', document.error_message)
++        self.assertEqual(list(LegalKnowledgeEmbedding.objects.filter(
++            source_type='document', object_id=document.pk,
++        ).order_by('chunk_index').values_list('text', flat=True)),
++                         ['original:0', 'original:1'])
++
++
++    def test_new_claim_waits_for_atomic_index_write_row_lock(self):
++        writing, release, newer_connected = Event(), Event(), Event()
++        real_create = LegalKnowledgeEmbedding.objects.create
++        paused = False
++
++        def pause_inside_index_transaction(**kwargs):
++            nonlocal paused
++            if kwargs.get('text') == 'older:0' and not paused:
++                paused = True
++                writing.set()  # row lock held; old chunks already deleted
++                self._wait(release, 'index write lock was never released')
++            return real_create(**kwargs)
++
++        with patch.object(LegalKnowledgeEmbedding.objects, 'create',
++                          side_effect=pause_inside_index_transaction):
++            with ThreadPoolExecutor(max_workers=2) as pool:
++                older = pool.submit(self._worker, self._pipeline('older'), filename='older.txt')
++                try:
++                    self._wait(writing, 'older task did not enter atomic index write')
++                    newer = pool.submit(
++                        self._worker, self._pipeline('newer'), filename='newer.txt',
++                        reingest=True, connected=newer_connected,
++                    )
++                    self._wait(newer_connected, 'newer worker did not open its connection')
++                    with self.pid_lock:
++                        old_pid, new_pid = self.backend_pids
++                    deadline = monotonic() + self.WAIT_SECONDS
++                    while monotonic() < deadline:
++                        with connection.cursor() as cursor:
++                            cursor.execute('SELECT pg_blocking_pids(%s)', [new_pid])
++                            blockers = cursor.fetchone()[0]
++                        if old_pid in blockers:
++                            break
++                        sleep(0.02)
++                    else:
++                        self.fail('PostgreSQL never reported the newer claim blocked by old index writer')
++                    self.assertFalse(newer.done())
++                finally:
++                    release.set()
++                older_id = older.result(timeout=self.WAIT_SECONDS)
++                self.assertEqual(newer.result(timeout=self.WAIT_SECONDS), older_id)
++        self._assert_connections(2)
++        self._assert_winner('newer', filename='newer.txt')
 diff -ruN '--exclude=__pycache__' '--exclude=*.pyc' '--exclude=.git' '--exclude=db.sqlite3' '--exclude=media' /tmp/ctf_clean/backend/rag_ingestion/tests.py /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/rag_ingestion/tests.py
 --- /tmp/ctf_clean/backend/rag_ingestion/tests.py	1970-01-01 08:00:00.000000000 +0800
-+++ /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/rag_ingestion/tests.py	2026-10-10 13:54:15.450675500 +0800
-@@ -0,0 +1,195 @@
++++ /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/rag_ingestion/tests.py	2026-10-10 15:54:46.269021900 +0800
+@@ -0,0 +1,424 @@
 +"""Tests for the rag_ingestion document pipeline."""
 +
 +from unittest.mock import patch
@@ -2662,6 +3016,235 @@ diff -ruN '--exclude=__pycache__' '--exclude=*.pyc' '--exclude=.git' '--exclude=
 +
 +        self.assertIn('converted:hello pptx', parsed.text)
 +        self.assertFalse(os.path.exists(captured['path']))  # temp file cleaned up
++
++
++class DocxContentTests(TestCase):
++    """Preserve mixed paragraphs and nested tables in both parser paths."""
++
++    @staticmethod
++    def _document_bytes():
++        import io
++        import zipfile
++
++        stream = io.BytesIO()
++        with zipfile.ZipFile(stream, 'w') as archive:
++            archive.writestr('[Content_Types].xml',
++                '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'
++                '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>'
++                '<Override PartName="/word/document.xml" '
++                'ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>'
++                '</Types>')
++            archive.writestr('_rels/.rels',
++                '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
++                '<Relationship Id="rId1" '
++                'Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" '
++                'Target="word/document.xml"/></Relationships>')
++            archive.writestr('word/document.xml',
++                '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">'
++                '<w:body><w:p><w:r><w:t>INTRODUCTION</w:t></w:r></w:p>'
++                '<w:tbl><w:tr><w:tc><w:p><w:r><w:t>TABLE_ONLY_EVIDENCE &amp; POLICY</w:t></w:r></w:p>'
++                '<w:tbl><w:tr><w:tc><w:p><w:r><w:t>NESTED_TABLE</w:t></w:r></w:p>'
++                '</w:tc></w:tr></w:tbl></w:tc></w:tr></w:tbl>'
++                '<w:p><w:r><w:t>CONCLUSION</w:t></w:r></w:p></w:body></w:document>')
++        return stream.getvalue()
++
++    def _assert_content(self, text):
++        self.assertEqual(text.splitlines(), [
++            'INTRODUCTION', 'TABLE_ONLY_EVIDENCE & POLICY', 'NESTED_TABLE', 'CONCLUSION',
++        ])
++
++    def test_mixed_paragraphs_and_nested_tables_preserve_order(self):
++        from .adapters.parser_docx import DocxParser
++
++        result = DocxParser().parse(self._document_bytes(), filename='mixed.docx', mime='')
++        self._assert_content(result.text)
++
++    def test_python_docx_path_reads_table_paragraphs(self):
++        from .adapters.parser_docx import DocxParser
++
++        try:
++            from docx import Document  # noqa: F401
++        except ImportError:
++            self.skipTest('python-docx unavailable; XML fallback tested separately')
++        text = DocxParser()._with_python_docx(self._document_bytes())
++        self.assertIsNotNone(text)
++        self._assert_content(text)
++
++    def test_xml_fallback_reads_mixed_content_and_decodes_entities(self):
++        from .adapters.parser_docx import DocxParser
++
++        parser = DocxParser()
++        with patch.object(parser, '_with_python_docx', return_value=None):
++            result = parser.parse(self._document_bytes(), filename='mixed.docx', mime='')
++        self._assert_content(result.text)
++
++    def test_mixed_docx_table_evidence_is_indexed(self):
++        from django.test import override_settings
++
++        with override_settings(RAG_INGESTION_USE_LANGCHAIN_SPLITTER=False):
++            document = IngestionService().ingest_bytes(
++                data=self._document_bytes(), filename='mixed.docx',
++            )
++        self.assertEqual(document.status, 'completed')
++        self.assertTrue(LegalKnowledgeEmbedding.objects.filter(
++            source_type='document', object_id=document.id,
++            text__contains='TABLE_ONLY_EVIDENCE & POLICY',
++        ).exists())
++
++
++class IngestionOwnershipTests(TestCase):
++    """Deterministic interleavings fence old attempts at both index and state."""
++
++    DATA = b'Identical file uploaded by overlapping ingestion tasks'
++
++    def _newer_upload(self, *, reingest=True):
++        from .interfaces import ParsedDocument
++
++        class Parser:
++            name = 'newer-parser'
++
++            def parse(self, data, **kwargs):
++                return ParsedDocument(text='NEWER_INDEX')
++
++        pipeline = IngestionPipeline(parser_selector=lambda filename, mime: Parser())
++        return IngestionService(pipeline=pipeline).ingest_bytes(
++            data=self.DATA, filename='newer.txt', visibility='staff', reingest=reingest,
++        )
++
++    def _assert_newer_wins(self, document):
++        document.refresh_from_db()
++        self.assertEqual(DocumentSource.objects.count(), 1)
++        self.assertEqual(document.status, 'completed')
++        self.assertEqual(document.error_message, '')
++        self.assertEqual(document.filename, 'newer.txt')
++        self.assertEqual(document.visibility, 'staff')
++        self.assertEqual(document.parser, 'newer-parser')
++        self.assertEqual(document.chunk_count, 1)
++        self.assertEqual(document.embedded_count, 1)
++        texts = list(LegalKnowledgeEmbedding.objects.filter(
++            source_type='document', object_id=document.id,
++        ).values_list('text', flat=True))
++        self.assertEqual(texts, ['NEWER_INDEX'])
++
++    def test_older_failure_does_not_clobber_newer_first_upload(self):
++        from unittest.mock import Mock
++
++        def older_run(**kwargs):
++            self.assertEqual(self._newer_upload(reingest=False).status, 'completed')
++            raise RuntimeError('older task fails after newer task succeeds')
++
++        pipeline = Mock()
++        pipeline.run.side_effect = older_run
++        service = IngestionService(pipeline=pipeline)
++        with patch.object(service, '_audit') as audit:
++            document = service.ingest_bytes(data=self.DATA, filename='older.txt')
++        self._assert_newer_wins(document)
++        audit.assert_not_called()
++
++    def test_older_success_cannot_replace_newer_index(self):
++        from .adapters.embedder_legalkb import LegalKbEmbedder
++        from .interfaces import ParsedDocument
++
++        class OlderParser:
++            name = 'older-parser'
++
++            def parse(self, data, **kwargs):
++                return ParsedDocument(text='OLDER_INDEX')
++
++        embedder = LegalKbEmbedder()
++        real_embed = embedder.embed
++
++        def older_embed(chunks):
++            self.assertEqual(self._newer_upload().status, 'completed')
++            return real_embed(chunks)
++
++        pipeline = IngestionPipeline(
++            parser_selector=lambda filename, mime: OlderParser(), embedder=embedder,
++        )
++        with patch.object(embedder, 'embed', side_effect=older_embed):
++            document = IngestionService(pipeline=pipeline).ingest_bytes(
++                data=self.DATA, filename='older.txt',
++            )
++        self._assert_newer_wins(document)
++
++    def test_older_success_cannot_overwrite_newer_statistics(self):
++        from dataclasses import replace
++        from unittest.mock import Mock
++
++        actual_pipeline = IngestionPipeline()
++
++        def older_run(**kwargs):
++            outcome = actual_pipeline.run(**kwargs)
++            self.assertEqual(self._newer_upload().status, 'completed')
++            return replace(outcome, parser='older-parser', chunk_count=99, embedded_count=99)
++
++        pipeline = Mock()
++        pipeline.run.side_effect = older_run
++        service = IngestionService(pipeline=pipeline)
++        with patch.object(service, '_audit') as audit:
++            document = service.ingest_bytes(data=self.DATA, filename='older.txt')
++        self._assert_newer_wins(document)
++        audit.assert_not_called()
++
++    def test_reingestion_uses_a_new_task_token(self):
++        from django.test import override_settings
++
++        with override_settings(RAG_INGESTION_USE_LANGCHAIN_SPLITTER=False):
++            first = IngestionService().ingest_bytes(data=self.DATA, filename='a.txt')
++            token = first.ingestion_token
++            second = IngestionService().ingest_bytes(data=self.DATA, filename='a.txt')
++            self.assertEqual(second.ingestion_token, token)
++            third = IngestionService().ingest_bytes(
++                data=self.DATA, filename='a.txt', reingest=True,
++            )
++        self.assertIsNotNone(token)
++        self.assertNotEqual(third.ingestion_token, token)
++        self.assertEqual(third.status, 'completed')
++
++
++    def test_older_success_cannot_override_a_newer_failed_rebuild(self):
++        from unittest.mock import Mock
++        from .adapters.embedder_legalkb import LegalKbEmbedder
++        from .interfaces import ParsedDocument
++
++        original = IngestionService().ingest_bytes(data=self.DATA, filename='original.txt')
++        original_texts = list(LegalKnowledgeEmbedding.objects.filter(
++            source_type='document', object_id=original.id,
++        ).values_list('text', flat=True))
++
++        class OlderParser:
++            name = 'older-parser'
++
++            def parse(self, data, **kwargs):
++                return ParsedDocument(text='STALE_SUCCESS_MUST_NOT_COMMIT')
++
++        embedder = LegalKbEmbedder()
++        real_embed = embedder.embed
++
++        def interleaved_embed(chunks):
++            broken = Mock()
++            broken.run.side_effect = RuntimeError('newer parser failure')
++            newer = IngestionService(pipeline=broken).ingest_bytes(
++                data=self.DATA, filename='newer.txt', visibility='staff', reingest=True,
++            )
++            self.assertEqual(newer.status, 'failed')
++            return real_embed(chunks)
++
++        pipeline = IngestionPipeline(
++            parser_selector=lambda filename, mime: OlderParser(), embedder=embedder,
++        )
++        with patch.object(embedder, 'embed', side_effect=interleaved_embed):
++            document = IngestionService(pipeline=pipeline).ingest_bytes(
++                data=self.DATA, filename='older.txt', reingest=True,
++            )
++        self.assertEqual(document.status, 'failed')
++        self.assertEqual(document.filename, 'newer.txt')
++        self.assertEqual(document.visibility, 'staff')
++        self.assertIn('newer parser failure', document.error_message)
++        texts = list(LegalKnowledgeEmbedding.objects.filter(
++            source_type='document', object_id=document.id,
++        ).values_list('text', flat=True))
++        self.assertEqual(texts, original_texts)
 diff -ruN '--exclude=__pycache__' '--exclude=*.pyc' '--exclude=.git' '--exclude=db.sqlite3' '--exclude=media' /tmp/ctf_clean/backend/rag_ingestion/urls.py /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/rag_ingestion/urls.py
 --- /tmp/ctf_clean/backend/rag_ingestion/urls.py	1970-01-01 08:00:00.000000000 +0800
 +++ /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/rag_ingestion/urls.py	2026-10-09 23:30:46.447091400 +0800
@@ -2748,7 +3331,7 @@ diff -ruN '--exclude=__pycache__' '--exclude=*.pyc' '--exclude=.git' '--exclude=
 +        )
 +        return Response(DocumentSourceSerializer(document).data, status=http_status)
 diff -ruN '--exclude=__pycache__' '--exclude=*.pyc' '--exclude=.git' '--exclude=db.sqlite3' '--exclude=media' /tmp/ctf_clean/backend/requirements.txt /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/requirements.txt
---- /tmp/ctf_clean/backend/requirements.txt	2026-10-10 15:05:12.022990263 +0800
+--- /tmp/ctf_clean/backend/requirements.txt	2026-10-10 16:54:16.910145877 +0800
 +++ /sessions/relaxed-ecstatic-allen/mnt/xianmu/ctf/backend/requirements.txt	2026-10-09 23:34:19.664668300 +0800
 @@ -28,6 +28,7 @@
  # AI - LangChain + OpenAI Compatible API

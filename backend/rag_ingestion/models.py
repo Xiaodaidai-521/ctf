@@ -26,6 +26,7 @@ class DocumentSource(models.Model):
     byte_size = models.PositiveIntegerField(default=0, verbose_name='Byte size')
     source_hash = models.CharField(max_length=64, unique=True, verbose_name='Content hash')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', db_index=True)
+    ingestion_token = models.UUIDField(null=True, blank=True, editable=False)
     visibility = models.CharField(max_length=20, choices=VISIBILITY_CHOICES, default='internal')
     parser = models.CharField(max_length=60, blank=True, verbose_name='Parser used')
     chunk_count = models.PositiveIntegerField(default=0)

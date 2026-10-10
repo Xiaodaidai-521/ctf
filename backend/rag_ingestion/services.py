@@ -3,7 +3,11 @@
 import hashlib
 import logging
 from typing import Dict, Optional
+from uuid import uuid4
 
+from django.db import transaction
+
+from .interfaces import SupersededIngestionError
 from .models import DocumentSource
 from .pipeline import IngestionPipeline
 
@@ -29,27 +33,27 @@ class IngestionService:
         reingest: bool = False,
     ) -> DocumentSource:
         source_hash = hashlib.sha256(data or b'').hexdigest()
-        document = DocumentSource.objects.filter(source_hash=source_hash).first()
-        if document and document.status == 'completed' and not reingest:
-            return document  # idempotent: identical content already ingested
-
-        # update_or_create is race-safe (it retries the get on a unique-constraint
-        # IntegrityError), so two concurrent first-time uploads of identical
-        # content won't crash with a duplicate source_hash.
-        document, _ = DocumentSource.objects.update_or_create(
-            source_hash=source_hash,
-            defaults={
-                'title': title or filename,
-                'filename': filename,
-                'mime': mime or '',
-                'byte_size': len(data or b''),
-                'visibility': visibility,
-                'metadata': metadata or {},
-                'uploaded_by': uploaded_by,
-                'status': 'running',
-                'error_message': '',
-            },
-        )
+        # Serialize task claims, not parsing or remote embedding. get_or_create
+        # retries a concurrent unique-key insert; the row lock then protects the
+        # completed check and assignment of a new task token together.
+        with transaction.atomic():
+            document, _ = DocumentSource.objects.select_for_update().get_or_create(
+                source_hash=source_hash,
+            )
+            if document.status == 'completed' and not reingest:
+                return document
+            token = uuid4()
+            document.title = title or filename
+            document.filename = filename
+            document.mime = mime or ''
+            document.byte_size = len(data or b'')
+            document.visibility = visibility
+            document.metadata = metadata or {}
+            document.uploaded_by = uploaded_by
+            document.status = 'running'
+            document.ingestion_token = token
+            document.error_message = ''
+            document.save()
 
         try:
             outcome = self.pipeline.run(
@@ -60,29 +64,46 @@ class IngestionService:
                 source_type='document',
                 base_metadata={'visibility': visibility, **(metadata or {})},
                 title=document.title,
+                ingestion_token=token,
             )
+        except SupersededIngestionError:
+            document.refresh_from_db()
+            return document
         except Exception as exc:
-            document.status = 'failed'
-            document.error_message = f'{type(exc).__name__}: {exc}'
-            document.save(update_fields=['status', 'error_message', 'updated_at'])
-            self._audit(document, action='ingest_failed', actor=uploaded_by)
-            logger.warning(
-                'rag_ingestion_failed',
-                extra={'event': 'rag_ingestion_failed',
-                       'document_id': document.id,
-                       'error_type': type(exc).__name__},
+            document, updated = self._finish(
+                document.id, token, status='failed',
+                error_message=f'{type(exc).__name__}: {exc}',
             )
+            if updated:
+                self._audit(document, action='ingest_failed', actor=uploaded_by)
+                logger.warning(
+                    'rag_ingestion_failed',
+                    extra={'event': 'rag_ingestion_failed',
+                           'document_id': document.id,
+                           'error_type': type(exc).__name__},
+                )
             return document
 
-        document.status = 'completed'
-        document.parser = outcome.parser
-        document.chunk_count = outcome.chunk_count
-        document.embedded_count = outcome.embedded_count
-        document.save(update_fields=[
-            'status', 'parser', 'chunk_count', 'embedded_count', 'updated_at',
-        ])
-        self._audit(document, action='ingest_completed', actor=uploaded_by)
+        document, updated = self._finish(
+            document.id, token, status='completed', parser=outcome.parser,
+            chunk_count=outcome.chunk_count, embedded_count=outcome.embedded_count,
+            error_message='',
+        )
+        if updated:
+            self._audit(document, action='ingest_completed', actor=uploaded_by)
         return document
+
+    @staticmethod
+    def _finish(document_id, token, **changes):
+        """Only the current attempt may publish its state and statistics."""
+        with transaction.atomic():
+            document = DocumentSource.objects.select_for_update().get(pk=document_id)
+            if document.ingestion_token != token or document.status != 'running':
+                return document, False
+            for name, value in changes.items():
+                setattr(document, name, value)
+            document.save(update_fields=[*changes, 'updated_at'])
+            return document, True
 
     def _audit(self, document: DocumentSource, *, action: str, actor=None):
         try:
