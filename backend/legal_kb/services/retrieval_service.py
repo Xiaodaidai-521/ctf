@@ -7,9 +7,11 @@ from typing import Dict, List, Optional
 
 from django.conf import settings
 from django.db import connection
+from django.db.models import Q
 
 from ..models import LegalKnowledgeEmbedding, LegalRetrievalLog
 from .embedding_service import EmbeddingService, cosine_similarity
+from .visibility import apply_embedding_visibility
 
 
 logger = logging.getLogger(__name__)
@@ -22,7 +24,7 @@ class LegalRetrievalService:
         self.embedding_service = embedding_service or EmbeddingService()
 
     def retrieve(self, *, query: str, top_k: int = 8, filters: Optional[Dict] = None, user=None) -> List[Dict]:
-        """Return top matching chunks and write a retrieval log."""
+        """Return top chunks via hybrid (vector + lexical) RRF fusion, and log the query."""
         started = time.perf_counter()
         filters = filters or {}
         query_embedding = (
@@ -38,63 +40,23 @@ class LegalRetrievalService:
             else:
                 queryset = queryset.filter(source_type=source_type)
 
+        # Enforce uploaded-document visibility at the shared query layer so that
+        # teacher-facing RAG cannot surface staff-only documents. Non-document
+        # rows are unaffected; anonymous/internal callers fail closed.
+        queryset = apply_embedding_visibility(queryset, user)
+
+        results = None
         if connection.vendor == 'postgresql' and len(query_embedding) == 1024:
             try:
-                from pgvector.django import CosineDistance
-
-                vector_items = list(
-                    queryset.exclude(embedding_vector__isnull=True)
-                    .annotate(distance=CosineDistance('embedding_vector', query_embedding))
-                    .order_by('distance')[:top_k]
-                )
-                if vector_items:
-                    results = [
-                        {
-                            'id': item.id,
-                            'source_type': item.source_type,
-                            'object_id': item.object_id,
-                            'title': item.title,
-                            'text': item.text,
-                            'score': round(max(0.0, 1 - float(item.distance)), 6),
-                            'metadata': item.metadata,
-                        }
-                        for item in vector_items
-                    ]
-                    return self._record_results(
-                        query=query,
-                        top_k=top_k,
-                        filters=filters,
-                        results=results,
-                        started=started,
-                        user=user,
-                    )
+                results = self._retrieve_with_pgvector(query, query_embedding, queryset, top_k)
             except Exception as exc:
                 # Keep the portable JSON + lexical path available during a
                 # partial deployment or when pgvector has not been rebuilt yet.
                 logger.warning('pgvector retrieval unavailable; using fallback: %s', exc)
+                results = None
+        if not results:
+            results = self._retrieve_portable(query, query_embedding, queryset, top_k)
 
-        scored = []
-        for item in queryset[:1000]:
-            vector_score = cosine_similarity(query_embedding, item.embedding)
-            lexical_score = self._lexical_similarity(query, f'{item.title} {item.text}')
-            score = max(vector_score, lexical_score)
-            scored.append((score, item))
-        scored.sort(key=lambda pair: pair[0], reverse=True)
-
-        score_threshold = float(getattr(settings, 'LEGAL_KB_SCORE_THRESHOLD', 0.35))
-        results = [
-            {
-                'id': item.id,
-                'source_type': item.source_type,
-                'object_id': item.object_id,
-                'title': item.title,
-                'text': item.text,
-                'score': round(score, 6),
-                'metadata': item.metadata,
-            }
-            for score, item in scored[:top_k]
-            if score >= score_threshold
-        ]
         return self._record_results(
             query=query,
             top_k=top_k,
@@ -103,6 +65,133 @@ class LegalRetrievalService:
             started=started,
             user=user,
         )
+
+    def _retrieve_with_pgvector(self, query, query_embedding, queryset, top_k):
+        """Use the pgvector ANN index for recall, then fuse with a lexical arm."""
+        from pgvector.django import CosineDistance
+
+        pool_size = max(top_k * 4, 40)
+        vector_items = list(
+            queryset.exclude(embedding_vector__isnull=True)
+            .annotate(distance=CosineDistance('embedding_vector', query_embedding))
+            .order_by('distance')[:pool_size]
+        )
+        if not vector_items:
+            return None
+        vector_scores = {item.id: max(0.0, 1 - float(item.distance)) for item in vector_items}
+        lexical_items = self._lexical_candidate_pool(queryset, query, pool_size)
+        candidates = self._dedupe_by_id(vector_items + lexical_items)
+        return self._fuse(
+            query=query,
+            query_embedding=query_embedding,
+            items=candidates,
+            top_k=top_k,
+            vector_scores=vector_scores,
+            apply_threshold=False,
+        )
+
+    def _retrieve_portable(self, query, query_embedding, queryset, top_k):
+        """Portable JSON + lexical path for SQLite/offline or pgvector fallback.
+
+        The stored JSON ``embedding`` is always the 128-dim local vector, so the
+        query must also be embedded locally here. (On PostgreSQL ``retrieve``
+        builds a 1024-dim remote query vector for ANN; reusing it against the
+        128-dim JSON vectors would mismatch and zero every vector score, silently
+        degrading this fallback to lexical-only.)
+        """
+        local_query_embedding = self.embedding_service.embed_local_text(query)
+        pool_items = list(queryset[:1000])
+        return self._fuse(
+            query=query,
+            query_embedding=local_query_embedding,
+            items=pool_items,
+            top_k=top_k,
+            vector_scores=None,
+            apply_threshold=True,
+        )
+
+    def _lexical_candidate_pool(self, queryset, query, limit):
+        """Fetch a bounded lexical candidate set so strong keyword hits survive."""
+        tokens = sorted(
+            {token for token in self._tokenize(query) if len(token) >= 3},
+            key=len,
+            reverse=True,
+        )[:6]
+        if not tokens:
+            return []
+        condition = Q()
+        for token in tokens:
+            condition |= Q(title__icontains=token) | Q(text__icontains=token)
+        return list(queryset.filter(condition)[:limit])
+
+    def _fuse(self, *, query, query_embedding, items, top_k, vector_scores=None, apply_threshold=False):
+        """Fuse vector and lexical rankings with Reciprocal Rank Fusion (RRF)."""
+        if not items:
+            return []
+        rrf_k = int(getattr(settings, 'LEGAL_KB_RRF_K', 60))
+
+        scored = []
+        for item in items:
+            if vector_scores is not None and item.id in vector_scores:
+                vector_score = vector_scores[item.id]
+            else:
+                vector_score = cosine_similarity(query_embedding, item.embedding)
+            lexical_score = self._lexical_similarity(query, f'{item.title} {item.text}')
+            scored.append({'item': item, 'vector': vector_score, 'lexical': lexical_score})
+
+        vector_rank = self._rank_map(scored, 'vector')
+        lexical_rank = self._rank_map(scored, 'lexical')
+        for row in scored:
+            item_id = row['item'].id
+            fused = 0.0
+            if item_id in vector_rank:
+                fused += 1.0 / (rrf_k + vector_rank[item_id])
+            if item_id in lexical_rank:
+                fused += 1.0 / (rrf_k + lexical_rank[item_id])
+            row['fused'] = fused
+            row['display'] = round(max(row['vector'], row['lexical']), 6)
+        scored.sort(key=lambda row: (row['fused'], row['display']), reverse=True)
+
+        threshold = float(getattr(settings, 'LEGAL_KB_SCORE_THRESHOLD', 0.35)) if apply_threshold else 0.0
+        results = []
+        for row in scored:
+            if row['display'] < threshold:
+                continue
+            item = row['item']
+            results.append({
+                'id': item.id,
+                'source_type': item.source_type,
+                'object_id': item.object_id,
+                'title': item.title,
+                'text': item.text,
+                'score': row['display'],
+                'rrf_score': round(row['fused'], 6),
+                'metadata': item.metadata,
+            })
+            if len(results) >= top_k:
+                break
+        return results
+
+    @staticmethod
+    def _rank_map(scored, key):
+        """Map item id -> 0-based rank, including only items with positive signal."""
+        ranked = sorted(
+            (row for row in scored if row[key] > 0),
+            key=lambda row: row[key],
+            reverse=True,
+        )
+        return {row['item'].id: rank for rank, row in enumerate(ranked)}
+
+    @staticmethod
+    def _dedupe_by_id(items):
+        seen = set()
+        unique = []
+        for item in items:
+            if item.id in seen:
+                continue
+            seen.add(item.id)
+            unique.append(item)
+        return unique
 
     def _record_results(self, *, query, top_k, filters, results, started, user):
         latency_ms = int((time.perf_counter() - started) * 1000)

@@ -86,6 +86,7 @@ INSTALLED_APPS = [
     'student_profiles',
     'content_generator',
     'learning_analytics',
+    'rag_ingestion',
 ]
 
 
@@ -415,6 +416,32 @@ if 'test' in sys.argv:
     EMBEDDING_BATCH_SIZE = 32
 LEGAL_KB_TOP_K = int(os.environ.get('LEGAL_KB_TOP_K', '8'))
 LEGAL_KB_SCORE_THRESHOLD = float(os.environ.get('LEGAL_KB_SCORE_THRESHOLD', '0.35'))
+LEGAL_KB_RRF_K = int(os.environ.get('LEGAL_KB_RRF_K', '60'))
+# KnowledgeAgent / tutoring semantic recall over the shared vector store.
+KNOWLEDGE_RAG_SEMANTIC_ENABLED = os.environ.get(
+    'KNOWLEDGE_RAG_SEMANTIC_ENABLED', 'true'
+).lower() in ('true', '1', 'yes')
+# agent_runtime LearningRetrievalService semantic recall (teaching-safe sources).
+AGENT_RUNTIME_SEMANTIC_RETRIEVAL = os.environ.get(
+    'AGENT_RUNTIME_SEMANTIC_RETRIEVAL', 'true'
+).lower() in ('true', '1', 'yes')
+AGENT_RUNTIME_SEMANTIC_TOP_K = int(os.environ.get('AGENT_RUNTIME_SEMANTIC_TOP_K', '4'))
+AGENT_RUNTIME_CONTEXT_LIMIT = int(os.environ.get('AGENT_RUNTIME_CONTEXT_LIMIT', '12'))
+# Document ingestion pipeline (rag_ingestion app).
+RAG_INGESTION_CHUNK_SIZE = int(os.environ.get('RAG_INGESTION_CHUNK_SIZE', '1000'))
+RAG_INGESTION_CHUNK_OVERLAP = int(os.environ.get('RAG_INGESTION_CHUNK_OVERLAP', '120'))
+RAG_INGESTION_USE_LANGCHAIN_SPLITTER = os.environ.get(
+    'RAG_INGESTION_USE_LANGCHAIN_SPLITTER', 'true'
+).lower() in ('true', '1', 'yes')
+RAG_INGESTION_MAX_UPLOAD_MB = int(os.environ.get('RAG_INGESTION_MAX_UPLOAD_MB', '20'))
+RAG_INGESTION_ALLOWED_EXTENSIONS = [
+    ext.strip().lower()
+    for ext in os.environ.get(
+        'RAG_INGESTION_ALLOWED_EXTENSIONS',
+        '.md,.markdown,.txt,.text,.html,.htm,.csv,.json,.log,.docx,.pdf,.pptx,.xlsx',
+    ).split(',')
+    if ext.strip()
+]
 LEGAL_KB_RAG_USE_LLM = os.environ.get('LEGAL_KB_RAG_USE_LLM', 'true').lower() in ('true', '1', 'yes')
 LEGAL_KB_RAG_AGENT_ID = os.environ.get('LEGAL_KB_RAG_AGENT_ID', 'compliance_officer')
 LEGAL_COMPLIANCE_AGENT_USE_LLM = os.environ.get(

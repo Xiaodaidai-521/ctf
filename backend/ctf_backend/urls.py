@@ -43,6 +43,7 @@ urlpatterns = [
     path('api/legal/', include('legal.urls')),
     path('api/legal-kb/', include('legal_kb.urls')),
     path('api/agent-runtime/', include('agent_runtime.urls')),
+    path('api/rag-ingestion/', include('rag_ingestion.urls')),
     path('api-auth/', include('rest_framework.urls')),
     # CTF代理路由 - 处理/challenge/路径转发到FRP
     # 必须在API路由之后，避免冲突

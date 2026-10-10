@@ -185,6 +185,7 @@ class LegalKnowledgeEmbedding(models.Model):
         ('article', 'Article'),
         ('resource', 'Resource'),
         ('knowledge_concept', 'Knowledge concept'),
+        ('document', 'Uploaded document'),
     ]
 
     source_type = models.CharField(max_length=40, choices=SOURCE_TYPE_CHOICES, db_index=True)

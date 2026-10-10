@@ -28,6 +28,7 @@ cryptography==44.0.0  # Fernet AES加密
 # AI - LangChain + OpenAI Compatible API
 langchain-openai==0.3.16
 langchain-core>=0.3.58
+langchain-text-splitters>=0.3.0,<0.4
 openai==1.68.2
 
 # Document processing (service.py 延迟导入)
@@ -35,6 +36,13 @@ beautifulsoup4==4.13.3
 docx==0.2.4
 openpyxl==3.1.5
 numpy==2.2.3
+
+# RAG document ingestion (rag_ingestion app).
+# Parsers are imported lazily; these are optional and can be omitted if a
+# given format is not needed. License note: pdfplumber/markitdown are MIT.
+# PyMuPDF (fitz) is AGPL-3.0 and intentionally NOT listed here.
+pdfplumber>=0.11.0
+markitdown>=0.0.1a2
 
 # Date and Time
 python-dateutil==2.9.0
