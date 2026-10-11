@@ -30,6 +30,12 @@ def evaluate_hard_constraints(
     """Deny when the request provably exceeds an authoritative authorization."""
     codes: List[str] = []
 
+    # The authorization must be bound to the requesting subject. Presenting
+    # another subject's authorization is a breach, not a lack of information ->
+    # deny (review F2), regardless of the authorization's own result.
+    if authorization.subject_id != request.subject_id:
+        codes.append(rc.HARD_AUTHORIZATION_SUBJECT_MISMATCH)
+
     if authorization.result == AuthorizationResult.FORBIDDEN:
         codes.append(rc.HARD_AUTHORIZATION_FORBIDDEN)
 

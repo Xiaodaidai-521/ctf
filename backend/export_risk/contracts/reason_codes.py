@@ -41,3 +41,20 @@ EXEC_APPROVAL_REQUIRED = "exec.approval_required"
 EXEC_OBLIGATION_UNSUPPORTED = "exec.obligation_unsupported"
 EXEC_QUOTA_EXCEEDED = "exec.quota_exceeded"
 EXEC_AUTHORIZATION_REVOKED = "exec.authorization_revoked"
+
+# Authorization subject/validity binding in the pure core (review F2)
+HARD_AUTHORIZATION_SUBJECT_MISMATCH = "hard.authorization_subject_mismatch"
+DEGRADE_AUTHORIZATION_EXPIRED = "degrade.authorization_expired"
+DEGRADE_AUTHORIZATION_VALIDITY_UNKNOWN = "degrade.authorization_validity_unknown"
+
+# Execution-time live re-check against the fresh authorization snapshot and the
+# decision origin / approval authority (review F1/F3/F4)
+EXEC_AUTHORIZATION_FORBIDDEN = "exec.authorization_forbidden"
+EXEC_AUTHORIZATION_UNKNOWN = "exec.authorization_unknown"
+EXEC_AUTHORIZATION_SUBJECT_MISMATCH = "exec.authorization_subject_mismatch"
+EXEC_AUTHORIZATION_EXPIRED = "exec.authorization_expired"
+EXEC_AUTHORIZATION_VALIDITY_UNKNOWN = "exec.authorization_validity_unknown"
+EXEC_DECISION_SOURCE_UNTRUSTED = "exec.decision_source_untrusted"
+EXEC_APPROVAL_AUTHORITY_UNTRUSTED = "exec.approval_authority_untrusted"
+EXEC_RESERVATION_INVALID = "exec.reservation_invalid"
+DEGRADE_FEATURES_MISSING = "degrade.features_missing"

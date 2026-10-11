@@ -29,6 +29,7 @@ def make_auth(result=AuthorizationResult.AUTHORIZED, recipients=("rcpt1",),
         authority_source="authsrc", snapshot_id="s1", subject_id="u1", data_domain="d1",
         result=result, allowed_recipients=recipients, allowed_operations=operations,
         allowed_scope=scope, environment=env, source_mode=SourceMode.SYNTHETIC,
+        observed_at="2020-01-01T00:00:00+08:00", valid_until="2027-01-01T00:00:00+08:00",
     )
 
 

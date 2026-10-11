@@ -1,6 +1,9 @@
 """M4: decision persistence, idempotency, admission, approval, quota, state machine."""
 
+from datetime import timedelta
+
 from django.test import TestCase
+from django.utils import timezone
 
 from export_risk.contracts import (
     AuthorizationResult,
@@ -34,9 +37,13 @@ def make_assessment(action, obligations=(), policy="D-v1"):
 
 
 def make_auth_snapshot(mode=SourceMode.SYNTHETIC, env="test"):
+    now = timezone.now()
     return AuthorizationSnapshot(
         authority_source="src", snapshot_id="s1", subject_id="u1", data_domain="d1",
         result=AuthorizationResult.AUTHORIZED, environment=env, source_mode=mode,
+        allowed_scope=("o1",), allowed_operations=("export",), allowed_recipients=("rc1",),
+        observed_at=(now - timedelta(hours=1)).isoformat(),
+        valid_until=(now + timedelta(hours=1)).isoformat(),
     )
 
 

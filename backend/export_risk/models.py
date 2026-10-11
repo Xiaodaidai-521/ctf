@@ -121,6 +121,8 @@ class RiskDecision(models.Model):
     assessment_id = models.CharField(max_length=160, blank=True, verbose_name='研判ID')
     request_id = models.CharField(max_length=160, db_index=True, verbose_name='请求ID')
     request_fingerprint = models.CharField(max_length=64, db_index=True, verbose_name='请求指纹')
+    environment = models.CharField(max_length=20, default='production', verbose_name='环境')
+    source_mode = models.CharField(max_length=20, default='synthetic', verbose_name='来源模式')
     asset_version = models.CharField(max_length=80, verbose_name='资产版本')
     profile_id = models.CharField(max_length=160, blank=True, verbose_name='画像ID')
     scope = models.JSONField(default=list, blank=True, verbose_name='范围')

@@ -450,7 +450,7 @@ frozen dataclass 契约 + 判断核心骨架 + 硬约束 + 纯度校验测试，
 
 ---
 
-## 15. 实现进度（M0–M5 已交付，2026-10-11）
+## 15. 实现进度（M0–M5 原型及审查修复，2026-10-11）
 
 分支 `feature/mainline2-export-risk`。两个 app：`backend/export_risk/`（研判+决策）、
 `backend/export_quota/`（配额参考实现）。`settings.py` 仅新增两行 `INSTALLED_APPS`。
@@ -462,16 +462,24 @@ frozen dataclass 契约 + 判断核心骨架 + 硬约束 + 纯度校验测试，
 | M2 | `baselines/`（鲁棒分位统计 + 本人/群体基线 + 冷启动回退 + 回放截断）| 无历史不伪造正常 + 回放不读未来 + 退化 IQR 返回 None |
 | M3 | `policies/`（版本化政策表 + hash + 四臂 A/B/C/D）+ `judgment/fusion`+`anomaly`+`explanation` | 基础保护下限全臂适用（R4）+ 四臂融合 + 模型缺失显式暴露（非静默）+ 三段式解释 |
 | M4 | `decisions/`（create_risk_decision、prepare_execution、幂等、授权状态机、准入、审批适配器、outbox）+ `export_quota/services`（reserve/commit/release/reconcile 桶锁）| 幂等重放复核（撤销后不可执行，R1）+ 单次领取 + 准入拒合成（R3）+ 配额桶计量 + outbox→台账链校验 |
-| M5 | `experiments/`（10 类场景、带状态回放、四臂对照、指标、预注册 H1/H2）| harness 可跑 + H1（B 早于 A 限制）+ 硬 deny 全臂一致 + 冷启动不误拦 + 分母完整 |
+| M5 | `experiments/`（**4 类场景** normal_bulk/continuous_batch/unapproved_recipient/new_account、单臂判断回放、四臂对照、指标、预注册 H1/H2）| harness 可跑 + H1（B 早于 A 限制）+ 硬 deny 全臂一致 + 冷启动不误拦 + 分母完整 |
 
-**测试**：`export_risk` + `export_quota` 共 **66 用例通过，1 跳过**（PG 并发）；并与 RAG 基线
-四 app 合跑 **181 通过 / 9 跳过**，无回归；`manage.py check` 零问题。命令见 §0 下方记忆或：
-`cd backend && PYTHONUTF8=1 DATABASE_BACKEND=sqlite DEBUG=true SECRET_KEY=dev-test-key python manage.py test export_risk export_quota`。
+**最新测试**：`export_risk` + `export_quota` **Ran 117：116 通过、1 跳过**（PG 并发）；与 RAG 基线
+四 app 合跑 **Ran 232：223 通过、9 跳过**，本次测试未发现回归；`manage.py check` 零问题。
+命令：`PYTHONUTF8=1 DATABASE_BACKEND=sqlite SQLITE_DATABASE_PATH=:memory: DEBUG=true SECRET_KEY=dev-test-key python backend/manage.py test export_risk export_quota`。
+
+> **审查修复（2026-10-11）**：第一轮原 22 条反例通过后，`mainline2-remediation-review.md` 又确认 F1/F2/F3/F7/F13
+> 的 5 项边界仍未覆盖；已追加第二轮修复与 27 条正式边界测试。原反例脚本 **22/22**，第二轮脚本 **12/12** 均通过，
+> 详见 `mainline2-boundary-remediation.md`；第一轮历史证据保留于 `mainline2-remediation.md`。
+> 本结果只关闭测试覆盖的具体反例，不等于整个安全契约验收。原「M0–M5 安全契约闭环」属**过度声明**；
+> 实际范围为 **4 类场景**、**单臂判断回放**（不含交付/配额执行状态闭环）、**D 臂暂无业务判定分支**、
+> 决策**未存完整快照链**。本轮未扩建这些功能。
 
 **未验证项（如实披露）**：`QuotaConcurrencyTests`（并发 60+60 争用 100 额度，仅一个成功）
 已按 `@skipUnless(postgresql)` 写好，但**未在真实 PostgreSQL 上运行**——本机 Docker 守护
 未启动，pgserver 可引导但其最简捆绑在本中文 Windows 主机上拒绝 `TimeZone=UTC`。因此配额
-行锁的并发正确性目前是**设计保证 + SQLite 逻辑测试**，PG 并发为 Blocked（环境所限，非代码缺陷）。
+行锁的并发正确性目前仅有**锁设计 + SQLite 顺序逻辑测试**，不是实测并发保证；PG 并发仍为 Blocked。
+上述历史环境原因未在本轮重新诊断，不用于覆盖顺序逻辑缺陷。
 
 **能力状态**：以上为**已实现 + 已在 SQLite 验证**。真实敏感画像源、授权源、行为流、
 配额/审批生产 owner 仍为 OQ-1~4，合成 Provider/测试适配器显式标注非生产权威。合成实验

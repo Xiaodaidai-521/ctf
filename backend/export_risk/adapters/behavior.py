@@ -30,7 +30,9 @@ class SyntheticBehaviorProvider:
         self._watermark = watermark_at
 
     def fetch_events(self, subject_id: str, until: datetime) -> Sequence[EventRecord]:
-        return [e for e in self._events if e.occurred_at < until]
+        # Dual-time: only events that both occurred and were *received* before
+        # the knowledge cutoff are visible (review F9).
+        return [e for e in self._events if e.occurred_at < until and e.received_at < until]
 
     def fetch_deliveries(self, subject_id: str, until: datetime) -> Sequence[DeliveryRec]:
         return [d for d in self._deliveries if d.occurred_at < until]
@@ -49,7 +51,11 @@ class DjangoBehaviorProvider:
 
     def fetch_events(self, subject_id: str, until: datetime) -> List[EventRecord]:
         from ..models import BehaviorEvent
-        rows = BehaviorEvent.objects.filter(subject_id=subject_id, occurred_at__lt=until)
+        # Knowledge cutoff is dual-time: an event is historical only if it was
+        # received before ``until`` as well as having occurred before it (F9).
+        rows = BehaviorEvent.objects.filter(
+            subject_id=subject_id, occurred_at__lt=until, received_at__lt=until
+        )
         return [
             EventRecord(
                 event_id=r.event_id, event_type=r.event_type,

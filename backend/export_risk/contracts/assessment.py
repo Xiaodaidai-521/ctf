@@ -8,7 +8,7 @@ keyword-scoring dataclass (Stage-1 finding F2). Frozen, no Django dependency.
 from dataclasses import dataclass, field
 from typing import Mapping, Optional, Sequence
 
-from .enums import QualityState, RecommendedAction, RiskLevel
+from .enums import QualityState, RecommendedAction, RiskLevel, SourceMode
 from .freezing import freeze_field
 
 
@@ -61,6 +61,7 @@ class ExportRiskAssessment:
     feature_set_version: str = ""
     model_version: str = ""
     policy_version: str = ""
+    input_source_mode: SourceMode = SourceMode.SYNTHETIC
     schema_version: str = "m0"
 
     def __post_init__(self) -> None:

@@ -44,6 +44,8 @@ def _auth(result=AuthorizationResult.AUTHORIZED, recipients=("rc1",), scope=("o1
         authority_source="src", snapshot_id="s", subject_id="u1", data_domain="d1",
         result=result, allowed_recipients=recipients, allowed_operations=("export",),
         allowed_scope=scope, environment="test", source_mode=SourceMode.SYNTHETIC,
+        observed_at=(T0 - timedelta(days=1)).isoformat(),
+        valid_until=(T0 + timedelta(days=3650)).isoformat(),
     )
 
 

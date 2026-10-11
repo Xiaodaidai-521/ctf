@@ -1,0 +1,54 @@
+{
+  "django": "6.0.3",
+  "database": ":memory:",
+  "tests": 12,
+  "failures": 11,
+  "errors": 0,
+  "passed": 1,
+  "issues": [
+    {
+      "test": "test_absent_feature_snapshot_is_not_quality_ok",
+      "error": "AssertionError: <QualityState.OK: 'ok'> == <QualityState.OK: 'ok'> : absent features marked OK; action=allow"
+    },
+    {
+      "test": "test_claim_does_not_outlive_known_authorization_grant",
+      "error": "AssertionError: True is not false : claim outlives known upstream grant"
+    },
+    {
+      "test": "test_claim_rejects_expired_reservation",
+      "error": "AssertionError: True is not false : expired reservation still claimable"
+    },
+    {
+      "test": "test_confirmed_reconcile_retry_is_idempotent",
+      "error": "AssertionError: same confirmed receipt cannot retry: cannot reconcile from state committed"
+    },
+    {
+      "test": "test_core_rejects_all_naive_authorization_times",
+      "error": "AssertionError: <RecommendedAction.ALLOW: 'allow'> != <RecommendedAction.DEFER: 'defer'> : timezone-free validity accepted as established"
+    },
+    {
+      "test": "test_first_prepare_rejects_narrowed_operations",
+      "error": "AssertionError: 'executable' != 'not_executable' : allowed_operations narrowed but executable"
+    },
+    {
+      "test": "test_first_prepare_rejects_narrowed_recipients",
+      "error": "AssertionError: 'executable' != 'not_executable' : allowed_recipients narrowed but executable"
+    },
+    {
+      "test": "test_first_prepare_rejects_narrowed_scope",
+      "error": "AssertionError: 'executable' != 'not_executable' : allowed_scope narrowed but executable"
+    },
+    {
+      "test": "test_prepare_replay_rejects_released_reservation",
+      "error": "AssertionError: 'executable' != 'not_executable' : released quota still replays executable"
+    },
+    {
+      "test": "test_replay_rejects_narrowed_recipient",
+      "error": "AssertionError: 'executable' != 'not_executable' : revoked recipient still replays executable"
+    },
+    {
+      "test": "test_reserve_replay_rejects_expired_reservation",
+      "error": "AssertionError: QuotaError not raised : expired hold returned as active replay"
+    }
+  ]
+}

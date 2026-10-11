@@ -3,6 +3,7 @@
 from .admission import check_admission
 from .approval import ApprovalProvider, InMemoryApprovalProvider
 from .service import (
+    AssessmentBindingError,
     IdempotencyConflict,
     claim,
     consume,
@@ -16,6 +17,7 @@ __all__ = [
     "check_admission",
     "ApprovalProvider",
     "InMemoryApprovalProvider",
+    "AssessmentBindingError",
     "IdempotencyConflict",
     "create_risk_decision",
     "prepare_execution",

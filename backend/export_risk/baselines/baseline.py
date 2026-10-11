@@ -50,6 +50,7 @@ class BaselineBundle:
 
     baseline: BehaviorBaseline
     stats: Mapping[str, BaselineStats] = field(default_factory=dict)
+    cold_start: bool = False  # own history insufficient (review F12): usable but uncertain
 
     @property
     def usable(self) -> bool:
@@ -87,12 +88,16 @@ def build_baseline(
 
     own = [o for o in past if o.subject_id == subject_id]
     if len(own) >= min_subject:
-        return _bundle(own, "subject", subject_id, cutoff, feature_names, version, QualityState.OK)
+        return _bundle(own, "subject", subject_id, cutoff, feature_names, version,
+                       QualityState.OK, cold_start=False)
 
+    # Cold-start fallback: a complete cohort baseline is usable even with zero
+    # own history (review F12). "Own history insufficient" is carried as a
+    # separate cold_start flag, not by discarding usable cohort evidence.
     cohort = [o for o in past if o.cohort_key == cohort_key]
     if len(cohort) >= min_cohort:
         return _bundle(cohort, "cohort", cohort_key, cutoff, feature_names, version,
-                       QualityState.INSUFFICIENT_HISTORY if len(own) == 0 else QualityState.OK)
+                       QualityState.OK, cold_start=len(own) < min_subject)
 
     # Degrade: not enough data anywhere. Do not fabricate a "normal" baseline.
     return BaselineBundle(
@@ -103,10 +108,11 @@ def build_baseline(
             quality=QualityState.INSUFFICIENT_HISTORY,
         ),
         stats={},
+        cold_start=True,
     )
 
 
-def _bundle(obs, scope, who, cutoff, feature_names, version, quality) -> BaselineBundle:
+def _bundle(obs, scope, who, cutoff, feature_names, version, quality, cold_start=False) -> BaselineBundle:
     return BaselineBundle(
         baseline=BehaviorBaseline(
             baseline_id=f"{who}:{scope}", version=version, subject_or_cohort=who,
@@ -114,6 +120,7 @@ def _bundle(obs, scope, who, cutoff, feature_names, version, quality) -> Baselin
             method="robust_quartiles", scope=scope, quality=quality,
         ),
         stats=_stats_for(obs, feature_names),
+        cold_start=cold_start,
     )
 
 

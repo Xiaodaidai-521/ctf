@@ -15,8 +15,13 @@ import export_risk.judgment as judgment_pkg
 ALLOWED_IMPORT_ROOTS = {
     "dataclasses", "typing", "enum", "collections", "functools",
     "itertools", "math", "decimal", "__future__",
+    # datetime is pure value math (parse/compare ISO timestamps for authorization
+    # validity, review F2); clock reads are still banned via BANNED_ATTRS below.
+    "datetime",
 }
-BANNED_ATTRS = {"objects", "now"}
+# Clock reads stay banned so adding `datetime` cannot smuggle in a clock: the
+# judgment core must compare the injected evaluation_time, never read "now".
+BANNED_ATTRS = {"objects", "now", "utcnow", "today"}
 BANNED_CALL_NAMES = {"open", "eval", "exec", "compile", "__import__"}
 
 

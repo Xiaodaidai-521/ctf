@@ -25,9 +25,10 @@ class NotExecutable:
 class ExecutionAuthorization:
     """An authorization the executor may claim exactly once (H4, review R1).
 
-    Carrying a `reservation_id` and `valid_until`; the executor must re-confirm
-    the reservation is still active at execution start. Binds request/asset/
-    profile/scope so a stale authorization cannot be reused for a new decision.
+    `valid_until` is the exclusive earliest deadline of the decision, current
+    grant and any quota hold. Claim re-confirms stored eligibility at execution
+    start; expiry does not automatically release quota with an unknown outcome.
+    Binds request/asset/profile/scope to the decision being executed.
     """
 
     authorization_id: str

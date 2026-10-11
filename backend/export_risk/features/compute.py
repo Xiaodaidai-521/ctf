@@ -15,6 +15,10 @@ from .registry import FEATURE_REGISTRY
 
 _BY_NAME = {f.name: f for f in FEATURE_REGISTRY}
 
+# Only genuine export-request attempts count toward request/behaviour features;
+# denial/delivery/share-access are distinct lifecycle events (review F10).
+_REQUEST_EVENT_TYPE = "export_request"
+
 
 @dataclass(frozen=True)
 class EventRecord:
@@ -46,12 +50,28 @@ def _in_window(ts: datetime, as_of: datetime, window_seconds: int) -> bool:
     return start <= ts < as_of
 
 
-def compute_behavior_features(events: Sequence[EventRecord], as_of: datetime) -> Mapping[str, float]:
-    """Compute the 4 behaviour-sourced features over their windows."""
+def compute_behavior_features(
+    events: Sequence[EventRecord], as_of: datetime, *, include_simulated: bool = False
+) -> Mapping[str, float]:
+    """Compute the 4 behaviour-sourced features over their windows.
+
+    An event contributes only when it is a genuine export-request attempt (F10),
+    was *received* before ``as_of`` (dual-time knowledge cutoff, F9), and —
+    unless ``include_simulated`` — is not a simulated ledger row (F11).
+    """
+    def _eligible(e: EventRecord, window_seconds: int) -> bool:
+        if e.received_at >= as_of:                     # not yet known at as_of (F9)
+            return False
+        if e.is_simulated and not include_simulated:   # simulated excluded by default (F11)
+            return False
+        if e.event_type != _REQUEST_EVENT_TYPE:        # export requests only (F10)
+            return False
+        return _in_window(e.occurred_at, as_of, window_seconds)
+
     out = {}
     for name in ("req_count_short", "req_count_long", "distinct_recipients_long", "distinct_objects_long"):
         fdef = _BY_NAME[name]
-        in_win = [e for e in events if _in_window(e.occurred_at, as_of, fdef.window_seconds)]
+        in_win = [e for e in events if _eligible(e, fdef.window_seconds)]
         if name in ("req_count_short", "req_count_long"):
             out[name] = float(len(in_win))
         elif name == "distinct_recipients_long":
@@ -85,9 +105,10 @@ def build_feature_snapshot(
     data_watermark: datetime,
     feature_set_version: str = "fs-v1",
     include_simulated_delivery: bool = False,
+    include_simulated_behavior: bool = False,
 ) -> FeatureSnapshot:
     """Assemble a FeatureSnapshot, marking staleness when data lags as_of."""
-    values = dict(compute_behavior_features(events, as_of))
+    values = dict(compute_behavior_features(events, as_of, include_simulated=include_simulated_behavior))
     values.update(compute_delivery_features(deliveries, as_of, include_simulated_delivery))
     units = {f.name: f.unit for f in FEATURE_REGISTRY}
 
