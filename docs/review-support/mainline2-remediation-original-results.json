@@ -1,9 +1,0 @@
-{
-  "django": "6.0.3",
-  "database": ":memory:",
-  "tests": 22,
-  "failures": 0,
-  "errors": 0,
-  "passed": 22,
-  "issues": []
-}
