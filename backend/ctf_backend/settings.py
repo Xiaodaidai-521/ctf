@@ -87,6 +87,8 @@ INSTALLED_APPS = [
     'content_generator',
     'learning_analytics',
     'rag_ingestion',
+    'export_risk',
+    'export_quota',
 ]
 
 

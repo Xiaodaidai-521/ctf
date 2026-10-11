@@ -1,0 +1,11 @@
+{
+  "django": "6.0.3",
+  "database": ":memory:",
+  "tests": 12,
+  "failures": 0,
+  "errors": 0,
+  "passed": 12,
+  "issues": [],
+  "script_sha256": "76498b2f9f3095a9797120e89f528efa412fb80fe43a1afb45c308d5c6719610",
+  "exit_code": 0
+}

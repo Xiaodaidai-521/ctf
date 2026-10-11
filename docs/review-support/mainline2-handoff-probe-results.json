@@ -1,0 +1,93 @@
+{
+  "django": "6.0.3",
+  "database": ":memory:",
+  "tests": 22,
+  "failures": 20,
+  "errors": 0,
+  "passed": 2,
+  "issues": [
+    {
+      "test": "test_claim_rejects_expiration",
+      "error": "AssertionError: True is not false : expired authorization was claimable"
+    },
+    {
+      "test": "test_claim_rejects_invalidated_decision",
+      "error": "AssertionError: True is not false : invalidated decision's authorization was claimable"
+    },
+    {
+      "test": "test_claim_rejects_released_reservation",
+      "error": "AssertionError: True is not false : released reservation's authorization was claimable"
+    },
+    {
+      "test": "test_complete_cohort_baseline_usable_for_zero_history_user",
+      "error": "AssertionError: False is not true : 25 cohort samples still marked unusable for a zero-history user"
+    },
+    {
+      "test": "test_consumed_authorization_not_reported_executable",
+      "error": "AssertionError: 'executable' != 'not_executable' : consumed authorization still reported executable"
+    },
+    {
+      "test": "test_core_preserves_stale_feature_quality",
+      "error": "AssertionError: <QualityState.OK: 'ok'> == <QualityState.OK: 'ok'> : STALE/missing features promoted to input_quality=OK"
+    },
+    {
+      "test": "test_core_rejects_expired_authorization",
+      "error": "AssertionError: <RecommendedAction.ALLOW: 'allow'> == <RecommendedAction.ALLOW: 'allow'> : authorization expired before evaluation_time produced allow"
+    },
+    {
+      "test": "test_core_rejects_other_subject_authorization",
+      "error": "AssertionError: <RecommendedAction.ALLOW: 'allow'> == <RecommendedAction.ALLOW: 'allow'> : another subject's authorization produced allow"
+    },
+    {
+      "test": "test_create_rejects_assessment_for_other_request",
+      "error": "AssertionError: assessment for review-request persisted as other-request"
+    },
+    {
+      "test": "test_late_received_event_excluded_from_historical_inputs",
+      "error": "AssertionError: 1.0 != 0.0 : historical inputs used event received one hour in the future"
+    },
+    {
+      "test": "test_prepare_rechecks_forbidden_authorization",
+      "error": "AssertionError: 'executable' != 'not_executable' : forbidden snapshot produced executable"
+    },
+    {
+      "test": "test_production_rejects_synthetic_decision",
+      "error": "AssertionError: 'executable' != 'not_executable' : evaluation decision used for production signing"
+    },
+    {
+      "test": "test_production_rejects_test_approval_provider",
+      "error": "AssertionError: 'executable' != 'not_executable' : production accepted non-production approval authority"
+    },
+    {
+      "test": "test_quota_does_not_silently_clamp_actual_delivery",
+      "error": "AssertionError: 60 != 90 : reported delivery 90 silently accounted as 60"
+    },
+    {
+      "test": "test_quota_rejects_negative_amount",
+      "error": "AssertionError: negative -50 reservation allowed a positive 150 reservation against limit 100"
+    },
+    {
+      "test": "test_quota_replay_rejects_changed_binding",
+      "error": "AssertionError: replay accepted: reported bucket=2, actual bucket=1, amount=60"
+    },
+    {
+      "test": "test_quota_unknown_can_be_reconciled_after_receipt",
+      "error": "AssertionError: cannot reconcile from state unknown"
+    },
+    {
+      "test": "test_replay_rechecks_revoked_approval",
+      "error": "AssertionError: 'executable' != 'not_executable' : revoked approval still replays executable"
+    },
+    {
+      "test": "test_request_count_does_not_count_lifecycle_events",
+      "error": "AssertionError: 4.0 != 1.0 : one request plus lifecycle events counted as four requests"
+    },
+    {
+      "test": "test_simulated_behavior_excluded_by_default",
+      "error": "AssertionError: 1.0 != 0.0 : simulated event contributed to default behavior count"
+    }
+  ],
+  "source_commit": "b978b8d7efaf6b1263d2a16c3aa87974b9ad6e5f",
+  "review_date": "2026-10-11",
+  "exit_code": 1
+}
