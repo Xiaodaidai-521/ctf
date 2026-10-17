@@ -1,0 +1,5 @@
+# Versions already approved by the parent repository's backend requirements.
+Django==6.0.3
+djangorestframework==3.16.1
+openpyxl==3.1.5
+psycopg2-binary==2.9.10

@@ -1,0 +1,18 @@
+{
+  "version": "1",
+  "format": "csv",
+  "scope": {
+    "columns": ["name", "email", "note"]
+  },
+  "operations": [
+    {
+      "type": "mask_columns",
+      "columns": ["email"],
+      "strategy": "fixed",
+      "value": "***"
+    },
+    {
+      "type": "sanitize_formulas"
+    }
+  ]
+}

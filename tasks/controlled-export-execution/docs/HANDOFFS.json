@@ -1,0 +1,263 @@
+[
+  {
+    "stage": "Stage 1 - source inspection and access-path inventory",
+    "mission": {
+      "solved": [
+        "Inspected parent Django/DRF settings, resource upload/download, risk authorization contracts, quota service, audit service, and database selection.",
+        "Confirmed the parent repository remained read-only and the isolated task directory did not previously exist."
+      ],
+      "not_solved": ["Runtime production proxy, storage ACL, database routing, and deployed authentication configuration were unavailable."]
+    },
+    "findings": [
+      {
+        "id": "S1-F1",
+        "claim": "Existing resource download is authenticated but is not evidence of controlled delivery completion.",
+        "status": "Partial",
+        "evidence_status": "Verified",
+        "verification_status": "Untested",
+        "confidence": "High",
+        "evidence_refs": [
+          {
+            "source": "backend/resources/views.py",
+            "location": "resource_download_view",
+            "observation": "Download count and learning event are updated before response transmission can be observed as complete.",
+            "supports": "A separate delivery state model is required.",
+            "does_not_support": "It does not prove any deployed download bypass."
+          }
+        ]
+      },
+      {
+        "id": "S1-F2",
+        "claim": "Risk authorization, quota, and audit capabilities exist as separate parent modules.",
+        "status": "Implemented",
+        "evidence_status": "Verified",
+        "verification_status": "Untested",
+        "confidence": "High",
+        "evidence_refs": [
+          {
+            "source": "backend/export_risk, backend/export_quota, backend/audit",
+            "location": "contracts, models, and services",
+            "observation": "Separate contracts and persistence/services are present.",
+            "supports": "Adapters should preserve upstream ownership.",
+            "does_not_support": "These modules are not integrated with this isolated service."
+          }
+        ]
+      }
+    ],
+    "artifacts": ["docs/DESIGN.md"],
+    "approved_decisions": ["All parent files are read-only; implementation is isolated under tasks/controlled-export-execution."],
+    "open_questions": [
+      {
+        "id": "S1-Q1",
+        "status": "Unknown",
+        "blocking_scope": "production integration",
+        "resolution_needed": "Provide deployed proxy, storage ACL, identity, and database topology evidence."
+      }
+    ],
+    "judgment_changes": [],
+    "next_stage_constraints": ["Do not change parent public contracts, schema, dependencies, or file routes."],
+    "authorization_remaining": ["Isolated implementation and synthetic tests only."]
+  },
+  {
+    "stage": "Stage 2 - contracts, state machines, and change design",
+    "mission": {
+      "solved": [
+        "Separated execution, attempt, artifact, share, delivery, idempotency, and outbox ownership.",
+        "Defined short transactions, lock order, fencing, private storage recovery, token rotation, and backup restore behavior."
+      ],
+      "not_solved": ["No public API change or parent schema integration was authorized."]
+    },
+    "findings": [
+      {
+        "id": "S2-F1",
+        "claim": "A standalone schema can implement the requested reference behavior without modifying parent files.",
+        "status": "Implemented",
+        "evidence_status": "Verified",
+        "verification_status": "Passed",
+        "confidence": "High",
+        "evidence_refs": [
+          {
+            "source": "controlled_export/models.py",
+            "location": "all model declarations",
+            "observation": "Explicit state, constraint, index, and PROTECT relationships are defined.",
+            "supports": "The isolated service owns only its execution facts.",
+            "does_not_support": "It does not prove compatibility with an unapproved production schema."
+          }
+        ]
+      }
+    ],
+    "artifacts": ["docs/DESIGN.md", "controlled_export/migrations/0001_initial.py"],
+    "approved_decisions": ["Use only dependency versions already present in the parent backend requirements."],
+    "open_questions": [
+      {
+        "id": "S2-Q1",
+        "status": "Unknown",
+        "blocking_scope": "production access semantics",
+        "resolution_needed": "Decide whether admission before revocation permits the existing stream to continue."
+      }
+    ],
+    "judgment_changes": [],
+    "next_stage_constraints": ["Reject unknown obligations; keep files private; never return input on failure."],
+    "authorization_remaining": ["Implement internal isolated contracts; do not attach parent routes."]
+  },
+  {
+    "stage": "Stage 3 - protected artifact and execution pipeline",
+    "mission": {
+      "solved": [
+        "Implemented signed authorization validation, binding, idempotent execution, leases/fences, CSV/XLSX transformation, private candidates, immutable artifact registration, receipts, and outbox facts."
+      ],
+      "not_solved": ["No real upstream authority, quota settlement, or remote object storage was connected."]
+    },
+    "findings": [
+      {
+        "id": "S3-F1",
+        "claim": "Synthetic CSV/XLSX execution produces only a new validated private copy and rejects active/hidden XLSX channels.",
+        "status": "Implemented",
+        "evidence_status": "Verified",
+        "verification_status": "Passed",
+        "confidence": "High",
+        "evidence_refs": [
+          {
+            "source": "controlled_export/tests/test_transformations.py",
+            "location": "TransformationTests",
+            "observation": "Masking, projection, formula handling, hidden content, and hyperlinks were exercised.",
+            "supports": "Local transformation behavior for tested fixtures.",
+            "does_not_support": "Arbitrary real-world workbook compatibility or production scale."
+          }
+        ]
+      }
+    ],
+    "artifacts": ["controlled_export/authorization.py", "controlled_export/transformations.py", "controlled_export/storage.py", "controlled_export/services.py"],
+    "approved_decisions": ["Use isolated HMAC adapter because no production authority wire contract was supplied."],
+    "open_questions": [
+      {
+        "id": "S3-Q1",
+        "status": "Unknown",
+        "blocking_scope": "real integration",
+        "resolution_needed": "Approve an adapter from parent ExecutionAuthorization to the signed payload."
+      }
+    ],
+    "judgment_changes": [],
+    "next_stage_constraints": ["Only succeeded, integrity-verified artifacts can be shared."],
+    "authorization_remaining": ["Share implementation in isolated service only."]
+  },
+  {
+    "stage": "Stage 4 - controlled sharing and delivery",
+    "mission": {
+      "solved": [
+        "Implemented recipient-bound shares, digest-only tokens, token rotation, expiry/revocation, admission locking, no-store streaming, delivery IDs, and evidence-aware delivery results."
+      ],
+      "not_solved": ["No email/SMS notification, presigned URL, external sink, or client-side anti-capture claim was added."]
+    },
+    "findings": [
+      {
+        "id": "S4-F1",
+        "claim": "Token possession alone cannot authorize access and server stream completion is not recorded as client completion.",
+        "status": "Implemented",
+        "evidence_status": "Verified",
+        "verification_status": "Passed",
+        "confidence": "High",
+        "evidence_refs": [
+          {
+            "source": "controlled_export/tests/test_sharing.py",
+            "location": "SharingServiceTests",
+            "observation": "Recipient mismatch, token mismatch, expiry, revocation, rotation, distinct delivery IDs, and unknown stream result passed.",
+            "supports": "Local business service behavior.",
+            "does_not_support": "Real identity provider, proxy buffering, or network interruption semantics."
+          }
+        ]
+      }
+    ],
+    "artifacts": ["controlled_export/views.py", "controlled_export/urls.py", "controlled_export/serializers.py"],
+    "approved_decisions": ["Evaluation mode is prohibited from creating shares."],
+    "open_questions": [
+      {
+        "id": "S4-Q1",
+        "status": "Unknown",
+        "blocking_scope": "recipient production authentication",
+        "resolution_needed": "Approve mapping between parent authenticated user IDs and recipient IDs."
+      }
+    ],
+    "judgment_changes": [],
+    "next_stage_constraints": ["Do not describe server byte streaming as recipient persistence or reading."],
+    "authorization_remaining": ["Synthetic integration and failure tests."]
+  },
+  {
+    "stage": "Stage 5 - integration, concurrency, and failure verification",
+    "mission": {
+      "solved": ["Ran syntax, Django checks, migration consistency, unit/behavior/contract/security tests, and local fencing/failure tests."],
+      "not_solved": ["Real PostgreSQL locking and all external integrations were unavailable."]
+    },
+    "findings": [
+      {
+        "id": "S5-F1",
+        "claim": "The isolated test suite passes on SQLite while PostgreSQL-specific locking remains unverified.",
+        "status": "Partial",
+        "evidence_status": "Verified",
+        "verification_status": "Passed",
+        "confidence": "High",
+        "evidence_refs": [
+          {
+            "source": "test command output and docs/VERIFICATION.md",
+            "location": "controlled_export test suite",
+            "observation": "All runnable tests passed and PostgreSQL test was explicitly skipped.",
+            "supports": "Local behavior and explicit verification gap.",
+            "does_not_support": "PostgreSQL isolation, lock wait, deadlock, or production readiness."
+          }
+        ]
+      }
+    ],
+    "artifacts": ["controlled_export/tests", "docs/VERIFICATION.md"],
+    "approved_decisions": ["Do not substitute SQLite results for PostgreSQL concurrency evidence."],
+    "open_questions": [
+      {
+        "id": "S5-Q1",
+        "status": "Unknown",
+        "blocking_scope": "target database readiness",
+        "resolution_needed": "Run the suite with a disposable target-version PostgreSQL database."
+      }
+    ],
+    "judgment_changes": [],
+    "next_stage_constraints": ["Report readiness as partial, not production-ready."],
+    "authorization_remaining": ["Documentation, local commit, and attempted branch push."]
+  },
+  {
+    "stage": "Stage 6 - delivery and integration guidance",
+    "mission": {
+      "solved": ["Prepared standalone run instructions, API boundary, verification record, failure matrix, recovery runbook, and rollback guidance."],
+      "not_solved": ["Production deployment, parent integration, and PR/merge were not authorized or performed."]
+    },
+    "findings": [
+      {
+        "id": "S6-F1",
+        "claim": "The delivered artifact is independently reviewable and runnable without parent-file changes.",
+        "status": "Implemented",
+        "evidence_status": "Verified",
+        "verification_status": "Passed",
+        "confidence": "High",
+        "evidence_refs": [
+          {
+            "source": "README.md and Git diff",
+            "location": "tasks/controlled-export-execution",
+            "observation": "All implementation, configuration, migration, tests, fixtures, and documentation are contained in one new directory.",
+            "supports": "Isolation and reviewability.",
+            "does_not_support": "Automatic integration with the parent application."
+          }
+        ]
+      }
+    ],
+    "artifacts": ["README.md", ".env.example", "scripts/run-dev.ps1", "docs/RECOVERY.md", "docs/VERIFICATION.md", "docs/HANDOFFS.json"],
+    "approved_decisions": ["No automatic deployment, PR, merge, or parent integration."],
+    "open_questions": [
+      {
+        "id": "S6-Q1",
+        "status": "Unknown",
+        "blocking_scope": "remote branch delivery",
+        "resolution_needed": "Use a GitHub account with push permission for Xiaodaidai-521/ctf."
+      }
+    ],
+    "judgment_changes": [],
+    "next_stage_constraints": ["Any parent integration requires a separately authorized change because parent files are read-only in this task."],
+    "authorization_remaining": ["Commit only added files and attempt a normal non-force push."]
+  }
+]
