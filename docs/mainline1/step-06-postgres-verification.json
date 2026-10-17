@@ -1,0 +1,83 @@
+{
+  "kind": "isolated_postgresql",
+  "synthetic_only": true,
+  "production_settings_loaded": false,
+  "started": true,
+  "stopped": true,
+  "checks": [
+    {
+      "command": [
+        "-B",
+        "-m",
+        "django",
+        "check",
+        "--settings=mainline1.test_settings"
+      ],
+      "exit_code": 0,
+      "status": "Passed",
+      "output": "System check identified no issues (0 silenced).\n"
+    },
+    {
+      "command": [
+        "-B",
+        "-m",
+        "django",
+        "makemigrations",
+        "--check",
+        "--dry-run",
+        "--settings=mainline1.test_settings"
+      ],
+      "exit_code": 0,
+      "status": "Passed",
+      "output": "No changes detected\n"
+    },
+    {
+      "command": [
+        "-B",
+        "-m",
+        "django",
+        "test",
+        "mainline1.tests.postgres_review_cases",
+        "mainline1.tests.postgres_cases",
+        "--noinput",
+        "-v",
+        "2",
+        "--settings=mainline1.test_settings"
+      ],
+      "exit_code": 0,
+      "status": "Passed",
+      "output": "Creating test database for alias 'default' ('test_mainline1')...\n\nFound 36 test(s).\nOperations to perform:\n  Apply all migrations: mainline1\nRunning migrations:\n  Applying mainline1.0001_initial... OK\n  Applying mainline1.0002_reviewledger...test_ack_loss_after_delivery_replays_same_persistent_event (mainline1.tests.postgres_review_cases.PostgresReviews.test_ack_loss_after_delivery_replays_same_persistent_event) ... ok\ntest_acl_rechecked_for_idempotency_and_each_query (mainline1.tests.postgres_review_cases.PostgresReviews.test_acl_rechecked_for_idempotency_and_each_query) ... ok\ntest_combination_rejected_instead_of_losing_protection (mainline1.tests.postgres_review_cases.PostgresReviews.test_combination_rejected_instead_of_losing_protection) ... ok\ntest_confirm_preserves_original_and_source_provenance (mainline1.tests.postgres_review_cases.PostgresReviews.test_confirm_preserves_original_and_source_provenance) ... ok\ntest_correct_recalculates_level_without_quality_upgrade (mainline1.tests.postgres_review_cases.PostgresReviews.test_correct_recalculates_level_without_quality_upgrade) ... ok\ntest_false_positive_removes_only_successor_reference (mainline1.tests.postgres_review_cases.PostgresReviews.test_false_positive_removes_only_successor_reference) ... ok\ntest_idempotency_replay_and_changed_body_conflict (mainline1.tests.postgres_review_cases.PostgresReviews.test_idempotency_replay_and_changed_body_conflict) ... ok\ntest_invalid_manual_coordinates_and_categories_atomic (mainline1.tests.postgres_review_cases.PostgresReviews.test_invalid_manual_coordinates_and_categories_atomic) ... ok\ntest_ledger_unique_row_constraint (mainline1.tests.postgres_review_cases.PostgresReviews.test_ledger_unique_row_constraint) ... ok\ntest_manual_addition_and_same_asset_old_applicability (mainline1.tests.postgres_review_cases.PostgresReviews.test_manual_addition_and_same_asset_old_applicability) ... ok\ntest_no_automatic_reuse_after_input_change_or_newer_review (mainline1.tests.postgres_review_cases.PostgresReviews.test_no_automatic_reuse_after_input_change_or_newer_review) ... ok\ntest_notifications_not_connected_failure_retry_dedup_and_dead_letter (mainline1.tests.postgres_review_cases.PostgresReviews.test_notifications_not_connected_failure_retry_dedup_and_dead_letter) ... ok\ntest_object_domain_environment_evaluation_and_actor_denied (mainline1.tests.postgres_review_cases.PostgresReviews.test_object_domain_environment_evaluation_and_actor_denied) ... ok\ntest_other_scopes_conservatively_invalidated (mainline1.tests.postgres_review_cases.PostgresReviews.test_other_scopes_conservatively_invalidated) ... ok\ntest_pending_pagination_fixed_to_old_profile_and_masking (mainline1.tests.postgres_review_cases.PostgresReviews.test_pending_pagination_fixed_to_old_profile_and_masking) ... ok\ntest_reconnect_preserves_history_idempotency_and_pending_outbox (mainline1.tests.postgres_review_cases.PostgresReviews.test_reconnect_preserves_history_idempotency_and_pending_outbox) ... ok\ntest_rejected_request_has_no_false_positive_record (mainline1.tests.postgres_review_cases.PostgresReviews.test_rejected_request_has_no_false_positive_record) ... ok\ntest_repository_failure_rolls_back_history_head_and_outbox (mainline1.tests.postgres_review_cases.PostgresReviews.test_repository_failure_rolls_back_history_head_and_outbox) ... ok\ntest_returns_cannot_mutate_history_and_draft_not_new_authorization (mainline1.tests.postgres_review_cases.PostgresReviews.test_returns_cannot_mutate_history_and_draft_not_new_authorization) ... ok\ntest_successive_reviews_keep_state_history_monotonic (mainline1.tests.postgres_review_cases.PostgresReviews.test_successive_reviews_keep_state_history_monotonic) ... ok\ntest_two_reviewers_one_successor (mainline1.tests.postgres_review_cases.PostgresReviews.test_two_reviewers_one_successor) ... ok\ntest_unicode_manual_span_source_bounds (mainline1.tests.postgres_review_cases.PostgresReviews.test_unicode_manual_span_source_bounds) ... ok\ntest_wrong_expected_version_conflicts_without_writes (mainline1.tests.postgres_review_cases.PostgresReviews.test_wrong_expected_version_conflicts_without_writes) ... ok\ntest_artifact_failure_rolls_back_success_and_attempt (mainline1.tests.postgres_cases.PostgresTasks.test_artifact_failure_rolls_back_success_and_attempt) ... ok\ntest_cancel_before_publish_has_no_artifact (mainline1.tests.postgres_cases.PostgresTasks.test_cancel_before_publish_has_no_artifact) ... ok\ntest_changed_parser_version_fails_without_opening_asset (mainline1.tests.postgres_cases.PostgresTasks.test_changed_parser_version_fails_without_opening_asset) ... ok\ntest_concurrent_cancel_and_publish_are_atomic (mainline1.tests.postgres_cases.PostgresTasks.test_concurrent_cancel_and_publish_are_atomic) ... ok\ntest_concurrent_claim_has_one_attempt (mainline1.tests.postgres_cases.PostgresTasks.test_concurrent_claim_has_one_attempt) ... ok\ntest_concurrent_unique_create_and_conflicting_replay (mainline1.tests.postgres_cases.PostgresTasks.test_concurrent_unique_create_and_conflicting_replay) ... ok\ntest_database_reconnect_recovery_retry_and_old_token_fencing (mainline1.tests.postgres_cases.PostgresTasks.test_database_reconnect_recovery_retry_and_old_token_fencing) ... ok\ntest_management_command_fails_closed_without_owner (mainline1.tests.postgres_cases.PostgresTasks.test_management_command_fails_closed_without_owner) ... ok\ntest_new_python_process_reads_persisted_attempt (mainline1.tests.postgres_cases.PostgresTasks.test_new_python_process_reads_persisted_attempt) ... ok\ntest_publish_rejects_result_from_different_parser_configuration (mainline1.tests.postgres_cases.PostgresTasks.test_publish_rejects_result_from_different_parser_configuration) ... ok\ntest_repository_refuses_snapshot_mutation (mainline1.tests.postgres_cases.PostgresTasks.test_repository_refuses_snapshot_mutation) ... ok\ntest_worker_failure_contains_only_code (mainline1.tests.postgres_cases.PostgresTasks.test_worker_failure_contains_only_code) ... ok\ntest_worker_persists_private_result_and_no_detection (mainline1.tests.postgres_cases.PostgresTasks.test_worker_persists_private_result_and_no_detection) ... ok\n\n----------------------------------------------------------------------\nRan 36 tests in 6.342s\n\nOK\nDestroying test database for alias 'default' ('test_mainline1')...\n\n OK\nSystem check identified no issues (0 silenced).\n"
+    },
+    {
+      "command": [
+        "-B",
+        "-m",
+        "django",
+        "migrate",
+        "mainline1",
+        "--noinput",
+        "--settings=mainline1.test_settings"
+      ],
+      "exit_code": 0,
+      "status": "Passed",
+      "output": "Operations to perform:\n  Apply all migrations: mainline1\nRunning migrations:\n  Applying mainline1.0001_initial... OK\n  Applying mainline1.0002_reviewledger... OK\n"
+    },
+    {
+      "command": [
+        "-B",
+        "-m",
+        "django",
+        "migrate",
+        "mainline1",
+        "zero",
+        "--noinput",
+        "--settings=mainline1.test_settings"
+      ],
+      "exit_code": 0,
+      "status": "Passed",
+      "output": "Operations to perform:\n  Unapply all migrations: mainline1\nRunning migrations:\n  Rendering model states... DONE\n  Unapplying mainline1.0002_reviewledger... OK\n  Unapplying mainline1.0001_initial... OK\n"
+    }
+  ],
+  "server_version": "pg_ctl (PostgreSQL) 16.14",
+  "temporary_cluster_removed": true
+}

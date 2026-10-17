@@ -1,0 +1,78 @@
+{
+  "schema": "mainline1.operations.example.v1",
+  "purpose": "backend_only 合成调用样例；不包含原文、凭据或外发授权",
+  "preconditions": [
+    "调用方已获得可信 ReviewPrincipal、资产 owner 端口和 ACL 适配器",
+    "资产版本、解析范围、规则配置和业务上下文来自同一固定输入快照",
+    "执行前再次读取权威适用性和权限状态；plan_hash 或 scan_id 不构成授权"
+  ],
+  "create_scan": {
+    "method": "Operations.create_scan",
+    "arguments": {
+      "actor": "trusted:ReviewPrincipal(7, domain=synthetic, environment=test)",
+      "version_id": "asset-version-v1",
+      "configuration": "approved-test-rule-configuration-v1",
+      "context": "BusinessContext for asset-version-v1 and scope-hash-1",
+      "idempotency_key": "synthetic-scan-001",
+      "scope": "Scope(asset_version_id=asset-version-v1, selections=all, include_header=true)",
+      "semantic_required": false
+    },
+    "returns": {
+      "scan_id": "run-opaque-id",
+      "status": "queued",
+      "stage": "queued",
+      "total_count": null,
+      "result_kind": "scan_result",
+      "detection_status": "not_completed"
+    }
+  },
+  "run_and_query": [
+    {
+      "method": "Operations.execute_one",
+      "arguments": {"scan_id": "run-opaque-id"},
+      "note": "由受管调用方显式驱动；不创建无人管理线程"
+    },
+    {
+      "method": "Operations.get_scan",
+      "arguments": {"scan_id": "run-opaque-id"},
+      "returns": {
+        "status": "succeeded | failed | cancelled",
+        "stage": "queued | parse | finalize | completed",
+        "processed_count": "integer",
+        "total_count": "integer | null",
+        "error_code": "stable-code | null"
+      }
+    },
+    {
+      "method": "Operations.list_findings",
+      "arguments": {"profile_id": "profile-opaque-id", "limit": 100, "offset": 0, "pending_only": true},
+      "note": "分页响应固定到画像；私有结果需要逐次 ACL 检查"
+    }
+  ],
+  "rescan_and_compare": {
+    "new_version": "asset-version-v2",
+    "new_run": "rescan-uses-a-new-idempotency-key-and-run",
+    "methods": [
+      "Operations.create_scan(..., base_profile_id=profile-opaque-id)",
+      "Operations.compare_scans(actor, before_profile_id, after_profile_id)"
+    ],
+    "semantics": [
+      "输入、解析映射或范围改变时报告 unmatched；不按移动后的行列坐标强配",
+      "类别变化单列 category_changes；人工结论仅在精确 binding 下继承",
+      "证据不足返回 RESCAN_REQUIRED 或待复核限制"
+    ]
+  },
+  "cleanup": {
+    "preview": "Operations.cleanup_preview(actor, scope=scope)",
+    "execute": "Operations.cleanup_execute(actor, dry_run=false, reason=RETENTION_EXPIRED, preview_hash=preview_hash)",
+    "guards": [
+      "默认 dry-run；活动任务、引用、ACL、范围越界或未知保留时间阻塞",
+      "只处理本模块 temporary_parse/detection_cache；原始资产删除委托 owner.invalidate",
+      "执行前重新检查策略、预览摘要和权威状态，并写入私有审计记录"
+    ]
+  },
+  "non_authorizations": [
+    "此样例不发布 HTTP 路由、不创建共享、不预占额度、不执行真实外发",
+    "示例中的 succeeded、ready、scan_id、profile_id 或 plan_hash 都不是外发许可"
+  ]
+}

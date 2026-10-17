@@ -1,0 +1,2122 @@
+{
+  "approval_status": "Proposed",
+  "data_kind": "synthetic_only",
+  "digest_note": "摘要均为合成占位；本轮不证明实际 hash/数据重放/权限/SQL/模型行为。 样例政策 active 仅为虚构业务状态，不表示草案/政策已获批准。",
+  "cases": [
+    {
+      "name": "normal_rule_only_after_review",
+      "expected_schema_valid": true,
+      "expected_invariant_errors": [],
+      "notes": "完整仅相对于 rule-only 合成政策，语义 excluded；非功能测试。历史前驱由外部引用表示。",
+      "patches": []
+    },
+    {
+      "name": "partial_semantic_failure",
+      "expected_schema_valid": true,
+      "expected_invariant_errors": [],
+      "notes": "模拟真实后端不可用的响应形状，不实际调用模型。",
+      "patches": [
+        {
+          "op": "replace",
+          "path": "/ParsedAsset/coverage/semantic/status",
+          "value": "failed"
+        },
+        {
+          "op": "replace",
+          "path": "/ParsedAsset/coverage/semantic/failed_count",
+          "value": 4
+        },
+        {
+          "op": "replace",
+          "path": "/ParsedAsset/coverage/semantic/failed_scope_ref",
+          "value": "private:failed"
+        },
+        {
+          "op": "replace",
+          "path": "/ParsedAsset/coverage/semantic/reason_codes",
+          "value": [
+            "DETECTOR_UNAVAILABLE"
+          ]
+        },
+        {
+          "op": "replace",
+          "path": "/SensitivityProfile/quality",
+          "value": "partial"
+        },
+        {
+          "op": "replace",
+          "path": "/SensitivityProfile/coverage/semantic/status",
+          "value": "failed"
+        },
+        {
+          "op": "replace",
+          "path": "/SensitivityProfile/coverage/semantic/failed_count",
+          "value": 4
+        },
+        {
+          "op": "replace",
+          "path": "/SensitivityProfile/coverage/semantic/failed_scope_ref",
+          "value": "private:failed"
+        },
+        {
+          "op": "replace",
+          "path": "/SensitivityProfile/coverage/semantic/reason_codes",
+          "value": [
+            "DETECTOR_UNAVAILABLE"
+          ]
+        },
+        {
+          "op": "replace",
+          "path": "/ScanRunSnapshot/model/enabled",
+          "value": true
+        },
+        {
+          "op": "replace",
+          "path": "/ScanRunSnapshot/model/provider",
+          "value": "synthetic-no-network"
+        },
+        {
+          "op": "replace",
+          "path": "/ScanRunSnapshot/model/model",
+          "value": "synthetic-model"
+        },
+        {
+          "op": "replace",
+          "path": "/ScanRunSnapshot/model/temperature",
+          "value": 0
+        },
+        {
+          "op": "replace",
+          "path": "/ScanRunSnapshot/budget/max_model_calls",
+          "value": 20
+        },
+        {
+          "op": "replace",
+          "path": "/ScanRunSnapshot/budget/max_input_tokens",
+          "value": 40000
+        },
+        {
+          "op": "replace",
+          "path": "/ScanRunSnapshot/budget/max_output_tokens",
+          "value": 20000
+        },
+        {
+          "op": "replace",
+          "path": "/ScanRunSnapshot/semantic_required",
+          "value": true
+        },
+        {
+          "op": "replace",
+          "path": "/RedactionPlan/unresolved",
+          "value": [
+            "COVERAGE_INSUFFICIENT"
+          ]
+        },
+        {
+          "op": "replace",
+          "path": "/RedactionPlan/status",
+          "value": "partial"
+        },
+        {
+          "op": "replace",
+          "path": "/ScanResult/quality",
+          "value": "partial"
+        },
+        {
+          "op": "replace",
+          "path": "/ScanResult/coverage/semantic/status",
+          "value": "failed"
+        },
+        {
+          "op": "replace",
+          "path": "/ScanResult/coverage/semantic/failed_count",
+          "value": 4
+        },
+        {
+          "op": "replace",
+          "path": "/ScanResult/coverage/semantic/failed_scope_ref",
+          "value": "private:failed"
+        },
+        {
+          "op": "replace",
+          "path": "/ScanResult/coverage/semantic/reason_codes",
+          "value": [
+            "DETECTOR_UNAVAILABLE"
+          ]
+        },
+        {
+          "op": "replace",
+          "path": "/ScanResult/warnings",
+          "value": [
+            "DETECTOR_UNAVAILABLE"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "context_conflict",
+      "expected_schema_valid": true,
+      "expected_invariant_errors": [],
+      "notes": "",
+      "patches": [
+        {
+          "op": "replace",
+          "path": "/Finding/category_id",
+          "value": null
+        },
+        {
+          "op": "replace",
+          "path": "/Finding/judgment",
+          "value": "conflict"
+        },
+        {
+          "op": "replace",
+          "path": "/Finding/uncertainty_reasons",
+          "value": [
+            "CONTEXT_CONFLICT"
+          ]
+        },
+        {
+          "op": "replace",
+          "path": "/SensitivityProfile/category_counts",
+          "value": []
+        },
+        {
+          "op": "replace",
+          "path": "/SensitivityProfile/protection_level",
+          "value": null
+        },
+        {
+          "op": "replace",
+          "path": "/SensitivityProfile/review_status",
+          "value": "pending"
+        },
+        {
+          "op": "replace",
+          "path": "/RedactionPlan/unresolved",
+          "value": [
+            "REVIEW_REQUIRED"
+          ]
+        },
+        {
+          "op": "replace",
+          "path": "/RedactionPlan/validation_errors",
+          "value": [
+            "CONTEXT_INVALID"
+          ]
+        },
+        {
+          "op": "replace",
+          "path": "/RedactionPlan/status",
+          "value": "invalid"
+        }
+      ]
+    },
+    {
+      "name": "cancelled",
+      "expected_schema_valid": true,
+      "expected_invariant_errors": [],
+      "notes": "",
+      "patches": [
+        {
+          "op": "remove",
+          "path": "/ScanComparison"
+        },
+        {
+          "op": "remove",
+          "path": "/RedactionPlan"
+        },
+        {
+          "op": "remove",
+          "path": "/ProfileApplicability"
+        },
+        {
+          "op": "remove",
+          "path": "/Finding"
+        },
+        {
+          "op": "remove",
+          "path": "/ReviewRecord"
+        },
+        {
+          "op": "remove",
+          "path": "/SensitivityProfile"
+        },
+        {
+          "op": "remove",
+          "path": "/ParsedAsset"
+        },
+        {
+          "op": "replace",
+          "path": "/ScanResult/task_status",
+          "value": "cancelled"
+        },
+        {
+          "op": "replace",
+          "path": "/ScanResult/quality",
+          "value": "unavailable"
+        },
+        {
+          "op": "replace",
+          "path": "/ScanResult/profile_id",
+          "value": null
+        },
+        {
+          "op": "replace",
+          "path": "/ScanResult/processed_count",
+          "value": 0
+        },
+        {
+          "op": "replace",
+          "path": "/ScanResult/total_count",
+          "value": null
+        },
+        {
+          "op": "replace",
+          "path": "/ScanResult/progress_ratio",
+          "value": null
+        },
+        {
+          "op": "replace",
+          "path": "/ScanResult/coverage/parse/status",
+          "value": "not_run"
+        },
+        {
+          "op": "replace",
+          "path": "/ScanResult/coverage/parse/target_count",
+          "value": null
+        },
+        {
+          "op": "replace",
+          "path": "/ScanResult/coverage/parse/processed_count",
+          "value": 0
+        },
+        {
+          "op": "replace",
+          "path": "/ScanResult/coverage/parse/ratio",
+          "value": null
+        },
+        {
+          "op": "replace",
+          "path": "/ScanResult/coverage/parse/processed_scope_ref",
+          "value": null
+        },
+        {
+          "op": "replace",
+          "path": "/ScanResult/coverage/parse/reason_codes",
+          "value": [
+            "TASK_CANCELLED"
+          ]
+        },
+        {
+          "op": "replace",
+          "path": "/ScanResult/coverage/rule/status",
+          "value": "not_run"
+        },
+        {
+          "op": "replace",
+          "path": "/ScanResult/coverage/rule/target_count",
+          "value": null
+        },
+        {
+          "op": "replace",
+          "path": "/ScanResult/coverage/rule/processed_count",
+          "value": 0
+        },
+        {
+          "op": "replace",
+          "path": "/ScanResult/coverage/rule/ratio",
+          "value": null
+        },
+        {
+          "op": "replace",
+          "path": "/ScanResult/coverage/rule/processed_scope_ref",
+          "value": null
+        },
+        {
+          "op": "replace",
+          "path": "/ScanResult/coverage/rule/reason_codes",
+          "value": [
+            "TASK_CANCELLED"
+          ]
+        },
+        {
+          "op": "replace",
+          "path": "/ScanResult/coverage/semantic/status",
+          "value": "not_run"
+        },
+        {
+          "op": "replace",
+          "path": "/ScanResult/coverage/semantic/target_count",
+          "value": null
+        },
+        {
+          "op": "replace",
+          "path": "/ScanResult/coverage/semantic/ratio",
+          "value": null
+        },
+        {
+          "op": "replace",
+          "path": "/ScanResult/coverage/semantic/reason_codes",
+          "value": [
+            "TASK_CANCELLED"
+          ]
+        },
+        {
+          "op": "replace",
+          "path": "/ScanResult/coverage/combination/status",
+          "value": "not_run"
+        },
+        {
+          "op": "replace",
+          "path": "/ScanResult/coverage/combination/target_count",
+          "value": null
+        },
+        {
+          "op": "replace",
+          "path": "/ScanResult/coverage/combination/reason_codes",
+          "value": [
+            "TASK_CANCELLED"
+          ]
+        },
+        {
+          "op": "replace",
+          "path": "/ScanResult/cancel_requested_at",
+          "value": "2026-10-11T16:00:00+08:00"
+        },
+        {
+          "op": "replace",
+          "path": "/ScanResult/errors",
+          "value": [
+            "TASK_CANCELLED"
+          ]
+        },
+        {
+          "op": "replace",
+          "path": "/TaskReference/status",
+          "value": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "parse_failure",
+      "expected_schema_valid": true,
+      "expected_invariant_errors": [],
+      "notes": "",
+      "patches": [
+        {
+          "op": "remove",
+          "path": "/ScanComparison"
+        },
+        {
+          "op": "remove",
+          "path": "/RedactionPlan"
+        },
+        {
+          "op": "remove",
+          "path": "/ProfileApplicability"
+        },
+        {
+          "op": "remove",
+          "path": "/Finding"
+        },
+        {
+          "op": "remove",
+          "path": "/ReviewRecord"
+        },
+        {
+          "op": "remove",
+          "path": "/SensitivityProfile"
+        },
+        {
+          "op": "remove",
+          "path": "/ParsedAsset"
+        },
+        {
+          "op": "replace",
+          "path": "/ScanResult/task_status",
+          "value": "failed"
+        },
+        {
+          "op": "replace",
+          "path": "/ScanResult/quality",
+          "value": "unavailable"
+        },
+        {
+          "op": "replace",
+          "path": "/ScanResult/profile_id",
+          "value": null
+        },
+        {
+          "op": "replace",
+          "path": "/ScanResult/processed_count",
+          "value": 0
+        },
+        {
+          "op": "replace",
+          "path": "/ScanResult/total_count",
+          "value": null
+        },
+        {
+          "op": "replace",
+          "path": "/ScanResult/progress_ratio",
+          "value": null
+        },
+        {
+          "op": "replace",
+          "path": "/ScanResult/coverage/parse/status",
+          "value": "failed"
+        },
+        {
+          "op": "replace",
+          "path": "/ScanResult/coverage/parse/target_count",
+          "value": null
+        },
+        {
+          "op": "replace",
+          "path": "/ScanResult/coverage/parse/processed_count",
+          "value": 0
+        },
+        {
+          "op": "replace",
+          "path": "/ScanResult/coverage/parse/ratio",
+          "value": null
+        },
+        {
+          "op": "replace",
+          "path": "/ScanResult/coverage/parse/processed_scope_ref",
+          "value": null
+        },
+        {
+          "op": "replace",
+          "path": "/ScanResult/coverage/parse/failed_scope_ref",
+          "value": "private:failed"
+        },
+        {
+          "op": "replace",
+          "path": "/ScanResult/coverage/parse/reason_codes",
+          "value": [
+            "PARSE_FAILED"
+          ]
+        },
+        {
+          "op": "replace",
+          "path": "/ScanResult/coverage/rule/status",
+          "value": "not_run"
+        },
+        {
+          "op": "replace",
+          "path": "/ScanResult/coverage/rule/target_count",
+          "value": null
+        },
+        {
+          "op": "replace",
+          "path": "/ScanResult/coverage/rule/processed_count",
+          "value": 0
+        },
+        {
+          "op": "replace",
+          "path": "/ScanResult/coverage/rule/ratio",
+          "value": null
+        },
+        {
+          "op": "replace",
+          "path": "/ScanResult/coverage/rule/processed_scope_ref",
+          "value": null
+        },
+        {
+          "op": "replace",
+          "path": "/ScanResult/coverage/rule/reason_codes",
+          "value": [
+            "PARSE_FAILED"
+          ]
+        },
+        {
+          "op": "replace",
+          "path": "/ScanResult/coverage/semantic/status",
+          "value": "not_run"
+        },
+        {
+          "op": "replace",
+          "path": "/ScanResult/coverage/semantic/target_count",
+          "value": null
+        },
+        {
+          "op": "replace",
+          "path": "/ScanResult/coverage/semantic/ratio",
+          "value": null
+        },
+        {
+          "op": "replace",
+          "path": "/ScanResult/coverage/semantic/reason_codes",
+          "value": [
+            "PARSE_FAILED"
+          ]
+        },
+        {
+          "op": "replace",
+          "path": "/ScanResult/coverage/combination/status",
+          "value": "not_run"
+        },
+        {
+          "op": "replace",
+          "path": "/ScanResult/coverage/combination/target_count",
+          "value": null
+        },
+        {
+          "op": "replace",
+          "path": "/ScanResult/coverage/combination/reason_codes",
+          "value": [
+            "PARSE_FAILED"
+          ]
+        },
+        {
+          "op": "replace",
+          "path": "/ScanResult/errors",
+          "value": [
+            "PARSE_FAILED"
+          ]
+        },
+        {
+          "op": "replace",
+          "path": "/TaskReference/status",
+          "value": "failed"
+        }
+      ]
+    },
+    {
+      "name": "review_supersedes_old_plan",
+      "expected_schema_valid": true,
+      "expected_invariant_errors": [
+        "PROFILE_SUPERSEDED"
+      ],
+      "notes": "旧计划保留原 ready 内容；本次适用性校验必须拒绝，同一资产 hash 不豁免。",
+      "patches": [
+        {
+          "op": "replace",
+          "path": "/ProfileApplicability/state_version",
+          "value": 2
+        },
+        {
+          "op": "replace",
+          "path": "/ProfileApplicability/status",
+          "value": "superseded"
+        },
+        {
+          "op": "replace",
+          "path": "/ProfileApplicability/successor_profile_id",
+          "value": "4e62e436-1c0d-577d-893b-3dd374b4bf24"
+        },
+        {
+          "op": "replace",
+          "path": "/ProfileApplicability/reason_codes",
+          "value": [
+            "MANUAL_FINDING_ADDED"
+          ]
+        },
+        {
+          "op": "replace",
+          "path": "/ProfileApplicability/usable_for_new_decision",
+          "value": false
+        }
+      ]
+    },
+    {
+      "name": "asset_version_changed",
+      "expected_schema_valid": true,
+      "expected_invariant_errors": [
+        "ASSET_VERSION_MISMATCH"
+      ],
+      "notes": "",
+      "patches": [
+        {
+          "op": "replace",
+          "path": "/AssetVersionRef/asset/asset_version_id",
+          "value": "d123a1b3-b0dd-54a2-bad9-abe8fd496fb6"
+        },
+        {
+          "op": "replace",
+          "path": "/AssetVersionRef/asset/content_hash",
+          "value": "sha256:d5625abcb2144a343575cd90fe356440ab633cf0a91bc2b62fe92d72c7000f92"
+        }
+      ]
+    },
+    {
+      "name": "concurrent_review_conflict_response",
+      "expected_schema_valid": true,
+      "expected_invariant_errors": [],
+      "notes": "",
+      "patches": [
+        {
+          "op": "replace",
+          "path": "/ReviewRecord/expected_state_version",
+          "value": 2
+        },
+        {
+          "op": "replace",
+          "path": "/ReviewRecord/request_status",
+          "value": "rejected"
+        },
+        {
+          "op": "replace",
+          "path": "/ReviewRecord/conclusion",
+          "value": null
+        },
+        {
+          "op": "replace",
+          "path": "/ReviewRecord/successor_profile_id",
+          "value": null
+        },
+        {
+          "op": "add",
+          "path": "/ErrorEnvelope",
+          "value": {
+            "meta": {
+              "schema_version": "mainline1.proposed.v1",
+              "trace_id": "11bd3480-3878-5835-926d-cdc354780240",
+              "environment": "test",
+              "evaluation_run_id": "7fe34ae8-3397-575a-8ea9-e98e38ccd111",
+              "domain_id": "synthetic-domain",
+              "created_at": "2026-10-11T16:00:00+08:00"
+            },
+            "code": "REVIEW_VERSION_CONFLICT",
+            "http_status": 409,
+            "retryable": false,
+            "latest_profile_id": "094870d6-b616-570e-91aa-c4ff8cc435c4",
+            "message": "画像版本已变化"
+          }
+        }
+      ]
+    },
+    {
+      "name": "policy_changed",
+      "expected_schema_valid": true,
+      "expected_invariant_errors": [
+        "PROFILE_REEVALUATION_REQUIRED"
+      ],
+      "notes": "",
+      "patches": [
+        {
+          "op": "replace",
+          "path": "/ProfileApplicability/state_version",
+          "value": 2
+        },
+        {
+          "op": "replace",
+          "path": "/ProfileApplicability/status",
+          "value": "reevaluation_required"
+        },
+        {
+          "op": "replace",
+          "path": "/ProfileApplicability/reason_codes",
+          "value": [
+            "POLICY_CHANGED"
+          ]
+        },
+        {
+          "op": "replace",
+          "path": "/ProfileApplicability/usable_for_new_decision",
+          "value": false
+        }
+      ]
+    },
+    {
+      "name": "asset_deleted",
+      "expected_schema_valid": true,
+      "expected_invariant_errors": [
+        "ASSET_DELETED",
+        "PROFILE_UNVERIFIABLE"
+      ],
+      "notes": "",
+      "patches": [
+        {
+          "op": "replace",
+          "path": "/AssetVersionRef/state",
+          "value": "deleted"
+        },
+        {
+          "op": "replace",
+          "path": "/AssetVersionRef/state_version",
+          "value": 2
+        },
+        {
+          "op": "replace",
+          "path": "/AssetVersionRef/deleted_at",
+          "value": "2026-10-11T16:00:00+08:00"
+        },
+        {
+          "op": "replace",
+          "path": "/ProfileApplicability/state_version",
+          "value": 2
+        },
+        {
+          "op": "replace",
+          "path": "/ProfileApplicability/status",
+          "value": "unverifiable_deleted"
+        },
+        {
+          "op": "replace",
+          "path": "/ProfileApplicability/reason_codes",
+          "value": [
+            "ASSET_DELETED"
+          ]
+        },
+        {
+          "op": "replace",
+          "path": "/ProfileApplicability/usable_for_new_decision",
+          "value": false
+        }
+      ]
+    },
+    {
+      "name": "unknown_progress_denominator",
+      "expected_schema_valid": true,
+      "expected_invariant_errors": [],
+      "notes": "",
+      "patches": [
+        {
+          "op": "replace",
+          "path": "/ScanResult/total_count",
+          "value": null
+        },
+        {
+          "op": "replace",
+          "path": "/ScanResult/progress_ratio",
+          "value": null
+        }
+      ]
+    },
+    {
+      "name": "manual_finding",
+      "expected_schema_valid": true,
+      "expected_invariant_errors": [],
+      "notes": "",
+      "patches": [
+        {
+          "op": "replace",
+          "path": "/Finding/source_type",
+          "value": "manual"
+        },
+        {
+          "op": "replace",
+          "path": "/Finding/detector_id",
+          "value": null
+        },
+        {
+          "op": "replace",
+          "path": "/Finding/detector_version",
+          "value": null
+        },
+        {
+          "op": "replace",
+          "path": "/Finding/created_by",
+          "value": 1
+        },
+        {
+          "op": "replace",
+          "path": "/Finding/review_id",
+          "value": "b418d40f-a97e-5a23-81ce-d849574b9600"
+        },
+        {
+          "op": "replace",
+          "path": "/ReviewRecord/action",
+          "value": "add_manual"
+        },
+        {
+          "op": "replace",
+          "path": "/ReviewRecord/before_category",
+          "value": null
+        },
+        {
+          "op": "replace",
+          "path": "/ReviewRecord/conclusion",
+          "value": "manual_added"
+        }
+      ]
+    },
+    {
+      "name": "event_envelope",
+      "expected_schema_valid": true,
+      "expected_invariant_errors": [],
+      "notes": "",
+      "patches": [
+        {
+          "op": "add",
+          "path": "/ProfileChangedEvent",
+          "value": {
+            "meta": {
+              "schema_version": "mainline1.proposed.v1",
+              "trace_id": "11bd3480-3878-5835-926d-cdc354780240",
+              "environment": "test",
+              "evaluation_run_id": "7fe34ae8-3397-575a-8ea9-e98e38ccd111",
+              "domain_id": "synthetic-domain",
+              "created_at": "2026-10-11T16:00:00+08:00"
+            },
+            "event_id": "57ff6059-0a12-5b7e-9ebb-b5232d7b5abc",
+            "event_type": "profile_superseded",
+            "aggregate_version": 2,
+            "old_profile_id": "20f6577e-7c22-56fb-9b31-de752697a85c",
+            "new_profile_id": "094870d6-b616-570e-91aa-c4ff8cc435c4",
+            "asset_version_id": "fc30bc76-50d5-5c12-abf6-2fee435eaec5",
+            "scope_hash": "sha256:5f161c9149882e0e10124bc5dd5c11f0fbe8ec452edd52bcec76b01e9252cb33",
+            "reason_codes": [
+              "REVIEW_ACCEPTED"
+            ],
+            "occurred_at": "2026-10-11T16:00:00+08:00"
+          }
+        }
+      ]
+    },
+    {
+      "name": "reject_missing_required",
+      "expected_schema_valid": false,
+      "expected_invariant_errors": [],
+      "notes": "",
+      "patches": [
+        {
+          "op": "remove",
+          "path": "/Finding/source_type"
+        }
+      ]
+    },
+    {
+      "name": "reject_zero_based_column",
+      "expected_schema_valid": false,
+      "expected_invariant_errors": [],
+      "notes": "",
+      "patches": [
+        {
+          "op": "replace",
+          "path": "/Finding/locations",
+          "value": [
+            {
+              "sheet_id": "csv:0",
+              "row": 2,
+              "column": 0,
+              "kind": "span",
+              "span": {
+                "start": 0,
+                "end": 5
+              },
+              "channel": "value"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "reject_unknown_operation",
+      "expected_schema_valid": false,
+      "expected_invariant_errors": [],
+      "notes": "",
+      "patches": [
+        {
+          "op": "replace",
+          "path": "/RedactionPlan/operations",
+          "value": [
+            {
+              "operation_id": "c514e1b1-afe1-5e06-89c6-4d31ef891026",
+              "type": "eval_code",
+              "target": {
+                "sheet_id": "csv:0",
+                "row": 2,
+                "column": 1,
+                "kind": "span",
+                "span": {
+                  "start": 0,
+                  "end": 5
+                },
+                "channel": "value"
+              },
+              "replacement": "[REDACTED]",
+              "match_ref": "private:match",
+              "finding_ids": [
+                "5887e3dc-1e57-5fcc-a61b-bacab5ac9ad6"
+              ],
+              "requirement_ids": [
+                "req-1"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "reject_manual_detector",
+      "expected_schema_valid": true,
+      "expected_invariant_errors": [
+        "MANUAL_PROVENANCE_INVALID"
+      ],
+      "notes": "",
+      "patches": [
+        {
+          "op": "replace",
+          "path": "/Finding/source_type",
+          "value": "manual"
+        }
+      ]
+    },
+    {
+      "name": "reject_fake_progress",
+      "expected_schema_valid": true,
+      "expected_invariant_errors": [
+        "PROGRESS_INVALID"
+      ],
+      "notes": "",
+      "patches": [
+        {
+          "op": "replace",
+          "path": "/ScanResult/total_count",
+          "value": null
+        }
+      ]
+    },
+    {
+      "name": "reject_complete_without_semantic",
+      "expected_schema_valid": true,
+      "expected_invariant_errors": [
+        "QUALITY_INCOMPLETE"
+      ],
+      "notes": "",
+      "patches": [
+        {
+          "op": "replace",
+          "path": "/ScanRunSnapshot/semantic_required",
+          "value": true
+        }
+      ]
+    },
+    {
+      "name": "reject_span_outside_original",
+      "expected_schema_valid": true,
+      "expected_invariant_errors": [
+        "LOCATION_MISMATCH"
+      ],
+      "notes": "",
+      "patches": [
+        {
+          "op": "replace",
+          "path": "/Finding/locations",
+          "value": [
+            {
+              "sheet_id": "csv:0",
+              "row": 2,
+              "column": 1,
+              "kind": "span",
+              "span": {
+                "start": 0,
+                "end": 99
+              },
+              "channel": "value"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "reject_overlap",
+      "expected_schema_valid": true,
+      "expected_invariant_errors": [
+        "PLAN_CONFLICT"
+      ],
+      "notes": "",
+      "patches": [
+        {
+          "op": "replace",
+          "path": "/RedactionPlan/operations",
+          "value": [
+            {
+              "operation_id": "c514e1b1-afe1-5e06-89c6-4d31ef891026",
+              "type": "mask_span",
+              "target": {
+                "sheet_id": "csv:0",
+                "row": 2,
+                "column": 1,
+                "kind": "span",
+                "span": {
+                  "start": 0,
+                  "end": 5
+                },
+                "channel": "value"
+              },
+              "replacement": "[REDACTED]",
+              "match_ref": "private:match",
+              "finding_ids": [
+                "5887e3dc-1e57-5fcc-a61b-bacab5ac9ad6"
+              ],
+              "requirement_ids": [
+                "req-1"
+              ]
+            },
+            {
+              "operation_id": "c514e1b1-afe1-5e06-89c6-4d31ef891026",
+              "type": "mask_span",
+              "target": {
+                "sheet_id": "csv:0",
+                "row": 2,
+                "column": 1,
+                "kind": "span",
+                "span": {
+                  "start": 0,
+                  "end": 5
+                },
+                "channel": "value"
+              },
+              "replacement": "[REDACTED]",
+              "match_ref": "private:match",
+              "finding_ids": [
+                "5887e3dc-1e57-5fcc-a61b-bacab5ac9ad6"
+              ],
+              "requirement_ids": [
+                "req-1"
+              ]
+            }
+          ]
+        },
+        {
+          "op": "replace",
+          "path": "/RedactionPlan/operation_count",
+          "value": 2
+        }
+      ]
+    },
+    {
+      "name": "reject_cross_domain",
+      "expected_schema_valid": true,
+      "expected_invariant_errors": [
+        "DOMAIN_MISMATCH"
+      ],
+      "notes": "",
+      "patches": [
+        {
+          "op": "replace",
+          "path": "/Finding/meta/domain_id",
+          "value": "different-domain"
+        }
+      ]
+    },
+    {
+      "name": "reject_model_self_confirmation",
+      "expected_schema_valid": true,
+      "expected_invariant_errors": [
+        "CONTEXT_INVALID"
+      ],
+      "notes": "",
+      "patches": [
+        {
+          "op": "replace",
+          "path": "/BusinessContext/source",
+          "value": "model_inferred"
+        }
+      ]
+    },
+    {
+      "name": "reject_uncalibrated_probability",
+      "expected_schema_valid": true,
+      "expected_invariant_errors": [
+        "CALIBRATION_INVALID"
+      ],
+      "notes": "",
+      "patches": [
+        {
+          "op": "replace",
+          "path": "/Finding/calibrated_probability",
+          "value": 0.8
+        }
+      ]
+    },
+    {
+      "name": "reject_rejection_as_false_positive",
+      "expected_schema_valid": true,
+      "expected_invariant_errors": [
+        "REVIEW_CONCLUSION_INVALID"
+      ],
+      "notes": "",
+      "patches": [
+        {
+          "op": "replace",
+          "path": "/ReviewRecord/request_status",
+          "value": "rejected"
+        },
+        {
+          "op": "replace",
+          "path": "/ReviewRecord/conclusion",
+          "value": "false_positive"
+        },
+        {
+          "op": "replace",
+          "path": "/ReviewRecord/successor_profile_id",
+          "value": null
+        }
+      ]
+    },
+    {
+      "name": "pure_validation_result",
+      "expected_schema_valid": true,
+      "expected_invariant_errors": [],
+      "patches": [
+        {
+          "op": "add",
+          "path": "/ValidationResult",
+          "value": {
+            "meta": {
+              "schema_version": "mainline1.proposed.v1",
+              "trace_id": "11bd3480-3878-5835-926d-cdc354780240",
+              "environment": "test",
+              "evaluation_run_id": "7fe34ae8-3397-575a-8ea9-e98e38ccd111",
+              "domain_id": "synthetic-domain",
+              "created_at": "2026-10-11T16:00:00+08:00"
+            },
+            "valid": true,
+            "error_codes": [],
+            "plan_hash": "sha256:09aac3555f7944714ab6ec522122285d71d5c34479d1fcd710bacce80c1d13a4",
+            "observed_asset_state_version": 1,
+            "observed_applicability_version": 1,
+            "checked_at": "2026-10-11T16:00:00+08:00"
+          }
+        }
+      ],
+      "notes": "草案形状和有限一致性检查，不是运行时功能测试"
+    },
+    {
+      "name": "drop_other_original_column_with_span",
+      "expected_schema_valid": true,
+      "expected_invariant_errors": [],
+      "patches": [
+        {
+          "op": "replace",
+          "path": "/RedactionPlan/operations",
+          "value": [
+            {
+              "operation_id": "c514e1b1-afe1-5e06-89c6-4d31ef891026",
+              "type": "mask_span",
+              "target": {
+                "sheet_id": "csv:0",
+                "row": 2,
+                "column": 1,
+                "kind": "span",
+                "span": {
+                  "start": 0,
+                  "end": 5
+                },
+                "channel": "value"
+              },
+              "replacement": "[REDACTED]",
+              "match_ref": "private:match",
+              "finding_ids": [
+                "5887e3dc-1e57-5fcc-a61b-bacab5ac9ad6"
+              ],
+              "requirement_ids": [
+                "req-1"
+              ]
+            },
+            {
+              "operation_id": "8454b545-3732-5133-a4c6-acd119c84d01",
+              "type": "drop_column",
+              "target": {
+                "sheet_id": "csv:0",
+                "row": null,
+                "column": 2,
+                "kind": "column",
+                "span": null,
+                "channel": "value"
+              },
+              "replacement": null,
+              "match_ref": "private:match",
+              "finding_ids": [
+                "5887e3dc-1e57-5fcc-a61b-bacab5ac9ad6"
+              ],
+              "requirement_ids": [
+                "req-1"
+              ]
+            }
+          ]
+        },
+        {
+          "op": "replace",
+          "path": "/RedactionPlan/operation_count",
+          "value": 2
+        },
+        {
+          "op": "replace",
+          "path": "/RedactionPlan/requirements",
+          "value": [
+            {
+              "requirement_id": "req-1",
+              "version": "v1",
+              "category_ids": [
+                "synthetic_identifier"
+              ],
+              "allowed_operations": [
+                "mask_span",
+                "mask_cell",
+                "drop_column"
+              ],
+              "allow_drop_column": true,
+              "require_complete_coverage": true,
+              "allow_unresolved": false
+            }
+          ]
+        }
+      ],
+      "notes": "草案形状和有限一致性检查，不是运行时功能测试"
+    },
+    {
+      "name": "reject_drop_and_mask_same_column",
+      "expected_schema_valid": true,
+      "expected_invariant_errors": [
+        "PLAN_CONFLICT"
+      ],
+      "patches": [
+        {
+          "op": "replace",
+          "path": "/RedactionPlan/operations",
+          "value": [
+            {
+              "operation_id": "c514e1b1-afe1-5e06-89c6-4d31ef891026",
+              "type": "mask_span",
+              "target": {
+                "sheet_id": "csv:0",
+                "row": 2,
+                "column": 1,
+                "kind": "span",
+                "span": {
+                  "start": 0,
+                  "end": 5
+                },
+                "channel": "value"
+              },
+              "replacement": "[REDACTED]",
+              "match_ref": "private:match",
+              "finding_ids": [
+                "5887e3dc-1e57-5fcc-a61b-bacab5ac9ad6"
+              ],
+              "requirement_ids": [
+                "req-1"
+              ]
+            },
+            {
+              "operation_id": "8454b545-3732-5133-a4c6-acd119c84d01",
+              "type": "drop_column",
+              "target": {
+                "sheet_id": "csv:0",
+                "row": null,
+                "column": 1,
+                "kind": "column",
+                "span": null,
+                "channel": "value"
+              },
+              "replacement": null,
+              "match_ref": "private:match",
+              "finding_ids": [
+                "5887e3dc-1e57-5fcc-a61b-bacab5ac9ad6"
+              ],
+              "requirement_ids": [
+                "req-1"
+              ]
+            }
+          ]
+        },
+        {
+          "op": "replace",
+          "path": "/RedactionPlan/operation_count",
+          "value": 2
+        },
+        {
+          "op": "replace",
+          "path": "/RedactionPlan/requirements",
+          "value": [
+            {
+              "requirement_id": "req-1",
+              "version": "v1",
+              "category_ids": [
+                "synthetic_identifier"
+              ],
+              "allowed_operations": [
+                "mask_span",
+                "mask_cell",
+                "drop_column"
+              ],
+              "allow_drop_column": true,
+              "require_complete_coverage": true,
+              "allow_unresolved": false
+            }
+          ]
+        }
+      ],
+      "notes": "草案形状和有限一致性检查，不是运行时功能测试"
+    },
+    {
+      "name": "idempotency_conflict_response",
+      "expected_schema_valid": true,
+      "expected_invariant_errors": [],
+      "patches": [
+        {
+          "op": "add",
+          "path": "/ErrorEnvelope",
+          "value": {
+            "meta": {
+              "schema_version": "mainline1.proposed.v1",
+              "trace_id": "11bd3480-3878-5835-926d-cdc354780240",
+              "environment": "test",
+              "evaluation_run_id": "7fe34ae8-3397-575a-8ea9-e98e38ccd111",
+              "domain_id": "synthetic-domain",
+              "created_at": "2026-10-11T16:00:00+08:00"
+            },
+            "code": "IDEMPOTENCY_CONFLICT",
+            "http_status": 409,
+            "retryable": false,
+            "latest_profile_id": null,
+            "message": "幂等键已绑定其他请求"
+          }
+        }
+      ],
+      "notes": "草案形状和有限一致性检查，不是运行时功能测试"
+    }
+  ],
+  "base_objects": {
+    "AssetVersionRef": {
+      "meta": {
+        "schema_version": "mainline1.proposed.v1",
+        "trace_id": "11bd3480-3878-5835-926d-cdc354780240",
+        "environment": "test",
+        "evaluation_run_id": "7fe34ae8-3397-575a-8ea9-e98e38ccd111",
+        "domain_id": "synthetic-domain",
+        "created_at": "2026-10-11T16:00:00+08:00"
+      },
+      "asset": {
+        "asset_id": "de2e64db-9f9a-53fc-b458-8f14277d259d",
+        "asset_version_id": "fc30bc76-50d5-5c12-abf6-2fee435eaec5",
+        "content_hash": "sha256:91647d462cdc7b4f9703fece1dcec2b043a4753b5b674523ea3e2bcac89dd639"
+      },
+      "owner_service": "asset_registry-proposed",
+      "format": "csv",
+      "private_storage_ref": "private:synthetic-asset",
+      "byte_size": 100,
+      "state": "ready",
+      "state_version": 1,
+      "deleted_at": null
+    },
+    "BusinessContext": {
+      "meta": {
+        "schema_version": "mainline1.proposed.v1",
+        "trace_id": "11bd3480-3878-5835-926d-cdc354780240",
+        "environment": "test",
+        "evaluation_run_id": "7fe34ae8-3397-575a-8ea9-e98e38ccd111",
+        "domain_id": "synthetic-domain",
+        "created_at": "2026-10-11T16:00:00+08:00"
+      },
+      "context_id": "225d6bdf-4b6e-5bb9-aefd-4b6bb4bbbd2c",
+      "version": 1,
+      "asset_version_id": "fc30bc76-50d5-5c12-abf6-2fee435eaec5",
+      "scope_hash": "sha256:5f161c9149882e0e10124bc5dd5c11f0fbe8ec452edd52bcec76b01e9252cb33",
+      "scenario": "合成设备维护场景",
+      "purpose": "仅契约校验",
+      "table_description": "合成标识列",
+      "field_descriptions": [
+        {
+          "sheet_id": "csv:0",
+          "column": 1,
+          "description": "用于测试的代码"
+        }
+      ],
+      "source": "confirmed_dictionary",
+      "confirmation": "confirmed",
+      "confirmed_by": 1,
+      "confirmed_at": "2026-10-11T16:00:00+08:00",
+      "content_hash": "sha256:ea7792a26f405e2ae9c6f49ca93bbe6076ceac0a1fc53d83426c7d7f2d9377e4",
+      "supersedes_context_id": null
+    },
+    "ClassificationPolicy": {
+      "meta": {
+        "schema_version": "mainline1.proposed.v1",
+        "trace_id": "11bd3480-3878-5835-926d-cdc354780240",
+        "environment": "test",
+        "evaluation_run_id": "7fe34ae8-3397-575a-8ea9-e98e38ccd111",
+        "domain_id": "synthetic-domain",
+        "created_at": "2026-10-11T16:00:00+08:00"
+      },
+      "policy_id": "a5464ff6-87f8-58df-b3a6-867c1b91aef8",
+      "version": "policy-synthetic-v1",
+      "dictionary_version": "dict-synthetic-v1",
+      "ruleset_version": "rules-synthetic-v1",
+      "state": "active",
+      "effective_at": "2026-10-11T16:00:00+08:00",
+      "levels": [
+        "L0",
+        "L1"
+      ],
+      "categories": [
+        {
+          "category_id": "synthetic_identifier",
+          "definition": "仅合成契约样例的标识类别，非生产字典",
+          "aliases": [],
+          "positive_examples": [
+            "SYN-A"
+          ],
+          "negative_examples": [
+            "ordinary"
+          ],
+          "rule_refs": [
+            "synthetic-rule-v1"
+          ],
+          "related_categories": [],
+          "protection_level": "L1",
+          "review_conditions": [
+            "CONTEXT_CONFLICT"
+          ]
+        }
+      ],
+      "rule_refs": [
+        "synthetic-rule-v1"
+      ],
+      "conflict_strategy": "review_no_downgrade",
+      "review_policy_version": "review-v1",
+      "content_hash": "sha256:823412d1eacb67956220e532959f0104603057c88704863ca38e7cd188fda812"
+    },
+    "DataScope": {
+      "meta": {
+        "schema_version": "mainline1.proposed.v1",
+        "trace_id": "11bd3480-3878-5835-926d-cdc354780240",
+        "environment": "test",
+        "evaluation_run_id": "7fe34ae8-3397-575a-8ea9-e98e38ccd111",
+        "domain_id": "synthetic-domain",
+        "created_at": "2026-10-11T16:00:00+08:00"
+      },
+      "asset_version_id": "fc30bc76-50d5-5c12-abf6-2fee435eaec5",
+      "coordinate_version": "one-based-codepoint-v1",
+      "selections": [
+        {
+          "sheet_id": "csv:0",
+          "rows": [
+            {
+              "start": 1,
+              "end": 3
+            }
+          ],
+          "columns": [
+            {
+              "start": 1,
+              "end": 2
+            }
+          ]
+        }
+      ],
+      "include_header": false,
+      "scope_hash": "sha256:5f161c9149882e0e10124bc5dd5c11f0fbe8ec452edd52bcec76b01e9252cb33"
+    },
+    "ParsedAsset": {
+      "meta": {
+        "schema_version": "mainline1.proposed.v1",
+        "trace_id": "11bd3480-3878-5835-926d-cdc354780240",
+        "environment": "test",
+        "evaluation_run_id": "7fe34ae8-3397-575a-8ea9-e98e38ccd111",
+        "domain_id": "synthetic-domain",
+        "created_at": "2026-10-11T16:00:00+08:00"
+      },
+      "parsed_id": "e1425e91-e20b-5bad-bd1e-76d2034ada2f",
+      "asset": {
+        "asset_id": "de2e64db-9f9a-53fc-b458-8f14277d259d",
+        "asset_version_id": "fc30bc76-50d5-5c12-abf6-2fee435eaec5",
+        "content_hash": "sha256:91647d462cdc7b4f9703fece1dcec2b043a4753b5b674523ea3e2bcac89dd639"
+      },
+      "scope_hash": "sha256:5f161c9149882e0e10124bc5dd5c11f0fbe8ec452edd52bcec76b01e9252cb33",
+      "parser_version": "parser-proposed-v1",
+      "parser_config_hash": "sha256:b17d45121150928f2146af49e195eff1eef5d67325be273a733fb74acadaa342",
+      "structure_ref": "private:structure",
+      "mappings": [
+        {
+          "location": {
+            "sheet_id": "csv:0",
+            "row": 2,
+            "column": 1,
+            "kind": "cell",
+            "span": null,
+            "channel": "value"
+          },
+          "source_text_ref": "private:cell-2-1",
+          "normalized_text_ref": "private:cell-2-1",
+          "source_length": 5,
+          "normalized_length": 5,
+          "mapping_ref": "private:identity-map",
+          "mapping_kind": "identity",
+          "merged_anchor": null
+        }
+      ],
+      "coverage": {
+        "parse": {
+          "status": "complete",
+          "unit": "cell",
+          "target_count": 4,
+          "processed_count": 4,
+          "skipped_count": 0,
+          "failed_count": 0,
+          "ratio": 1.0,
+          "target_scope_ref": "private:target",
+          "processed_scope_ref": "private:processed",
+          "skipped_scope_ref": null,
+          "failed_scope_ref": null,
+          "reason_codes": []
+        },
+        "rule": {
+          "status": "complete",
+          "unit": "cell",
+          "target_count": 4,
+          "processed_count": 4,
+          "skipped_count": 0,
+          "failed_count": 0,
+          "ratio": 1.0,
+          "target_scope_ref": "private:target",
+          "processed_scope_ref": "private:processed",
+          "skipped_scope_ref": null,
+          "failed_scope_ref": null,
+          "reason_codes": []
+        },
+        "semantic": {
+          "status": "excluded",
+          "unit": "cell",
+          "target_count": 4,
+          "processed_count": 0,
+          "skipped_count": 0,
+          "failed_count": 0,
+          "ratio": 0.0,
+          "target_scope_ref": "private:target",
+          "processed_scope_ref": null,
+          "skipped_scope_ref": null,
+          "failed_scope_ref": null,
+          "reason_codes": [
+            "POLICY_EXCLUDED"
+          ]
+        },
+        "combination": {
+          "status": "excluded",
+          "unit": "cell",
+          "target_count": 0,
+          "processed_count": 0,
+          "skipped_count": 0,
+          "failed_count": 0,
+          "ratio": null,
+          "target_scope_ref": "private:target",
+          "processed_scope_ref": null,
+          "skipped_scope_ref": null,
+          "failed_scope_ref": null,
+          "reason_codes": [
+            "POLICY_EXCLUDED"
+          ]
+        }
+      },
+      "excluded_contents": [
+        "xlsx_non_cell_objects",
+        "formula_cached_values"
+      ],
+      "warnings": [],
+      "errors": []
+    },
+    "Finding": {
+      "meta": {
+        "schema_version": "mainline1.proposed.v1",
+        "trace_id": "11bd3480-3878-5835-926d-cdc354780240",
+        "environment": "test",
+        "evaluation_run_id": "7fe34ae8-3397-575a-8ea9-e98e38ccd111",
+        "domain_id": "synthetic-domain",
+        "created_at": "2026-10-11T16:00:00+08:00"
+      },
+      "finding_id": "5887e3dc-1e57-5fcc-a61b-bacab5ac9ad6",
+      "scan_id": "272ddf89-dfad-5a6b-ab8c-6c574716793d",
+      "kind": "entity",
+      "locations": [
+        {
+          "sheet_id": "csv:0",
+          "row": 2,
+          "column": 1,
+          "kind": "span",
+          "span": {
+            "start": 0,
+            "end": 5
+          },
+          "channel": "value"
+        }
+      ],
+      "category_id": "synthetic_identifier",
+      "judgment": "determined",
+      "source_type": "rule",
+      "detector_id": "synthetic-rule",
+      "detector_version": "v1",
+      "source_finding_ids": [],
+      "relation_type": null,
+      "evidence": [
+        {
+          "evidence_ref": "private:evidence",
+          "kind": "rule",
+          "reason_code": "SYNTHETIC_MATCH"
+        }
+      ],
+      "uncertainty_reasons": [],
+      "raw_score": null,
+      "score_meaning": null,
+      "calibrated_probability": null,
+      "calibration_version": null,
+      "created_by": null,
+      "review_id": null
+    },
+    "ReviewRecord": {
+      "meta": {
+        "schema_version": "mainline1.proposed.v1",
+        "trace_id": "11bd3480-3878-5835-926d-cdc354780240",
+        "environment": "test",
+        "evaluation_run_id": "7fe34ae8-3397-575a-8ea9-e98e38ccd111",
+        "domain_id": "synthetic-domain",
+        "created_at": "2026-10-11T16:00:00+08:00"
+      },
+      "review_id": "b418d40f-a97e-5a23-81ce-d849574b9600",
+      "base_profile_id": "20f6577e-7c22-56fb-9b31-de752697a85c",
+      "expected_state_version": 1,
+      "idempotency_key": "synthetic-review-1",
+      "request_fingerprint": "sha256:c97ace4c8fef2cee8fa0f3c9f52aab18dbd4f42438afe362ffb8f75ce4c04b84",
+      "actor_id": 1,
+      "action": "confirm",
+      "finding_ids": [
+        "5887e3dc-1e57-5fcc-a61b-bacab5ac9ad6"
+      ],
+      "reason": "合成确认",
+      "before_category": "synthetic_identifier",
+      "after_category": "synthetic_identifier",
+      "workflow_status": "completed",
+      "request_status": "accepted",
+      "conclusion": "confirmed",
+      "successor_profile_id": "094870d6-b616-570e-91aa-c4ff8cc435c4",
+      "completed_at": "2026-10-11T16:00:00+08:00"
+    },
+    "SensitivityProfile": {
+      "meta": {
+        "schema_version": "mainline1.proposed.v1",
+        "trace_id": "11bd3480-3878-5835-926d-cdc354780240",
+        "environment": "test",
+        "evaluation_run_id": "7fe34ae8-3397-575a-8ea9-e98e38ccd111",
+        "domain_id": "synthetic-domain",
+        "created_at": "2026-10-11T16:00:00+08:00"
+      },
+      "profile_id": "094870d6-b616-570e-91aa-c4ff8cc435c4",
+      "asset": {
+        "asset_id": "de2e64db-9f9a-53fc-b458-8f14277d259d",
+        "asset_version_id": "fc30bc76-50d5-5c12-abf6-2fee435eaec5",
+        "content_hash": "sha256:91647d462cdc7b4f9703fece1dcec2b043a4753b5b674523ea3e2bcac89dd639"
+      },
+      "scan_id": "272ddf89-dfad-5a6b-ab8c-6c574716793d",
+      "scope_hash": "sha256:5f161c9149882e0e10124bc5dd5c11f0fbe8ec452edd52bcec76b01e9252cb33",
+      "quality": "complete",
+      "coverage": {
+        "parse": {
+          "status": "complete",
+          "unit": "cell",
+          "target_count": 4,
+          "processed_count": 4,
+          "skipped_count": 0,
+          "failed_count": 0,
+          "ratio": 1.0,
+          "target_scope_ref": "private:target",
+          "processed_scope_ref": "private:processed",
+          "skipped_scope_ref": null,
+          "failed_scope_ref": null,
+          "reason_codes": []
+        },
+        "rule": {
+          "status": "complete",
+          "unit": "cell",
+          "target_count": 4,
+          "processed_count": 4,
+          "skipped_count": 0,
+          "failed_count": 0,
+          "ratio": 1.0,
+          "target_scope_ref": "private:target",
+          "processed_scope_ref": "private:processed",
+          "skipped_scope_ref": null,
+          "failed_scope_ref": null,
+          "reason_codes": []
+        },
+        "semantic": {
+          "status": "excluded",
+          "unit": "cell",
+          "target_count": 4,
+          "processed_count": 0,
+          "skipped_count": 0,
+          "failed_count": 0,
+          "ratio": 0.0,
+          "target_scope_ref": "private:target",
+          "processed_scope_ref": null,
+          "skipped_scope_ref": null,
+          "failed_scope_ref": null,
+          "reason_codes": [
+            "POLICY_EXCLUDED"
+          ]
+        },
+        "combination": {
+          "status": "excluded",
+          "unit": "cell",
+          "target_count": 0,
+          "processed_count": 0,
+          "skipped_count": 0,
+          "failed_count": 0,
+          "ratio": null,
+          "target_scope_ref": "private:target",
+          "processed_scope_ref": null,
+          "skipped_scope_ref": null,
+          "failed_scope_ref": null,
+          "reason_codes": [
+            "POLICY_EXCLUDED"
+          ]
+        }
+      },
+      "finding_ids": [
+        "5887e3dc-1e57-5fcc-a61b-bacab5ac9ad6"
+      ],
+      "category_counts": [
+        {
+          "category_id": "synthetic_identifier",
+          "count": 1
+        }
+      ],
+      "combination_finding_ids": [],
+      "protection_level": "L1",
+      "policy_version": "policy-synthetic-v1",
+      "detector_versions": [
+        "synthetic-rule:v1"
+      ],
+      "review_status": "completed",
+      "supersedes_profile_id": "20f6577e-7c22-56fb-9b31-de752697a85c",
+      "applicability_ref": "3438db9a-d967-5bdc-815f-54ba7f2ce589",
+      "limitations": [
+        "规则路径合成数据；语义未运行；不代表全工作簿安全"
+      ],
+      "person_count": null
+    },
+    "ScanRunSnapshot": {
+      "meta": {
+        "schema_version": "mainline1.proposed.v1",
+        "trace_id": "11bd3480-3878-5835-926d-cdc354780240",
+        "environment": "test",
+        "evaluation_run_id": "7fe34ae8-3397-575a-8ea9-e98e38ccd111",
+        "domain_id": "synthetic-domain",
+        "created_at": "2026-10-11T16:00:00+08:00"
+      },
+      "scan_id": "272ddf89-dfad-5a6b-ab8c-6c574716793d",
+      "asset": {
+        "asset_id": "de2e64db-9f9a-53fc-b458-8f14277d259d",
+        "asset_version_id": "fc30bc76-50d5-5c12-abf6-2fee435eaec5",
+        "content_hash": "sha256:91647d462cdc7b4f9703fece1dcec2b043a4753b5b674523ea3e2bcac89dd639"
+      },
+      "scope": {
+        "meta": {
+          "schema_version": "mainline1.proposed.v1",
+          "trace_id": "11bd3480-3878-5835-926d-cdc354780240",
+          "environment": "test",
+          "evaluation_run_id": "7fe34ae8-3397-575a-8ea9-e98e38ccd111",
+          "domain_id": "synthetic-domain",
+          "created_at": "2026-10-11T16:00:00+08:00"
+        },
+        "asset_version_id": "fc30bc76-50d5-5c12-abf6-2fee435eaec5",
+        "coordinate_version": "one-based-codepoint-v1",
+        "selections": [
+          {
+            "sheet_id": "csv:0",
+            "rows": [
+              {
+                "start": 1,
+                "end": 3
+              }
+            ],
+            "columns": [
+              {
+                "start": 1,
+                "end": 2
+              }
+            ]
+          }
+        ],
+        "include_header": false,
+        "scope_hash": "sha256:5f161c9149882e0e10124bc5dd5c11f0fbe8ec452edd52bcec76b01e9252cb33"
+      },
+      "context_id": "225d6bdf-4b6e-5bb9-aefd-4b6bb4bbbd2c",
+      "context_version": 1,
+      "context_hash": "sha256:ea7792a26f405e2ae9c6f49ca93bbe6076ceac0a1fc53d83426c7d7f2d9377e4",
+      "policy_version": "policy-synthetic-v1",
+      "dictionary_version": "dict-synthetic-v1",
+      "ruleset_version": "rules-synthetic-v1",
+      "model": {
+        "enabled": false,
+        "provider": null,
+        "model": null,
+        "revision": null,
+        "temperature": null,
+        "prompt_version": "prompt-proposed-v1",
+        "data_policy_ref": "policy:network-disabled"
+      },
+      "fusion_version": "fusion-v1",
+      "parser_version": "parser-proposed-v1",
+      "parser_config": {
+        "version": "parser-config-v1",
+        "csv_encoding": "utf-8",
+        "csv_delimiter": ",",
+        "csv_quotechar": "\"",
+        "csv_doublequote": true,
+        "csv_header_record": 1,
+        "xlsx_header_row": 1,
+        "hidden_policy": "include",
+        "merged_policy": "anchor_once",
+        "formula_policy": "formula_text_only",
+        "non_cell_policy": "excluded_reported",
+        "normalization": "identity-v1"
+      },
+      "parser_config_hash": "sha256:b17d45121150928f2146af49e195eff1eef5d67325be273a733fb74acadaa342",
+      "sampling": {
+        "mode": "full",
+        "max_cells_per_column": null,
+        "seed": null
+      },
+      "budget": {
+        "max_bytes": 20971520,
+        "max_rows_per_sheet": 100000,
+        "max_columns": 256,
+        "max_cell_codepoints": 32768,
+        "max_zip_entries": 2000,
+        "max_uncompressed_bytes": 104857600,
+        "max_seconds": 300,
+        "max_model_calls": 0,
+        "max_input_tokens": 0,
+        "max_output_tokens": 0,
+        "max_attempts": 2,
+        "max_concurrency": 1
+      },
+      "semantic_required": false,
+      "combination_required": false,
+      "scan_policy_version": "rule-only-test-v1",
+      "request_fingerprint": "sha256:1f58b9145b24d108d7ac38887338b3ea3229833b9c1e418250343f907bfd1047",
+      "snapshot_ref": "private:snapshot",
+      "reproducibility_limits": [
+        "仅合成草案，不证明分类或模型效果"
+      ]
+    },
+    "ProfileApplicability": {
+      "meta": {
+        "schema_version": "mainline1.proposed.v1",
+        "trace_id": "11bd3480-3878-5835-926d-cdc354780240",
+        "environment": "test",
+        "evaluation_run_id": "7fe34ae8-3397-575a-8ea9-e98e38ccd111",
+        "domain_id": "synthetic-domain",
+        "created_at": "2026-10-11T16:00:00+08:00"
+      },
+      "applicability_id": "3438db9a-d967-5bdc-815f-54ba7f2ce589",
+      "profile_id": "094870d6-b616-570e-91aa-c4ff8cc435c4",
+      "asset_version_id": "fc30bc76-50d5-5c12-abf6-2fee435eaec5",
+      "state_version": 1,
+      "status": "current",
+      "successor_profile_id": null,
+      "reason_codes": [],
+      "changed_at": "2026-10-11T16:00:00+08:00",
+      "affected_scope_hash": "sha256:5f161c9149882e0e10124bc5dd5c11f0fbe8ec452edd52bcec76b01e9252cb33",
+      "usable_for_new_decision": true,
+      "historical_audit_available": true
+    },
+    "RedactionPlan": {
+      "meta": {
+        "schema_version": "mainline1.proposed.v1",
+        "trace_id": "11bd3480-3878-5835-926d-cdc354780240",
+        "environment": "test",
+        "evaluation_run_id": "7fe34ae8-3397-575a-8ea9-e98e38ccd111",
+        "domain_id": "synthetic-domain",
+        "created_at": "2026-10-11T16:00:00+08:00"
+      },
+      "plan_id": "ac08ed03-e08b-5c08-835b-d078d9dc1787",
+      "plan_hash": "sha256:09aac3555f7944714ab6ec522122285d71d5c34479d1fcd710bacce80c1d13a4",
+      "asset": {
+        "asset_id": "de2e64db-9f9a-53fc-b458-8f14277d259d",
+        "asset_version_id": "fc30bc76-50d5-5c12-abf6-2fee435eaec5",
+        "content_hash": "sha256:91647d462cdc7b4f9703fece1dcec2b043a4753b5b674523ea3e2bcac89dd639"
+      },
+      "scan_id": "272ddf89-dfad-5a6b-ab8c-6c574716793d",
+      "profile_id": "094870d6-b616-570e-91aa-c4ff8cc435c4",
+      "scope_hash": "sha256:5f161c9149882e0e10124bc5dd5c11f0fbe8ec452edd52bcec76b01e9252cb33",
+      "parser_version": "parser-proposed-v1",
+      "parser_config_hash": "sha256:b17d45121150928f2146af49e195eff1eef5d67325be273a733fb74acadaa342",
+      "policy_version": "policy-synthetic-v1",
+      "redaction_policy_version": "redaction-v1",
+      "requirements": [
+        {
+          "requirement_id": "req-1",
+          "version": "v1",
+          "category_ids": [
+            "synthetic_identifier"
+          ],
+          "allowed_operations": [
+            "mask_span",
+            "mask_cell"
+          ],
+          "allow_drop_column": false,
+          "require_complete_coverage": true,
+          "allow_unresolved": false
+        }
+      ],
+      "requirements_hash": "sha256:10762e1094dbeeaba59c58cec8a91b71b99f2063f7f1f20e5c0e3e635f42b2df",
+      "operation_contract_version": "original-snapshot-v1-proposed",
+      "operations": [
+        {
+          "operation_id": "c514e1b1-afe1-5e06-89c6-4d31ef891026",
+          "type": "mask_span",
+          "target": {
+            "sheet_id": "csv:0",
+            "row": 2,
+            "column": 1,
+            "kind": "span",
+            "span": {
+              "start": 0,
+              "end": 5
+            },
+            "channel": "value"
+          },
+          "replacement": "[REDACTED]",
+          "match_ref": "private:match",
+          "finding_ids": [
+            "5887e3dc-1e57-5fcc-a61b-bacab5ac9ad6"
+          ],
+          "requirement_ids": [
+            "req-1"
+          ]
+        }
+      ],
+      "operation_count": 1,
+      "unresolved": [],
+      "validation_errors": [],
+      "status": "ready",
+      "checked_applicability_version": 1,
+      "validation_ref": "private:validation"
+    },
+    "ScanResult": {
+      "meta": {
+        "schema_version": "mainline1.proposed.v1",
+        "trace_id": "11bd3480-3878-5835-926d-cdc354780240",
+        "environment": "test",
+        "evaluation_run_id": "7fe34ae8-3397-575a-8ea9-e98e38ccd111",
+        "domain_id": "synthetic-domain",
+        "created_at": "2026-10-11T16:00:00+08:00"
+      },
+      "scan_id": "272ddf89-dfad-5a6b-ab8c-6c574716793d",
+      "attempt_id": "17589c11-53f1-562c-b31c-abcd61938962",
+      "task_status": "succeeded",
+      "quality": "complete",
+      "profile_id": "094870d6-b616-570e-91aa-c4ff8cc435c4",
+      "snapshot_ref": "private:snapshot",
+      "stage": "done",
+      "processed_count": 4,
+      "total_count": 4,
+      "progress_ratio": 1,
+      "coverage": {
+        "parse": {
+          "status": "complete",
+          "unit": "cell",
+          "target_count": 4,
+          "processed_count": 4,
+          "skipped_count": 0,
+          "failed_count": 0,
+          "ratio": 1.0,
+          "target_scope_ref": "private:target",
+          "processed_scope_ref": "private:processed",
+          "skipped_scope_ref": null,
+          "failed_scope_ref": null,
+          "reason_codes": []
+        },
+        "rule": {
+          "status": "complete",
+          "unit": "cell",
+          "target_count": 4,
+          "processed_count": 4,
+          "skipped_count": 0,
+          "failed_count": 0,
+          "ratio": 1.0,
+          "target_scope_ref": "private:target",
+          "processed_scope_ref": "private:processed",
+          "skipped_scope_ref": null,
+          "failed_scope_ref": null,
+          "reason_codes": []
+        },
+        "semantic": {
+          "status": "excluded",
+          "unit": "cell",
+          "target_count": 4,
+          "processed_count": 0,
+          "skipped_count": 0,
+          "failed_count": 0,
+          "ratio": 0.0,
+          "target_scope_ref": "private:target",
+          "processed_scope_ref": null,
+          "skipped_scope_ref": null,
+          "failed_scope_ref": null,
+          "reason_codes": [
+            "POLICY_EXCLUDED"
+          ]
+        },
+        "combination": {
+          "status": "excluded",
+          "unit": "cell",
+          "target_count": 0,
+          "processed_count": 0,
+          "skipped_count": 0,
+          "failed_count": 0,
+          "ratio": null,
+          "target_scope_ref": "private:target",
+          "processed_scope_ref": null,
+          "skipped_scope_ref": null,
+          "failed_scope_ref": null,
+          "reason_codes": [
+            "POLICY_EXCLUDED"
+          ]
+        }
+      },
+      "cancel_requested_at": null,
+      "warnings": [],
+      "errors": [],
+      "started_at": "2026-10-11T16:00:00+08:00",
+      "completed_at": "2026-10-11T16:00:00+08:00"
+    },
+    "ScanComparison": {
+      "meta": {
+        "schema_version": "mainline1.proposed.v1",
+        "trace_id": "11bd3480-3878-5835-926d-cdc354780240",
+        "environment": "test",
+        "evaluation_run_id": "7fe34ae8-3397-575a-8ea9-e98e38ccd111",
+        "domain_id": "synthetic-domain",
+        "created_at": "2026-10-11T16:00:00+08:00"
+      },
+      "comparison_id": "59f0fd7d-bc31-596e-9e89-3cb40b24cac0",
+      "before_scan_id": "d7bbb8e7-c30a-59ec-b76d-60e91266ef34",
+      "after_scan_id": "272ddf89-dfad-5a6b-ab8c-6c574716793d",
+      "before_profile_id": "20f6577e-7c22-56fb-9b31-de752697a85c",
+      "after_profile_id": "094870d6-b616-570e-91aa-c4ff8cc435c4",
+      "before_asset_version_id": "fc30bc76-50d5-5c12-abf6-2fee435eaec5",
+      "after_asset_version_id": "fc30bc76-50d5-5c12-abf6-2fee435eaec5",
+      "matching_version": "exact-version-location-v1",
+      "added": [],
+      "disappeared": [],
+      "category_changes": [],
+      "unmatched": [],
+      "limitations": [
+        "本样例历史引用是合成引用；不执行真实比较"
+      ]
+    },
+    "TaskReference": {
+      "meta": {
+        "schema_version": "mainline1.proposed.v1",
+        "trace_id": "11bd3480-3878-5835-926d-cdc354780240",
+        "environment": "test",
+        "evaluation_run_id": "7fe34ae8-3397-575a-8ea9-e98e38ccd111",
+        "domain_id": "synthetic-domain",
+        "created_at": "2026-10-11T16:00:00+08:00"
+      },
+      "task_id": "272ddf89-dfad-5a6b-ab8c-6c574716793d",
+      "scan_id": "272ddf89-dfad-5a6b-ab8c-6c574716793d",
+      "status": "succeeded",
+      "query_path": "/api/mainline1/scans/272ddf89-dfad-5a6b-ab8c-6c574716793d/",
+      "retry_after_seconds": 2
+    }
+  },
+  "patch_note": "为避免重复原样本，cases 使用 add/remove/replace JSON Pointer 补丁；校验器逐例深拷贝 base_objects 后展开。数组整体替换。"
+}

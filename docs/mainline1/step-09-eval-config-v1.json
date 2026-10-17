@@ -1,0 +1,19 @@
+{
+  "config_version": "mainline1-step09-v1",
+  "parser": {"encoding": "utf-8-sig", "delimiter": ",", "header_row": 1, "include_header": false, "normalization": "identity-v1"},
+  "rules": {"baseline": "rule-baseline-v1", "environment": "test", "semantic_required": false},
+  "experiments": {
+    "A": "rule_only",
+    "B": "rule_plus_target_semantic",
+    "C": "B_plus_header_neighbors_business_context",
+    "target_selection": "same frozen labeled target cells for B and C; A scans the complete parsed scope",
+    "seed": null,
+    "sampling": "all selected targets; no random sampling",
+    "cache": "disabled for semantic preflight; rule cache disabled",
+    "max_input_bytes": 16000,
+    "max_output_tokens": 1000
+  },
+  "matching": {"entity": "strict_exact_one_to_one", "field": "column_category_pair", "combination": "N/A_no_approved_relation_policy"},
+  "budget": {"real_backend": "not_approved", "model_calls": 0, "input_tokens": null, "output_tokens": null, "cost_microunits": null, "currency": null},
+  "known_limits": ["semantic backend, pinned revision, tokenizer, price and durable budget ledger are unavailable", "contract downstream is a test double"]
+}

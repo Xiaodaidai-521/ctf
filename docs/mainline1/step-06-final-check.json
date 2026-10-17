@@ -1,0 +1,29 @@
+{
+  "status": "Passed",
+  "required_handoff_fields": "Passed",
+  "links": "Passed",
+  "previous_handoff_archive": "Exact SHA256 match",
+  "changed_existing_files": [
+    "backend/mainline1/models.py",
+    "backend/mainline1/README.md",
+    "backend/mainline1/tests/run_isolated_postgres.py",
+    "docs/mainline1/HANDOFF.md"
+  ],
+  "unexpected_existing_changes": [],
+  "tested_sources_unchanged": true,
+  "public_schema_and_user_prompts_unchanged": true,
+  "source_sha256": {
+    "backend/mainline1/review.py": "c68661a566b366af66defb600cc93a87bdac4d2fcb9e6d172c857503a59040f7",
+    "backend/mainline1/review_repository.py": "246acbbbcb1d53b2609e37cfd284adedcaf434c82e504637d83865db4aa50156",
+    "backend/mainline1/models.py": "f56d06a69b2bb2ea3dca779c7bb07af75967775811dda14afb5275a8f7a60d3a",
+    "backend/mainline1/migrations/0002_reviewledger.py": "3fc89235dc43f2263faf01960b8a6c035aa6f9f8bd0f3ec272cf31ff5d279611",
+    "backend/mainline1/tests/test_review.py": "441b22adf0ac72932b64c256030c7da8b605546d833b55246756d553d7f72572",
+    "backend/mainline1/tests/postgres_review_cases.py": "d082233af2c54f3534edfe01b9bd42761f89fd1caf92f7f274b8b7715ed91529",
+    "backend/mainline1/tests/run_review_postgres.py": "54a6b4699337127609b97b5bcf59396c5b5f780d0fa90352212cf2dae23de61e",
+    "backend/mainline1/tests/run_isolated_postgres.py": "da07d3a436ff1935fccce63cbe249b801173124ee6257fe79a6caef6f0a80303"
+  },
+  "prior_evidence_preserved": true,
+  "git_state": "All mainline1 files were and remain untracked; no commit or reset",
+  "postgres_evidence": "36 tests Passed; stopped and removed fresh synthetic cluster; no existing database execution",
+  "scope": "Final artifact preservation/links/structure only; no repeated model or database calls"
+}

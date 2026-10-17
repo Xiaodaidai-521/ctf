@@ -1,0 +1,543 @@
+{
+  "aggregate": {
+    "combination": {
+      "reason": "NO_APPROVED_RELATION_POLICY",
+      "status": "N/A"
+    },
+    "costs": {
+      "cost_microunits": null,
+      "currency": null,
+      "input_tokens": null,
+      "output_tokens": null
+    },
+    "entity": {
+      "f1": 1.0,
+      "fn": 0,
+      "fp": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "tp": 6
+    },
+    "entity_by_category": {
+      "email_address": {
+        "f1": 1.0,
+        "fn": 0,
+        "fp": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "tp": 2
+      },
+      "ip_address": {
+        "f1": 1.0,
+        "fn": 0,
+        "fp": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "tp": 2
+      },
+      "payment_card_candidate": {
+        "f1": 1.0,
+        "fn": 0,
+        "fp": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "tp": 2
+      }
+    },
+    "review": {
+      "confirmed": 0,
+      "contract_confirmed": 1,
+      "pending": 6,
+      "refused": 0
+    },
+    "semantic": {
+      "metrics": null,
+      "model_calls": 0,
+      "reason": "REAL_BACKEND_NOT_APPROVED",
+      "status": "Blocked"
+    }
+  },
+  "annotation_version": "synthetic-manual-labels-v1",
+  "assets": [
+    {
+      "A": {
+        "coverage": {
+          "combination": {
+            "failed_count": 0,
+            "failed_scope_ref": null,
+            "processed_count": 0,
+            "processed_scope_ref": null,
+            "ratio": null,
+            "reason_codes": [
+              "COMBINATION_NOT_RUN"
+            ],
+            "skipped_count": 0,
+            "skipped_scope_ref": null,
+            "status": "not_run",
+            "target_count": null,
+            "target_scope_ref": "private:rule-run:90000000-0000-4000-8000-000000000004:combination:target",
+            "unit": "relation"
+          },
+          "parse": {
+            "failed_count": 0,
+            "failed_scope_ref": null,
+            "processed_count": 10,
+            "processed_scope_ref": "private:rule-run:90000000-0000-4000-8000-000000000004:parse:processed",
+            "ratio": 1.0,
+            "reason_codes": [],
+            "skipped_count": 0,
+            "skipped_scope_ref": null,
+            "status": "complete",
+            "target_count": 10,
+            "target_scope_ref": "private:rule-run:90000000-0000-4000-8000-000000000004:parse:target",
+            "unit": "cell"
+          },
+          "rule": {
+            "failed_count": 0,
+            "failed_scope_ref": null,
+            "processed_count": 10,
+            "processed_scope_ref": "private:rule-run:90000000-0000-4000-8000-000000000004:rule:processed",
+            "ratio": 1.0,
+            "reason_codes": [],
+            "skipped_count": 0,
+            "skipped_scope_ref": null,
+            "status": "complete",
+            "target_count": 10,
+            "target_scope_ref": "private:rule-run:90000000-0000-4000-8000-000000000004:rule:target",
+            "unit": "cell"
+          },
+          "semantic": {
+            "failed_count": 0,
+            "failed_scope_ref": null,
+            "processed_count": 0,
+            "processed_scope_ref": null,
+            "ratio": null,
+            "reason_codes": [
+              "SEMANTIC_NOT_RUN"
+            ],
+            "skipped_count": 0,
+            "skipped_scope_ref": null,
+            "status": "not_run",
+            "target_count": null,
+            "target_scope_ref": "private:rule-run:90000000-0000-4000-8000-000000000004:semantic:target",
+            "unit": "cell"
+          }
+        },
+        "degraded": 0,
+        "entity": {
+          "f1": 1.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tp": 3
+        },
+        "entity_by_category": {
+          "email_address": {
+            "f1": 1.0,
+            "fn": 0,
+            "fp": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "tp": 1
+          },
+          "ip_address": {
+            "f1": 1.0,
+            "fn": 0,
+            "fp": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "tp": 1
+          },
+          "payment_card_candidate": {
+            "f1": 1.0,
+            "fn": 0,
+            "fp": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "tp": 1
+          }
+        },
+        "entity_key_count": 3,
+        "examples": {
+          "false_negative": [],
+          "false_positive": []
+        },
+        "execution": "rule_only",
+        "failed": 0,
+        "field": {
+          "f1": 1.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tp": 3
+        },
+        "findings": 3,
+        "policy_levels": {
+          "email_address": "L2",
+          "ip_address": "L1",
+          "payment_card_candidate": "L3"
+        },
+        "review": {
+          "confirmed": 0,
+          "pending": 3,
+          "refused": 0
+        },
+        "unknown": 0
+      },
+      "B": {
+        "calls": 0,
+        "execution": "not_run",
+        "input_hash": "sha256:450dd4996fdaed9510496dc00b729166e41e9fbb19f3f488593e8811bb008caa",
+        "inputs": {
+          "failed_count": 0,
+          "limitations": [],
+          "max_input_bytes": 1237,
+          "min_input_bytes": 1224,
+          "processed_count": 10,
+          "sampling": {
+            "mode": "all",
+            "seed": null
+          },
+          "skipped_count": 0,
+          "target_count": 10,
+          "total_input_bytes": 12276,
+          "truncated_count": 0
+        },
+        "status": "Blocked"
+      },
+      "C": {
+        "calls": 0,
+        "execution": "not_run",
+        "input_hash": "sha256:f78f639371bd372b6cb13c8ce3653ab54c91539d329b2c861231af5678be4508",
+        "input_limits": [],
+        "inputs": {
+          "failed_count": 0,
+          "limitations": [],
+          "max_input_bytes": 2317,
+          "min_input_bytes": 2304,
+          "processed_count": 10,
+          "sampling": {
+            "mode": "all",
+            "seed": null
+          },
+          "skipped_count": 0,
+          "target_count": 10,
+          "total_input_bytes": 23107,
+          "truncated_count": 0
+        },
+        "status": "Blocked"
+      },
+      "asset_id": "30000000-0000-4000-8000-000000000001",
+      "asset_version_id": "30000000-0000-4000-8000-000000000011",
+      "business_entity_group": "synthetic-entity-group-a",
+      "combination": {
+        "reason": "NO_APPROVED_RELATION_POLICY",
+        "status": "N/A"
+      },
+      "content_hash": "sha256:ba59c5674c05319e3e86a22c8919eb5ab1f2c6cebc41630128e0a2134a0439e3",
+      "limitations": [
+        "synthetic_only",
+        "rules_are_format_candidates_not_business_facts",
+        "semantic_backend_unavailable"
+      ],
+      "parser": {
+        "config_hash": "sha256:6d9292ccccf23c299c283d68c7b713dcfc164eaab10e4d3c04c0f9f9f1cde6b7",
+        "input_codepoints": 116,
+        "processed_cells": 10,
+        "target_cells": 10,
+        "version": "internal-table-v2"
+      },
+      "policy_mapping": {
+        "categories": [
+          "email_address",
+          "ip_address",
+          "payment_card_candidate"
+        ],
+        "protection_level": "L3"
+      },
+      "semantic_effectiveness": "Blocked",
+      "target_equivalence": "Passed",
+      "template_family": "contacts-v1"
+    },
+    {
+      "A": {
+        "coverage": {
+          "combination": {
+            "failed_count": 0,
+            "failed_scope_ref": null,
+            "processed_count": 0,
+            "processed_scope_ref": null,
+            "ratio": null,
+            "reason_codes": [
+              "COMBINATION_NOT_RUN"
+            ],
+            "skipped_count": 0,
+            "skipped_scope_ref": null,
+            "status": "not_run",
+            "target_count": null,
+            "target_scope_ref": "private:rule-run:90000000-0000-4000-8000-000000000004:combination:target",
+            "unit": "relation"
+          },
+          "parse": {
+            "failed_count": 0,
+            "failed_scope_ref": null,
+            "processed_count": 10,
+            "processed_scope_ref": "private:rule-run:90000000-0000-4000-8000-000000000004:parse:processed",
+            "ratio": 1.0,
+            "reason_codes": [],
+            "skipped_count": 0,
+            "skipped_scope_ref": null,
+            "status": "complete",
+            "target_count": 10,
+            "target_scope_ref": "private:rule-run:90000000-0000-4000-8000-000000000004:parse:target",
+            "unit": "cell"
+          },
+          "rule": {
+            "failed_count": 0,
+            "failed_scope_ref": null,
+            "processed_count": 10,
+            "processed_scope_ref": "private:rule-run:90000000-0000-4000-8000-000000000004:rule:processed",
+            "ratio": 1.0,
+            "reason_codes": [],
+            "skipped_count": 0,
+            "skipped_scope_ref": null,
+            "status": "complete",
+            "target_count": 10,
+            "target_scope_ref": "private:rule-run:90000000-0000-4000-8000-000000000004:rule:target",
+            "unit": "cell"
+          },
+          "semantic": {
+            "failed_count": 0,
+            "failed_scope_ref": null,
+            "processed_count": 0,
+            "processed_scope_ref": null,
+            "ratio": null,
+            "reason_codes": [
+              "SEMANTIC_NOT_RUN"
+            ],
+            "skipped_count": 0,
+            "skipped_scope_ref": null,
+            "status": "not_run",
+            "target_count": null,
+            "target_scope_ref": "private:rule-run:90000000-0000-4000-8000-000000000004:semantic:target",
+            "unit": "cell"
+          }
+        },
+        "degraded": 0,
+        "entity": {
+          "f1": 1.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tp": 3
+        },
+        "entity_by_category": {
+          "email_address": {
+            "f1": 1.0,
+            "fn": 0,
+            "fp": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "tp": 1
+          },
+          "ip_address": {
+            "f1": 1.0,
+            "fn": 0,
+            "fp": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "tp": 1
+          },
+          "payment_card_candidate": {
+            "f1": 1.0,
+            "fn": 0,
+            "fp": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "tp": 1
+          }
+        },
+        "entity_key_count": 3,
+        "examples": {
+          "false_negative": [],
+          "false_positive": []
+        },
+        "execution": "rule_only",
+        "failed": 0,
+        "field": {
+          "f1": 1.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tp": 3
+        },
+        "findings": 3,
+        "policy_levels": {
+          "email_address": "L2",
+          "ip_address": "L1",
+          "payment_card_candidate": "L3"
+        },
+        "review": {
+          "confirmed": 0,
+          "pending": 3,
+          "refused": 0
+        },
+        "unknown": 0
+      },
+      "B": {
+        "calls": 0,
+        "execution": "not_run",
+        "input_hash": "sha256:33d327acd0a38072ad0bd7cb7288c6847aba4646cea328cabd28b5584c4a27fa",
+        "inputs": {
+          "failed_count": 0,
+          "limitations": [],
+          "max_input_bytes": 1243,
+          "min_input_bytes": 1220,
+          "processed_count": 10,
+          "sampling": {
+            "mode": "all",
+            "seed": null
+          },
+          "skipped_count": 0,
+          "target_count": 10,
+          "total_input_bytes": 12284,
+          "truncated_count": 0
+        },
+        "status": "Blocked"
+      },
+      "C": {
+        "calls": 0,
+        "execution": "not_run",
+        "input_hash": "sha256:6ff648ef8e3c30d945ba5b0b81b7e478546ee484855365ba9e7cf6c09a4096fc",
+        "input_limits": [],
+        "inputs": {
+          "failed_count": 0,
+          "limitations": [],
+          "max_input_bytes": 2323,
+          "min_input_bytes": 2301,
+          "processed_count": 10,
+          "sampling": {
+            "mode": "all",
+            "seed": null
+          },
+          "skipped_count": 0,
+          "target_count": 10,
+          "total_input_bytes": 23143,
+          "truncated_count": 0
+        },
+        "status": "Blocked"
+      },
+      "asset_id": "30000000-0000-4000-8000-000000000002",
+      "asset_version_id": "30000000-0000-4000-8000-000000000012",
+      "business_entity_group": "synthetic-entity-group-b",
+      "combination": {
+        "reason": "NO_APPROVED_RELATION_POLICY",
+        "status": "N/A"
+      },
+      "content_hash": "sha256:b39f3a2a054a2d1f011ee0da426351bb77996fd0ed4109ba6e8a2c780a7cc836",
+      "limitations": [
+        "synthetic_only",
+        "rules_are_format_candidates_not_business_facts",
+        "semantic_backend_unavailable"
+      ],
+      "parser": {
+        "config_hash": "sha256:6d9292ccccf23c299c283d68c7b713dcfc164eaab10e4d3c04c0f9f9f1cde6b7",
+        "input_codepoints": 124,
+        "processed_cells": 10,
+        "target_cells": 10,
+        "version": "internal-table-v2"
+      },
+      "policy_mapping": {
+        "categories": [
+          "email_address",
+          "ip_address",
+          "payment_card_candidate"
+        ],
+        "protection_level": "L3"
+      },
+      "semantic_effectiveness": "Blocked",
+      "target_equivalence": "Passed",
+      "template_family": "support-v2"
+    }
+  ],
+  "config_sha256": "sha256:03b697840a9eafd9103707b86bfd94d0257a21755b2041d0f5ea01bc2962158d",
+  "config_version": "mainline1-step09-v1",
+  "dataset_sha256": "sha256:b1f6ae96c1a77a48b5215eb864f669c209c96772e2d65934ad2dad620b4d6f6d",
+  "dataset_status": "candidate_not_independent",
+  "dataset_version": "mainline1-synthetic-eval-candidate-v1",
+  "frozen_at": "2026-10-16T00:00:00Z",
+  "limitations": [
+    "candidate labels are separated from fixed fixtures but are not independently reviewed; A metrics are descriptive pipeline checks only",
+    "B/C semantic effectiveness is Blocked; abc_preflight proves target equivalence and input bounds only",
+    "test doubles and synthetic data do not prove production semantics or outbound blocking",
+    "real downstream event adapter, durable service and production ACL are Untested/Blocked",
+    "combination metrics are N/A because relation policy and truth labels are not approved"
+  ],
+  "result_version": "mainline1-step09-results-v1",
+  "verification": {
+    "contract_substitute": {
+      "contract": "test_double",
+      "model_calls": 0,
+      "plan_status": "ready",
+      "plan_validation": {
+        "error_codes": [],
+        "observed_applicability_version": 1,
+        "observed_asset_state_version": 1,
+        "valid": true
+      },
+      "review_conclusion": "confirmed",
+      "status": "Passed"
+    },
+    "existing_suites": [
+      {
+        "errors": 0,
+        "failures": 0,
+        "name": "mainline1.tests.test_operations",
+        "scope": "local synthetic/memory contract tests",
+        "status": "Passed",
+        "tests": 16
+      },
+      {
+        "errors": 0,
+        "failures": 0,
+        "name": "mainline1.tests.test_review",
+        "scope": "local synthetic/memory contract tests",
+        "status": "Passed",
+        "tests": 20
+      },
+      {
+        "errors": 0,
+        "failures": 0,
+        "name": "mainline1.tests.test_planning",
+        "scope": "local synthetic/memory contract tests",
+        "status": "Passed",
+        "tests": 32
+      }
+    ],
+    "failure_samples": [
+      {
+        "asset_version_id": "30000000-0000-4000-8000-000000000013",
+        "counted_as_entity_negative": false,
+        "expected": "PARSE_FAILED",
+        "observed": "PARSE_FAILED",
+        "status": "Passed"
+      }
+    ],
+    "security": {
+      "credentials_read": false,
+      "network_calls": 0,
+      "raw_sensitive_values_in_output": false,
+      "real_data_used": false,
+      "status": "Passed"
+    },
+    "static": {
+      "config_hash_checked": true,
+      "dataset_hash_checked": true,
+      "status": "Passed"
+    }
+  }
+}
