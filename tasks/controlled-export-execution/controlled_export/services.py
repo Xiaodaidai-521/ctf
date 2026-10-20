@@ -11,13 +11,16 @@ from django.utils import timezone
 from .authorization import (
     digest_json,
     execution_request_fingerprint,
+    receipt_obligation_ids,
     sha256_bytes,
+    share_creation_constraints,
     validate_authorization,
 )
 from .errors import (
     ArtifactIntegrityError,
     AuthorizationRejected,
     ContractError,
+    ControlledExportError,
     ExecutionConflict,
     IdempotencyConflict,
     ShareAccessDenied,
@@ -330,6 +333,18 @@ def _new_token():
     return token, _token_digest(token)
 
 
+def _share_violates_obligations(share, execution):
+    try:
+        recipient_id, expiry_limit = share_creation_constraints(execution.obligations)
+    except ControlledExportError:
+        return True
+    if recipient_id is not None and share.recipient_id != recipient_id:
+        return True
+    if expiry_limit is not None and share.expires_at > expiry_limit:
+        return True
+    return False
+
+
 def create_share_grant(
     *,
     execution_id,
@@ -344,8 +359,9 @@ def create_share_grant(
     operations = sorted(set(allowed_operations or []))
     if not operations or not set(operations).issubset(ALLOWED_SHARE_OPERATIONS):
         raise ContractError("Share operations are invalid", code="SHARE_OPERATIONS_INVALID")
-    if not isinstance(recipient_id, str) or not recipient_id.strip() or len(recipient_id) > 160:
+    if not isinstance(recipient_id, str) or not recipient_id.strip() or len(recipient_id.strip()) > 160:
         raise ContractError("Recipient identifier is invalid", code="RECIPIENT_INVALID")
+    recipient_id = recipient_id.strip()
     now = timezone.now()
     if expires_at.utcoffset() is None or not (now < expires_at <= now + timedelta(seconds=settings.CONTROLLED_EXPORT_MAX_SHARE_SECONDS)):
         raise ContractError("Share expiry is outside the approved window", code="SHARE_EXPIRY_INVALID")
@@ -360,12 +376,24 @@ def create_share_grant(
     token, digest = _new_token()
     with transaction.atomic():
         execution = ExportExecution.objects.select_for_update().select_related("artifact").get(pk=execution_id)
+        now = timezone.now()
         if execution.state != "succeeded":
             raise ExecutionConflict("Only a succeeded execution can be shared")
         if execution.environment != settings.CONTROLLED_EXPORT_ENVIRONMENT:
             raise AuthorizationRejected("Execution environment mismatch", code="ENVIRONMENT_MISMATCH")
         if now >= execution.valid_until:
             raise AuthorizationRejected("Execution authorization must be revalidated", code="AUTHORIZATION_EXPIRED")
+        bound_recipient, expiry_limit = share_creation_constraints(execution.obligations)
+        if bound_recipient is not None and recipient_id != bound_recipient:
+            raise AuthorizationRejected(
+                "Share recipient does not match the signed obligation",
+                code="RECIPIENT_OBLIGATION_MISMATCH",
+            )
+        if expiry_limit is not None and expires_at > expiry_limit:
+            raise ContractError(
+                "Share expiry exceeds the signed obligation",
+                code="SHARE_EXPIRY_OBLIGATION_EXCEEDED",
+            )
         idem, created = _idempotency(
             environment=execution.environment,
             data_domain=execution.data_domain,
@@ -377,11 +405,22 @@ def create_share_grant(
         if not created:
             if not idem.result_id:
                 raise ExecutionConflict("An incomplete share idempotency record requires reconciliation")
-            return ShareGrant.objects.get(pk=idem.result_id), None, True
+            existing = ShareGrant.objects.get(pk=idem.result_id)
+            if _share_violates_obligations(existing, execution):
+                raise AuthorizationRejected(
+                    "Existing share does not satisfy the signed obligations",
+                    code="SHARE_OBLIGATION_MISMATCH",
+                )
+            if existing.revoked_at is not None or now >= existing.expires_at:
+                raise AuthorizationRejected(
+                    "Existing share is no longer active",
+                    code="SHARE_INACTIVE",
+                )
+            return existing, None, True
         share = ShareGrant.objects.create(
             execution=execution,
             artifact=execution.artifact,
-            recipient_id=recipient_id.strip(),
+            recipient_id=recipient_id,
             allowed_operations=operations,
             expires_at=expires_at,
             token_digest=digest,
@@ -411,9 +450,11 @@ def create_share_grant(
 def rotate_share_token(*, share_id, caller_id):
     token, digest = _new_token()
     with transaction.atomic():
-        share = ShareGrant.objects.select_for_update().get(pk=share_id)
+        share = ShareGrant.objects.select_for_update().select_related("execution").get(pk=share_id)
         if share.revoked_at is not None or timezone.now() >= share.expires_at:
             raise ShareAccessDenied("An inactive share cannot rotate tokens")
+        if _share_violates_obligations(share, share.execution):
+            raise ShareAccessDenied("Share does not satisfy the signed obligations")
         share.token_digest = digest
         share.grant_version += 1
         share.save(update_fields=["token_digest", "grant_version", "updated_at"])
@@ -498,6 +539,7 @@ def authorize_share_access(*, share_id, recipient_id, token, operation):
             or share.environment != settings.CONTROLLED_EXPORT_ENVIRONMENT
             or share.execution.state != "succeeded"
             or not hmac.compare_digest(share.token_digest, digest)
+            or _share_violates_obligations(share, share.execution)
         )
         if denied:
             _outbox(
@@ -540,7 +582,11 @@ def authorize_share_access(*, share_id, recipient_id, token, operation):
 
 def _delivery_transition(delivery_id, status, *, bytes_sent=None, error_code="", measurement_basis=""):
     with transaction.atomic():
-        delivery = DeliveryAttempt.objects.select_for_update().get(pk=delivery_id)
+        delivery = (
+            DeliveryAttempt.objects.select_for_update()
+            .select_related("execution")
+            .get(pk=delivery_id)
+        )
         now = timezone.now()
         if status == "started":
             if delivery.status != "not_started":
@@ -549,9 +595,18 @@ def _delivery_transition(delivery_id, status, *, bytes_sent=None, error_code="",
             delivery.response_started_at = now
             event_type = "delivery.started"
             fields = ["status", "response_started_at"]
+            payload = {
+                "delivery_id": str(delivery.delivery_id),
+                "share_id": str(delivery.share_id),
+                "status": delivery.status,
+                "bytes_sent": delivery.bytes_sent,
+                "measurement_basis": delivery.measurement_basis,
+                "error_code": delivery.error_code,
+            }
         else:
             if delivery.status in {"completed", "failed"}:
                 return delivery
+            obligation_ids = receipt_obligation_ids(delivery.execution.obligations)
             delivery.status = status
             delivery.bytes_sent = bytes_sent
             delivery.measurement_basis = measurement_basis
@@ -559,19 +614,24 @@ def _delivery_transition(delivery_id, status, *, bytes_sent=None, error_code="",
             delivery.completed_at = now
             event_type = f"delivery.{status}"
             fields = ["status", "bytes_sent", "measurement_basis", "error_code", "completed_at"]
+            payload = {
+                "delivery_id": str(delivery.delivery_id),
+                "share_id": str(delivery.share_id),
+                "execution_id": str(delivery.execution_id),
+                "status": delivery.status,
+                "bytes_sent": delivery.bytes_sent,
+                "measurement_basis": delivery.measurement_basis,
+                "error_code": delivery.error_code,
+                "obligation_ids": obligation_ids,
+                "evidence_ref": None,
+                "receipt_confirmed": False,
+            }
         delivery.save(update_fields=fields)
         _outbox(
             "delivery",
             delivery.delivery_id,
             event_type,
-            {
-                "delivery_id": str(delivery.delivery_id),
-                "share_id": str(delivery.share_id),
-                "status": delivery.status,
-                "bytes_sent": delivery.bytes_sent,
-                "measurement_basis": delivery.measurement_basis,
-                "error_code": delivery.error_code,
-            },
+            payload,
         )
         return delivery
 
@@ -617,11 +677,16 @@ def record_delivery_result(*, delivery_id, status, bytes_sent, evidence_ref):
     if status == "completed" and (bytes_sent is None or not evidence_ref):
         raise ContractError("Completed delivery requires byte count and evidence", code="DELIVERY_EVIDENCE_REQUIRED")
     with transaction.atomic():
-        delivery = DeliveryAttempt.objects.select_for_update().get(pk=delivery_id)
+        delivery = (
+            DeliveryAttempt.objects.select_for_update()
+            .select_related("execution")
+            .get(pk=delivery_id)
+        )
         if delivery.status in {"completed", "failed"}:
             if delivery.status == status and delivery.bytes_sent == bytes_sent:
                 return delivery, True
             raise ExecutionConflict("Delivery has an immutable terminal result")
+        obligation_ids = receipt_obligation_ids(delivery.execution.obligations)
         delivery.status = status
         delivery.bytes_sent = bytes_sent
         delivery.measurement_basis = f"external_receipt:{evidence_ref}"[:120]
@@ -634,9 +699,12 @@ def record_delivery_result(*, delivery_id, status, bytes_sent, evidence_ref):
             {
                 "delivery_id": str(delivery.delivery_id),
                 "share_id": str(delivery.share_id),
+                "execution_id": str(delivery.execution_id),
                 "status": status,
                 "bytes_sent": bytes_sent,
                 "evidence_ref": evidence_ref,
+                "obligation_ids": obligation_ids,
+                "receipt_confirmed": status == "completed",
             },
         )
     return delivery, False

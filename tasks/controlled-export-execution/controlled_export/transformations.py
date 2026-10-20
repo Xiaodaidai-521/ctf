@@ -32,6 +32,16 @@ def neutralize_formula(value):
     return value
 
 
+def _neutralized_header(output_columns, code):
+    header = [neutralize_formula(column) for column in output_columns]
+    if len(set(header)) != len(header):
+        raise UnsupportedContent(
+            "Output headers collide after formula neutralization",
+            code=code,
+        )
+    return header
+
+
 def _validate_columns(columns, field):
     if not isinstance(columns, list) or not columns:
         raise ContractError(f"{field} must be a non-empty list", code="PLAN_SCOPE_INVALID")
@@ -125,7 +135,7 @@ def transform_csv(content, plan, effective_action):
     indexes = {name: header.index(name) for name in scope_columns}
     output = io.StringIO(newline="")
     writer = csv.writer(output, lineterminator="\n")
-    writer.writerow(output_columns)
+    writer.writerow(_neutralized_header(output_columns, "CSV_HEADER_COLLISION"))
     row_count = 0
     for row in reader:
         row_count += 1
@@ -204,6 +214,14 @@ def transform_xlsx(content, plan, effective_action):
             except StopIteration as exc:
                 raise UnsupportedContent("Selected worksheet is empty", code="XLSX_EMPTY") from exc
             header = [cell.value for cell in header_cells]
+            if any(
+                cell.data_type == "f" or cell.comment is not None or cell.hyperlink is not None
+                for cell in header_cells
+            ):
+                raise UnsupportedContent(
+                    "Selected worksheet headers contain formulas, comments, or hyperlinks",
+                    code="XLSX_ACTIVE_CONTENT",
+                )
             if any(not isinstance(value, str) or not value for value in header) or len(set(header)) != len(header):
                 raise UnsupportedContent("XLSX headers must be unique non-empty strings", code="XLSX_HEADER_INVALID")
             missing = set(scope["columns"]).difference(header)
@@ -211,7 +229,7 @@ def transform_xlsx(content, plan, effective_action):
                 raise ContractError(f"Authorized columns are missing: {sorted(missing)}", code="PLAN_SCOPE_MISMATCH")
             indexes = {name: header.index(name) for name in scope["columns"]}
             target = destination.create_sheet(sheet_name)
-            target.append(output_columns)
+            target.append(_neutralized_header(output_columns, "XLSX_HEADER_COLLISION"))
             for source_row in rows:
                 total_rows += 1
                 if total_rows > settings.CONTROLLED_EXPORT_MAX_ROWS:

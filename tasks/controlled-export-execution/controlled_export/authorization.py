@@ -17,6 +17,8 @@ SUPPORTED_OBLIGATIONS = {
     "set_expiry": {"share_creation"},
     "record_receipt": {"post_delivery"},
 }
+OBLIGATION_VERSION = "1"
+STRICT_OBLIGATIONS = {"bind_recipient", "set_expiry", "record_receipt"}
 REQUIRED_FIELDS = {
     "authorization_id",
     "execution_id",
@@ -76,11 +78,40 @@ def _parse_aware_timestamp(raw, field):
     return value
 
 
+def _require_exact_parameters(parameters, expected):
+    if set(parameters) != set(expected):
+        raise ContractError(
+            f"obligation parameters must contain exactly {sorted(expected)}",
+            code="OBLIGATION_PARAMETERS_INVALID",
+        )
+
+
+def _normalized_obligation_parameters(obligation_type, parameters):
+    if obligation_type == "bind_recipient":
+        _require_exact_parameters(parameters, {"recipient_id"})
+        recipient_id = parameters["recipient_id"]
+        if not isinstance(recipient_id, str):
+            raise ContractError("recipient_id must be a string", code="OBLIGATION_PARAMETERS_INVALID")
+        recipient_id = recipient_id.strip()
+        if not recipient_id or len(recipient_id) > 160:
+            raise ContractError("recipient_id is invalid", code="OBLIGATION_PARAMETERS_INVALID")
+        return {"recipient_id": recipient_id}
+    if obligation_type == "set_expiry":
+        _require_exact_parameters(parameters, {"expires_at"})
+        _parse_aware_timestamp(parameters["expires_at"], "expires_at")
+        return {"expires_at": parameters["expires_at"]}
+    if obligation_type == "record_receipt":
+        _require_exact_parameters(parameters, set())
+        return {}
+    return parameters
+
+
 def validate_obligations(obligations):
     if not isinstance(obligations, list):
         raise ContractError("obligations must be a list", code="OBLIGATIONS_INVALID")
     seen = set()
     normalized = []
+    bound_recipients = set()
     for obligation in obligations:
         if not isinstance(obligation, dict):
             raise ContractError("each obligation must be an object", code="OBLIGATION_INVALID")
@@ -97,17 +128,55 @@ def validate_obligations(obligations):
         parameters = obligation.get("parameters", {})
         if not isinstance(parameters, dict):
             raise ContractError("obligation parameters must be an object", code="OBLIGATION_INVALID")
+        version = obligation.get("version", OBLIGATION_VERSION)
+        if obligation_type in STRICT_OBLIGATIONS:
+            if not isinstance(version, str) or version != OBLIGATION_VERSION:
+                raise ContractError(
+                    f"{obligation_type} obligation requires version {OBLIGATION_VERSION!r}",
+                    code="OBLIGATION_VERSION_UNSUPPORTED",
+                )
+            parameters = _normalized_obligation_parameters(obligation_type, parameters)
+            if obligation_type == "bind_recipient":
+                bound_recipients.add(parameters["recipient_id"])
+        else:
+            version = str(version)
         normalized.append(
             {
                 "obligation_id": obligation_id,
                 "type": obligation_type,
                 "phase": phase,
                 "parameters": parameters,
-                "version": str(obligation.get("version", "1")),
+                "version": version,
             }
         )
         seen.add(obligation_id)
+    if len(bound_recipients) > 1:
+        raise ContractError(
+            "conflicting bind_recipient obligations",
+            code="OBLIGATION_CONFLICT",
+        )
     return normalized
+
+
+def share_creation_constraints(obligations):
+    recipient_id = None
+    expiry_limit = None
+    for obligation in validate_obligations(obligations):
+        if obligation["type"] == "bind_recipient":
+            recipient_id = obligation["parameters"]["recipient_id"]
+        elif obligation["type"] == "set_expiry":
+            candidate = _parse_aware_timestamp(obligation["parameters"]["expires_at"], "expires_at")
+            if expiry_limit is None or candidate < expiry_limit:
+                expiry_limit = candidate
+    return recipient_id, expiry_limit
+
+
+def receipt_obligation_ids(obligations):
+    return [
+        obligation["obligation_id"]
+        for obligation in validate_obligations(obligations)
+        if obligation["type"] == "record_receipt"
+    ]
 
 
 @dataclass(frozen=True)
