@@ -617,12 +617,14 @@ def _delivery_transition(delivery_id, status, *, bytes_sent=None, error_code="",
             payload = {
                 "delivery_id": str(delivery.delivery_id),
                 "share_id": str(delivery.share_id),
+                "execution_id": str(delivery.execution_id),
                 "status": delivery.status,
                 "bytes_sent": delivery.bytes_sent,
                 "measurement_basis": delivery.measurement_basis,
                 "error_code": delivery.error_code,
                 "obligation_ids": obligation_ids,
                 "evidence_ref": None,
+                "receipt_confirmed": False,
             }
         delivery.save(update_fields=fields)
         _outbox(
@@ -697,10 +699,12 @@ def record_delivery_result(*, delivery_id, status, bytes_sent, evidence_ref):
             {
                 "delivery_id": str(delivery.delivery_id),
                 "share_id": str(delivery.share_id),
+                "execution_id": str(delivery.execution_id),
                 "status": status,
                 "bytes_sent": bytes_sent,
                 "evidence_ref": evidence_ref,
                 "obligation_ids": obligation_ids,
+                "receipt_confirmed": status == "completed",
             },
         )
     return delivery, False

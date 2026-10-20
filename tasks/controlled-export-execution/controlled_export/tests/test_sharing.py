@@ -323,6 +323,8 @@ class ShareObligationEnforcementTests(IsolatedStorageMixin, TestCase):
         unknown_event = OutboxEvent.objects.filter(event_type="delivery.unknown").latest("created_at")
         self.assertEqual(unknown_event.payload["obligation_ids"], ["receipt-1"])
         self.assertIsNone(unknown_event.payload.get("evidence_ref"))
+        self.assertEqual(unknown_event.payload["execution_id"], execution_id)
+        self.assertFalse(unknown_event.payload["receipt_confirmed"])
 
         long_evidence = "sink-receipt-" + "x" * 200
         record_delivery_result(
@@ -334,6 +336,8 @@ class ShareObligationEnforcementTests(IsolatedStorageMixin, TestCase):
         completed_event = OutboxEvent.objects.filter(event_type="delivery.completed").latest("created_at")
         self.assertEqual(completed_event.payload["obligation_ids"], ["receipt-1"])
         self.assertEqual(completed_event.payload["evidence_ref"], long_evidence)
+        self.assertEqual(completed_event.payload["execution_id"], execution_id)
+        self.assertTrue(completed_event.payload["receipt_confirmed"])
 
     def test_unconsumed_delivery_claims_no_receipt(self):
         execution_id = self._execution(
@@ -352,14 +356,56 @@ class ShareObligationEnforcementTests(IsolatedStorageMixin, TestCase):
             delivery, _ = authorize_share_access(
                 share_id=share.share_id, recipient_id="42", token=token, operation="download"
             )
-        self.assertEqual(
-            OutboxEvent.objects.filter(
-                aggregate_type="delivery", aggregate_id=str(delivery.delivery_id)
-            ).exclude(payload__has_key="obligation_ids").count(),
-            1,
-        )
+        delivery.refresh_from_db()
+        self.assertEqual(delivery.status, "not_started")
         self.assertFalse(
             OutboxEvent.objects.filter(
-                aggregate_type="delivery", aggregate_id=str(delivery.delivery_id)
-            ).exclude(event_type="share.accessed").exists()
+                aggregate_type="delivery",
+                aggregate_id=str(delivery.delivery_id),
+                event_type__in=["delivery.started", "delivery.unknown", "delivery.completed", "delivery.failed"],
+            ).exists()
         )
+        accessed = OutboxEvent.objects.get(
+            aggregate_type="delivery",
+            aggregate_id=str(delivery.delivery_id),
+            event_type="share.accessed",
+        )
+        self.assertNotIn("obligation_ids", accessed.payload)
+
+    def test_invalid_persisted_obligations_fail_closed_everywhere(self):
+        execution_id = self._execution(self._obligations(recipient="42"))
+        share, token, _ = self._share(execution_id)
+        with override_settings(CONTROLLED_EXPORT_ENVIRONMENT="production"):
+            delivery, artifact = authorize_share_access(
+                share_id=share.share_id, recipient_id="42", token=token, operation="download"
+            )
+        ExportExecution.objects.filter(pk=execution_id).update(
+            obligations=[
+                {
+                    "obligation_id": "bind-1",
+                    "type": "bind_recipient",
+                    "phase": "share_creation",
+                    "parameters": {},
+                    "version": "1",
+                }
+            ]
+        )
+        with override_settings(CONTROLLED_EXPORT_ENVIRONMENT="production"):
+            with self.assertRaises(ShareAccessDenied):
+                authorize_share_access(
+                    share_id=share.share_id, recipient_id="42", token=token, operation="download"
+                )
+        self.assertEqual(DeliveryAttempt.objects.filter(share=share).count(), 1)
+        with self.assertRaises(ShareAccessDenied):
+            rotate_share_token(share_id=share.share_id, caller_id="delivery-service")
+        with self.assertRaises(ContractError):
+            self._share(execution_id)
+        with self.assertRaises(ContractError):
+            record_delivery_result(
+                delivery_id=delivery.delivery_id,
+                status="completed",
+                bytes_sent=1,
+                evidence_ref="sink-receipt-1",
+            )
+        with self.assertRaises(ContractError):
+            b"".join(stream_delivery(delivery, artifact, chunk_size=4))
