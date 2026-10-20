@@ -1,0 +1,2874 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:mainline1:proposed:v1",
+  "title": "Mainline1 Proposed v1 contract definitions",
+  "description": "Design-only. No implemented API, database or semantic backend is implied. Validate individual objects via local $defs references.",
+  "x-approval-status": "Proposed",
+  "$defs": {
+    "Meta": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "const": "mainline1.proposed.v1",
+          "description": "草案标识，不是批准或发布版本"
+        },
+        "trace_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "服务端请求追踪 ID"
+        },
+        "environment": {
+          "enum": [
+            "development",
+            "test",
+            "production"
+          ],
+          "description": "服务端环境"
+        },
+        "evaluation_run_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "uuid"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "仅受权评估服务可设置，否则 null"
+        },
+        "domain_id": {
+          "type": "string",
+          "minLength": 1,
+          "description": "服务端解析的数据域，不信任请求自报"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "带时区创建时间"
+        }
+      },
+      "required": [
+        "schema_version",
+        "trace_id",
+        "environment",
+        "evaluation_run_id",
+        "domain_id",
+        "created_at"
+      ]
+    },
+    "AssetKey": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "asset_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "拟议新资产 UUID；不迁移现有整数主键"
+        },
+        "asset_version_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "不可变字节版本 UUID"
+        },
+        "content_hash": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "description": "原始文件字节 SHA256；仅一致性，不作授权"
+        }
+      },
+      "required": [
+        "asset_id",
+        "asset_version_id",
+        "content_hash"
+      ]
+    },
+    "Range": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "start": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "一基闭区间起点"
+        },
+        "end": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "一基闭区间终点，不小于 start"
+        }
+      },
+      "required": [
+        "start",
+        "end"
+      ]
+    },
+    "Interval": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "start": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Unicode 码点索引，含起点"
+        },
+        "end": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Unicode 码点索引，不含终点，必须大于 start"
+        }
+      },
+      "required": [
+        "start",
+        "end"
+      ]
+    },
+    "Location": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "sheet_id": {
+          "type": "string",
+          "minLength": 1,
+          "description": "版本内稳定：CSV 为 csv:0，XLSX 为 xlsx:序号；不得跨版本推定身份"
+        },
+        "row": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 1
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "CSV 逻辑记录/XLSX 行，一基含表头；column 类型为 null"
+        },
+        "column": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "一基原始列，不以表头名称标识"
+        },
+        "kind": {
+          "enum": [
+            "column",
+            "cell",
+            "span"
+          ],
+          "description": "列、整格或原文字符区间"
+        },
+        "span": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Interval"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "仅 span 类型非空；原文坐标"
+        },
+        "channel": {
+          "enum": [
+            "value",
+            "formula"
+          ],
+          "description": "读取单元格值文本或公式文本；不执行公式"
+        }
+      },
+      "required": [
+        "sheet_id",
+        "row",
+        "column",
+        "kind",
+        "span",
+        "channel"
+      ]
+    },
+    "CoverageLayer": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "enum": [
+            "complete",
+            "partial",
+            "not_run",
+            "failed",
+            "excluded"
+          ],
+          "description": "本层覆盖状态，非任务状态"
+        },
+        "unit": {
+          "enum": [
+            "cell",
+            "column",
+            "relation"
+          ],
+          "description": "计量单位必须对应目标"
+        },
+        "target_count": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "总量未知时 null"
+        },
+        "processed_count": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "实际处理数"
+        },
+        "skipped_count": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "已知跳过数"
+        },
+        "failed_count": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "已知失败数"
+        },
+        "ratio": {
+          "anyOf": [
+            {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "分母未知/为零时 null；否则 processed/target"
+        },
+        "target_scope_ref": {
+          "type": "string",
+          "minLength": 1,
+          "description": "固定目标清单的受控引用"
+        },
+        "processed_scope_ref": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "实际处理清单引用，0时可空"
+        },
+        "skipped_scope_ref": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "跳过清单引用，0时可空"
+        },
+        "failed_scope_ref": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "失败清单引用，0时可空"
+        },
+        "reason_codes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "非完整/未运行原因"
+        }
+      },
+      "required": [
+        "status",
+        "unit",
+        "target_count",
+        "processed_count",
+        "skipped_count",
+        "failed_count",
+        "ratio",
+        "target_scope_ref",
+        "processed_scope_ref",
+        "skipped_scope_ref",
+        "failed_scope_ref",
+        "reason_codes"
+      ]
+    },
+    "Coverage": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "parse": {
+          "$ref": "#/$defs/CoverageLayer",
+          "description": "解析覆盖"
+        },
+        "rule": {
+          "$ref": "#/$defs/CoverageLayer",
+          "description": "规则覆盖"
+        },
+        "semantic": {
+          "$ref": "#/$defs/CoverageLayer",
+          "description": "语义覆盖"
+        },
+        "combination": {
+          "$ref": "#/$defs/CoverageLayer",
+          "description": "组合覆盖"
+        }
+      },
+      "required": [
+        "parse",
+        "rule",
+        "semantic",
+        "combination"
+      ]
+    },
+    "ParserConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "version": {
+          "type": "string",
+          "minLength": 1,
+          "description": "解析配置版本"
+        },
+        "csv_encoding": {
+          "enum": [
+            "utf-8",
+            "utf-8-sig",
+            "gb18030"
+          ],
+          "description": "显式编码，拒绝猜测成功"
+        },
+        "csv_delimiter": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1,
+          "description": "单字符分隔符"
+        },
+        "csv_quotechar": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1,
+          "description": "单字符引号"
+        },
+        "csv_doublequote": {
+          "type": "boolean",
+          "description": "双引号转义开关"
+        },
+        "csv_header_record": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 1
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "表头逻辑记录号；null 表示无表头"
+        },
+        "xlsx_header_row": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 1
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "每个选中 sheet 的表头行；首版统一行号，不同需独立扫描"
+        },
+        "hidden_policy": {
+          "enum": [
+            "include",
+            "exclude"
+          ],
+          "description": "隐藏工作表/行列是否纳入；排除显式报告"
+        },
+        "merged_policy": {
+          "const": "anchor_once",
+          "description": "锚点只扫一次；非锚点保留映射，选区未含锚点时报错"
+        },
+        "formula_policy": {
+          "const": "formula_text_only",
+          "description": "首版仅公式文本；不依赖不可验证缓存值"
+        },
+        "non_cell_policy": {
+          "const": "excluded_reported",
+          "description": "批注、超链接目标、文本框、图形明确排除"
+        },
+        "normalization": {
+          "const": "identity-v1",
+          "description": "首版不改变原文码点，保留 identity 映射；其他规范化需新版本"
+        }
+      },
+      "required": [
+        "version",
+        "csv_encoding",
+        "csv_delimiter",
+        "csv_quotechar",
+        "csv_doublequote",
+        "csv_header_record",
+        "xlsx_header_row",
+        "hidden_policy",
+        "merged_policy",
+        "formula_policy",
+        "non_cell_policy",
+        "normalization"
+      ]
+    },
+    "Budget": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "max_bytes": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "文件字节上限"
+        },
+        "max_rows_per_sheet": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "每表行上限"
+        },
+        "max_columns": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "列上限"
+        },
+        "max_cell_codepoints": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "单格码点上限，超限失败/显式部分，不静默截断"
+        },
+        "max_zip_entries": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "XLSX ZIP 条目上限"
+        },
+        "max_uncompressed_bytes": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "声明及实际解压累计上限"
+        },
+        "max_seconds": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "扫描墙钟预算"
+        },
+        "max_model_calls": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "模型调用上限，0禁止调用"
+        },
+        "max_input_tokens": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "累计输入 token 上限；无法计量必须保守预估/拒绝"
+        },
+        "max_output_tokens": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "累计输出 token 预算"
+        },
+        "max_attempts": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "逻辑运行总尝试上限"
+        },
+        "max_concurrency": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "每数据域活动 worker 上限"
+        }
+      },
+      "required": [
+        "max_bytes",
+        "max_rows_per_sheet",
+        "max_columns",
+        "max_cell_codepoints",
+        "max_zip_entries",
+        "max_uncompressed_bytes",
+        "max_seconds",
+        "max_model_calls",
+        "max_input_tokens",
+        "max_output_tokens",
+        "max_attempts",
+        "max_concurrency"
+      ]
+    },
+    "Sampling": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "mode": {
+          "enum": [
+            "full",
+            "column_sample"
+          ],
+          "description": "全量或列样本"
+        },
+        "max_cells_per_column": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 1
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "列样本上限，full 时 null"
+        },
+        "seed": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "抽样时必填固定种子"
+        }
+      },
+      "required": [
+        "mode",
+        "max_cells_per_column",
+        "seed"
+      ]
+    },
+    "ModelSpec": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "有批准且预算允许才为 true"
+        },
+        "provider": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "固定厂商；disabled 时 null"
+        },
+        "model": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "固定模型标识"
+        },
+        "revision": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "可获得的模型修订，无则 null 并声明不可完全复现"
+        },
+        "temperature": {
+          "anyOf": [
+            {
+              "type": "number",
+              "minimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "可真实传入的推理参数；不得伪造已生效"
+        },
+        "prompt_version": {
+          "type": "string",
+          "minLength": 1,
+          "description": "固定模板版本"
+        },
+        "data_policy_ref": {
+          "type": "string",
+          "minLength": 1,
+          "description": "受控数据路径批准记录引用，disabled 也需记录禁止策略"
+        }
+      },
+      "required": [
+        "enabled",
+        "provider",
+        "model",
+        "revision",
+        "temperature",
+        "prompt_version",
+        "data_policy_ref"
+      ]
+    },
+    "Category": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "category_id": {
+          "type": "string",
+          "minLength": 1,
+          "description": "稳定类别 ID，不能使用 pending 作为类别"
+        },
+        "definition": {
+          "type": "string",
+          "minLength": 1,
+          "description": "业务类别定义"
+        },
+        "aliases": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "别名"
+        },
+        "positive_examples": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "仅合成正例"
+        },
+        "negative_examples": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "外形近似反例"
+        },
+        "rule_refs": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "存在于规则清单的版本化引用"
+        },
+        "related_categories": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "存在的关联类别"
+        },
+        "protection_level": {
+          "type": "string",
+          "minLength": 1,
+          "description": "必须在本政策 levels 中"
+        },
+        "review_conditions": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "需要人工复核的原因码"
+        }
+      },
+      "required": [
+        "category_id",
+        "definition",
+        "aliases",
+        "positive_examples",
+        "negative_examples",
+        "rule_refs",
+        "related_categories",
+        "protection_level",
+        "review_conditions"
+      ]
+    },
+    "Evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "evidence_ref": {
+          "type": "string",
+          "minLength": 1,
+          "description": "私有证据引用，不是原文或公开 URL"
+        },
+        "kind": {
+          "enum": [
+            "rule",
+            "cell",
+            "context",
+            "model",
+            "review"
+          ],
+          "description": "证据来源"
+        },
+        "reason_code": {
+          "type": "string",
+          "minLength": 1,
+          "description": "可解释依据码"
+        }
+      },
+      "required": [
+        "evidence_ref",
+        "kind",
+        "reason_code"
+      ]
+    },
+    "Mapping": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "location": {
+          "$ref": "#/$defs/Location",
+          "description": "单元格源位置"
+        },
+        "source_text_ref": {
+          "type": "string",
+          "minLength": 1,
+          "description": "原始单元格文本受控引用，不出普通 API"
+        },
+        "normalized_text_ref": {
+          "type": "string",
+          "minLength": 1,
+          "description": "规范化文本受控引用"
+        },
+        "source_length": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "原文 Unicode 码点长度"
+        },
+        "normalized_length": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "规范化码点长度"
+        },
+        "mapping_ref": {
+          "type": "string",
+          "minLength": 1,
+          "description": "边界映射清单受控引用"
+        },
+        "mapping_kind": {
+          "enum": [
+            "identity",
+            "mapped",
+            "unmappable"
+          ],
+          "description": "不可映射时禁止 span 操作"
+        },
+        "merged_anchor": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Location"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "合并格原始锚点；不是复制值"
+        }
+      },
+      "required": [
+        "location",
+        "source_text_ref",
+        "normalized_text_ref",
+        "source_length",
+        "normalized_length",
+        "mapping_ref",
+        "mapping_kind",
+        "merged_anchor"
+      ]
+    },
+    "Requirement": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "requirement_id": {
+          "type": "string",
+          "minLength": 1,
+          "description": "保护要求 ID，与下游 obligation 可显式映射"
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1,
+          "description": "保护要求版本"
+        },
+        "category_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "要求保护的类别白名单"
+        },
+        "allowed_operations": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "mask_span",
+              "mask_cell",
+              "drop_column"
+            ]
+          },
+          "description": "服务端与执行层共同白名单子集"
+        },
+        "allow_drop_column": {
+          "type": "boolean",
+          "description": "删除列明确授权约束"
+        },
+        "require_complete_coverage": {
+          "type": "boolean",
+          "description": "是否要求目标全覆盖"
+        },
+        "allow_unresolved": {
+          "type": "boolean",
+          "description": "是否允许显式部分计划；不使 ready 绕过未知项"
+        }
+      },
+      "required": [
+        "requirement_id",
+        "version",
+        "category_ids",
+        "allowed_operations",
+        "allow_drop_column",
+        "require_complete_coverage",
+        "allow_unresolved"
+      ]
+    },
+    "Operation": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "operation_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "稳定操作 ID"
+        },
+        "type": {
+          "enum": [
+            "mask_span",
+            "mask_cell",
+            "drop_column"
+          ],
+          "description": "首版共同草案白名单"
+        },
+        "target": {
+          "$ref": "#/$defs/Location",
+          "description": "永远以原始输入快照定位"
+        },
+        "replacement": {
+          "anyOf": [
+            {
+              "const": "[REDACTED]"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "mask 固定纯文本；drop_column 为 null；禁止表达式/公式"
+        },
+        "match_ref": {
+          "type": "string",
+          "minLength": 1,
+          "description": "服务端私有内容匹配记录引用，不公开低熵摘要"
+        },
+        "finding_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "description": "依据发现"
+        },
+        "requirement_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "依据保护要求"
+        }
+      },
+      "required": [
+        "operation_id",
+        "type",
+        "target",
+        "replacement",
+        "match_ref",
+        "finding_ids",
+        "requirement_ids"
+      ]
+    },
+    "AssetVersionRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "meta": {
+          "$ref": "#/$defs/Meta",
+          "description": "可信公共上下文"
+        },
+        "asset": {
+          "$ref": "#/$defs/AssetKey",
+          "description": "固定版本与原始字节摘要"
+        },
+        "owner_service": {
+          "type": "string",
+          "minLength": 1,
+          "description": "资产对象所有者服务，草案候选 asset_registry"
+        },
+        "format": {
+          "enum": [
+            "csv",
+            "xlsx"
+          ],
+          "description": "仅支持首版格式"
+        },
+        "private_storage_ref": {
+          "type": "string",
+          "minLength": 1,
+          "description": "不透明私有句柄；不可用作路径/URL/下载授权"
+        },
+        "byte_size": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "固定原始字节数"
+        },
+        "state": {
+          "enum": [
+            "ready",
+            "deleted",
+            "unavailable"
+          ],
+          "description": "来自对象所有者的当前状态观察"
+        },
+        "state_version": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "状态观察版本；内容引用不变"
+        },
+        "deleted_at": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "date-time"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "删除时保留最小墓碑时间"
+        }
+      },
+      "required": [
+        "meta",
+        "asset",
+        "owner_service",
+        "format",
+        "private_storage_ref",
+        "byte_size",
+        "state",
+        "state_version",
+        "deleted_at"
+      ]
+    },
+    "BusinessContext": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "meta": {
+          "$ref": "#/$defs/Meta",
+          "description": "可信公共上下文"
+        },
+        "context_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "上下文对象 ID"
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "不可变版本"
+        },
+        "asset_version_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "适用资产版本"
+        },
+        "scope_hash": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "description": "适用范围摘要"
+        },
+        "scenario": {
+          "type": "string",
+          "description": "业务场景，仅授权读取"
+        },
+        "purpose": {
+          "type": "string",
+          "description": "用途描述"
+        },
+        "table_description": {
+          "type": "string",
+          "description": "表说明"
+        },
+        "field_descriptions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "sheet_id": {
+                "type": "string",
+                "minLength": 1,
+                "description": "表 ID"
+              },
+              "column": {
+                "type": "integer",
+                "minimum": 1,
+                "description": "原始列"
+              },
+              "description": {
+                "type": "string",
+                "description": "字段说明"
+              }
+            },
+            "required": [
+              "sheet_id",
+              "column",
+              "description"
+            ]
+          },
+          "description": "字段说明按坐标，允许重复表头"
+        },
+        "source": {
+          "enum": [
+            "admin_config",
+            "confirmed_dictionary",
+            "user_input",
+            "model_inferred"
+          ],
+          "description": "记录来源不改写历史"
+        },
+        "confirmation": {
+          "enum": [
+            "unconfirmed",
+            "confirmed",
+            "conflicted"
+          ],
+          "description": "确认状态"
+        },
+        "confirmed_by": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 1
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "现有用户整数 ID；已确认才非空"
+        },
+        "confirmed_at": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "date-time"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "确认时间"
+        },
+        "content_hash": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "description": "受控规范化内容摘要，不进入普通日志"
+        },
+        "supersedes_context_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "uuid"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "确认或修正创建新版本引用"
+        }
+      },
+      "required": [
+        "meta",
+        "context_id",
+        "version",
+        "asset_version_id",
+        "scope_hash",
+        "scenario",
+        "purpose",
+        "table_description",
+        "field_descriptions",
+        "source",
+        "confirmation",
+        "confirmed_by",
+        "confirmed_at",
+        "content_hash",
+        "supersedes_context_id"
+      ]
+    },
+    "ClassificationPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "meta": {
+          "$ref": "#/$defs/Meta",
+          "description": "可信公共上下文"
+        },
+        "policy_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "政策 ID"
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1,
+          "description": "不可变政策版本"
+        },
+        "dictionary_version": {
+          "type": "string",
+          "minLength": 1,
+          "description": "类别字典版本"
+        },
+        "ruleset_version": {
+          "type": "string",
+          "minLength": 1,
+          "description": "规则集版本"
+        },
+        "state": {
+          "enum": [
+            "draft",
+            "active",
+            "retired"
+          ],
+          "description": "发布须单独批准"
+        },
+        "effective_at": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "date-time"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "active 时生效时间"
+        },
+        "levels": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "有序内部等级，非法律结论"
+        },
+        "categories": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Category"
+          },
+          "description": "字典和映射"
+        },
+        "rule_refs": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "允许规则版本列表"
+        },
+        "conflict_strategy": {
+          "const": "review_no_downgrade",
+          "description": "冲突复核，不依据弱描述自动降级"
+        },
+        "review_policy_version": {
+          "type": "string",
+          "minLength": 1,
+          "description": "复核触发策略版本"
+        },
+        "content_hash": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "description": "政策规范化摘要"
+        }
+      },
+      "required": [
+        "meta",
+        "policy_id",
+        "version",
+        "dictionary_version",
+        "ruleset_version",
+        "state",
+        "effective_at",
+        "levels",
+        "categories",
+        "rule_refs",
+        "conflict_strategy",
+        "review_policy_version",
+        "content_hash"
+      ]
+    },
+    "DataScope": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "meta": {
+          "$ref": "#/$defs/Meta",
+          "description": "可信公共上下文"
+        },
+        "asset_version_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "固定版本"
+        },
+        "coordinate_version": {
+          "const": "one-based-codepoint-v1",
+          "description": "行列一基，字符零基半开"
+        },
+        "selections": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "sheet_id": {
+                "type": "string",
+                "minLength": 1,
+                "description": "版本内表 ID"
+              },
+              "rows": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/Range"
+                },
+                "description": "排序合并后逻辑记录/物理行范围"
+              },
+              "columns": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/Range"
+                },
+                "description": "排序合并后列范围"
+              }
+            },
+            "required": [
+              "sheet_id",
+              "rows",
+              "columns"
+            ]
+          },
+          "description": "不重叠、排序的选区；不可用空数组暗示全部"
+        },
+        "include_header": {
+          "type": "boolean",
+          "description": "是否扫描表头文字；无论是否扫描都计入行号"
+        },
+        "scope_hash": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "description": "资产版本和规范化选择/坐标/include_header 的摘要"
+        }
+      },
+      "required": [
+        "meta",
+        "asset_version_id",
+        "coordinate_version",
+        "selections",
+        "include_header",
+        "scope_hash"
+      ]
+    },
+    "ParsedAsset": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "meta": {
+          "$ref": "#/$defs/Meta",
+          "description": "可信公共上下文"
+        },
+        "parsed_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "不可变解析结果 ID"
+        },
+        "asset": {
+          "$ref": "#/$defs/AssetKey",
+          "description": "输入版本"
+        },
+        "scope_hash": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "description": "输入范围"
+        },
+        "parser_version": {
+          "type": "string",
+          "minLength": 1,
+          "description": "解析器实现版本"
+        },
+        "parser_config_hash": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "description": "解析配置摘要"
+        },
+        "structure_ref": {
+          "type": "string",
+          "minLength": 1,
+          "description": "sheet 列表/合并区域/隐藏内容/逻辑记录清单受控引用"
+        },
+        "mappings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Mapping"
+          },
+          "description": "样例内联；生产按固定 parsed_id 分页或私有清单"
+        },
+        "coverage": {
+          "$ref": "#/$defs/Coverage",
+          "description": "四层独立覆盖；解析阶段其余可 not_run"
+        },
+        "excluded_contents": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "未纳入的非单元格内容等"
+        },
+        "warnings": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "稳定警告码"
+        },
+        "errors": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "解析错误码"
+        }
+      },
+      "required": [
+        "meta",
+        "parsed_id",
+        "asset",
+        "scope_hash",
+        "parser_version",
+        "parser_config_hash",
+        "structure_ref",
+        "mappings",
+        "coverage",
+        "excluded_contents",
+        "warnings",
+        "errors"
+      ]
+    },
+    "Finding": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "meta": {
+          "$ref": "#/$defs/Meta",
+          "description": "可信公共上下文"
+        },
+        "finding_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "追加不可变发现"
+        },
+        "scan_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "逻辑扫描 ID"
+        },
+        "kind": {
+          "enum": [
+            "field",
+            "entity",
+            "combination"
+          ],
+          "description": "列、字符实体、关系发现"
+        },
+        "locations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Location"
+          },
+          "description": "一个或多个原位置"
+        },
+        "category_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "无法判定时 null，不使用待复核类别"
+        },
+        "judgment": {
+          "enum": [
+            "determined",
+            "insufficient",
+            "conflict",
+            "pending_review"
+          ],
+          "description": "内容判断状态"
+        },
+        "source_type": {
+          "enum": [
+            "rule",
+            "semantic",
+            "fusion",
+            "manual"
+          ],
+          "description": "来源独立于判断"
+        },
+        "detector_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "非人工来源检测器标识；人工为 null"
+        },
+        "detector_version": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "非人工来源检测器版本；人工为 null"
+        },
+        "source_finding_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "description": "fusion 至少含两个依据发现"
+        },
+        "relation_type": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "combination 关系类型，否则 null"
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Evidence"
+          },
+          "description": "私有证据引用，不内联原文"
+        },
+        "uncertainty_reasons": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "未确定或冲突原因"
+        },
+        "raw_score": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "原始分数不当作概率"
+        },
+        "score_meaning": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "原始分数口径"
+        },
+        "calibrated_probability": {
+          "anyOf": [
+            {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "未校准必须 null"
+        },
+        "calibration_version": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "概率非空时必须提供校准版本"
+        },
+        "created_by": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 1
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "manual 必须为服务端操作者 ID"
+        },
+        "review_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "uuid"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "manual 必须引用追加复核记录"
+        }
+      },
+      "required": [
+        "meta",
+        "finding_id",
+        "scan_id",
+        "kind",
+        "locations",
+        "category_id",
+        "judgment",
+        "source_type",
+        "detector_id",
+        "detector_version",
+        "source_finding_ids",
+        "relation_type",
+        "evidence",
+        "uncertainty_reasons",
+        "raw_score",
+        "score_meaning",
+        "calibrated_probability",
+        "calibration_version",
+        "created_by",
+        "review_id"
+      ]
+    },
+    "ReviewRecord": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "meta": {
+          "$ref": "#/$defs/Meta",
+          "description": "可信公共上下文"
+        },
+        "review_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "追加复核记录"
+        },
+        "base_profile_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "提交基于的不可变画像"
+        },
+        "expected_state_version": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "期望当前适用性版本"
+        },
+        "idempotency_key": {
+          "type": "string",
+          "minLength": 1,
+          "description": "作用域+主体+operation 内幂等键"
+        },
+        "request_fingerprint": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "description": "规范化请求指纹"
+        },
+        "actor_id": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "服务端用户整数 ID"
+        },
+        "action": {
+          "enum": [
+            "confirm",
+            "correct",
+            "false_positive",
+            "add_manual"
+          ],
+          "description": "内容操作"
+        },
+        "finding_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "description": "目标或新人工发现 ID"
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1,
+          "description": "必要原因，访问受控，不复制原文到通用日志"
+        },
+        "before_category": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "复核前类别"
+        },
+        "after_category": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "确认/修正/新增类别；误报为 null"
+        },
+        "workflow_status": {
+          "enum": [
+            "pending",
+            "completed"
+          ],
+          "description": "复核是否完成"
+        },
+        "request_status": {
+          "enum": [
+            "accepted",
+            "rejected"
+          ],
+          "description": "请求处理与内容结论分离"
+        },
+        "conclusion": {
+          "anyOf": [
+            {
+              "enum": [
+                "confirmed",
+                "corrected",
+                "false_positive",
+                "manual_added"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "仅已接受完成时非空"
+        },
+        "successor_profile_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "uuid"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "已接受完成必须有后继；拒绝不产生后继"
+        },
+        "completed_at": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "date-time"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "完成时间"
+        }
+      },
+      "required": [
+        "meta",
+        "review_id",
+        "base_profile_id",
+        "expected_state_version",
+        "idempotency_key",
+        "request_fingerprint",
+        "actor_id",
+        "action",
+        "finding_ids",
+        "reason",
+        "before_category",
+        "after_category",
+        "workflow_status",
+        "request_status",
+        "conclusion",
+        "successor_profile_id",
+        "completed_at"
+      ]
+    },
+    "SensitivityProfile": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "meta": {
+          "$ref": "#/$defs/Meta",
+          "description": "可信公共上下文"
+        },
+        "profile_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "不可变画像 ID"
+        },
+        "asset": {
+          "$ref": "#/$defs/AssetKey",
+          "description": "绑定资产版本"
+        },
+        "scan_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "追溯固定运行快照"
+        },
+        "scope_hash": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "description": "范围绑定"
+        },
+        "quality": {
+          "enum": [
+            "complete",
+            "partial",
+            "unavailable"
+          ],
+          "description": "按扫描政策计算完整性"
+        },
+        "coverage": {
+          "$ref": "#/$defs/Coverage",
+          "description": "四层覆盖"
+        },
+        "finding_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "description": "稳定发现清单；分页固定此画像"
+        },
+        "category_counts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "category_id": {
+                "type": "string",
+                "minLength": 1,
+                "description": "类别"
+              },
+              "count": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "发现数，不当人数"
+              }
+            },
+            "required": [
+              "category_id",
+              "count"
+            ]
+          },
+          "description": "类别计数"
+        },
+        "combination_finding_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "description": "组合关系引用"
+        },
+        "protection_level": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "政策算出的内部等级；证据不足 null"
+        },
+        "policy_version": {
+          "type": "string",
+          "minLength": 1,
+          "description": "分类政策版本"
+        },
+        "detector_versions": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "检测器版本清单"
+        },
+        "review_status": {
+          "enum": [
+            "not_required",
+            "pending",
+            "completed"
+          ],
+          "description": "流程状态，不是类别"
+        },
+        "supersedes_profile_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "uuid"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "唯一当前链上的前驱"
+        },
+        "applicability_ref": {
+          "type": "string",
+          "format": "uuid",
+          "description": "权威适用状态引用，独立于不可变内容"
+        },
+        "limitations": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "未知、降级与覆盖限制"
+        },
+        "person_count": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "未知人数必须 null"
+        }
+      },
+      "required": [
+        "meta",
+        "profile_id",
+        "asset",
+        "scan_id",
+        "scope_hash",
+        "quality",
+        "coverage",
+        "finding_ids",
+        "category_counts",
+        "combination_finding_ids",
+        "protection_level",
+        "policy_version",
+        "detector_versions",
+        "review_status",
+        "supersedes_profile_id",
+        "applicability_ref",
+        "limitations",
+        "person_count"
+      ]
+    },
+    "ScanRunSnapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "meta": {
+          "$ref": "#/$defs/Meta",
+          "description": "可信公共上下文"
+        },
+        "scan_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "逻辑运行 ID"
+        },
+        "asset": {
+          "$ref": "#/$defs/AssetKey",
+          "description": "固定输入版本"
+        },
+        "scope": {
+          "$ref": "#/$defs/DataScope",
+          "description": "固定规范化选区"
+        },
+        "context_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "上下文引用"
+        },
+        "context_version": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "上下文固定版本"
+        },
+        "context_hash": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "description": "上下文摘要"
+        },
+        "policy_version": {
+          "type": "string",
+          "minLength": 1,
+          "description": "政策版本"
+        },
+        "dictionary_version": {
+          "type": "string",
+          "minLength": 1,
+          "description": "字典版本"
+        },
+        "ruleset_version": {
+          "type": "string",
+          "minLength": 1,
+          "description": "规则集版本"
+        },
+        "model": {
+          "$ref": "#/$defs/ModelSpec",
+          "description": "固定模型配置/禁用策略"
+        },
+        "fusion_version": {
+          "type": "string",
+          "minLength": 1,
+          "description": "融合版本"
+        },
+        "parser_version": {
+          "type": "string",
+          "minLength": 1,
+          "description": "解析实现版本"
+        },
+        "parser_config": {
+          "$ref": "#/$defs/ParserConfig",
+          "description": "解析完整配置"
+        },
+        "parser_config_hash": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "description": "解析配置摘要"
+        },
+        "sampling": {
+          "$ref": "#/$defs/Sampling",
+          "description": "采样与随机种子"
+        },
+        "budget": {
+          "$ref": "#/$defs/Budget",
+          "description": "固定预算"
+        },
+        "semantic_required": {
+          "type": "boolean",
+          "description": "语义是否是质量完整条件"
+        },
+        "combination_required": {
+          "type": "boolean",
+          "description": "组合是否是质量完整条件"
+        },
+        "scan_policy_version": {
+          "type": "string",
+          "minLength": 1,
+          "description": "扫描完整性政策版本"
+        },
+        "request_fingerprint": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "description": "所有影响结果输入及可信域/主体/评估身份摘要"
+        },
+        "snapshot_ref": {
+          "type": "string",
+          "minLength": 1,
+          "description": "受控完整快照引用"
+        },
+        "reproducibility_limits": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "不可固定模型修订等限制"
+        }
+      },
+      "required": [
+        "meta",
+        "scan_id",
+        "asset",
+        "scope",
+        "context_id",
+        "context_version",
+        "context_hash",
+        "policy_version",
+        "dictionary_version",
+        "ruleset_version",
+        "model",
+        "fusion_version",
+        "parser_version",
+        "parser_config",
+        "parser_config_hash",
+        "sampling",
+        "budget",
+        "semantic_required",
+        "combination_required",
+        "scan_policy_version",
+        "request_fingerprint",
+        "snapshot_ref",
+        "reproducibility_limits"
+      ]
+    },
+    "ProfileApplicability": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "meta": {
+          "$ref": "#/$defs/Meta",
+          "description": "可信公共上下文"
+        },
+        "applicability_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "稳定查询 ID"
+        },
+        "profile_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "画像 ID"
+        },
+        "asset_version_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "资产版本"
+        },
+        "state_version": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "单调递增并发版本"
+        },
+        "status": {
+          "enum": [
+            "current",
+            "superseded",
+            "reevaluation_required",
+            "unverifiable_deleted"
+          ],
+          "description": "权威适用状态"
+        },
+        "successor_profile_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "uuid"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "superseded 时后继"
+        },
+        "reason_codes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "变化原因"
+        },
+        "changed_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "状态变化时间"
+        },
+        "affected_scope_hash": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "description": "需要重评估范围"
+        },
+        "usable_for_new_decision": {
+          "type": "boolean",
+          "description": "仅 current 且业务条件满足可 true，仍非授权"
+        },
+        "historical_audit_available": {
+          "type": "boolean",
+          "description": "历史是否可审计，不保证原文永久保留"
+        }
+      },
+      "required": [
+        "meta",
+        "applicability_id",
+        "profile_id",
+        "asset_version_id",
+        "state_version",
+        "status",
+        "successor_profile_id",
+        "reason_codes",
+        "changed_at",
+        "affected_scope_hash",
+        "usable_for_new_decision",
+        "historical_audit_available"
+      ]
+    },
+    "RedactionPlan": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "meta": {
+          "$ref": "#/$defs/Meta",
+          "description": "可信公共上下文"
+        },
+        "plan_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "不可变计划 ID"
+        },
+        "plan_hash": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "description": "完整规范化计划摘要，排除 plan_hash/meta.trace_id，自身不是授权"
+        },
+        "asset": {
+          "$ref": "#/$defs/AssetKey",
+          "description": "输入固定版本"
+        },
+        "scan_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "扫描引用"
+        },
+        "profile_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "依据画像"
+        },
+        "scope_hash": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "description": "范围"
+        },
+        "parser_version": {
+          "type": "string",
+          "minLength": 1,
+          "description": "解析实现版本"
+        },
+        "parser_config_hash": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "description": "解析配置摘要"
+        },
+        "policy_version": {
+          "type": "string",
+          "minLength": 1,
+          "description": "分类政策版本"
+        },
+        "redaction_policy_version": {
+          "type": "string",
+          "minLength": 1,
+          "description": "脱敏政策版本"
+        },
+        "requirements": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Requirement"
+          },
+          "description": "规范化保护要求快照"
+        },
+        "requirements_hash": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "description": "要求快照摘要"
+        },
+        "operation_contract_version": {
+          "const": "original-snapshot-v1-proposed",
+          "description": "待执行方确认的组合语义版本"
+        },
+        "operations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Operation"
+          },
+          "description": "完整固定快照操作清单"
+        },
+        "operation_count": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "清单总数"
+        },
+        "unresolved": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "尚未满足的要求/位置原因码"
+        },
+        "validation_errors": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "稳定错误码"
+        },
+        "status": {
+          "enum": [
+            "ready",
+            "partial",
+            "invalid"
+          ],
+          "description": "计划就绪≠外发授权"
+        },
+        "checked_applicability_version": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "最近生成校验观察版本，执行前仍须重新查"
+        },
+        "validation_ref": {
+          "type": "string",
+          "minLength": 1,
+          "description": "无业务写入校验结果的受控引用"
+        }
+      },
+      "required": [
+        "meta",
+        "plan_id",
+        "plan_hash",
+        "asset",
+        "scan_id",
+        "profile_id",
+        "scope_hash",
+        "parser_version",
+        "parser_config_hash",
+        "policy_version",
+        "redaction_policy_version",
+        "requirements",
+        "requirements_hash",
+        "operation_contract_version",
+        "operations",
+        "operation_count",
+        "unresolved",
+        "validation_errors",
+        "status",
+        "checked_applicability_version",
+        "validation_ref"
+      ]
+    },
+    "ScanResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "meta": {
+          "$ref": "#/$defs/Meta",
+          "description": "可信公共上下文"
+        },
+        "scan_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "逻辑扫描 ID"
+        },
+        "attempt_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "uuid"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "当前/最后尝试，未认领 null"
+        },
+        "task_status": {
+          "enum": [
+            "queued",
+            "running",
+            "succeeded",
+            "failed",
+            "cancelled"
+          ],
+          "description": "仅任务生命周期"
+        },
+        "quality": {
+          "enum": [
+            "complete",
+            "partial",
+            "unavailable"
+          ],
+          "description": "独立结果质量"
+        },
+        "profile_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "uuid"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "已发布画像或 null"
+        },
+        "snapshot_ref": {
+          "type": "string",
+          "minLength": 1,
+          "description": "不可变配置引用"
+        },
+        "stage": {
+          "enum": [
+            "queued",
+            "parse",
+            "rule",
+            "semantic",
+            "fusion",
+            "publish",
+            "done"
+          ],
+          "description": "真实处理阶段"
+        },
+        "processed_count": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "阶段实际数量"
+        },
+        "total_count": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "未知总数 null"
+        },
+        "progress_ratio": {
+          "anyOf": [
+            {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "阶段比例，未知/零分母 null"
+        },
+        "coverage": {
+          "$ref": "#/$defs/Coverage",
+          "description": "分层覆盖"
+        },
+        "cancel_requested_at": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "date-time"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "取消请求时间，不等于已经停机"
+        },
+        "warnings": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "降级等警告"
+        },
+        "errors": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "失败原因码"
+        },
+        "started_at": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "date-time"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "开始时间"
+        },
+        "completed_at": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "date-time"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "终态时间"
+        }
+      },
+      "required": [
+        "meta",
+        "scan_id",
+        "attempt_id",
+        "task_status",
+        "quality",
+        "profile_id",
+        "snapshot_ref",
+        "stage",
+        "processed_count",
+        "total_count",
+        "progress_ratio",
+        "coverage",
+        "cancel_requested_at",
+        "warnings",
+        "errors",
+        "started_at",
+        "completed_at"
+      ]
+    },
+    "ScanComparison": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "meta": {
+          "$ref": "#/$defs/Meta",
+          "description": "可信公共上下文"
+        },
+        "comparison_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "固定比较结果"
+        },
+        "before_scan_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "旧扫描"
+        },
+        "after_scan_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "新扫描"
+        },
+        "before_profile_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "旧画像"
+        },
+        "after_profile_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "新画像"
+        },
+        "before_asset_version_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "旧资产版本"
+        },
+        "after_asset_version_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "新资产版本"
+        },
+        "matching_version": {
+          "type": "string",
+          "minLength": 1,
+          "description": "匹配规则版本"
+        },
+        "added": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "description": "新增发现"
+        },
+        "disappeared": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "description": "旧发现消失，不等于删除已执行"
+        },
+        "category_changes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "before_finding_id": {
+                "type": "string",
+                "format": "uuid",
+                "description": "旧发现"
+              },
+              "after_finding_id": {
+                "type": "string",
+                "format": "uuid",
+                "description": "可靠对应的新发现"
+              }
+            },
+            "required": [
+              "before_finding_id",
+              "after_finding_id"
+            ]
+          },
+          "description": "类别变化映射"
+        },
+        "unmatched": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "description": "无法可靠匹配，不强行按坐标继承"
+        },
+        "limitations": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "版本/移动/覆盖差异限制"
+        }
+      },
+      "required": [
+        "meta",
+        "comparison_id",
+        "before_scan_id",
+        "after_scan_id",
+        "before_profile_id",
+        "after_profile_id",
+        "before_asset_version_id",
+        "after_asset_version_id",
+        "matching_version",
+        "added",
+        "disappeared",
+        "category_changes",
+        "unmatched",
+        "limitations"
+      ]
+    },
+    "TaskReference": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "meta": {
+          "$ref": "#/$defs/Meta",
+          "description": "可信公共上下文"
+        },
+        "task_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "拟议等于 scan_id，不新增多余任务身份"
+        },
+        "scan_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "逻辑运行 ID"
+        },
+        "status": {
+          "enum": [
+            "queued",
+            "running",
+            "succeeded",
+            "failed",
+            "cancelled"
+          ],
+          "description": "幂等重放可返回已终态任务"
+        },
+        "query_path": {
+          "type": "string",
+          "pattern": "^/api/mainline1/scans/[0-9a-f-]+/$",
+          "description": "仅拟议新路由，不改变旧接口"
+        },
+        "retry_after_seconds": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "轮询建议间隔，不代表完成时限"
+        }
+      },
+      "required": [
+        "meta",
+        "task_id",
+        "scan_id",
+        "status",
+        "query_path",
+        "retry_after_seconds"
+      ]
+    },
+    "ErrorEnvelope": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "meta": {
+          "$ref": "#/$defs/Meta",
+          "description": "可信响应上下文"
+        },
+        "code": {
+          "type": "string",
+          "minLength": 1,
+          "description": "稳定错误码见设计错误表"
+        },
+        "http_status": {
+          "enum": [
+            400,
+            401,
+            403,
+            404,
+            409,
+            410,
+            413,
+            415,
+            422,
+            429,
+            503
+          ],
+          "description": "HTTP 映射"
+        },
+        "retryable": {
+          "type": "boolean",
+          "description": "是否允许同运行受限重试"
+        },
+        "latest_profile_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "uuid"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "仅调用者有权读取时返回"
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1,
+          "description": "安全提示，不含路径/原文/凭据"
+        }
+      },
+      "required": [
+        "meta",
+        "code",
+        "http_status",
+        "retryable",
+        "latest_profile_id",
+        "message"
+      ]
+    },
+    "ProfileChangedEvent": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "meta": {
+          "$ref": "#/$defs/Meta",
+          "description": "服务端事件作用域"
+        },
+        "event_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "持久化事件 ID，重投不变"
+        },
+        "event_type": {
+          "enum": [
+            "profile_superseded",
+            "profile_reevaluation_required"
+          ],
+          "description": "变更通知类型"
+        },
+        "aggregate_version": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "画像适用性状态版本"
+        },
+        "old_profile_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "旧画像"
+        },
+        "new_profile_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "uuid"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "重评估尚无新画像可 null"
+        },
+        "asset_version_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "资产版本"
+        },
+        "scope_hash": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "description": "范围"
+        },
+        "reason_codes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "变化原因"
+        },
+        "occurred_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "事务提交对应的业务时间"
+        }
+      },
+      "required": [
+        "meta",
+        "event_id",
+        "event_type",
+        "aggregate_version",
+        "old_profile_id",
+        "new_profile_id",
+        "asset_version_id",
+        "scope_hash",
+        "reason_codes",
+        "occurred_at"
+      ]
+    },
+    "ValidationResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "meta": {
+          "$ref": "#/$defs/Meta",
+          "description": "可信响应上下文"
+        },
+        "valid": {
+          "type": "boolean",
+          "description": "仅本次观察到的校验有效性，不是执行授权"
+        },
+        "error_codes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "稳定失败原因"
+        },
+        "plan_hash": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "description": "被检查完整计划摘要"
+        },
+        "observed_asset_state_version": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "资产权威观察版本"
+        },
+        "observed_applicability_version": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "画像权威观察版本"
+        },
+        "checked_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "校验时间，不是永久有效期限"
+        }
+      },
+      "required": [
+        "meta",
+        "valid",
+        "error_codes",
+        "plan_hash",
+        "observed_asset_state_version",
+        "observed_applicability_version",
+        "checked_at"
+      ]
+    }
+  }
+}

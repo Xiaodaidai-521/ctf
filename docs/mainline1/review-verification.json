@@ -1,0 +1,16 @@
+{
+  "date": "2026-10-13",
+  "status": "Passed",
+  "checks": [
+    "3 original prompts + step01/history + public schema/examples hashes unchanged",
+    "tracked/index diff empty",
+    "step02/03 common handoff keys present; JSON parse valid",
+    "all local Markdown artifact targets exist (historical copy resolved against original directory)",
+    "18 source hashes match tested code",
+    "41 internal tests and 13 real PostgreSQL tests passed; final cluster stopped/removed"
+  ],
+  "postgres_version": "pg_ctl (PostgreSQL) 16.14",
+  "scope": "only backend/mainline1 and docs/mainline1 added; no production settings/database migration/model call",
+  "known_residue": "stopped first synthetic cluster directory remains after automatic policy rejected recursive cleanup",
+  "verification_adjustment": "initial link check used historical-copy directory; corrected to original directory without changing preserved history"
+}

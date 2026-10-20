@@ -1,0 +1,10 @@
+{
+  "kind": "isolated_postgresql",
+  "synthetic_only": true,
+  "production_settings_loaded": false,
+  "started": false,
+  "stopped": true,
+  "checks": [],
+  "server_version": "pg_ctl (PostgreSQL) 16.14",
+  "temporary_cluster_removed": true
+}

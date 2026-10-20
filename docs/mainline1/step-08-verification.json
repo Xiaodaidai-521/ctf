@@ -1,0 +1,112 @@
+{
+  "step": "08",
+  "status": "partial",
+  "recorded_at": "2026-10-15",
+  "delivery_mode": "backend_only",
+  "local": {
+    "command": "python -B -m unittest discover -s mainline1/tests -v",
+    "status": "Passed",
+    "tests": 157,
+    "step_tests": 16,
+    "prior_tests": 141,
+    "synthetic_inputs_only": true,
+    "real_model_calls": 0
+  },
+  "targeted": {
+    "command": "python -B -m unittest mainline1.tests.test_operations -v",
+    "status": "Passed",
+    "tests": 16,
+    "sample_smoke": {
+      "command": "python -B -m mainline1.operations_smoke",
+      "status": "Passed",
+      "observation": "Synthetic in-memory scan succeeded and printed only status/count metadata."
+    }
+  },
+  "static": {
+    "compileall": {
+      "command": "python -B -m compileall -q backend/mainline1",
+      "status": "Passed"
+    },
+    "diff_check": {
+      "command": "git diff --check",
+      "status": "Passed"
+    },
+    "scope_hash_protection": {
+      "input": "docs/mainline1/step-08-input-state.json",
+      "status": "Passed",
+      "observation": "No protected prior file changed outside the documented step-07 compatible increments; all existing work remained untracked and was not reset or cleaned."
+    }
+  },
+  "postgres": {
+    "command": "python -B -m mainline1.tests.run_operations_postgres",
+    "status": "Passed",
+    "tests": 55,
+    "system_check": "Passed",
+    "migration_drift": "Passed",
+    "forward_migration": "Passed",
+    "reverse_migration": "Passed",
+    "synthetic_only": true,
+    "production_settings_loaded": false,
+    "temporary_cluster_removed": true,
+    "evidence": "step-08-postgres-verification.json",
+    "note": "最新代码隔离重跑包含本步 5 个数据库工作流测试及前序测试，共 55 项通过；新增清理 tombstone 重连验证已包含。"
+  },
+  "capabilities": [
+    {
+      "claim": "Backend workflow supports asset versions, scans, cancellation, restricted retry, rescan comparison, review entry points, policy regrade, and private result access.",
+      "capability_status": "Implemented",
+      "evidence_status": "Verified",
+      "confidence": "High",
+      "verification_status": "Passed",
+      "evidence_refs": [
+        "mainline1/tests/test_operations.py",
+        "mainline1/tests/postgres_operations_cases.py",
+        "step-08-postgres-verification.json"
+      ]
+    },
+    {
+      "claim": "Cleanup previews and tombstones only module-owned temporary resources, protect active work, recheck scope/ACL/retention, and delegate asset invalidation to the owner port.",
+      "capability_status": "Implemented",
+      "evidence_status": "Verified",
+      "confidence": "High",
+      "verification_status": "Passed",
+      "evidence_refs": [
+        "mainline1/cleanup.py",
+        "mainline1/tests/test_operations.py"
+      ]
+    },
+    {
+      "claim": "Production owner, ACL, retention policy, HTTP route, cross-process service, and actual outbound execution are integrated.",
+      "capability_status": "Unknown",
+      "evidence_status": "Unknown",
+      "confidence": "Low",
+      "verification_status": "Untested",
+      "evidence_refs": [],
+      "limitation": "Only injected test doubles and an isolated PostgreSQL adapter were exercised."
+    }
+  ],
+  "approved_decisions": [
+    {
+      "decision": "Use backend_only for this step and deliver internal service components, a non-sensitive synthetic sample, tests, and operating documentation.",
+      "source": "User response selecting backend_only and step-08 instruction"
+    },
+    {
+      "decision": "Use existing dependencies, synthetic fixtures, and a fresh isolated PostgreSQL cluster; do not publish routes, execute external delivery, or delete business data.",
+      "source": "Step-08 instruction and task specification B3/B4"
+    }
+  ],
+  "open_questions": [
+    {
+      "id": "Q8-delivery-permissions",
+      "status": "Unknown",
+      "blocking_scope": "Production integration",
+      "resolution_needed": "Approve authoritative asset-owner port, ACL, service identity, and any public/internal route contract."
+    },
+    {
+      "id": "Q8-retention",
+      "status": "Unknown",
+      "blocking_scope": "Cleanup execution",
+      "resolution_needed": "Approve retention periods, deletion authority, audit requirements, and cross-module reference policy."
+    }
+  ]
+}

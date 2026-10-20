@@ -1,0 +1,66 @@
+{
+  "date": "2026-10-13",
+  "repository_revision": "f4ac82caf32a4112c047cdb8848cab135acbb3c6",
+  "checks": [
+    {
+      "command": "python -B -m unittest mainline1.tests.test_rules -v",
+      "cwd": "backend",
+      "status": "Passed",
+      "actual": "22 tests in 0.081s, OK (before cache byte-limit and empty-target additions)"
+    },
+    {
+      "command": "python -B -m unittest discover -s mainline1/tests -v",
+      "cwd": "backend",
+      "status": "Passed",
+      "actual": "65 tests in 0.157s, OK; 24 rule tests plus 41 existing parse/state-machine regressions",
+      "evidence_kind": "summary of actual exec result, not a fabricated full log"
+    },
+    {
+      "command": "ast.parse(new *.py); SHA256 comparison against step-04-input-state.json; git diff --name-only / --cached",
+      "status": "Passed",
+      "actual": "3 new Python files parse; every pre-existing mainline1 file and original prompt unchanged before handoff update; tracked/index diff empty"
+    }
+  ],
+  "contract_checks": {
+    "status": "Passed",
+    "test": "test_output_matches_unchanged_proposed_contracts",
+    "scope": [
+      "BusinessContext",
+      "ClassificationPolicy",
+      "Finding",
+      "SensitivityProfile"
+    ],
+    "public_schema_changed": false
+  },
+  "test_boundaries": {
+    "format_rules": "actual implementation over synthetic CSV/XLSX bytes",
+    "faults": "one rule exception path injected with unittest.mock; not a positive detection result",
+    "task_state": "existing memory repository unit tests only this turn",
+    "postgresql": "not rerun; no DB or task repository changes; prior 13-test evidence remains in step-03-postgres-verification.json",
+    "semantic": "not_run, no backend or model call",
+    "experiments": "no independent effectiveness evaluation or claimed performance threshold"
+  },
+  "sha256": {
+    "backend/mainline1/classification.py": "726d0a8ccde4cde9d5990a3a29cd713f8531cb55d887758481533edffab094dd",
+    "backend/mainline1/rules.py": "c9b1891b022f1283393f08ad183f4456977b5788b53e1a43e18f88a35f7705db",
+    "backend/mainline1/tests/test_rules.py": "11acb16b1dbc3408e9a0b48828f9209e513129f61f3a28784e36e3c38466e4ee",
+    "backend/mainline1/config/rule-baseline-v1.json": "bee8056051dad6598c2fdf127667eb806242d823600f3f0b695d233bf35128d8"
+  },
+  "handoff_check": {
+    "date": "2026-10-14",
+    "status": "Passed",
+    "changed_existing_files": [
+      "backend/mainline1/README.md",
+      "docs/mainline1/acceptance.md",
+      "docs/mainline1/HANDOFF.md"
+    ],
+    "preserved": "all other pre-existing files including original prompts, public schema and step01-03 source/evidence unchanged",
+    "history": "handoff-step-03.md byte-identical to previous HANDOFF",
+    "checks": [
+      "tested code/config hashes unchanged",
+      "common handoff fields and structured stage result present",
+      "current local artifact links valid",
+      "tracked/index diff empty"
+    ]
+  }
+}

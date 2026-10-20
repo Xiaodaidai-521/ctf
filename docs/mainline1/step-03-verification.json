@@ -1,0 +1,52 @@
+{
+  "date": "2026-10-13",
+  "checks": [
+    {
+      "command": [
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "mainline1/tests",
+        "-v"
+      ],
+      "status": "Passed",
+      "exit_code": 0,
+      "output": "test_bom_requires_bom_aware_encoding (test_parsing.ParsingTests.test_bom_requires_bom_aware_encoding) ... ok\ntest_cancel_before_and_during_parse (test_parsing.ParsingTests.test_cancel_before_and_during_parse) ... ok\ntest_config_snapshot_is_immutable_and_covers_parser_budget (test_parsing.ParsingTests.test_config_snapshot_is_immutable_and_covers_parser_budget) ... ok\ntest_cooperative_time_budget (test_parsing.ParsingTests.test_cooperative_time_budget) ... ok\ntest_csv_explicit_encoding_dialect_and_no_header (test_parsing.ParsingTests.test_csv_explicit_encoding_dialect_and_no_header) ... ok\ntest_csv_multiline_quotes_duplicate_empty_headers_and_logical_records (test_parsing.ParsingTests.test_csv_multiline_quotes_duplicate_empty_headers_and_logical_records) ... ok\ntest_csv_scoped_projection_keeps_original_coordinates (test_parsing.ParsingTests.test_csv_scoped_projection_keeps_original_coordinates) ... ok\ntest_empty_and_malformed_csv_are_not_success (test_parsing.ParsingTests.test_empty_and_malformed_csv_are_not_success) ... ok\ntest_empty_xlsx_is_not_success (test_parsing.ParsingTests.test_empty_xlsx_is_not_success) ... ok\ntest_hash_mismatch_format_and_deleted_state (test_parsing.ParsingTests.test_hash_mismatch_format_and_deleted_state) ... ok\ntest_identity_mapping_emoji_combining_fullwidth_and_space (test_parsing.ParsingTests.test_identity_mapping_emoji_combining_fullwidth_and_space) ... ok\ntest_invalid_configuration_does_not_guess (test_parsing.ParsingTests.test_invalid_configuration_does_not_guess) ... ok\ntest_limits_file_rows_columns_cells_text (test_parsing.ParsingTests.test_limits_file_rows_columns_cells_text) ... ok\ntest_nfkc_maps_fullwidth_emoji_and_combining_to_source (test_parsing.ParsingTests.test_nfkc_maps_fullwidth_emoji_and_combining_to_source) ... ok\ntest_normalization_expansion_obeys_cell_budget (test_parsing.ParsingTests.test_normalization_expansion_obeys_cell_budget) ... ok\ntest_normalized_scope_hash_and_version_binding (test_parsing.ParsingTests.test_normalized_scope_hash_and_version_binding) ... ok\ntest_not_run_detection_coverage_and_explicit_exclusions (test_parsing.ParsingTests.test_not_run_detection_coverage_and_explicit_exclusions) ... ok\ntest_private_source_must_reauthorize_and_stream_is_closed (test_parsing.ParsingTests.test_private_source_must_reauthorize_and_stream_is_closed) ... ok\ntest_unproven_cross_cluster_mapping_disables_character_operations (test_parsing.ParsingTests.test_unproven_cross_cluster_mapping_disables_character_operations) ... ok\ntest_xlsx_budget_rejects_before_openpyxl (test_parsing.ParsingTests.test_xlsx_budget_rejects_before_openpyxl) ... ok\ntest_xlsx_cached_value_observed_not_executed_or_trusted (test_parsing.ParsingTests.test_xlsx_cached_value_observed_not_executed_or_trusted) ... ok\ntest_xlsx_raw_numeric_boolean_and_empty_types (test_parsing.ParsingTests.test_xlsx_raw_numeric_boolean_and_empty_types) ... ok\ntest_xlsx_sheets_hidden_merge_and_formula_cache_missing (test_parsing.ParsingTests.test_xlsx_sheets_hidden_merge_and_formula_cache_missing) ... ok\ntest_xlsx_unsafe_xml_and_archive_paths (test_parsing.ParsingTests.test_xlsx_unsafe_xml_and_archive_paths) ... ok\ntest_all_sanitized_parser_errors_can_be_recorded (test_tasks.TaskTests.test_all_sanitized_parser_errors_can_be_recorded) ... ok\ntest_cancelled_expiry_is_not_retried (test_tasks.TaskTests.test_cancelled_expiry_is_not_retried) ... ok\ntest_expired_worker_cannot_write_and_can_be_retried (test_tasks.TaskTests.test_expired_worker_cannot_write_and_can_be_retried) ... ok\ntest_heartbeat_checks_owner_and_expiry (test_tasks.TaskTests.test_heartbeat_checks_owner_and_expiry) ... ok\ntest_no_success_without_private_result_and_no_raw_error_persistence (test_tasks.TaskTests.test_no_success_without_private_result_and_no_raw_error_persistence) ... ok\ntest_old_success_cannot_overwrite_new_success (test_tasks.TaskTests.test_old_success_cannot_overwrite_new_success) ... ok\ntest_parse_finish_first_rejects_cancel_and_is_not_scan_success (test_tasks.TaskTests.test_parse_finish_first_rejects_cancel_and_is_not_scan_success) ... ok\ntest_progress_unknown_total_and_stale_owner (test_tasks.TaskTests.test_progress_unknown_total_and_stale_owner) ... ok\ntest_queue_cancel_is_idempotent_and_cannot_be_claimed (test_tasks.TaskTests.test_queue_cancel_is_idempotent_and_cannot_be_claimed) ... ok\ntest_repository_cas_conflict_is_not_silently_overwritten (test_tasks.TaskTests.test_repository_cas_conflict_is_not_silently_overwritten) ... ok\ntest_retry_idempotency_and_limit (test_tasks.TaskTests.test_retry_idempotency_and_limit) ... ok\ntest_retry_uses_new_attempt_and_old_failure_cannot_overwrite (test_tasks.TaskTests.test_retry_uses_new_attempt_and_old_failure_cannot_overwrite) ... ok\ntest_running_cancel_before_finish_prevents_publication (test_tasks.TaskTests.test_running_cancel_before_finish_prevents_publication) ... ok\ntest_same_key_different_request_conflicts (test_tasks.TaskTests.test_same_key_different_request_conflicts) ... ok\ntest_same_request_same_key_returns_same_run (test_tasks.TaskTests.test_same_request_same_key_returns_same_run) ... ok\ntest_scope_and_rescan_key_are_separate_runs (test_tasks.TaskTests.test_scope_and_rescan_key_are_separate_runs) ... ok\ntest_snapshot_roundtrip_and_caller_mutation_do_not_change_saved_data (test_tasks.TaskTests.test_snapshot_roundtrip_and_caller_mutation_do_not_change_saved_data) ... ok\n\n----------------------------------------------------------------------\nRan 41 tests in 0.094s\n\nOK\n"
+    },
+    {
+      "command": [
+        "-B",
+        "docs/mainline1/contracts/validate_examples.py"
+      ],
+      "status": "Passed",
+      "exit_code": 0,
+      "output": "PASS normal_rule_only_after_review\nPASS partial_semantic_failure\nPASS context_conflict\nPASS cancelled\nPASS parse_failure\nPASS review_supersedes_old_plan\nPASS asset_version_changed\nPASS concurrent_review_conflict_response\nPASS policy_changed\nPASS asset_deleted\nPASS unknown_progress_denominator\nPASS manual_finding\nPASS event_envelope\nPASS reject_missing_required\nPASS reject_zero_based_column\nPASS reject_unknown_operation\nPASS reject_manual_detector\nPASS reject_fake_progress\nPASS reject_complete_without_semantic\nPASS reject_span_outside_original\nPASS reject_overlap\nPASS reject_cross_domain\nPASS reject_model_self_confirmation\nPASS reject_uncalibrated_probability\nPASS reject_rejection_as_false_positive\nPASS pure_validation_result\nPASS drop_other_original_column_with_span\nPASS reject_drop_and_mask_same_column\nPASS idempotency_conflict_response\nPASS schema/catalog; 29 scenarios; 396 object checks; 3 schema-negative cases; 14 invariant-refusal cases\nDESIGN ONLY: no application behavior, database concurrency, permission enforcement or real model was tested.\n"
+    }
+  ],
+  "ast": {
+    "status": "Passed",
+    "count": 18
+  },
+  "code_sha256": {
+    "backend/mainline1/__init__.py": "be287388e6d0598a87ff8ca2a1bfe112ea06ff903c926092c324eb25267266c5",
+    "backend/mainline1/apps.py": "e1245204739dae15bcd7d10e8506bd58d10b57d42877e6cff269553bbde96297",
+    "backend/mainline1/management/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "backend/mainline1/management/commands/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "backend/mainline1/management/commands/run_parse_worker.py": "f02e20992a5e72e39d4f8f90b1956a0fd14b39b91f6ff3902adb8e26c2966081",
+    "backend/mainline1/migrations/0001_initial.py": "153ba73309fb6b1f30d397603f8a5fe3f04abde451c0b8c23b72280b82e1cf50",
+    "backend/mainline1/migrations/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "backend/mainline1/models.py": "e037068a3709748b339cd7a6e2130a96f569e97d911bca9924b227f3ae4b91bd",
+    "backend/mainline1/parsing.py": "4c3ac7bee4a944680eaf1952b972b55ee5baa8d7a3c0f2bc356c13ba16aafc9a",
+    "backend/mainline1/repository.py": "88b168f91dce4e1e488f7d05d33a5c673ed199a6a77bed22aa968ff7ad9744c0",
+    "backend/mainline1/tasks.py": "c6e6cc1a9d1bfe645642be0520978f47588689c08e3fbac44308d69e5b01eb45",
+    "backend/mainline1/test_settings.py": "fbc60993db3d8770416f59e3bf239a1d3b3a00753918577ffcdd159b0e98820d",
+    "backend/mainline1/tests/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "backend/mainline1/tests/postgres_cases.py": "aa27b6a3d0c87fb2f72d535d695b5d085c506593343c06851d2fb72efc30be46",
+    "backend/mainline1/tests/run_isolated_postgres.py": "8ff37fa1c2938e3b482e7dd55ee121992d009cd499063e80680b59416087e1a9",
+    "backend/mainline1/tests/test_parsing.py": "3819d472549d3e510b429ade9298a20908dc703eff0f91fcdb7d68509ba17fbe",
+    "backend/mainline1/tests/test_tasks.py": "bd5f016616678e452604b6ea42677c8afaf4523897a6961bd7ecbd74cc2407eb",
+    "backend/mainline1/worker.py": "f023bceb94a210097721f5fa11eeb025754f7bfe9622ff9b286ef0eebafeb0ee"
+  }
+}

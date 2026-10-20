@@ -1,0 +1,118 @@
+{
+  "baseline_version": "rule-baseline-v1",
+  "allowed_environments": [
+    "development",
+    "test"
+  ],
+  "policy": {
+    "meta": {
+      "schema_version": "mainline1.proposed.v1",
+      "trace_id": "10000000-0000-4000-8000-000000000001",
+      "environment": "test",
+      "evaluation_run_id": null,
+      "domain_id": "synthetic-development",
+      "created_at": "2026-10-13T00:00:00Z"
+    },
+    "policy_id": "10000000-0000-4000-8000-000000000002",
+    "version": "synthetic-policy-v1",
+    "dictionary_version": "format-dictionary-v1",
+    "ruleset_version": "format-rules-v1",
+    "state": "draft",
+    "effective_at": null,
+    "levels": [
+      "L1",
+      "L2",
+      "L3"
+    ],
+    "categories": [
+      {
+        "category_id": "email_address",
+        "definition": "ASCII email-shaped contact candidate; not proof of a real mailbox or identity",
+        "aliases": [],
+        "positive_examples": [
+          "alice@example.invalid"
+        ],
+        "negative_examples": [
+          "a..b@example.invalid"
+        ],
+        "rule_refs": [
+          "format.email_ascii_v1"
+        ],
+        "related_categories": [],
+        "protection_level": "L2",
+        "review_conditions": [
+          "FORMAT_REQUIRES_REVIEW"
+        ]
+      },
+      {
+        "category_id": "ip_address",
+        "definition": "IPv4 syntax candidate; not proof of a person or host ownership",
+        "aliases": [],
+        "positive_examples": [
+          "192.0.2.1"
+        ],
+        "negative_examples": [
+          "999.0.2.1"
+        ],
+        "rule_refs": [
+          "format.ipv4_v1"
+        ],
+        "related_categories": [],
+        "protection_level": "L1",
+        "review_conditions": [
+          "FORMAT_REQUIRES_REVIEW"
+        ]
+      },
+      {
+        "category_id": "payment_card_candidate",
+        "definition": "13–19 ASCII digits passing Luhn; not proof of an issued account",
+        "aliases": [],
+        "positive_examples": [
+          "4111111111111111"
+        ],
+        "negative_examples": [
+          "4111111111111112"
+        ],
+        "rule_refs": [
+          "format.luhn_candidate_v1"
+        ],
+        "related_categories": [],
+        "protection_level": "L3",
+        "review_conditions": [
+          "FORMAT_REQUIRES_REVIEW"
+        ]
+      }
+    ],
+    "rule_refs": [
+      "format.email_ascii_v1",
+      "format.ipv4_v1",
+      "format.luhn_candidate_v1"
+    ],
+    "conflict_strategy": "review_no_downgrade",
+    "review_policy_version": "format-review-v1",
+    "content_hash": "sha256:62545d755e232d22f5f800c9ba56d8a6b0def4e9a822abc146e34da3049e6d52"
+  },
+  "rules": [
+    {
+      "rule_id": "format.email_ascii_v1",
+      "version": "1",
+      "implementation": "email_ascii_v1",
+      "category_id": "email_address",
+      "enabled": true
+    },
+    {
+      "rule_id": "format.ipv4_v1",
+      "version": "1",
+      "implementation": "ipv4_v1",
+      "category_id": "ip_address",
+      "enabled": true
+    },
+    {
+      "rule_id": "format.luhn_candidate_v1",
+      "version": "1",
+      "implementation": "luhn_candidate_v1",
+      "category_id": "payment_card_candidate",
+      "enabled": true
+    }
+  ]
+}

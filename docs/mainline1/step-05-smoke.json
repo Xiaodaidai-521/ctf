@@ -1,0 +1,62 @@
+{
+  "fixture_version": "semantic-smoke-synthetic-v1",
+  "asset_hash": "sha256:952d825f6c96d0092b13b448852f42b7d0a932654e49741ffef4da5e8042e63d",
+  "preflight": {
+    "template_version": "context-semantic-v1",
+    "targets_hash": "sha256:93f14c624976fd325afe94cdcbab393da7cf310e45c09247ff145e5a865630c4",
+    "target_count": 3,
+    "A": {
+      "execution": "rule_only",
+      "rule_fingerprint": "sha256:3f1906bc9e787a32a06c276594c8b3557a7be2045f473edb67274388c715dcf9",
+      "evaluated_targets": [
+        [
+          "csv:0",
+          2,
+          1,
+          "value"
+        ],
+        [
+          "csv:0",
+          2,
+          2,
+          "value"
+        ],
+        [
+          "csv:0",
+          3,
+          2,
+          "value"
+        ]
+      ],
+      "finding_ids": [
+        "ae7865a9-4be4-50a5-b5fd-e723f30f3be6",
+        "cda9de18-4625-53e8-b91c-d4051a07ad70"
+      ]
+    },
+    "B": {
+      "execution": "not_run",
+      "input_hash": "sha256:80dadc96e9b27a95539ef545cf6c2be97f2ef52eb7610d7b19256b792289d589"
+    },
+    "C": {
+      "execution": "not_run",
+      "input_hash": "sha256:8b9725889b428ecb2341a7e8f077e605240b8f4ff39a6b5568dbfd1e106537c2",
+      "input_limits": []
+    },
+    "target_equivalence": "Passed",
+    "semantic_effectiveness": "Blocked",
+    "metrics": null
+  },
+  "actual_live_calls": 0,
+  "real_backend": "Blocked",
+  "independent_effectiveness": "Untested",
+  "proposals": {
+    "total_B_C_calls": 6,
+    "retries": 0,
+    "max_output_tokens_per_call": 1000,
+    "max_input_bytes_per_call": 16000,
+    "timeout_seconds_per_call": 20,
+    "currency": null,
+    "total_cost_limit": null,
+    "approved": false
+  }
+}

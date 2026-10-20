@@ -1,0 +1,34 @@
+{
+  "recorded_at": "2026-10-15T01:26:46.672338+00:00",
+  "status": "Passed",
+  "existing_changes": [
+    "backend/mainline1/README.md",
+    "backend/mainline1/review.py",
+    "backend/mainline1/review_repository.py",
+    "backend/mainline1/tests/run_isolated_postgres.py",
+    "docs/mainline1/HANDOFF.md"
+  ],
+  "unexpected_changes": [],
+  "prior_handoff_archive": "byte-identical",
+  "source_matches_test_evidence": true,
+  "handoff_json": "Passed",
+  "local_links": "Passed",
+  "local_tests": 141,
+  "isolated_postgres_tests": 39,
+  "cluster_stopped_and_removed": true,
+  "public_schema_unchanged": true,
+  "new_files": [
+    "backend/mainline1/planning.py",
+    "backend/mainline1/tests/postgres_planning_cases.py",
+    "backend/mainline1/tests/run_planning_postgres.py",
+    "backend/mainline1/tests/test_planning.py",
+    "docs/mainline1/history/handoff-step-06.md",
+    "docs/mainline1/plan-design-v1.md",
+    "docs/mainline1/plan-examples-v1.json",
+    "docs/mainline1/step-07-input-state.json",
+    "docs/mainline1/step-07-postgres-verification.json",
+    "docs/mainline1/step-07-verification.json",
+    "docs/mainline1/step-07.md",
+    "docs/mainline1/verify_step07.py"
+  ]
+}

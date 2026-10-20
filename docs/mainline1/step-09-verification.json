@@ -1,0 +1,118 @@
+{
+  "result_summary": {
+    "aggregate_entity_rule_metrics": {
+      "f1": 1.0,
+      "fn": 0,
+      "fp": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "tp": 6
+    },
+    "combination": {
+      "reason": "NO_APPROVED_RELATION_POLICY",
+      "status": "N/A"
+    },
+    "contract_status": "Passed",
+    "dataset_status": "candidate_not_independent",
+    "model_calls": 0,
+    "result_sha256": "sha256:50e38a83fd81ccc3286383d5aec264e759e2e51cb0d7796b57e27a4afe25f989",
+    "semantic": {
+      "metrics": null,
+      "model_calls": 0,
+      "reason": "REAL_BACKEND_NOT_APPROVED",
+      "status": "Blocked"
+    }
+  },
+  "runs": [
+    {
+      "command": "python -B -m compileall -q mainline1; JSON load and SHA-256 checks",
+      "evidence_refs": [
+        "step-09-eval-set-v1.json",
+        "step-09-eval-config-v1.json",
+        "step-09-results.json"
+      ],
+      "level": 1,
+      "name": "static and frozen inputs",
+      "observation": "mainline1 source tree compiles; dataset/config/results/verification/input-state JSON parse; result rerun hash equal",
+      "status": "Passed"
+    },
+    {
+      "command": "python -B -m mainline1.evaluate_step09",
+      "evidence_refs": [
+        "step-09-results.json"
+      ],
+      "level": 2,
+      "name": "behavior and A rule path",
+      "observation": "2 synthetic assets parsed and scanned; 10 parsed cells per asset (20 aggregate); 6 exact entity labels matched; malformed CSV returns PARSE_FAILED",
+      "status": "Passed"
+    },
+    {
+      "command": "evaluate_step09 contract_substitute plus existing operation/review/planning suites",
+      "evidence_refs": [
+        "step-09-results.json",
+        "backend/mainline1/tests/test_operations.py",
+        "backend/mainline1/tests/test_review.py",
+        "backend/mainline1/tests/test_planning.py"
+      ],
+      "level": 3,
+      "name": "cross-module contract substitute",
+      "observation": "review successor and pure plan validation returned valid; 68 local synthetic/memory tests passed",
+      "status": "Passed"
+    },
+    {
+      "command": "prior step-08 isolated PostgreSQL runner (not rerun; implementation unchanged)",
+      "evidence_refs": [
+        "step-08-verification.json",
+        "step-08-postgres-verification.json"
+      ],
+      "level": 3,
+      "name": "prior durable workflow evidence",
+      "observation": "157 local regression and 55 isolated PostgreSQL checks were already Passed, including rescan/cancel/old-attempt/ACL/outbox/cleanup boundaries",
+      "status": "Passed"
+    },
+    {
+      "command": "evaluate_step09 failure_samples and prior operation/task suites",
+      "evidence_refs": [
+        "step-09-results.json",
+        "step-08.md"
+      ],
+      "level": 4,
+      "name": "boundary and failure cases",
+      "observation": "parse failure retained as failure, not entity negative; B/C target set includes all parsed cells; combination is N/A; no coordinate-only semantic claim",
+      "status": "Passed"
+    },
+    {
+      "command": "evaluate_step09 security counters",
+      "evidence_refs": [
+        "step-09-results.json"
+      ],
+      "level": 5,
+      "name": "security and data boundary",
+      "observation": "0 network calls, 0 credentials read, synthetic data only, no raw sensitive values in result",
+      "status": "Passed"
+    },
+    {
+      "command": "not executed by approved decision",
+      "evidence_refs": [
+        "step-09-results.json",
+        "step-09-eval-set-v1.json"
+      ],
+      "level": 4,
+      "name": "real semantic backend and independent effect set",
+      "observation": "B/C calls=0; semantic metrics=null; labels are candidate synthetic labels, not independently reviewed",
+      "status": "Blocked"
+    },
+    {
+      "command": "not connected",
+      "evidence_refs": [
+        "step-08-verification.json"
+      ],
+      "level": 3,
+      "name": "real downstream/event/production ACL",
+      "observation": "contract substitute only; no production route, owner, event adapter or business database",
+      "status": "Untested"
+    }
+  ],
+  "status": "partial",
+  "step": "09"
+}

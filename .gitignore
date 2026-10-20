@@ -44,3 +44,6 @@ backend/media/
 # IDE
 .vscode/
 .idea/
+
+database/
+*.bak-*

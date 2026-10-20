@@ -1,0 +1,56 @@
+{
+  "dataset_version": "mainline1-synthetic-eval-candidate-v1",
+  "annotation_version": "synthetic-manual-labels-v1",
+  "generator": "hand-authored-synthetic-v1",
+  "frozen_at": "2026-10-16T00:00:00Z",
+  "policy_version": "synthetic-policy-v1",
+  "split": "candidate_test",
+  "split_rule": "template_family and business_entity_group are kept apart from the fixed engineering fixture; independent annotation review and prompt-development separation are not established",
+  "matching": {
+    "entity": "asset_version_id,sheet_id,row,column,channel,span[start,end),category_id; strict one-to-one exact match",
+    "field": "asset_version_id,sheet_id,column,category_id; a column label is not entity coverage",
+    "combination": "not annotated; N/A until an approved relation policy exists",
+    "unicode_index": "Unicode code points, half-open intervals"
+  },
+  "annotation_notes": "Labels were hand-authored from synthetic strings during this step. No model, rule output, or post-run threshold was used to create labels, but the set is not independently reviewed and must not support a production-effect claim. There are no real personal records.",
+  "assets": [
+    {
+      "asset_id": "30000000-0000-4000-8000-000000000001",
+      "asset_version_id": "30000000-0000-4000-8000-000000000011",
+      "template_family": "contacts-v1",
+      "business_entity_group": "synthetic-entity-group-a",
+      "content": "contact,notes\nalice@example.invalid,ordinary\nnot-an-email,192.0.2.1\n4111111111111111,reference\n4111111111111112,ordinary\n999.0.2.1,ordinary\n",
+      "content_sha256": "sha256:ba59c5674c05319e3e86a22c8919eb5ab1f2c6cebc41630128e0a2134a0439e3",
+      "labels": [
+        {"sheet_id": "csv:0", "row": 2, "column": 1, "channel": "value", "span": {"start": 0, "end": 21}, "category_id": "email_address"},
+        {"sheet_id": "csv:0", "row": 3, "column": 2, "channel": "value", "span": {"start": 0, "end": 9}, "category_id": "ip_address"},
+        {"sheet_id": "csv:0", "row": 4, "column": 1, "channel": "value", "span": {"start": 0, "end": 16}, "category_id": "payment_card_candidate"}
+      ]
+    },
+    {
+      "asset_id": "30000000-0000-4000-8000-000000000002",
+      "asset_version_id": "30000000-0000-4000-8000-000000000012",
+      "template_family": "support-v2",
+      "business_entity_group": "synthetic-entity-group-b",
+      "content": "description,owner\nendpoint 198.51.100.7,team\ncontact bob@example.invalid,team\nnumber 5555555555554444,team\nnumber 5555555555554445,team\nplain text,team\n",
+      "content_sha256": "sha256:b39f3a2a054a2d1f011ee0da426351bb77996fd0ed4109ba6e8a2c780a7cc836",
+      "labels": [
+        {"sheet_id": "csv:0", "row": 2, "column": 1, "channel": "value", "span": {"start": 9, "end": 21}, "category_id": "ip_address"},
+        {"sheet_id": "csv:0", "row": 3, "column": 1, "channel": "value", "span": {"start": 8, "end": 27}, "category_id": "email_address"},
+        {"sheet_id": "csv:0", "row": 4, "column": 1, "channel": "value", "span": {"start": 7, "end": 23}, "category_id": "payment_card_candidate"}
+      ]
+    }
+  ],
+  "failure_samples": [
+    {
+      "asset_id": "30000000-0000-4000-8000-000000000003",
+      "asset_version_id": "30000000-0000-4000-8000-000000000013",
+      "template_family": "malformed-csv-v1",
+      "business_entity_group": "synthetic-entity-group-c",
+      "content": "contact,notes\n\"unterminated",
+      "content_sha256": "sha256:72dda8e14e74c89c10347e88b86406254b4f6b584835694d489093815281c555",
+      "expected_error_code": "PARSE_FAILED",
+      "purpose": "explicit parse failure; no entity-negative labels are inferred"
+    }
+  ]
+}

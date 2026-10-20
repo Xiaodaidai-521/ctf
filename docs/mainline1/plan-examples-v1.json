@@ -1,0 +1,303 @@
+{
+  "approval_status": "Proposed",
+  "synthetic_only": true,
+  "note": "ready uses fictitious test approvals and a test-only usable state; real draft state stays invalid. No execution or authorization.",
+  "ready": {
+    "meta": {
+      "created_at": "2026-10-13T00:00:00Z",
+      "domain_id": "test-domain",
+      "environment": "test",
+      "evaluation_run_id": null,
+      "schema_version": "mainline1.proposed.v1",
+      "trace_id": "20000000-0000-4000-8000-000000000006"
+    },
+    "asset": {
+      "asset_id": "20000000-0000-4000-8000-000000000002",
+      "asset_version_id": "20000000-0000-4000-8000-000000000001",
+      "content_hash": "sha256:b4d367373537c6dc0be2e5574b454e10dcf486381bb62a75292b2b584eee7286"
+    },
+    "scan_id": "20000000-0000-4000-8000-000000000003",
+    "profile_id": "5330ef1f-82a4-52c7-8768-39a0b65b6e08",
+    "scope_hash": "sha256:8d98e0b00d3f4af25e932f901a4c5adafbebecf49fbdac5e5e76e216ba9fe248",
+    "parser_version": "internal-table-v2",
+    "parser_config_hash": "sha256:6d9292ccccf23c299c283d68c7b713dcfc164eaab10e4d3c04c0f9f9f1cde6b7",
+    "policy_version": "synthetic-policy-v1",
+    "redaction_policy_version": "synthetic-approved-test-v1",
+    "requirements": [
+      {
+        "requirement_id": "protect-email",
+        "version": "synthetic-v1",
+        "category_ids": [
+          "email_address"
+        ],
+        "allowed_operations": [
+          "mask_cell",
+          "mask_span"
+        ],
+        "allow_drop_column": false,
+        "require_complete_coverage": true,
+        "allow_unresolved": true
+      }
+    ],
+    "requirements_hash": "sha256:4627cd5beced464c93b2286ae48bec7bba149cb2b23e461ca30600712c883c63",
+    "operation_contract_version": "original-snapshot-v1-proposed",
+    "plan_id": "978dc07b-d630-5ae7-b90d-b7fa4855c1d0",
+    "operations": [
+      {
+        "operation_id": "21094887-2d53-5bb5-a88e-94980cf418ec",
+        "type": "mask_cell",
+        "target": {
+          "channel": "value",
+          "column": 1,
+          "kind": "cell",
+          "row": 2,
+          "sheet_id": "csv:0",
+          "span": null
+        },
+        "replacement": "[REDACTED]",
+        "match_ref": "private:plan-match:978dc07b-d630-5ae7-b90d-b7fa4855c1d0:21094887-2d53-5bb5-a88e-94980cf418ec",
+        "finding_ids": [
+          "5bed9fb4-2e2a-5aad-a9bf-b75d9d9878df"
+        ],
+        "requirement_ids": [
+          "protect-email"
+        ]
+      },
+      {
+        "operation_id": "ab43564f-30f8-5295-a4ff-df8e59471f03",
+        "type": "mask_cell",
+        "target": {
+          "channel": "value",
+          "column": 1,
+          "kind": "cell",
+          "row": 3,
+          "sheet_id": "csv:0",
+          "span": null
+        },
+        "replacement": "[REDACTED]",
+        "match_ref": "private:plan-match:978dc07b-d630-5ae7-b90d-b7fa4855c1d0:ab43564f-30f8-5295-a4ff-df8e59471f03",
+        "finding_ids": [
+          "a500a540-d493-5cea-971b-27132bac0787"
+        ],
+        "requirement_ids": [
+          "protect-email"
+        ]
+      }
+    ],
+    "operation_count": 2,
+    "unresolved": [],
+    "validation_errors": [],
+    "status": "ready",
+    "checked_applicability_version": 1,
+    "validation_ref": "private:plan-validation:978dc07b-d630-5ae7-b90d-b7fa4855c1d0",
+    "plan_hash": "sha256:8dad0a4f8a37c4a8b0d02386c0928bcad3aa259cb298b8bb18e24c9893ee6bbc"
+  },
+  "actual_draft": {
+    "meta": {
+      "created_at": "2026-10-13T00:00:00Z",
+      "domain_id": "test-domain",
+      "environment": "test",
+      "evaluation_run_id": null,
+      "schema_version": "mainline1.proposed.v1",
+      "trace_id": "20000000-0000-4000-8000-000000000006"
+    },
+    "asset": {
+      "asset_id": "20000000-0000-4000-8000-000000000002",
+      "asset_version_id": "20000000-0000-4000-8000-000000000001",
+      "content_hash": "sha256:b4d367373537c6dc0be2e5574b454e10dcf486381bb62a75292b2b584eee7286"
+    },
+    "scan_id": "20000000-0000-4000-8000-000000000003",
+    "profile_id": "5330ef1f-82a4-52c7-8768-39a0b65b6e08",
+    "scope_hash": "sha256:8d98e0b00d3f4af25e932f901a4c5adafbebecf49fbdac5e5e76e216ba9fe248",
+    "parser_version": "internal-table-v2",
+    "parser_config_hash": "sha256:6d9292ccccf23c299c283d68c7b713dcfc164eaab10e4d3c04c0f9f9f1cde6b7",
+    "policy_version": "synthetic-policy-v1",
+    "redaction_policy_version": "internal-redaction-v1-draft",
+    "requirements": [
+      {
+        "requirement_id": "protect-email",
+        "version": "synthetic-v1",
+        "category_ids": [
+          "email_address"
+        ],
+        "allowed_operations": [
+          "mask_cell",
+          "mask_span"
+        ],
+        "allow_drop_column": false,
+        "require_complete_coverage": true,
+        "allow_unresolved": true
+      }
+    ],
+    "requirements_hash": "sha256:4627cd5beced464c93b2286ae48bec7bba149cb2b23e461ca30600712c883c63",
+    "operation_contract_version": "original-snapshot-v1-proposed",
+    "plan_id": "41940644-c128-5d42-b450-3913400c5f85",
+    "operations": [],
+    "operation_count": 0,
+    "unresolved": [
+      "protect-email:REVIEW_REQUIRED"
+    ],
+    "validation_errors": [
+      "PLAN_APPROVAL_REQUIRED",
+      "PROFILE_NOT_USABLE"
+    ],
+    "status": "invalid",
+    "checked_applicability_version": 1,
+    "validation_ref": "private:plan-validation:41940644-c128-5d42-b450-3913400c5f85",
+    "plan_hash": "sha256:530588bd04ed2618dbfb14a92c68e25936cbf5ec3ed79c0cdabc9c22901c1c8e"
+  },
+  "pages": [
+    {
+      "plan_header": {
+        "meta": {
+          "created_at": "2026-10-13T00:00:00Z",
+          "domain_id": "test-domain",
+          "environment": "test",
+          "evaluation_run_id": null,
+          "schema_version": "mainline1.proposed.v1",
+          "trace_id": "20000000-0000-4000-8000-000000000006"
+        },
+        "asset": {
+          "asset_id": "20000000-0000-4000-8000-000000000002",
+          "asset_version_id": "20000000-0000-4000-8000-000000000001",
+          "content_hash": "sha256:b4d367373537c6dc0be2e5574b454e10dcf486381bb62a75292b2b584eee7286"
+        },
+        "scan_id": "20000000-0000-4000-8000-000000000003",
+        "profile_id": "5330ef1f-82a4-52c7-8768-39a0b65b6e08",
+        "scope_hash": "sha256:8d98e0b00d3f4af25e932f901a4c5adafbebecf49fbdac5e5e76e216ba9fe248",
+        "parser_version": "internal-table-v2",
+        "parser_config_hash": "sha256:6d9292ccccf23c299c283d68c7b713dcfc164eaab10e4d3c04c0f9f9f1cde6b7",
+        "policy_version": "synthetic-policy-v1",
+        "redaction_policy_version": "synthetic-approved-test-v1",
+        "requirements": [
+          {
+            "requirement_id": "protect-email",
+            "version": "synthetic-v1",
+            "category_ids": [
+              "email_address"
+            ],
+            "allowed_operations": [
+              "mask_cell",
+              "mask_span"
+            ],
+            "allow_drop_column": false,
+            "require_complete_coverage": true,
+            "allow_unresolved": true
+          }
+        ],
+        "requirements_hash": "sha256:4627cd5beced464c93b2286ae48bec7bba149cb2b23e461ca30600712c883c63",
+        "operation_contract_version": "original-snapshot-v1-proposed",
+        "plan_id": "978dc07b-d630-5ae7-b90d-b7fa4855c1d0",
+        "operation_count": 2,
+        "unresolved": [],
+        "validation_errors": [],
+        "status": "ready",
+        "checked_applicability_version": 1,
+        "validation_ref": "private:plan-validation:978dc07b-d630-5ae7-b90d-b7fa4855c1d0",
+        "plan_hash": "sha256:8dad0a4f8a37c4a8b0d02386c0928bcad3aa259cb298b8bb18e24c9893ee6bbc"
+      },
+      "operations_hash": "sha256:032ac54c3cee19fa2d5e8154a45247b6ef89726dbe63c4870a7e6d2af651fbc1",
+      "operations": [
+        {
+          "operation_id": "21094887-2d53-5bb5-a88e-94980cf418ec",
+          "type": "mask_cell",
+          "target": {
+            "channel": "value",
+            "column": 1,
+            "kind": "cell",
+            "row": 2,
+            "sheet_id": "csv:0",
+            "span": null
+          },
+          "replacement": "[REDACTED]",
+          "match_ref": "private:plan-match:978dc07b-d630-5ae7-b90d-b7fa4855c1d0:21094887-2d53-5bb5-a88e-94980cf418ec",
+          "finding_ids": [
+            "5bed9fb4-2e2a-5aad-a9bf-b75d9d9878df"
+          ],
+          "requirement_ids": [
+            "protect-email"
+          ]
+        }
+      ]
+    },
+    {
+      "plan_header": {
+        "meta": {
+          "created_at": "2026-10-13T00:00:00Z",
+          "domain_id": "test-domain",
+          "environment": "test",
+          "evaluation_run_id": null,
+          "schema_version": "mainline1.proposed.v1",
+          "trace_id": "20000000-0000-4000-8000-000000000006"
+        },
+        "asset": {
+          "asset_id": "20000000-0000-4000-8000-000000000002",
+          "asset_version_id": "20000000-0000-4000-8000-000000000001",
+          "content_hash": "sha256:b4d367373537c6dc0be2e5574b454e10dcf486381bb62a75292b2b584eee7286"
+        },
+        "scan_id": "20000000-0000-4000-8000-000000000003",
+        "profile_id": "5330ef1f-82a4-52c7-8768-39a0b65b6e08",
+        "scope_hash": "sha256:8d98e0b00d3f4af25e932f901a4c5adafbebecf49fbdac5e5e76e216ba9fe248",
+        "parser_version": "internal-table-v2",
+        "parser_config_hash": "sha256:6d9292ccccf23c299c283d68c7b713dcfc164eaab10e4d3c04c0f9f9f1cde6b7",
+        "policy_version": "synthetic-policy-v1",
+        "redaction_policy_version": "synthetic-approved-test-v1",
+        "requirements": [
+          {
+            "requirement_id": "protect-email",
+            "version": "synthetic-v1",
+            "category_ids": [
+              "email_address"
+            ],
+            "allowed_operations": [
+              "mask_cell",
+              "mask_span"
+            ],
+            "allow_drop_column": false,
+            "require_complete_coverage": true,
+            "allow_unresolved": true
+          }
+        ],
+        "requirements_hash": "sha256:4627cd5beced464c93b2286ae48bec7bba149cb2b23e461ca30600712c883c63",
+        "operation_contract_version": "original-snapshot-v1-proposed",
+        "plan_id": "978dc07b-d630-5ae7-b90d-b7fa4855c1d0",
+        "operation_count": 2,
+        "unresolved": [],
+        "validation_errors": [],
+        "status": "ready",
+        "checked_applicability_version": 1,
+        "validation_ref": "private:plan-validation:978dc07b-d630-5ae7-b90d-b7fa4855c1d0",
+        "plan_hash": "sha256:8dad0a4f8a37c4a8b0d02386c0928bcad3aa259cb298b8bb18e24c9893ee6bbc"
+      },
+      "operations_hash": "sha256:032ac54c3cee19fa2d5e8154a45247b6ef89726dbe63c4870a7e6d2af651fbc1",
+      "operations": [
+        {
+          "operation_id": "ab43564f-30f8-5295-a4ff-df8e59471f03",
+          "type": "mask_cell",
+          "target": {
+            "channel": "value",
+            "column": 1,
+            "kind": "cell",
+            "row": 3,
+            "sheet_id": "csv:0",
+            "span": null
+          },
+          "replacement": "[REDACTED]",
+          "match_ref": "private:plan-match:978dc07b-d630-5ae7-b90d-b7fa4855c1d0:ab43564f-30f8-5295-a4ff-df8e59471f03",
+          "finding_ids": [
+            "a500a540-d493-5cea-971b-27132bac0787"
+          ],
+          "requirement_ids": [
+            "protect-email"
+          ]
+        }
+      ]
+    }
+  ],
+  "consumer_steps": [
+    "Authenticate and authorize",
+    "Collect immutable pages and verify full plan hash",
+    "Query current asset/applicability/requirements/policy; validate again immediately before execution",
+    "Execution owner must prevent changes between check and use and obtain separate outbound authorization"
+  ]
+}
