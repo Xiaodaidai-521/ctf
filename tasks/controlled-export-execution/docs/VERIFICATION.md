@@ -14,7 +14,18 @@ python manage.py migrate --plan
 
 The latest recorded test run is updated only after a successful final verification. PostgreSQL behavior is not inferred from SQLite.
 
-Latest suite result: 27 tests discovered, 26 passed, and the single PostgreSQL-only locking test was skipped on SQLite.
+Latest suite result: 57 tests discovered, 56 passed, and the single PostgreSQL-only locking test was skipped on SQLite.
+
+## Header and obligation remediation (2026-10-20)
+
+Two gaps found in review are closed and covered by tests:
+
+- Output headers now go through the same formula neutralization as data cells (CSV and XLSX). XLSX header cells holding a real formula, comment, or hyperlink are rejected with `XLSX_ACTIVE_CONTENT` before any protected copy is written, including header cells for columns outside the authorized scope. Headers that become duplicates after neutralization are rejected (`CSV_HEADER_COLLISION`, `XLSX_HEADER_COLLISION`).
+- `bind_recipient`, `set_expiry`, and `record_receipt` now have a versioned parameter contract and are enforced when shares are created, replayed, admitted, or re-tokenized. Terminal delivery events carry `obligation_ids` and the full external `evidence_ref`.
+
+Evidence for this remediation: `controlled_export.tests.test_transformations.HeaderFormulaTests` (7 tests), `ObligationContractTests` (10 tests), `ShareObligationEnforcementTests` (9 tests), and `ShareApiObligationTests` (4 tests). The full suite ran 57 tests with 56 passing and 1 PostgreSQL-only skip. No migration was required (`makemigrations --check --dry-run` reported no changes).
+
+Limits unchanged: PostgreSQL row-lock, lock-wait, and isolation behavior is still unverified; there is no upstream obligation source, receipt authenticity verification, or downstream outbox consumer.
 
 ## Acceptance cases
 
@@ -53,8 +64,8 @@ Latest suite result: 27 tests discovered, 26 passed, and the single PostgreSQL-o
 
 ## Security checks
 
-- CSV formula neutralization: passed.
-- XLSX formula, hyperlink and hidden-row/column rejection: passed.
+- CSV formula neutralization: passed for data cells and output headers.
+- XLSX formula, hyperlink and hidden-row/column rejection: passed for data cells and header cells.
 - XLSX output reconstruction and selected-sheet projection: passed.
 - Path traversal rejection: passed. Symlink defense is implemented but remains platform-dependent and untested on this Windows environment.
 - Token absence from outbox payloads: passed.

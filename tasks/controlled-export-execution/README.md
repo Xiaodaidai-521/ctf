@@ -9,6 +9,9 @@ This is an isolated reference service for controlled CSV/XLSX export execution. 
 - Binds input bytes, asset version, scope, plan, environment, data domain, subject, and caller to the execution.
 - Rebuilds CSV/XLSX protected copies from the authorized scope; it never overwrites or returns the input file.
 - Rejects unknown mandatory obligations, unsupported transformations, hidden XLSX rows/columns/sheets, formulas, comments, hyperlinks, external links, embedded content, path traversal, and resource-limit violations.
+- Applies formula neutralization to output headers as well as data cells. XLSX header cells that are real formulas, comments, or hyperlinks are rejected before the protected copy is built, including headers outside the authorized column scope. Headers that collide after neutralization are rejected.
+- Enforces signed `share_creation` obligations when a share is created, replayed, admitted, or has its token rotated: `bind_recipient` must equal the normalized recipient, and `set_expiry` is an absolute upper bound that a share may undercut but never exceed. Shares persisted before these obligations were defined are refused rather than repaired.
+- Records `record_receipt` obligations on every terminal delivery result (stream exhaustion, failure, or external receipt) by linking the obligation IDs to the delivery outbox event and keeping the full external evidence reference. Recording an `unknown` result is not a claim that the recipient read or stored the file.
 - Uses short database transactions for claim and result registration. File processing occurs outside row locks. Each attempt gets a lease and monotonically increasing fencing token.
 - Separates execution, attempt, immutable protected artifact, share grant, delivery attempt, idempotency record, and outbox event state.
 - Stores artifacts below a private, non-web-served root and returns no storage path through the API.
@@ -69,6 +72,23 @@ Example fixtures are in `fixtures/`. Supported operations are:
 - `sanitize_formulas` (formula-like CSV/string cells are prefixed with an apostrophe).
 
 The service always projects only the declared columns and, for XLSX, only declared worksheets. XLSX output is a new workbook, so unselected sheets, styles, macros, metadata, and hidden package members are not copied.
+
+### Share and delivery obligations
+
+`bind_recipient`, `set_expiry`, and `record_receipt` accept only version `"1"` (the default when omitted) and reject unknown parameters:
+
+```json
+{"obligation_id": "bind-1", "type": "bind_recipient", "phase": "share_creation",
+ "parameters": {"recipient_id": "42"}, "version": "1"}
+{"obligation_id": "expiry-1", "type": "set_expiry", "phase": "share_creation",
+ "parameters": {"expires_at": "2026-10-20T12:00:00+00:00"}, "version": "1"}
+{"obligation_id": "receipt-1", "type": "record_receipt", "phase": "post_delivery",
+ "parameters": {}, "version": "1"}
+```
+
+`redact` and `sanitize_formulas` keep their existing `before_publish` semantics. Multiple `set_expiry` obligations are all enforced by using the earliest bound; conflicting `bind_recipient` recipients are rejected at authorization validation.
+
+The delivery outbox payload for a terminal result carries `obligation_ids` and the full `evidence_ref`. `measurement_basis` remains a truncated human-readable summary and is not the authoritative evidence value.
 
 ## Operations and recovery
 
