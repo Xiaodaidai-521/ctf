@@ -1,0 +1,246 @@
+"""Shared vocabulary for module 6 (skill verification and review).
+
+Values of capability IDs, task keys, assistance levels and independence reuse
+module 1's contract; do not fork those vocabularies.
+"""
+
+from learning_map import constants as map_constants
+
+RULE_VERSION = 'm6-rules-v1'
+RUBRIC_VERSION = 'm6-rubric-v1'
+
+HINT_LEVELS = map_constants.HINT_LEVELS
+HINT_LEVEL_LABELS = map_constants.HINT_LEVEL_LABELS
+
+INDEPENDENCE_INDEPENDENT = map_constants.INDEPENDENCE_INDEPENDENT
+INDEPENDENCE_ASSISTED = map_constants.INDEPENDENCE_ASSISTED
+INDEPENDENCE_UNKNOWN = map_constants.INDEPENDENCE_UNKNOWN
+INDEPENDENCE_CHOICES = map_constants.INDEPENDENCE_CHOICES
+
+ASSISTANCE_SOURCE_AI = map_constants.ASSISTANCE_SOURCE_AI
+ASSISTANCE_SOURCE_CARD = map_constants.ASSISTANCE_SOURCE_CARD
+ASSISTANCE_SOURCE_TEACHER = map_constants.ASSISTANCE_SOURCE_TEACHER
+ASSISTANCE_SOURCE_NONE = map_constants.ASSISTANCE_SOURCE_NONE
+ASSISTANCE_SOURCE_UNKNOWN = map_constants.ASSISTANCE_SOURCE_UNKNOWN
+ASSISTANCE_SOURCE_CHOICES = map_constants.ASSISTANCE_SOURCE_CHOICES
+
+ASSISTANCE_KIND_HINT = 'hint'
+ASSISTANCE_KIND_TEACHER_HELP = 'teacher_help'
+ASSISTANCE_KIND_ANALYSIS_VIEW = 'analysis_view'
+ASSISTANCE_KIND_CHOICES = [
+    (ASSISTANCE_KIND_HINT, '提示'),
+    (ASSISTANCE_KIND_TEACHER_HELP, '教师帮助'),
+    (ASSISTANCE_KIND_ANALYSIS_VIEW, '查看解析/复盘'),
+]
+
+ASSISTANCE_TRACKING_COMPLETE = 'complete'
+ASSISTANCE_TRACKING_MISSING = 'missing'
+ASSISTANCE_TRACKING_CHOICES = [
+    (ASSISTANCE_TRACKING_COMPLETE, '记录完整'),
+    (ASSISTANCE_TRACKING_MISSING, '记录缺失'),
+]
+
+PROGRAM_NOT_RUN = 'not_run'
+PROGRAM_PENDING = 'pending'
+PROGRAM_PASSED = 'passed'
+PROGRAM_FAILED = 'failed'
+PROGRAM_ERROR = 'error'
+PROGRAM_STATUS_CHOICES = [
+    (PROGRAM_NOT_RUN, '不适用'),
+    (PROGRAM_PENDING, '待核验'),
+    (PROGRAM_PASSED, '通过'),
+    (PROGRAM_FAILED, '未通过'),
+    (PROGRAM_ERROR, '核验失败'),
+]
+
+MANUAL_NOT_APPLICABLE = 'not_applicable'
+MANUAL_PENDING = 'pending'
+MANUAL_REVIEWED = 'reviewed'
+MANUAL_CORRECTED = 'corrected'
+MANUAL_STATUS_CHOICES = [
+    (MANUAL_NOT_APPLICABLE, '不适用'),
+    (MANUAL_PENDING, '待教师评阅'),
+    (MANUAL_REVIEWED, '已评阅'),
+    (MANUAL_CORRECTED, '已更正'),
+]
+
+OVERALL_PENDING = 'pending'
+OVERALL_PENDING_MANUAL = 'pending_manual'
+OVERALL_PASSED = 'passed'
+OVERALL_FAILED = 'failed'
+OVERALL_VERIFICATION_FAILED = 'verification_failed'
+OVERALL_ENVIRONMENT_AFFECTED = 'environment_affected'
+OVERALL_UNKNOWN = 'unknown'
+OVERALL_STATUS_CHOICES = [
+    (OVERALL_PENDING, '处理中'),
+    (OVERALL_PENDING_MANUAL, '待教师评阅'),
+    (OVERALL_PASSED, '通过'),
+    (OVERALL_FAILED, '未通过'),
+    (OVERALL_VERIFICATION_FAILED, '核验失败'),
+    (OVERALL_ENVIRONMENT_AFFECTED, '受环境影响'),
+    (OVERALL_UNKNOWN, '未知'),
+]
+
+MANUAL_TASK_PENDING = 'pending'
+MANUAL_TASK_CLAIMED = 'claimed'
+MANUAL_TASK_REVIEWED = 'reviewed'
+MANUAL_TASK_CORRECTED = 'corrected'
+MANUAL_TASK_STATUS_CHOICES = [
+    (MANUAL_TASK_PENDING, '待认领'),
+    (MANUAL_TASK_CLAIMED, '处理中'),
+    (MANUAL_TASK_REVIEWED, '已评阅'),
+    (MANUAL_TASK_CORRECTED, '已更正'),
+]
+
+ERROR_CONCEPT = 'concept_unclear'
+ERROR_SCOPE = 'scope_error'
+ERROR_OPERATION = 'operation_error'
+ERROR_EVIDENCE = 'evidence_insufficient'
+ERROR_FIX = 'fix_incomplete'
+ERROR_CAUSE_CHOICES = [
+    (ERROR_CONCEPT, '概念不清'),
+    (ERROR_SCOPE, '范围判断错误'),
+    (ERROR_OPERATION, '操作失误'),
+    (ERROR_EVIDENCE, '证据不足'),
+    (ERROR_FIX, '修复不完整'),
+]
+
+CAUSE_SUGGESTED = 'suggested'
+CAUSE_CONFIRMED = 'confirmed'
+CAUSE_REJECTED = 'rejected'
+CAUSE_STATUS_CHOICES = [
+    (CAUSE_SUGGESTED, '待确认'),
+    (CAUSE_CONFIRMED, '已确认'),
+    (CAUSE_REJECTED, '已排除'),
+]
+CAUSE_SOURCE_SYSTEM = 'system'
+CAUSE_SOURCE_TEACHER = 'teacher'
+CAUSE_SOURCE_STUDENT = 'student'
+CAUSE_SOURCE_CHOICES = [
+    (CAUSE_SOURCE_SYSTEM, '规则建议'),
+    (CAUSE_SOURCE_TEACHER, '教师确认'),
+    (CAUSE_SOURCE_STUDENT, '学生补充'),
+]
+
+RUBRIC_ITEMS = [
+    ('basis', '依据与范围'),
+    ('causal', '因果解释'),
+    ('evidence', '证据与不确定项'),
+    ('improvement', '改进与验证'),
+]
+RUBRIC_MAX_SCORE = 2
+
+REVIEW_CARD_DRAFT = 'draft'
+REVIEW_CARD_COMPLETED = 'completed'
+REVIEW_CARD_STATUS_CHOICES = [
+    (REVIEW_CARD_DRAFT, '草稿'),
+    (REVIEW_CARD_COMPLETED, '已完成'),
+]
+
+RETEST_PENDING_ITEM = 'pending_item'
+RETEST_SCHEDULED = 'scheduled'
+RETEST_DUE = 'due'
+RETEST_IN_PROGRESS = 'in_progress'
+RETEST_COMPLETED = 'completed'
+RETEST_MISSED = 'missed'
+RETEST_WAIVED = 'waived'
+RETEST_STATUS_CHOICES = [
+    (RETEST_PENDING_ITEM, '待补题'),
+    (RETEST_SCHEDULED, '待到期'),
+    (RETEST_DUE, '已到期'),
+    (RETEST_IN_PROGRESS, '进行中'),
+    (RETEST_COMPLETED, '已测'),
+    (RETEST_MISSED, '未完成'),
+    (RETEST_WAIVED, '已免测'),
+]
+
+RETEST_OUTCOME_PASSED = 'passed'
+RETEST_OUTCOME_FAILED = 'failed'
+RETEST_OUTCOME_PENDING_MANUAL = 'pending_manual'
+RETEST_OUTCOME_VERIFICATION_FAILED = 'verification_failed'
+RETEST_OUTCOME_ENVIRONMENT = 'environment_affected'
+RETEST_OUTCOME_ASSISTED = 'assisted'
+RETEST_OUTCOME_UNKNOWN = 'unknown'
+RETEST_OUTCOME_CHOICES = [
+    (RETEST_OUTCOME_PASSED, '通过'),
+    (RETEST_OUTCOME_FAILED, '未通过'),
+    (RETEST_OUTCOME_PENDING_MANUAL, '待教师评阅'),
+    (RETEST_OUTCOME_VERIFICATION_FAILED, '核验失败'),
+    (RETEST_OUTCOME_ENVIRONMENT, '受环境影响'),
+    (RETEST_OUTCOME_ASSISTED, '受助完成'),
+    (RETEST_OUTCOME_UNKNOWN, '未知'),
+]
+
+SAMPLING_DRAFT = 'draft'
+SAMPLING_OPEN = 'open'
+SAMPLING_CLOSED = 'closed'
+SAMPLING_STATUS_CHOICES = [
+    (SAMPLING_DRAFT, '草稿'),
+    (SAMPLING_OPEN, '进行中'),
+    (SAMPLING_CLOSED, '已关闭'),
+]
+
+SAMPLING_ITEM_PENDING = 'pending'
+SAMPLING_ITEM_CLAIMED = 'claimed'
+SAMPLING_ITEM_COMPLETED = 'completed'
+SAMPLING_ITEM_NEEDS_CORRECTION = 'needs_correction'
+SAMPLING_ITEM_STATUS_CHOICES = [
+    (SAMPLING_ITEM_PENDING, '待认领'),
+    (SAMPLING_ITEM_CLAIMED, '处理中'),
+    (SAMPLING_ITEM_COMPLETED, '已完成'),
+    (SAMPLING_ITEM_NEEDS_CORRECTION, '需更正'),
+]
+
+SAMPLING_RANDOM = 'random'
+SAMPLING_HIGH_RISK = 'high_risk'
+SAMPLING_SELECTION_CHOICES = [
+    (SAMPLING_RANDOM, '随机样本'),
+    (SAMPLING_HIGH_RISK, '高风险样本'),
+]
+
+DISPUTE_SUBMITTED = 'submitted'
+DISPUTE_UNDER_REVIEW = 'under_review'
+DISPUTE_RESOLVED = 'resolved'
+DISPUTE_REJECTED = 'rejected'
+DISPUTE_STATUS_CHOICES = [
+    (DISPUTE_SUBMITTED, '已提交'),
+    (DISPUTE_UNDER_REVIEW, '复核中'),
+    (DISPUTE_RESOLVED, '已解决'),
+    (DISPUTE_REJECTED, '已驳回'),
+]
+
+CORRECTION_SOURCE_TEACHER = 'teacher_review'
+CORRECTION_SOURCE_SAMPLING = 'sampling'
+CORRECTION_SOURCE_DISPUTE = 'dispute'
+CORRECTION_SOURCE_LATE_EVENT = 'late_event'
+CORRECTION_SOURCE_CHOICES = [
+    (CORRECTION_SOURCE_TEACHER, '教师复核'),
+    (CORRECTION_SOURCE_SAMPLING, '常规抽查'),
+    (CORRECTION_SOURCE_DISPUTE, '评分争议'),
+    (CORRECTION_SOURCE_LATE_EVENT, '迟到事件对账'),
+]
+
+NOTICE_MODULE1 = 'module1'
+NOTICE_MODULE7 = 'module7'
+NOTICE_MODULE8 = 'module8'
+NOTICE_TARGET_CHOICES = [
+    (NOTICE_MODULE1, '模块一'),
+    (NOTICE_MODULE7, '模块七'),
+    (NOTICE_MODULE8, '模块八'),
+]
+
+NOTICE_PENDING = 'pending'
+NOTICE_SENT = 'sent'
+NOTICE_FAILED = 'failed'
+NOTICE_NOT_CONNECTED = 'not_connected'
+NOTICE_STATUS_CHOICES = [
+    (NOTICE_PENDING, '待发送'),
+    (NOTICE_SENT, '已发送'),
+    (NOTICE_FAILED, '发送失败'),
+    (NOTICE_NOT_CONNECTED, '未接通'),
+]
+
+EXECUTION_NOT_RUN = 'not_run'
+EXECUTION_NOT_EVALUATED = 'not_evaluated'
+
+RETEST_GRACE_DAYS_DEFAULT = 7

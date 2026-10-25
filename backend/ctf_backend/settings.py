@@ -89,6 +89,9 @@ INSTALLED_APPS = [
     'rag_ingestion',
     'export_risk',
     'export_quota',
+    'learning_map',
+    'skill_review',
+    'feedback_center',
 ]
 
 
@@ -307,6 +310,23 @@ TIME_ZONE = 'Asia/Shanghai'
 
 # Custom User Model
 AUTH_USER_MODEL = 'users.CTFUser'
+
+# Module 1: capability map and deterministic path planning.
+# Core diagnosis, recommendation and state updates never call a model.  These
+# switches are operational flags, not thresholds a student can relax.
+LEARNING_MAP_AI_ENABLED = os.environ.get('LEARNING_MAP_AI_ENABLED', 'false').lower() in ('true', '1', 'yes')
+LEARNING_MAP_RETEST_INTERVAL_DAYS = int(os.environ.get('LEARNING_MAP_RETEST_INTERVAL_DAYS', '3'))
+LEARNING_MAP_PREVIEW_CANDIDATE = os.environ.get('LEARNING_MAP_PREVIEW_CANDIDATE', 'false').lower() in ('true', '1', 'yes')
+LEARNING_MAP_SERVICE_TOKEN = os.environ.get('LEARNING_MAP_SERVICE_TOKEN', '')
+LEARNING_MAP_BASE_URI = os.environ.get('LEARNING_MAP_BASE_URI', 'https://ctf.local/learning-map')
+
+# Module 6: skill verification, review cards and delayed retests.
+# These are operational defaults, not approved course thresholds; teachers can
+# adjust individual due dates and record the reason.
+MODULE6_RETEST_INTERVAL_DAYS = int(os.environ.get('MODULE6_RETEST_INTERVAL_DAYS', '3'))
+MODULE6_RETEST_GRACE_DAYS = int(os.environ.get('MODULE6_RETEST_GRACE_DAYS', '7'))
+MODULE6_SERVICE_TOKEN = os.environ.get('MODULE6_SERVICE_TOKEN', '')
+MODULE6_RUBRIC_VERSION = os.environ.get('MODULE6_RUBRIC_VERSION', 'm6-rubric-v1')
 
 # FRP Configuration (用于题目容器代理)
 FRP_API_URL = os.environ.get('FRP_API_URL', 'http://localhost:7500')

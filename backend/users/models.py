@@ -18,6 +18,11 @@ class CTFUser(AbstractUser):
     bio = models.TextField(blank=True, verbose_name='个人简介')
     avatar = models.ImageField(upload_to='avatars/', blank=True, null=True, verbose_name='头像')
     team = models.CharField(max_length=100, blank=True, verbose_name='战队名称')
+    is_course_owner = models.BooleanField(
+        default=False,
+        verbose_name='课程负责人',
+        help_text='可维护能力目录、交付登记与发布前审核材料；管理员始终具备此权限。',
+    )
     class_name = models.CharField(max_length=100, blank=True, verbose_name='班级名称')
     student_id = models.CharField(max_length=50, blank=True, verbose_name='学号')
     enrollment_year = models.IntegerField(null=True, blank=True, verbose_name='入学年份')
@@ -58,6 +63,13 @@ class CTFUser(AbstractUser):
         return self.role == 'teacher'
 
     @property
+    def can_manage_catalog(self):
+        """目录审核权限：管理员或显式标记的课程负责人。"""
+        return bool(self.role == 'admin' or (self.role == 'teacher' and self.is_course_owner))
+
+    @property
     def is_student(self):
         """是否为用户"""
         return self.role == 'student'
+
+
