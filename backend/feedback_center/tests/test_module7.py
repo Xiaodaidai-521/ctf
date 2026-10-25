@@ -883,10 +883,17 @@ class PriorityAndPhase3Tests(ModuleSevenBase):
         self.assertIn('issue_group', contract.data)
         self.assertIn('candidate', contract.data)
         self.assertIn('next_tasks', contract.data)
-        stub = self.teacher_client.post(
+        blocked = self.teacher_client.post(
             '/api/feedback/teacher/phase3/candidates/',
-            {'baseline_config_version': 'T100', 'candidate_config_version': 'T120'},
+            {
+                'title': 'T100 -> T120',
+                'issue_group_ids': ['00000000-0000-0000-0000-000000000000'],
+                'baseline_config_version': 'T100',
+                'candidate_config_version': 'T120',
+                'single_changed_factor': 'export_record_limit',
+                'rollback_version': 'T100',
+            },
             format='json',
         )
-        self.assertEqual(stub.status_code, 409)
-        self.assertEqual(stub.data['code'], 'phase3_not_enabled')
+        self.assertEqual(blocked.status_code, 409)
+        self.assertEqual(blocked.data['code'], constants.PHASE3_WRITE_DISABLED)

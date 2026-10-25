@@ -1,22 +1,37 @@
-"""Phase 3 contract metadata (deliberately disabled in this build).
+"""Phase 3 contract metadata.
 
-This module does not create issue groups, candidates, evaluation reports,
-approvals or releases.  It only publishes the interface shape and invariants
-that the phase-3 implementation must honour.  The candidate POST endpoint
-returns ``phase3_not_enabled`` so no caller can mistake a handled feedback
-ticket for an active teaching configuration.
+Issue groups, candidates, approval, activation, observation and rollback are
+implemented.  Writes are gated by ``FEEDBACK_PHASE3_ENABLED`` and release
+actions by ``FEEDBACK_PHASE3_RELEASE_ENABLED``; both default to false so the
+first phase cannot publish a teaching configuration by accident.  This module
+only describes the contract and the gate state; the behaviour lives in
+``services/issue_groups.py`` and ``services/candidates.py``.
 """
 
+from django.conf import settings
+
 from .. import constants
+
+
+def _phase3_enabled():
+    return bool(getattr(settings, 'FEEDBACK_PHASE3_ENABLED', False))
+
+
+def _release_enabled():
+    return bool(getattr(settings, 'FEEDBACK_PHASE3_RELEASE_ENABLED', False))
 
 
 def contract_payload():
     return {
         'schema_version': constants.PHASE3_CONTRACT_VERSION,
-        'enabled': False,
-        'candidate_management_enabled': constants.CANDIDATE_MANAGEMENT_ENABLED,
-        'candidate_release_enabled': constants.CANDIDATE_RELEASE_ENABLED,
-        'reason': '第三阶段功能；本轮只交付反馈采集、人工处理与事件核对，不启用候选配置发布。',
+        'enabled': _phase3_enabled(),
+        'implemented': True,
+        'candidate_management_enabled': _phase3_enabled(),
+        'candidate_release_enabled': _release_enabled(),
+        'reason': (
+            '第三阶段功能已实现；写入与发布默认关闭，需在评测或第三阶段环境显式开启。'
+            if not _phase3_enabled() else '第三阶段功能已启用。'
+        ),
         'invariants': [
             '反馈“已处理”不等于新规则已生效，也不等于教学效果已验证。',
             '候选只能引用已确认、证据完整且映射完整的反馈；重复记录和缺证记录不能作为独立证据。',
@@ -142,7 +157,7 @@ def contract_payload():
 def disabled_response():
     return {
         'enabled': False,
-        'code': 'phase3_not_enabled',
-        'detail': '候选管理、审批发布与回退属于第三阶段；本轮未启用。',
+        'code': constants.PHASE3_WRITE_DISABLED,
+        'detail': '第三阶段候选管理未启用；本轮只采集与处理反馈。',
         'contract_version': constants.PHASE3_CONTRACT_VERSION,
     }

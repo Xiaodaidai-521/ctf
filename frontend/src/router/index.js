@@ -185,6 +185,7 @@ const routes = [
       { path: 'learning-paths', name: 'TeacherLearningPaths', component: () => import('@/views/LearningPaths/LearningPathsManageList.vue'), meta: { title: '学习路径', requiresTeacherOnly: true } },
       { path: 'capability-map', name: 'TeacherCapabilityMap', component: () => import('@/teacher/CapabilityMapAdmin.vue'), meta: { title: '能力地图审核', requiresTeacherOnly: true } },
       { path: 'skill-review', name: 'TeacherSkillReview', component: () => import('@/teacher/SkillReviewAdmin.vue'), meta: { title: '验收与抽查', requiresTeacherOnly: true } },
+      { path: 'feedback/candidates', name: 'TeacherFeedbackCandidates', component: () => import('@/teacher/FeedbackCandidates.vue'), meta: { title: '问题组与候选', requiresTeacherOnly: true } },
       { path: 'feedback', name: 'TeacherFeedbackQueue', component: () => import('@/teacher/FeedbackQueue.vue'), meta: { title: '反馈待办', requiresTeacherOnly: true } },
       { path: 'feedback/reconciliation', name: 'TeacherFeedbackReconciliation', component: () => import('@/teacher/FeedbackReconciliation.vue'), meta: { title: '反馈事件核对', requiresTeacherOnly: true } },
       { path: 'feedback/:id', name: 'TeacherFeedbackDetail', component: () => import('@/teacher/FeedbackDetail.vue'), meta: { title: '反馈处理', requiresTeacherOnly: true } },

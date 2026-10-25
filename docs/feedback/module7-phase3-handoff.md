@@ -154,3 +154,22 @@
 - M7-P3-7 首个阈值候选闭环与独立终验；
 - M7-P3-8 全模型停用下的问题组/候选登记验收；
 - M7-P3-9 生产 PostgreSQL 并发、权限与审计验收。
+
+
+---
+
+## 实施更新（第三阶段已实现，默认关闭）
+
+原先列为后续任务的 M7-P3-1 至 M7-P3-6 已实现，代码位置：
+
+- `feedback_center/services/issue_groups.py`：跨尝试问题组、成员人工确认、计数快照、拆组/并组历史。
+- `feedback_center/services/candidates.py`：候选状态机、报告引用绑定、审批、生效、观察、稳定、回退。
+- `feedback_center/services/dispute_link.py`：评分争议转交模块六并镜像状态；模块七不改成绩。
+- `frontend/src/teacher/FeedbackCandidates.vue`：教师端问题组与候选管理页。
+
+开关（默认 false）：
+
+- `FEEDBACK_PHASE3_ENABLED`：候选写入、评测登记、审批。
+- `FEEDBACK_PHASE3_RELEASE_ENABLED`：生效、观察、稳定、回退。
+
+未变：模块八仍只提供报告引用契约，报告本身不在本仓库生成；真实发布需要显式开启开关并填入真实报告。

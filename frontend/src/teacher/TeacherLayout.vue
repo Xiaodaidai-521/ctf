@@ -9,6 +9,7 @@
         <RouterLink to="/teacher/skill-review" class="nav-link">验收与抽查</RouterLink>
         <RouterLink to="/teacher/feedback" class="nav-link">反馈待办</RouterLink>
         <RouterLink to="/teacher/feedback/reconciliation" class="nav-link">反馈事件核对</RouterLink>
+        <RouterLink to="/teacher/feedback/candidates" class="nav-link">问题组与候选</RouterLink>
         <RouterLink to="/teacher/learning-scores" class="nav-link">动态评分</RouterLink>
         <RouterLink to="/teacher/learning-effect" class="nav-link">学习效果分析</RouterLink>
         <RouterLink to="/teacher/challenges" class="nav-link">题目管理</RouterLink>

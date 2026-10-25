@@ -599,3 +599,222 @@ class FeedbackEventLink(models.Model):
 
     def __str__(self):
         return f'{self.event_id} {self.status}'
+
+
+class FeedbackIssueGroup(models.Model):
+    """Cross-attempt issue group (phase 3).
+
+    A group is only usable as candidate evidence after a feedback owner has
+    confirmed its members by hand.  Counts are stored as a snapshot so a later
+    ticket change cannot silently rewrite the evidence a candidate was approved
+    against.
+    """
+
+    group_id = models.UUIDField(default=uuid.uuid4, unique=True, editable=False, verbose_name='问题组 ID')
+    title = models.CharField(max_length=200, verbose_name='问题组名称')
+    category = models.CharField(max_length=16, choices=constants.CATEGORY_CHOICES, verbose_name='反馈类别')
+    issue_type = models.CharField(max_length=48, verbose_name='具体问题类型')
+    catalog = models.ForeignKey(
+        'learning_map.CatalogVersion', null=True, blank=True, on_delete=models.PROTECT,
+        related_name='feedback_issue_groups', verbose_name='目录版本',
+    )
+    task = models.ForeignKey(
+        'learning_map.TaskPackage', null=True, blank=True, on_delete=models.PROTECT,
+        related_name='feedback_issue_groups', verbose_name='任务包',
+    )
+    task_version = models.CharField(max_length=32, blank=True, verbose_name='任务版本快照')
+    knowledge_point_ids = models.JSONField(default=list, blank=True, verbose_name='知识点 ID 快照')
+    window_start = models.DateTimeField(verbose_name='时间窗开始')
+    window_end = models.DateTimeField(verbose_name='时间窗结束')
+    status = models.CharField(
+        max_length=24, choices=constants.ISSUE_GROUP_STATUS_CHOICES,
+        default=constants.ISSUE_GROUP_DRAFT, verbose_name='问题组状态',
+    )
+    counts = models.JSONField(default=dict, verbose_name='计数快照')
+    reviewed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL,
+        related_name='feedback_issue_groups_reviewed', verbose_name='确认人',
+    )
+    reviewed_at = models.DateTimeField(null=True, blank=True, verbose_name='确认时间')
+    version = models.PositiveIntegerField(default=1, verbose_name='版本')
+    supersedes = models.ForeignKey(
+        'self', null=True, blank=True, on_delete=models.SET_NULL,
+        related_name='superseded_by_groups', verbose_name='替代的旧问题组',
+    )
+    notes = models.TextField(blank=True, verbose_name='说明')
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL,
+        related_name='feedback_issue_groups_created', verbose_name='创建人',
+    )
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='创建时间')
+    updated_at = models.DateTimeField(auto_now=True, verbose_name='更新时间')
+
+    class Meta:
+        verbose_name = '跨尝试问题组'
+        verbose_name_plural = verbose_name
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['status', '-created_at']),
+            models.Index(fields=['category', 'issue_type']),
+        ]
+
+    def __str__(self):
+        return f'{self.group_id} {self.title}'
+
+    @property
+    def is_confirmed(self):
+        return self.status == constants.ISSUE_GROUP_CONFIRMED
+
+
+class FeedbackIssueGroupMember(models.Model):
+    group = models.ForeignKey(
+        FeedbackIssueGroup, on_delete=models.CASCADE, related_name='members', verbose_name='问题组',
+    )
+    ticket = models.ForeignKey(
+        FeedbackTicket, on_delete=models.PROTECT, related_name='issue_group_memberships', verbose_name='反馈工单',
+    )
+    included = models.BooleanField(default=True, verbose_name='纳入')
+    exclusion_reason = models.TextField(blank=True, verbose_name='排除理由')
+    added_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL,
+        related_name='feedback_issue_members_added', verbose_name='操作人',
+    )
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='加入时间')
+
+    class Meta:
+        verbose_name = '问题组成员'
+        verbose_name_plural = verbose_name
+        ordering = ['created_at']
+        constraints = [
+            models.UniqueConstraint(fields=['group', 'ticket'], name='feedback_unique_group_member'),
+        ]
+
+    def __str__(self):
+        return f'{self.group_id} {self.ticket_id} included={self.included}'
+
+
+class FeedbackIssueGroupEvent(models.Model):
+    """Append-only split/merge/confirm history for an issue group."""
+
+    group = models.ForeignKey(
+        FeedbackIssueGroup, on_delete=models.CASCADE, related_name='events', verbose_name='问题组',
+    )
+    action = models.CharField(max_length=24, choices=constants.ISSUE_GROUP_ACTION_CHOICES, verbose_name='动作')
+    detail = models.JSONField(default=dict, blank=True, verbose_name='详情')
+    actor = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL,
+        related_name='feedback_issue_group_events', verbose_name='操作人',
+    )
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='时间')
+
+    class Meta:
+        verbose_name = '问题组历史'
+        verbose_name_plural = verbose_name
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f'{self.group_id} {self.action}'
+
+
+class FeedbackCandidate(models.Model):
+    """Teaching-configuration candidate with an explicit state machine."""
+
+    candidate_id = models.UUIDField(default=uuid.uuid4, unique=True, editable=False, verbose_name='候选 ID')
+    title = models.CharField(max_length=200, verbose_name='候选名称')
+    issue_groups = models.ManyToManyField(
+        FeedbackIssueGroup, related_name='candidates', verbose_name='问题组',
+    )
+    baseline_config_version = models.CharField(max_length=64, verbose_name='基准配置版本')
+    candidate_config_version = models.CharField(max_length=64, verbose_name='候选配置版本')
+    single_changed_factor = models.CharField(max_length=128, verbose_name='唯一改动因素')
+    target_task_versions = models.JSONField(default=list, verbose_name='适用任务版本')
+    excluded_scope = models.JSONField(default=list, blank=True, verbose_name='排除范围')
+    expected_risk = models.TextField(blank=True, verbose_name='预计风险')
+    rollback_version = models.CharField(max_length=64, verbose_name='回退版本')
+    baseline_config = models.JSONField(default=dict, verbose_name='基准配置')
+    candidate_config = models.JSONField(default=dict, verbose_name='候选配置')
+    baseline_config_digest = models.CharField(max_length=64, verbose_name='基准配置摘要')
+    config_digest = models.CharField(max_length=64, verbose_name='候选配置摘要')
+    state = models.CharField(
+        max_length=32, choices=constants.CANDIDATE_STATE_CHOICES,
+        default=constants.CANDIDATE_DRAFT, verbose_name='候选状态',
+    )
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.PROTECT,
+        related_name='feedback_candidates_owned', verbose_name='负责人',
+    )
+    evaluation_report_ref = models.JSONField(default=dict, blank=True, verbose_name='模块八报告引用')
+    approval = models.JSONField(default=dict, blank=True, verbose_name='审批记录')
+    activation = models.JSONField(default=dict, blank=True, verbose_name='生效记录')
+    observation = models.JSONField(default=dict, blank=True, verbose_name='观察记录')
+    rollback = models.JSONField(default=dict, blank=True, verbose_name='回退记录')
+    version = models.PositiveIntegerField(default=1, verbose_name='版本')
+    supersedes = models.ForeignKey(
+        'self', null=True, blank=True, on_delete=models.SET_NULL,
+        related_name='superseded_by_candidates', verbose_name='替代的旧候选',
+    )
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='创建时间')
+    updated_at = models.DateTimeField(auto_now=True, verbose_name='更新时间')
+
+    class Meta:
+        verbose_name = '教学配置候选'
+        verbose_name_plural = verbose_name
+        ordering = ['-created_at']
+        indexes = [models.Index(fields=['state', '-created_at'])]
+
+    def __str__(self):
+        return f'{self.candidate_id} {self.title} [{self.state}]'
+
+
+class FeedbackCandidateEvent(models.Model):
+    candidate = models.ForeignKey(
+        FeedbackCandidate, on_delete=models.CASCADE, related_name='events', verbose_name='候选',
+    )
+    action = models.CharField(max_length=32, verbose_name='动作')
+    from_state = models.CharField(max_length=32, blank=True, verbose_name='原状态')
+    to_state = models.CharField(max_length=32, blank=True, verbose_name='新状态')
+    note = models.TextField(blank=True, verbose_name='说明')
+    actor = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL,
+        related_name='feedback_candidate_events', verbose_name='操作人',
+    )
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='时间')
+
+    class Meta:
+        verbose_name = '候选状态历史'
+        verbose_name_plural = verbose_name
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f'{self.candidate_id} {self.from_state}->{self.to_state}'
+
+
+class FeedbackModule6DisputeLink(models.Model):
+    """Link between a module-7 teaching/scoring feedback and a module-6 dispute.
+
+    Module 7 never changes a score.  It only asks module 6 to open a dispute and
+    then mirrors the dispute status for reconciliation.
+    """
+
+    ticket = models.OneToOneField(
+        FeedbackTicket, on_delete=models.CASCADE,
+        related_name='module6_dispute_link', verbose_name='反馈工单',
+    )
+    dispute_id = models.UUIDField(verbose_name='模块六争议 ID')
+    submission_id = models.UUIDField(null=True, blank=True, verbose_name='模块六提交 ID')
+    status_snapshot = models.CharField(max_length=24, blank=True, verbose_name='争议状态快照')
+    resolution_snapshot = models.TextField(blank=True, verbose_name='处理结论快照')
+    synced_at = models.DateTimeField(null=True, blank=True, verbose_name='最近同步时间')
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL,
+        related_name='feedback_dispute_links_created', verbose_name='创建人',
+    )
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='创建时间')
+
+    class Meta:
+        verbose_name = '模块六争议关联'
+        verbose_name_plural = verbose_name
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f'{self.ticket_id} -> {self.dispute_id}'

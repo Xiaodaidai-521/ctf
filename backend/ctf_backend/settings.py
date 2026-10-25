@@ -328,6 +328,13 @@ MODULE6_RETEST_GRACE_DAYS = int(os.environ.get('MODULE6_RETEST_GRACE_DAYS', '7')
 MODULE6_SERVICE_TOKEN = os.environ.get('MODULE6_SERVICE_TOKEN', '')
 MODULE6_RUBRIC_VERSION = os.environ.get('MODULE6_RUBRIC_VERSION', 'm6-rubric-v1')
 
+# Module 7 phase 3 (issue groups, candidates, approval, activation, rollback).
+# Implemented but closed by default so the first phase cannot publish a
+# teaching configuration by accident.  Enable explicitly in an evaluation or
+# phase-3 environment.
+FEEDBACK_PHASE3_ENABLED = os.environ.get('FEEDBACK_PHASE3_ENABLED', 'false').lower() in ('true', '1', 'yes')
+FEEDBACK_PHASE3_RELEASE_ENABLED = os.environ.get('FEEDBACK_PHASE3_RELEASE_ENABLED', 'false').lower() in ('true', '1', 'yes')
+
 # FRP Configuration (用于题目容器代理)
 FRP_API_URL = os.environ.get('FRP_API_URL', 'http://localhost:7500')
 FRP_HTTP_DOMAIN = os.environ.get('FRP_HTTP_DOMAIN', 'localhost:8000')

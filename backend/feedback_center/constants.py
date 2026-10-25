@@ -483,3 +483,120 @@ ACCESS_VIEW_DETAIL = 'view_detail'
 
 def label(mapping, value, fallback=''):
     return mapping.get(value, fallback or value or '')
+
+# ---------------------------------------------------------------- phase 3
+# Issue groups, candidates and the release state machine.  The state machine is
+# implemented; whether it can be driven is controlled by settings
+# ``FEEDBACK_PHASE3_ENABLED`` and ``FEEDBACK_PHASE3_RELEASE_ENABLED`` so the
+# first phase cannot publish a teaching configuration by accident.
+
+ISSUE_GROUP_DRAFT = 'draft'
+ISSUE_GROUP_PENDING_CONFIRMATION = 'pending_confirmation'
+ISSUE_GROUP_CONFIRMED = 'confirmed'
+ISSUE_GROUP_REJECTED = 'rejected'
+ISSUE_GROUP_SUPERSEDED = 'superseded'
+ISSUE_GROUP_STATUS_CHOICES = [
+    (ISSUE_GROUP_DRAFT, '草稿'),
+    (ISSUE_GROUP_PENDING_CONFIRMATION, '待确认成员'),
+    (ISSUE_GROUP_CONFIRMED, '已确认'),
+    (ISSUE_GROUP_REJECTED, '已驳回'),
+    (ISSUE_GROUP_SUPERSEDED, '已替代'),
+]
+ISSUE_GROUP_STATUS_LABELS = dict(ISSUE_GROUP_STATUS_CHOICES)
+
+ISSUE_GROUP_ACTION_CREATED = 'created'
+ISSUE_GROUP_ACTION_MEMBER_ADDED = 'member_added'
+ISSUE_GROUP_ACTION_MEMBER_REMOVED = 'member_removed'
+ISSUE_GROUP_ACTION_CONFIRMED = 'confirmed'
+ISSUE_GROUP_ACTION_REJECTED = 'rejected'
+ISSUE_GROUP_ACTION_SPLIT = 'split'
+ISSUE_GROUP_ACTION_MERGED = 'merged'
+ISSUE_GROUP_ACTION_CHOICES = [
+    (ISSUE_GROUP_ACTION_CREATED, '创建'),
+    (ISSUE_GROUP_ACTION_MEMBER_ADDED, '加入成员'),
+    (ISSUE_GROUP_ACTION_MEMBER_REMOVED, '移除成员'),
+    (ISSUE_GROUP_ACTION_CONFIRMED, '确认'),
+    (ISSUE_GROUP_ACTION_REJECTED, '驳回'),
+    (ISSUE_GROUP_ACTION_SPLIT, '拆组'),
+    (ISSUE_GROUP_ACTION_MERGED, '并组'),
+]
+
+CANDIDATE_DRAFT = 'draft'
+CANDIDATE_PENDING_EVAL = 'pending_eval'
+CANDIDATE_EVALUATING = 'evaluating'
+CANDIDATE_NEEDS_REVISION = 'needs_revision'
+CANDIDATE_PENDING_APPROVAL = 'pending_approval'
+CANDIDATE_APPROVED_PENDING_RELEASE = 'approved_pending_release'
+CANDIDATE_OBSERVING = 'observing'
+CANDIDATE_STABLE = 'stable'
+CANDIDATE_ROLLED_BACK = 'rolled_back'
+CANDIDATE_WITHDRAWN = 'withdrawn'
+CANDIDATE_STATE_CHOICES = [
+    (CANDIDATE_DRAFT, '候选草稿'),
+    (CANDIDATE_PENDING_EVAL, '待评测'),
+    (CANDIDATE_EVALUATING, '评测中'),
+    (CANDIDATE_NEEDS_REVISION, '待修订'),
+    (CANDIDATE_PENDING_APPROVAL, '待审批'),
+    (CANDIDATE_APPROVED_PENDING_RELEASE, '已批准待发布'),
+    (CANDIDATE_OBSERVING, '观察中'),
+    (CANDIDATE_STABLE, '已稳定'),
+    (CANDIDATE_ROLLED_BACK, '已回退'),
+    (CANDIDATE_WITHDRAWN, '已撤回'),
+]
+CANDIDATE_STATE_LABELS = dict(CANDIDATE_STATE_CHOICES)
+
+# Allowed transitions.  Every entry names the state it moves to and is enforced
+# on the server; the UI only hides buttons that would fail.
+CANDIDATE_TRANSITIONS = {
+    CANDIDATE_DRAFT: {CANDIDATE_PENDING_EVAL, CANDIDATE_WITHDRAWN},
+    CANDIDATE_PENDING_EVAL: {CANDIDATE_EVALUATING, CANDIDATE_DRAFT, CANDIDATE_WITHDRAWN},
+    CANDIDATE_EVALUATING: {CANDIDATE_PENDING_APPROVAL, CANDIDATE_NEEDS_REVISION, CANDIDATE_WITHDRAWN},
+    CANDIDATE_NEEDS_REVISION: {CANDIDATE_PENDING_EVAL, CANDIDATE_DRAFT, CANDIDATE_WITHDRAWN},
+    CANDIDATE_PENDING_APPROVAL: {CANDIDATE_APPROVED_PENDING_RELEASE, CANDIDATE_NEEDS_REVISION, CANDIDATE_WITHDRAWN},
+    CANDIDATE_APPROVED_PENDING_RELEASE: {CANDIDATE_OBSERVING, CANDIDATE_WITHDRAWN},
+    CANDIDATE_OBSERVING: {CANDIDATE_STABLE, CANDIDATE_ROLLED_BACK},
+    CANDIDATE_STABLE: {CANDIDATE_ROLLED_BACK},
+    CANDIDATE_ROLLED_BACK: set(),
+    CANDIDATE_WITHDRAWN: set(),
+}
+
+REPORT_RECOMMENDATION_PASS = 'pass'
+REPORT_RECOMMENDATION_FAIL = 'fail'
+REPORT_RECOMMENDATION_INSUFFICIENT = 'insufficient_evidence'
+REPORT_RECOMMENDATION_CHOICES = [
+    (REPORT_RECOMMENDATION_PASS, '建议通过'),
+    (REPORT_RECOMMENDATION_FAIL, '建议不通过'),
+    (REPORT_RECOMMENDATION_INSUFFICIENT, '证据不足'),
+]
+
+OBSERVATION_OBSERVING = 'observing'
+OBSERVATION_STABLE = 'stable'
+OBSERVATION_INSUFFICIENT = 'insufficient_evidence'
+OBSERVATION_PAUSED = 'paused'
+OBSERVATION_STATUS_CHOICES = [
+    (OBSERVATION_OBSERVING, '观察中'),
+    (OBSERVATION_STABLE, '已稳定'),
+    (OBSERVATION_INSUFFICIENT, '证据不足'),
+    (OBSERVATION_PAUSED, '已暂停'),
+]
+
+ROLLBACK_SUCCESS = 'success'
+ROLLBACK_FAILED = 'failed'
+ROLLBACK_UNKNOWN = 'unknown_pending_reconciliation'
+ROLLBACK_RESULT_CHOICES = [
+    (ROLLBACK_SUCCESS, '成功'),
+    (ROLLBACK_FAILED, '失败'),
+    (ROLLBACK_UNKNOWN, '未知，待对账'),
+]
+
+# Phase 3 write gate.  Read endpoints stay open so the contract and the state of
+# existing rows are inspectable while writes are closed.
+PHASE3_WRITE_DISABLED = 'phase3_write_disabled'
+PHASE3_RELEASE_DISABLED = 'phase3_release_disabled'
+
+DISPUTE_STATUS_MIRROR_LABELS = [
+    ('submitted', '已提交模块六'),
+    ('under_review', '模块六复核中'),
+    ('resolved', '模块六已解决'),
+    ('rejected', '模块六已驳回'),
+]

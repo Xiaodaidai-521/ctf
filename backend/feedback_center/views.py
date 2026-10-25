@@ -23,6 +23,8 @@ from rest_framework.views import APIView
 
 from . import constants
 from .models import (
+    FeedbackCandidate,
+    FeedbackIssueGroup,
     FeedbackAccessLog,
     FeedbackAttachment,
     FeedbackEventLink,
@@ -31,14 +33,26 @@ from .models import (
 )
 from .serializers import (
     AttachmentUploadSerializer,
+    CandidateActivateSerializer,
+    CandidateApproveSerializer,
+    CandidateCreateSerializer,
+    CandidateObserveSerializer,
+    CandidateReportSerializer,
+    CandidateRollbackSerializer,
     EvidenceAddSerializer,
     FeedbackCreateSerializer,
-    Phase3CandidateStubSerializer,
+    IssueGroupConfirmSerializer,
+    IssueGroupCreateSerializer,
+    IssueGroupMemberSerializer,
+    IssueGroupMergeSerializer,
+    IssueGroupRejectSerializer,
+    IssueGroupSplitSerializer,
     SamplingBatchCreateSerializer,
     TeacherActionSerializer,
 )
 from .services import evidence as evidence_service
-from .services import phase3, reconciliation, sampling, submission, workflow
+from .services import candidates as candidate_service
+from .services import dispute_link, issue_groups, phase3, reconciliation, sampling, submission, workflow
 from .services.events import link_payload
 
 
@@ -918,13 +932,430 @@ class Phase3ContractView(APIView):
         return Response(phase3.contract_payload())
 
 
-class Phase3CandidateStubView(APIView):
+def _service_error(exc):
+    code = getattr(exc, "code", "invalid_request")
+    status_code = (
+        status.HTTP_409_CONFLICT
+        if code in (constants.PHASE3_WRITE_DISABLED, constants.PHASE3_RELEASE_DISABLED)
+        else status.HTTP_400_BAD_REQUEST
+    )
+    return Response({"code": code, "detail": str(exc)}, status=status_code)
+
+
+def _decorate_phase3(payload):
+    payload["phase3_write_enabled"] = candidate_service.phase3_enabled()
+    payload["release_enabled"] = candidate_service.release_enabled()
+    return payload
+
+
+class IssueGroupListCreateView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        denied = _require_teacher(request.user)
+        if denied:
+            return denied
+        queryset = FeedbackIssueGroup.objects.select_related("catalog", "task").order_by("-created_at")
+        state_filter = request.query_params.get("status")
+        if state_filter:
+            queryset = queryset.filter(status=state_filter)
+        category = request.query_params.get("category")
+        if category:
+            queryset = queryset.filter(category=category)
+        return Response(_decorate_phase3({
+            "items": [
+                issue_groups.group_payload(group, include_members=False)
+                for group in queryset[:100]
+            ],
+        }))
+
+    def post(self, request):
+        denied = _require_teacher(request.user)
+        if denied:
+            return denied
+        serializer = IssueGroupCreateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+        catalog = None
+        if data.get("catalog_version"):
+            from learning_map.models import CatalogVersion
+
+            catalog = CatalogVersion.objects.filter(version=data["catalog_version"]).first()
+            if catalog is None:
+                return Response({"detail": "目录版本不存在。"}, status=status.HTTP_400_BAD_REQUEST)
+        task = None
+        if data.get("task_key"):
+            from learning_map.models import TaskPackage
+
+            task = TaskPackage.objects.filter(
+                catalog=catalog,
+                task_key=data["task_key"],
+                version=data.get("task_version") or "",
+            ).first()
+            if task is None:
+                return Response({"detail": "任务不存在。"}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            group = issue_groups.create_group(
+                actor=request.user,
+                title=data["title"],
+                category=data["category"],
+                issue_type=data["issue_type"],
+                window_start=data["window_start"],
+                window_end=data["window_end"],
+                catalog=catalog,
+                task=task,
+                notes=data.get("notes", ""),
+            )
+        except issue_groups.IssueGroupError as exc:
+            return _service_error(exc)
+        return Response(issue_groups.group_payload(group), status=status.HTTP_201_CREATED)
+
+
+class IssueGroupDetailView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, group_id):
+        denied = _require_teacher(request.user)
+        if denied:
+            return denied
+        group = get_object_or_404(FeedbackIssueGroup, group_id=group_id)
+        return Response(_decorate_phase3(issue_groups.group_payload(group)))
+
+
+class IssueGroupMemberView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, group_id):
+        denied = _require_teacher(request.user)
+        if denied:
+            return denied
+        group = get_object_or_404(FeedbackIssueGroup, group_id=group_id)
+        serializer = IssueGroupMemberSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+        ticket = get_object_or_404(FeedbackTicket, feedback_id=data["feedback_id"])
+        try:
+            member, created = issue_groups.add_member(
+                group,
+                ticket,
+                actor=request.user,
+                included=data["included"],
+                reason=data.get("reason", ""),
+            )
+        except issue_groups.IssueGroupError as exc:
+            return _service_error(exc)
+        return Response(
+            {
+                "member": {
+                    "feedback_id": str(member.ticket.feedback_id),
+                    "included": member.included,
+                    "exclusion_reason": member.exclusion_reason,
+                },
+                "created": created,
+                "counts": group.counts,
+            },
+            status=status.HTTP_201_CREATED if created else status.HTTP_200_OK,
+        )
+
+
+class IssueGroupConfirmView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, group_id):
+        denied = _require_teacher(request.user)
+        if denied:
+            return denied
+        group = get_object_or_404(FeedbackIssueGroup, group_id=group_id)
+        serializer = IssueGroupConfirmSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        try:
+            group = issue_groups.confirm_group(
+                group, reviewer=request.user, notes=serializer.validated_data.get("notes", ""),
+            )
+        except issue_groups.IssueGroupError as exc:
+            return _service_error(exc)
+        return Response(issue_groups.group_payload(group))
+
+
+class IssueGroupRejectView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, group_id):
+        denied = _require_teacher(request.user)
+        if denied:
+            return denied
+        group = get_object_or_404(FeedbackIssueGroup, group_id=group_id)
+        serializer = IssueGroupRejectSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        try:
+            group = issue_groups.reject_group(
+                group, reviewer=request.user, reason=serializer.validated_data["reason"],
+            )
+        except issue_groups.IssueGroupError as exc:
+            return _service_error(exc)
+        return Response(issue_groups.group_payload(group))
+
+
+class IssueGroupSplitView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, group_id):
+        denied = _require_teacher(request.user)
+        if denied:
+            return denied
+        group = get_object_or_404(FeedbackIssueGroup, group_id=group_id)
+        serializer = IssueGroupSplitSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        try:
+            new_group = issue_groups.split_group(
+                group,
+                feedback_ids=serializer.validated_data["feedback_ids"],
+                actor=request.user,
+                title=serializer.validated_data.get("title", ""),
+            )
+        except issue_groups.IssueGroupError as exc:
+            return _service_error(exc)
+        return Response(issue_groups.group_payload(new_group), status=status.HTTP_201_CREATED)
+
+
+class IssueGroupMergeView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
         denied = _require_teacher(request.user)
         if denied:
             return denied
-        serializer = Phase3CandidateStubSerializer(data=request.data)
+        serializer = IssueGroupMergeSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        return Response(phase3.disabled_response(), status=status.HTTP_409_CONFLICT)
+        groups = list(
+            FeedbackIssueGroup.objects.filter(group_id__in=serializer.validated_data["group_ids"])
+        )
+        try:
+            merged = issue_groups.merge_groups(
+                groups,
+                actor=request.user,
+                title=serializer.validated_data.get("title", ""),
+            )
+        except issue_groups.IssueGroupError as exc:
+            return _service_error(exc)
+        return Response(issue_groups.group_payload(merged), status=status.HTTP_201_CREATED)
+
+
+class CandidateListCreateView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        denied = _require_teacher(request.user)
+        if denied:
+            return denied
+        queryset = FeedbackCandidate.objects.select_related("owner").order_by("-created_at")
+        state_filter = request.query_params.get("state")
+        if state_filter:
+            queryset = queryset.filter(state=state_filter)
+        return Response(_decorate_phase3({
+            "items": [candidate_service.candidate_payload(row) for row in queryset[:100]],
+        }))
+
+    def post(self, request):
+        denied = _require_teacher(request.user)
+        if denied:
+            return denied
+        serializer = CandidateCreateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        try:
+            candidate = candidate_service.create_candidate(
+                actor=request.user, **serializer.validated_data,
+            )
+        except candidate_service.CandidateError as exc:
+            return _service_error(exc)
+        return Response(
+            candidate_service.candidate_payload(candidate), status=status.HTTP_201_CREATED,
+        )
+
+
+class CandidateDetailView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, candidate_id):
+        denied = _require_teacher(request.user)
+        if denied:
+            return denied
+        candidate = get_object_or_404(FeedbackCandidate, candidate_id=candidate_id)
+        return Response(_decorate_phase3(candidate_service.candidate_payload(candidate)))
+
+
+class CandidateSubmitView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, candidate_id):
+        denied = _require_teacher(request.user)
+        if denied:
+            return denied
+        candidate = get_object_or_404(FeedbackCandidate, candidate_id=candidate_id)
+        try:
+            candidate = candidate_service.submit_for_evaluation(candidate, actor=request.user)
+        except candidate_service.CandidateError as exc:
+            return _service_error(exc)
+        return Response(candidate_service.candidate_payload(candidate))
+
+
+class CandidateReportView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, candidate_id):
+        denied = _require_teacher(request.user)
+        if denied:
+            return denied
+        candidate = get_object_or_404(FeedbackCandidate, candidate_id=candidate_id)
+        serializer = CandidateReportSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        try:
+            candidate = candidate_service.attach_report(
+                candidate, actor=request.user, report=dict(serializer.validated_data),
+            )
+        except candidate_service.CandidateError as exc:
+            return _service_error(exc)
+        return Response(candidate_service.candidate_payload(candidate))
+
+
+class CandidateCompleteEvaluationView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, candidate_id):
+        denied = _require_teacher(request.user)
+        if denied:
+            return denied
+        candidate = get_object_or_404(FeedbackCandidate, candidate_id=candidate_id)
+        try:
+            candidate = candidate_service.complete_evaluation(
+                candidate, actor=request.user, note=request.data.get("note", ""),
+            )
+        except candidate_service.CandidateError as exc:
+            return _service_error(exc)
+        return Response(candidate_service.candidate_payload(candidate))
+
+
+class CandidateApproveView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, candidate_id):
+        denied = _require_teacher(request.user)
+        if denied:
+            return denied
+        candidate = get_object_or_404(FeedbackCandidate, candidate_id=candidate_id)
+        serializer = CandidateApproveSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        try:
+            candidate = candidate_service.approve(
+                candidate, approver=request.user, **serializer.validated_data,
+            )
+        except candidate_service.CandidateError as exc:
+            return _service_error(exc)
+        return Response(candidate_service.candidate_payload(candidate))
+
+
+class CandidateActivateView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, candidate_id):
+        denied = _require_teacher(request.user)
+        if denied:
+            return denied
+        candidate = get_object_or_404(FeedbackCandidate, candidate_id=candidate_id)
+        serializer = CandidateActivateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        try:
+            candidate = candidate_service.activate(
+                candidate,
+                operator=request.user,
+                applicable_future_tasks=serializer.validated_data.get("applicable_future_tasks", []),
+            )
+        except candidate_service.CandidateError as exc:
+            return _service_error(exc)
+        return Response(candidate_service.candidate_payload(candidate))
+
+
+class CandidateObserveView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, candidate_id):
+        denied = _require_teacher(request.user)
+        if denied:
+            return denied
+        candidate = get_object_or_404(FeedbackCandidate, candidate_id=candidate_id)
+        serializer = CandidateObserveSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        try:
+            candidate = candidate_service.record_observation(
+                candidate, actor=request.user, **serializer.validated_data,
+            )
+        except candidate_service.CandidateError as exc:
+            return _service_error(exc)
+        return Response(candidate_service.candidate_payload(candidate))
+
+
+class CandidateStableView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, candidate_id):
+        denied = _require_teacher(request.user)
+        if denied:
+            return denied
+        candidate = get_object_or_404(FeedbackCandidate, candidate_id=candidate_id)
+        try:
+            candidate = candidate_service.mark_stable(
+                candidate, actor=request.user, note=request.data.get("note", ""),
+            )
+        except candidate_service.CandidateError as exc:
+            return _service_error(exc)
+        return Response(candidate_service.candidate_payload(candidate))
+
+
+class CandidateRollbackView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, candidate_id):
+        denied = _require_teacher(request.user)
+        if denied:
+            return denied
+        candidate = get_object_or_404(FeedbackCandidate, candidate_id=candidate_id)
+        serializer = CandidateRollbackSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        try:
+            candidate = candidate_service.rollback(
+                candidate, operator=request.user, **serializer.validated_data,
+            )
+        except candidate_service.CandidateError as exc:
+            return _service_error(exc)
+        return Response(candidate_service.candidate_payload(candidate))
+
+
+class FeedbackDisputeLinkView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, feedback_id):
+        denied = _require_teacher(request.user)
+        if denied:
+            return denied
+        ticket = _get_ticket(feedback_id)
+        try:
+            link, created = dispute_link.open_dispute_for_ticket(ticket, actor=request.user)
+        except dispute_link.DisputeLinkError as exc:
+            return _service_error(exc)
+        except PermissionError as exc:
+            return Response({"detail": str(exc)}, status=status.HTTP_403_FORBIDDEN)
+        return Response(
+            {**dispute_link.link_payload(link), "created": created},
+            status=status.HTTP_201_CREATED if created else status.HTTP_200_OK,
+        )
+
+    def get(self, request, feedback_id):
+        denied = _require_teacher(request.user)
+        if denied:
+            return denied
+        ticket = _get_ticket(feedback_id)
+        link = getattr(ticket, "module6_dispute_link", None)
+        if link is None:
+            return Response({"linked": False})
+        link, changed = dispute_link.sync_dispute_status(link)
+        return Response({**dispute_link.link_payload(link), "linked": True, "changed": changed})

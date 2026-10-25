@@ -224,3 +224,95 @@ class Phase3CandidateStubSerializer(serializers.Serializer):
 
     def create(self, validated_data):
         raise serializers.ValidationError(phase3.disabled_response())
+
+
+class IssueGroupCreateSerializer(serializers.Serializer):
+    title = serializers.CharField(max_length=200)
+    category = serializers.ChoiceField(choices=[c[0] for c in constants.CATEGORY_CHOICES])
+    issue_type = serializers.CharField(max_length=48)
+    catalog_version = serializers.CharField(max_length=64, required=False, allow_blank=True)
+    task_key = serializers.CharField(max_length=80, required=False, allow_blank=True, default='')
+    task_version = serializers.CharField(max_length=32, required=False, allow_blank=True, default='')
+    window_start = serializers.DateTimeField()
+    window_end = serializers.DateTimeField()
+    notes = serializers.CharField(required=False, allow_blank=True, default='')
+
+
+class IssueGroupMemberSerializer(serializers.Serializer):
+    feedback_id = serializers.UUIDField()
+    included = serializers.BooleanField(default=True)
+    reason = serializers.CharField(required=False, allow_blank=True, default='')
+
+
+class IssueGroupConfirmSerializer(serializers.Serializer):
+    notes = serializers.CharField(required=False, allow_blank=True, default='')
+
+
+class IssueGroupRejectSerializer(serializers.Serializer):
+    reason = serializers.CharField(allow_blank=False)
+
+
+class IssueGroupSplitSerializer(serializers.Serializer):
+    feedback_ids = serializers.ListField(child=serializers.UUIDField(), allow_empty=False)
+    title = serializers.CharField(max_length=200, required=False, allow_blank=True, default='')
+
+
+class IssueGroupMergeSerializer(serializers.Serializer):
+    group_ids = serializers.ListField(child=serializers.UUIDField(), allow_empty=False)
+    title = serializers.CharField(max_length=200, required=False, allow_blank=True, default='')
+
+
+class CandidateCreateSerializer(serializers.Serializer):
+    title = serializers.CharField(max_length=200)
+    issue_group_ids = serializers.ListField(child=serializers.UUIDField(), allow_empty=False)
+    baseline_config_version = serializers.CharField(max_length=64)
+    candidate_config_version = serializers.CharField(max_length=64)
+    single_changed_factor = serializers.CharField(max_length=128)
+    target_task_versions = serializers.ListField(child=serializers.CharField(), required=False, default=list)
+    excluded_scope = serializers.ListField(child=serializers.CharField(), required=False, default=list)
+    expected_risk = serializers.CharField(required=False, allow_blank=True, default='')
+    rollback_version = serializers.CharField(max_length=64)
+    baseline_config = serializers.DictField(required=False, default=dict)
+    candidate_config = serializers.DictField(required=False, default=dict)
+
+
+class CandidateReportSerializer(serializers.Serializer):
+    run_id = serializers.CharField(max_length=128)
+    report_id = serializers.CharField(max_length=128)
+    report_version = serializers.CharField(max_length=64)
+    report_digest = serializers.CharField(max_length=64)
+    dataset_version = serializers.CharField(max_length=64, required=False, allow_blank=True, default='')
+    baseline_config_digest = serializers.CharField(max_length=64, required=False, allow_blank=True, default='')
+    candidate_config_digest = serializers.CharField(max_length=64, required=False, allow_blank=True, default='')
+    recommendation = serializers.ChoiceField(
+        choices=[c[0] for c in constants.REPORT_RECOMMENDATION_CHOICES],
+    )
+    completed = serializers.BooleanField(default=False)
+    missing_cases = serializers.IntegerField(required=False, default=0)
+
+
+class CandidateApproveSerializer(serializers.Serializer):
+    scope = serializers.CharField(allow_blank=False)
+    observation_window = serializers.CharField(allow_blank=False)
+    rollback_condition = serializers.CharField(allow_blank=False)
+
+
+class CandidateActivateSerializer(serializers.Serializer):
+    applicable_future_tasks = serializers.ListField(child=serializers.CharField(), required=False, default=list)
+
+
+class CandidateObserveSerializer(serializers.Serializer):
+    report_id = serializers.CharField(max_length=128, required=False, allow_blank=True, default='')
+    status = serializers.ChoiceField(
+        choices=[c[0] for c in constants.OBSERVATION_STATUS_CHOICES],
+        required=False,
+    )
+    new_failures = serializers.IntegerField(required=False, allow_null=True)
+    normal_block_rate = serializers.DictField(required=False, allow_null=True)
+    unauthorized_allow_rate = serializers.DictField(required=False, allow_null=True)
+    note = serializers.CharField(required=False, allow_blank=True, default='')
+
+
+class CandidateRollbackSerializer(serializers.Serializer):
+    reason = serializers.CharField(allow_blank=False)
+    result = serializers.ChoiceField(choices=[c[0] for c in constants.ROLLBACK_RESULT_CHOICES])
