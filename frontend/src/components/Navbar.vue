@@ -20,6 +20,15 @@
         <router-link to="/resources" class="nav-item" active-class="active">
           资源中心
         </router-link>
+        <router-link v-if="userStore.isAuthenticated" to="/capability-map" class="nav-item" active-class="active">
+          能力地图
+        </router-link>
+        <router-link v-if="userStore.isAuthenticated" to="/my-results" class="nav-item" active-class="active">
+          结果与复盘
+        </router-link>
+        <router-link v-if="userStore.isAuthenticated" to="/feedback" class="nav-item" active-class="active">
+          反馈
+        </router-link>
         <router-link to="/community" class="nav-item" active-class="active">
           社区
         </router-link>

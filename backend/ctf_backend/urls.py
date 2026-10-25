@@ -26,8 +26,14 @@ def resource_media_disabled(request, path):
     return HttpResponseNotFound()
 
 
+def feedback_evidence_media_disabled(request, path):
+    """Module-7 attachments are served only by the permission-checked API."""
+    return HttpResponseNotFound()
+
+
 urlpatterns = [
     path('media/resources/<path:path>', resource_media_disabled, name='resource-media-disabled'),
+    path('media/feedback_evidence/<path:path>', feedback_evidence_media_disabled, name='feedback-evidence-media-disabled'),
     path('admin/', admin.site.urls),
     path('api/users/', include('users.urls')),
     path('api/challenges/', include('challenges.urls')),
@@ -53,6 +59,9 @@ urlpatterns = [
     path('api/student-profiles/', include('student_profiles.urls')),
     path('api/content/', include('content_generator.urls')),
     path('api/analytics/', include('learning_analytics.urls')),
+    path('api/learning-map/', include('learning_map.urls')),
+    path('api/skill-review/', include('skill_review.urls')),
+    path('api/feedback/', include('feedback_center.urls')),
 ]
 
 # 开发环境下的媒体文件服务

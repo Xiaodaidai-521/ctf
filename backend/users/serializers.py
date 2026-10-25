@@ -7,13 +7,16 @@ class UserSerializer(serializers.ModelSerializer):
     solved_count = serializers.SerializerMethodField()
     role_display = serializers.CharField(source='get_role_display', read_only=True)
     avatar_url = serializers.SerializerMethodField()
+    can_manage_catalog = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = CTFUser
         fields = ['id', 'username', 'nickname', 'email', 'role', 'role_display',
                  'score', 'points', 'solved_count', 'team', 'class_name', 'student_id',
-                 'bio', 'avatar', 'avatar_url', 'created_at']
-        read_only_fields = ['id', 'role', 'score', 'points', 'created_at']
+                 'bio', 'avatar', 'avatar_url', 'created_at',
+                 'is_course_owner', 'can_manage_catalog']
+        read_only_fields = ['id', 'role', 'score', 'points', 'created_at',
+                            'is_course_owner', 'can_manage_catalog']
 
     def get_solved_count(self, obj):
         return obj.get_solved_challenges_count()

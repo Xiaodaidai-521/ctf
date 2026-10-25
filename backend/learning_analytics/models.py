@@ -195,6 +195,32 @@ class LearningEvent(models.Model):
         ('exercise_start', 'Exercise start'), ('exercise_submit', 'Exercise submit'),
         ('answer_result', 'Answer result'), ('lesson_complete', 'Lesson complete'),
         ('review_start', 'Review start'), ('login', 'Login'), ('logout', 'Logout'),
+        # Module 1 capability-map event dictionary additions.  Task attempts,
+        # hint visibility and retests carry catalog/task/evidence versions in
+        # metadata; no answer text is stored here.
+        ('diagnosis_submit', 'Diagnosis submit'),
+        ('task_claim', 'Task claim'), ('task_start', 'Task start'),
+        ('task_submit', 'Task submit'), ('verification_result', 'Verification result'),
+        ('hint_request', 'Hint request'), ('hint_show', 'Hint show'),
+        ('teacher_help', 'Teacher help'), ('analysis_view', 'Analysis view'),
+        ('retest_assign', 'Retest assign'), ('recommendation_issued', 'Recommendation issued'),
+        ('path_update', 'Path update'), ('ai_degraded', 'AI degraded'),
+        # Module 6 event dictionary additions.
+        ('review_card_complete', 'Review card complete'),
+        ('correction', 'Correction issued'),
+        ('sampling_batch', 'Sampling batch'), 
+        # Module 7 typed-feedback event dictionary.  Feedback state changes are
+        # recorded in the same canonical event store; no second learning-fact
+        # system is created.  Metadata carries IDs, versions and status only.
+        ('feedback_submitted', 'Feedback submitted'),
+        ('feedback_deduplicated', 'Feedback deduplicated'),
+        ('feedback_evidence_added', 'Feedback evidence added'),
+        ('feedback_reviewed', 'Feedback reviewed'),
+        ('feedback_handling_started', 'Feedback handling started'),
+        ('feedback_handled', 'Feedback handled'),
+        ('feedback_reopened', 'Feedback reopened'),
+        ('feedback_effect_updated', 'Feedback effect updated'),
+        ('feedback_status_changed', 'Feedback status changed'),
     ]
 
     event_id = models.CharField(max_length=64, unique=True)
