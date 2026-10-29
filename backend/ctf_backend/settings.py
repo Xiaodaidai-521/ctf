@@ -72,6 +72,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'users',
     'challenges',
+    'practical_training',
     'submissions',
     'resources',
     'articles',

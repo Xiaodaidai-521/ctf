@@ -1,0 +1,13 @@
+{
+  "label": "repair-key-content-conflict-1",
+  "os_pid": 18261,
+  "pg_pid": 18267,
+  "database": "module5_r2",
+  "version": "PostgreSQL 16.13 on x86_64-pc-linux-gnu, compiled by gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0, 64-bit",
+  "retries": [],
+  "status": 400,
+  "body": [
+    "同键异内容修复主张被拒绝。"
+  ],
+  "elapsed_s": 0.8337007240002094
+}

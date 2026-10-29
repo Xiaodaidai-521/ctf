@@ -1,0 +1,141 @@
+{
+  "schema": "module5-r2-course-generation-manifest-v1",
+  "generated_at_utc": "2026-10-29T05:22:11.946766+00:00",
+  "worktree": "/home/hatch/workspace/ctf-module5",
+  "git_head": "dc997fee4a39f4e48da534a1d62c21c47ebee7d1",
+  "document_status": "candidate_pending_teacher_review",
+  "artifacts": [
+    {
+      "path": "docs/module5-r2-course-signoff.md",
+      "role": "Unsigned teacher review packet",
+      "sha256": "f00b68051315d576d516299c1b93fac89008fe0ffbbfd1fe69ee8bc8b197d6e2",
+      "bytes": 34972
+    },
+    {
+      "path": "evidence/module5/r2-course-source-snapshot.json",
+      "role": "Source and protected-file hash inventory",
+      "sha256": "d931cbfcac48d6686da699fd3d0e2be42abf1f3c27465c1ba70b4d24ef5c49a7",
+      "bytes": 79211
+    },
+    {
+      "path": "evidence/module5/r2-course-references.json",
+      "role": "Fixed-version reference metadata",
+      "sha256": "aef239798b34619e2a9cd69d169fe492cc2c34424327ff802e7ab3818db50105",
+      "bytes": 3582
+    }
+  ],
+  "manifest_self": {
+    "path": "evidence/module5/r2-course-generation-manifest.json",
+    "sha256": null,
+    "reason": "Excluded from own checksum inventory to avoid recursion."
+  },
+  "checks": [
+    {
+      "name": "protected_files_unchanged",
+      "passed": true,
+      "detail": {
+        "count": 631,
+        "mismatches": []
+      }
+    },
+    {
+      "name": "markdown_whitespace",
+      "passed": true,
+      "detail": "No trailing whitespace; final newline present."
+    },
+    {
+      "name": "tables_and_teacher_blanks",
+      "passed": true,
+      "detail": {
+        "blank_review_cells_checked": 215,
+        "errors": []
+      }
+    },
+    {
+      "name": "no_prechecked_signoff",
+      "passed": true,
+      "detail": "No prechecked checklist/signature boxes."
+    },
+    {
+      "name": "local_code_references_exist",
+      "passed": true,
+      "detail": {
+        "references": [
+          "backend/manage.py",
+          "backend/practical_training/curriculum.py",
+          "backend/practical_training/lifecycle.py",
+          "backend/practical_training/management/commands/seed_practical_training.py",
+          "backend/practical_training/services.py",
+          "backend/practical_training/verifiers.py"
+        ],
+        "missing": []
+      }
+    },
+    {
+      "name": "document_source_hashes_match",
+      "passed": true,
+      "detail": "Five pinned code hashes agree with the source snapshot."
+    },
+    {
+      "name": "material_hashes_match",
+      "passed": true,
+      "detail": "Three curriculum object hashes agree with the literal inventory."
+    },
+    {
+      "name": "fixed_reference_fetches",
+      "passed": true,
+      "detail": "Three fixed-version raw references fetched; only metadata and hashes retained."
+    },
+    {
+      "name": "readonly_snippet_present",
+      "passed": true,
+      "detail": "Teacher-only shell example is present; not executed."
+    },
+    {
+      "name": "readonly_snippet_python_syntax",
+      "passed": true,
+      "detail": "Python portion parses; no Django import, DB query or API call was executed during this check."
+    },
+    {
+      "name": "git_diff_check",
+      "passed": true,
+      "detail": {
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    }
+  ],
+  "checks_scope": "Static documentation, AST syntax, path and hash checks only; not application tests, curriculum signoff, permission/security validation or deployment acceptance.",
+  "previous_validation_attempts": [
+    {
+      "result": "failed before writing manifest",
+      "failure": "readonly_snippet_present assertion",
+      "cause": "Validator regex expected closing shell quote on a separate line; document uses a valid same-line closing quote.",
+      "resolution": "Corrected validator extraction regex; no document or application change was needed."
+    }
+  ],
+  "not_executed": [
+    "Business database reads/writes",
+    "seed_practical_training",
+    "Django test suite or verifier execution",
+    "Teacher signoff, review, task freeze or catalog publish API",
+    "Student task claims or environment approval",
+    "Runtime, network/resource cleanup, PostgreSQL concurrency or delayed retest validation",
+    "Code/PROGRESS.md/DELIVERY.md edits",
+    "git commit or push"
+  ],
+  "teacher_review": {
+    "reviewer": null,
+    "date": null,
+    "conclusion": null,
+    "todo": null
+  },
+  "generation_methods": [
+    "Source inventory: pathlib reads, SHA-256, AST literal_eval without importing application modules; source references explicitly restricted to this worktree.",
+    "External references: HTTPS fixed-version raw files fetched as data with 20-second per-request timeout; only title/license metadata and response hashes retained, no source bodies or solution excerpts written.",
+    "Document: manually composed from required files and actual implementation; all teacher approval fields left blank.",
+    "Final: compare protected hashes, validate Markdown tables/blank review fields, validate illustrative Python syntax without execution, git diff --check."
+  ],
+  "git_status_after": " M DELIVERY.md\n M PROGRESS.md\n M backend/ctf_backend/settings.py\n M backend/ctf_backend/urls.py\n?? backend/practical_training/\n?? backend/scripts/r2_pg_concurrency.py\n?? backend/scripts/r2_pg_verify.sh\n?? docs/module5-r2-course-signoff.md\n?? evidence/\n?? scripts/\n"
+}

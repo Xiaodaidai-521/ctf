@@ -1,0 +1,319 @@
+{
+  "database": "module5_r2",
+  "mocked_locks": false,
+  "challenge_source": "local HTTP fixture, NOT live Juice Shop",
+  "races": [
+    {
+      "name": "challenge-same-key",
+      "results": [
+        {
+          "label": "challenge-same-key-0",
+          "os_pid": 18231,
+          "pg_pid": 18238,
+          "database": "module5_r2",
+          "version": "PostgreSQL 16.13 on x86_64-pc-linux-gnu, compiled by gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0, 64-bit",
+          "retries": [],
+          "status": 201,
+          "body": {
+            "evidence_id": "0cd778c3-76a2-4d42-87ae-cf3041fd7a89",
+            "status": "passed",
+            "error": "",
+            "verifier_version": "m5-juice-confidential-v1",
+            "observed_at": "2026-10-29 05:44:11.985406+00:00",
+            "content_hash": "1e88113002039adef1a174fd36607893155d437cb4a48b4fab004730fb1fd953",
+            "source": {
+              "kind": "juice_shop_state",
+              "assignment_id": "9b61f2d6-1703-4bff-aedf-4b2e09db4e9e",
+              "attempt_id": "379d2f7e-163d-4101-967e-4ca10badbffe",
+              "student_id": 1,
+              "task_id": 1,
+              "task_version": "1.0.0",
+              "catalog_version": "m5-test-v1",
+              "container_id": "m5-fixture-container",
+              "challenge_id": 1,
+              "challenge_key": "directoryListingChallenge",
+              "baseline_observed_at": "2026-10-29T05:44:07.571256+00:00"
+            },
+            "result_id": "8326c011-81b7-4380-a579-8d232f325f7e",
+            "submission_id": "e61e0a1f-5266-413b-a63a-646cc40b3ee6",
+            "module1_fact_ids": {
+              "M5-TEST": "m5-8a864cbc6a1361c987ee6dff300eb208ff01a2b6"
+            }
+          },
+          "elapsed_s": 1.949144909000097
+        },
+        {
+          "label": "challenge-same-key-1",
+          "os_pid": 18232,
+          "pg_pid": 18239,
+          "database": "module5_r2",
+          "version": "PostgreSQL 16.13 on x86_64-pc-linux-gnu, compiled by gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0, 64-bit",
+          "retries": [],
+          "status": 200,
+          "body": {
+            "evidence_id": "0cd778c3-76a2-4d42-87ae-cf3041fd7a89",
+            "status": "passed",
+            "error": "",
+            "verifier_version": "m5-juice-confidential-v1",
+            "observed_at": "2026-10-29 05:44:11.985406+00:00",
+            "content_hash": "1e88113002039adef1a174fd36607893155d437cb4a48b4fab004730fb1fd953",
+            "source": {
+              "kind": "juice_shop_state",
+              "task_id": 1,
+              "attempt_id": "379d2f7e-163d-4101-967e-4ca10badbffe",
+              "student_id": 1,
+              "challenge_id": 1,
+              "container_id": "m5-fixture-container",
+              "task_version": "1.0.0",
+              "assignment_id": "9b61f2d6-1703-4bff-aedf-4b2e09db4e9e",
+              "challenge_key": "directoryListingChallenge",
+              "catalog_version": "m5-test-v1",
+              "baseline_observed_at": "2026-10-29T05:44:07.571256+00:00"
+            },
+            "result_id": "8326c011-81b7-4380-a579-8d232f325f7e",
+            "submission_id": "e61e0a1f-5266-413b-a63a-646cc40b3ee6",
+            "module1_fact_ids": {
+              "M5-TEST": "m5-8a864cbc6a1361c987ee6dff300eb208ff01a2b6"
+            }
+          },
+          "elapsed_s": 1.9387680719996752
+        }
+      ],
+      "lock_snapshots": 35,
+      "worker_blocks_worker": true
+    },
+    {
+      "name": "repair-duplicate-submit",
+      "results": [
+        {
+          "label": "repair-duplicate-submit-0",
+          "os_pid": 18247,
+          "pg_pid": 18255,
+          "database": "module5_r2",
+          "version": "PostgreSQL 16.13 on x86_64-pc-linux-gnu, compiled by gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0, 64-bit",
+          "retries": [],
+          "status": 201,
+          "body": {
+            "claim_id": "ed98416a-2d0a-4b5f-b9fc-6ce9ce213b0c",
+            "attempt_id": "0535bcd3-25ab-4534-9937-950d709ea8d5",
+            "retest_id": "3285961a-06d5-4623-8545-c930b2506657",
+            "completed": false,
+            "status": "pending_independent_verification",
+            "evidence_id": null,
+            "scope": "proposal_only_not_live_juice_patch"
+          },
+          "elapsed_s": 1.037949604000005
+        },
+        {
+          "label": "repair-duplicate-submit-1",
+          "os_pid": 18248,
+          "pg_pid": 18256,
+          "database": "module5_r2",
+          "version": "PostgreSQL 16.13 on x86_64-pc-linux-gnu, compiled by gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0, 64-bit",
+          "retries": [],
+          "status": 200,
+          "body": {
+            "claim_id": "ed98416a-2d0a-4b5f-b9fc-6ce9ce213b0c",
+            "attempt_id": "0535bcd3-25ab-4534-9937-950d709ea8d5",
+            "retest_id": "3285961a-06d5-4623-8545-c930b2506657",
+            "completed": false,
+            "status": "pending_independent_verification",
+            "evidence_id": null,
+            "scope": "proposal_only_not_live_juice_patch"
+          },
+          "elapsed_s": 1.061506899000051
+        }
+      ],
+      "lock_snapshots": 4,
+      "worker_blocks_worker": true
+    },
+    {
+      "name": "repair-key-content-conflict",
+      "results": [
+        {
+          "label": "repair-key-content-conflict-0",
+          "os_pid": 18260,
+          "pg_pid": 18268,
+          "database": "module5_r2",
+          "version": "PostgreSQL 16.13 on x86_64-pc-linux-gnu, compiled by gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0, 64-bit",
+          "retries": [],
+          "status": 200,
+          "body": {
+            "claim_id": "ed98416a-2d0a-4b5f-b9fc-6ce9ce213b0c",
+            "attempt_id": "0535bcd3-25ab-4534-9937-950d709ea8d5",
+            "retest_id": "3285961a-06d5-4623-8545-c930b2506657",
+            "completed": false,
+            "status": "pending_independent_verification",
+            "evidence_id": null,
+            "scope": "proposal_only_not_live_juice_patch"
+          },
+          "elapsed_s": 0.8324059389997274
+        },
+        {
+          "label": "repair-key-content-conflict-1",
+          "os_pid": 18261,
+          "pg_pid": 18267,
+          "database": "module5_r2",
+          "version": "PostgreSQL 16.13 on x86_64-pc-linux-gnu, compiled by gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0, 64-bit",
+          "retries": [],
+          "status": 400,
+          "body": [
+            "同键异内容修复主张被拒绝。"
+          ],
+          "elapsed_s": 0.8337007240002094
+        }
+      ],
+      "lock_snapshots": 3,
+      "worker_blocks_worker": true
+    },
+    {
+      "name": "repair-same-evidence",
+      "results": [
+        {
+          "label": "repair-same-evidence-0",
+          "os_pid": 18269,
+          "pg_pid": 18280,
+          "database": "module5_r2",
+          "version": "PostgreSQL 16.13 on x86_64-pc-linux-gnu, compiled by gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0, 64-bit",
+          "retries": [],
+          "status": 201,
+          "body": {
+            "evidence_id": "d07eaa1b-c04c-4be8-bd7f-efb1d3f6d70c",
+            "status": "passed",
+            "error": "",
+            "verifier_version": "m5-document-policy-v1",
+            "observed_at": "2026-10-29 05:44:29.315940+00:00",
+            "content_hash": "5d519d7a8ce10531b9abcc5da37b402ff65b8873c8af9321488f31c3c1843905",
+            "source": {
+              "kind": "synthetic_policy_reexecution",
+              "assignment_id": "9b61f2d6-1703-4bff-aedf-4b2e09db4e9e",
+              "attempt_id": "0535bcd3-25ab-4534-9937-950d709ea8d5",
+              "student_id": 1,
+              "task_id": 2,
+              "task_version": "1.0.0",
+              "catalog_version": "m5-test-v1",
+              "container_id": "m5-fixture-container",
+              "challenge_id": 1,
+              "challenge_key": "directoryListingChallenge",
+              "claim_id": "ed98416a-2d0a-4b5f-b9fc-6ce9ce213b0c",
+              "claim_hash": "4530825e42be7f64ac3204fdc9afd01065e36c3badf813576c2ecee250cb8f57",
+              "original_attempt_id": "379d2f7e-163d-4101-967e-4ca10badbffe",
+              "scope": "proposal_only_not_live_juice_patch"
+            },
+            "result_id": "eaff1971-aaed-4278-b7d8-071ed02034e5",
+            "submission_id": "0e23a7fe-534c-47e7-b65c-14be299652b5",
+            "module1_fact_ids": {
+              "M5-TEST": "m5-d7a3e483357319d0fbf0e58d1267a37e64ba92f9"
+            }
+          },
+          "elapsed_s": 1.9386292040003354
+        },
+        {
+          "label": "repair-same-evidence-1",
+          "os_pid": 18270,
+          "pg_pid": 18279,
+          "database": "module5_r2",
+          "version": "PostgreSQL 16.13 on x86_64-pc-linux-gnu, compiled by gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0, 64-bit",
+          "retries": [],
+          "status": 200,
+          "body": {
+            "evidence_id": "d07eaa1b-c04c-4be8-bd7f-efb1d3f6d70c",
+            "status": "passed",
+            "error": "",
+            "verifier_version": "m5-document-policy-v1",
+            "observed_at": "2026-10-29 05:44:29.315940+00:00",
+            "content_hash": "5d519d7a8ce10531b9abcc5da37b402ff65b8873c8af9321488f31c3c1843905",
+            "source": {
+              "kind": "synthetic_policy_reexecution",
+              "scope": "proposal_only_not_live_juice_patch",
+              "task_id": 2,
+              "claim_id": "ed98416a-2d0a-4b5f-b9fc-6ce9ce213b0c",
+              "attempt_id": "0535bcd3-25ab-4534-9937-950d709ea8d5",
+              "claim_hash": "4530825e42be7f64ac3204fdc9afd01065e36c3badf813576c2ecee250cb8f57",
+              "student_id": 1,
+              "challenge_id": 1,
+              "container_id": "m5-fixture-container",
+              "task_version": "1.0.0",
+              "assignment_id": "9b61f2d6-1703-4bff-aedf-4b2e09db4e9e",
+              "challenge_key": "directoryListingChallenge",
+              "catalog_version": "m5-test-v1",
+              "original_attempt_id": "379d2f7e-163d-4101-967e-4ca10badbffe"
+            },
+            "result_id": "eaff1971-aaed-4278-b7d8-071ed02034e5",
+            "submission_id": "0e23a7fe-534c-47e7-b65c-14be299652b5",
+            "module1_fact_ids": {
+              "M5-TEST": "m5-d7a3e483357319d0fbf0e58d1267a37e64ba92f9"
+            }
+          },
+          "elapsed_s": 1.9816095119999773
+        }
+      ],
+      "lock_snapshots": 15,
+      "worker_blocks_worker": true
+    },
+    {
+      "name": "challenge-repeat-new-keys",
+      "results": [
+        {
+          "label": "challenge-repeat-new-keys-0",
+          "os_pid": 18286,
+          "pg_pid": 18310,
+          "database": "module5_r2",
+          "version": "PostgreSQL 16.13 on x86_64-pc-linux-gnu, compiled by gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0, 64-bit",
+          "retries": [],
+          "status": 400,
+          "body": [
+            "尝试已提交，请为重试领取新尝试和环境。"
+          ],
+          "elapsed_s": 1.200346551000166
+        },
+        {
+          "label": "challenge-repeat-new-keys-1",
+          "os_pid": 18287,
+          "pg_pid": 18311,
+          "database": "module5_r2",
+          "version": "PostgreSQL 16.13 on x86_64-pc-linux-gnu, compiled by gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0, 64-bit",
+          "retries": [],
+          "status": 400,
+          "body": [
+            "尝试已提交，请为重试领取新尝试和环境。"
+          ],
+          "elapsed_s": 1.2245992100001786
+        }
+      ],
+      "lock_snapshots": 3,
+      "worker_blocks_worker": true
+    }
+  ],
+  "database_identity": [
+    "PostgreSQL 16.13 on x86_64-pc-linux-gnu, compiled by gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0, 64-bit",
+    "module5_r2",
+    "127.0.0.1",
+    55465,
+    "read committed",
+    "on"
+  ],
+  "challenge_key": "directoryListingChallenge",
+  "after_challenge": {
+    "evidence": 1,
+    "submission": 1,
+    "result": 1,
+    "fact": 1,
+    "notice": 1,
+    "retest": 1,
+    "http_requests_including_baseline": 2
+  },
+  "final_counts": {
+    "evidence": 2,
+    "submission": 2,
+    "result": 2,
+    "fact": 2,
+    "notice": 2,
+    "repair_claim": 1,
+    "retest": 1,
+    "first_effective": 2,
+    "notice_sent": 2,
+    "http_requests_including_baseline": 2
+  },
+  "passed": true
+}

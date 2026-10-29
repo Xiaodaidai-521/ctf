@@ -1,0 +1,25 @@
+{
+  "runtime": "/var/tmp/module5-r2-live-uevr5f4p",
+  "control": "/var/tmp/module5-r2-live-uevr5f4p/control.json",
+  "platform": "http://127.0.0.1:18380",
+  "instances": {
+    "student-a": {
+      "name": "student-a",
+      "root": "/var/tmp/module5-r2-live-uevr5f4p/student-a",
+      "socket": "/var/tmp/module5-r2-live-uevr5f4p/student-a/state/relay.sock",
+      "supervisor_pid": 16092,
+      "app_port": 18211,
+      "student_port": 18411,
+      "observer_port": 18111
+    },
+    "student-b": {
+      "name": "student-b",
+      "root": "/var/tmp/module5-r2-live-uevr5f4p/student-b",
+      "socket": "/var/tmp/module5-r2-live-uevr5f4p/student-b/state/relay.sock",
+      "supervisor_pid": 16154,
+      "app_port": 18212,
+      "student_port": 18412,
+      "observer_port": 18112
+    }
+  }
+}

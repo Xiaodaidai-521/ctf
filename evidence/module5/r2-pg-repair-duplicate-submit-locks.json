@@ -1,0 +1,2800 @@
+{
+  "sql": "SELECT pid, application_name, state, wait_event_type, wait_event,\n                        pg_blocking_pids(pid) AS blockers, query\n                 FROM pg_stat_activity\n                 WHERE application_name LIKE %s ORDER BY pid",
+  "lock_sql": "SELECT pid, locktype, mode, granted, relation::regclass::text,\n                               transactionid::text, page, tuple\n                        FROM pg_locks WHERE pid = ANY(%s)\n                        ORDER BY pid, locktype, mode",
+  "snapshots": [
+    {
+      "phase": "parent_holds_real_assignment_row_lock",
+      "at": 1793252658.6642554,
+      "activity": [
+        {
+          "pid": 18255,
+          "application_name": "r2pg-repair-duplicate-submit-0",
+          "state": "active",
+          "wait_event_type": "Lock",
+          "wait_event": "transactionid",
+          "blockers": [
+            18229
+          ],
+          "query": "SELECT \"practical_training_labassignment\".\"id\", \"practical_training_labassignment\".\"assignment_id\", \"practical_training_labassignment\".\"mapping_id\", \"practical_training_labassignment\".\"attempt_id\", \"practical_training_labassignment\".\"container_id\", \"practical_training_labassignment\".\"task_snapshot\", \"practical_training_labassignment\".\"scope\", \"practical_training_labassignment\".\"policy\", \"practical_training_labassignment\".\"accepted_at\", \"practical_training_labassignment\".\"expires_at\", \"practical_training_labassignment\".\"state\", \"practical_training_labassignment\".\"physical_cleanup\", \"practical_training_labassignment\".\"baseline_observed_at\", \"practical_training_labassignment\".\"created_at\" FROM \"practical_training_labassignment\" WHERE \"practical_training_labassignment\".\"id\" = 1 LIMIT 21 FOR UPDATE"
+        },
+        {
+          "pid": 18256,
+          "application_name": "r2pg-repair-duplicate-submit-1",
+          "state": "active",
+          "wait_event_type": "Lock",
+          "wait_event": "tuple",
+          "blockers": [
+            18255
+          ],
+          "query": "SELECT \"practical_training_labassignment\".\"id\", \"practical_training_labassignment\".\"assignment_id\", \"practical_training_labassignment\".\"mapping_id\", \"practical_training_labassignment\".\"attempt_id\", \"practical_training_labassignment\".\"container_id\", \"practical_training_labassignment\".\"task_snapshot\", \"practical_training_labassignment\".\"scope\", \"practical_training_labassignment\".\"policy\", \"practical_training_labassignment\".\"accepted_at\", \"practical_training_labassignment\".\"expires_at\", \"practical_training_labassignment\".\"state\", \"practical_training_labassignment\".\"physical_cleanup\", \"practical_training_labassignment\".\"baseline_observed_at\", \"practical_training_labassignment\".\"created_at\" FROM \"practical_training_labassignment\" WHERE \"practical_training_labassignment\".\"id\" = 1 LIMIT 21 FOR UPDATE"
+        }
+      ],
+      "locks": [
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "RowShareLock",
+          "granted": true,
+          "relation": "practical_training_labassignment_attempt_id_key",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "RowShareLock",
+          "granted": true,
+          "relation": "practical_training_labassignment_assignment_id_key",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "RowShareLock",
+          "granted": true,
+          "relation": "practical_training_labassignment_pkey",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "RowShareLock",
+          "granted": true,
+          "relation": "practical_training_labassignment",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "RowShareLock",
+          "granted": true,
+          "relation": "practical_training_labassignment_container_id_key",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "RowShareLock",
+          "granted": true,
+          "relation": "practical_training_labassignment_mapping_id_0789a49b",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "transactionid",
+          "mode": "ShareLock",
+          "granted": false,
+          "relation": null,
+          "transactionid": "1696",
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "tuple",
+          "mode": "AccessExclusiveLock",
+          "granted": true,
+          "relation": "practical_training_labassignment",
+          "transactionid": null,
+          "page": 0,
+          "tuple": 2
+        },
+        {
+          "pid": 18255,
+          "locktype": "virtualxid",
+          "mode": "ExclusiveLock",
+          "granted": true,
+          "relation": null,
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18256,
+          "locktype": "relation",
+          "mode": "RowShareLock",
+          "granted": true,
+          "relation": "practical_training_labassignment_container_id_key",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18256,
+          "locktype": "relation",
+          "mode": "RowShareLock",
+          "granted": true,
+          "relation": "practical_training_labassignment_mapping_id_0789a49b",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18256,
+          "locktype": "relation",
+          "mode": "RowShareLock",
+          "granted": true,
+          "relation": "practical_training_labassignment_attempt_id_key",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18256,
+          "locktype": "relation",
+          "mode": "RowShareLock",
+          "granted": true,
+          "relation": "practical_training_labassignment_assignment_id_key",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18256,
+          "locktype": "relation",
+          "mode": "RowShareLock",
+          "granted": true,
+          "relation": "practical_training_labassignment_pkey",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18256,
+          "locktype": "relation",
+          "mode": "RowShareLock",
+          "granted": true,
+          "relation": "practical_training_labassignment",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18256,
+          "locktype": "tuple",
+          "mode": "AccessExclusiveLock",
+          "granted": false,
+          "relation": "practical_training_labassignment",
+          "transactionid": null,
+          "page": 0,
+          "tuple": 2
+        },
+        {
+          "pid": 18256,
+          "locktype": "virtualxid",
+          "mode": "ExclusiveLock",
+          "granted": true,
+          "relation": null,
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        }
+      ]
+    },
+    {
+      "phase": "parent_released_workers_compete",
+      "at": 1793252658.6746657,
+      "activity": [
+        {
+          "pid": 18255,
+          "application_name": "r2pg-repair-duplicate-submit-0",
+          "state": "idle in transaction",
+          "wait_event_type": "Client",
+          "wait_event": "ClientRead",
+          "blockers": [],
+          "query": "SELECT \"practical_training_challengemapping\".\"id\", \"practical_training_challengemapping\".\"task_id\", \"practical_training_challengemapping\".\"repair_task_id\", \"practical_training_challengemapping\".\"challenge_key\", \"practical_training_challengemapping\".\"reviewed_by_id\", \"practical_training_challengemapping\".\"reviewed_at\", \"practical_training_challengemapping\".\"review_ref\", \"practical_training_challengemapping\".\"review_hash\", \"practical_training_challengemapping\".\"paused\" FROM \"practical_training_challengemapping\" WHERE \"practical_training_challengemapping\".\"id\" = 1 LIMIT 21 FOR UPDATE"
+        },
+        {
+          "pid": 18256,
+          "application_name": "r2pg-repair-duplicate-submit-1",
+          "state": "active",
+          "wait_event_type": "Lock",
+          "wait_event": "transactionid",
+          "blockers": [
+            18255
+          ],
+          "query": "SELECT \"practical_training_labassignment\".\"id\", \"practical_training_labassignment\".\"assignment_id\", \"practical_training_labassignment\".\"mapping_id\", \"practical_training_labassignment\".\"attempt_id\", \"practical_training_labassignment\".\"container_id\", \"practical_training_labassignment\".\"task_snapshot\", \"practical_training_labassignment\".\"scope\", \"practical_training_labassignment\".\"policy\", \"practical_training_labassignment\".\"accepted_at\", \"practical_training_labassignment\".\"expires_at\", \"practical_training_labassignment\".\"state\", \"practical_training_labassignment\".\"physical_cleanup\", \"practical_training_labassignment\".\"baseline_observed_at\", \"practical_training_labassignment\".\"created_at\" FROM \"practical_training_labassignment\" WHERE \"practical_training_labassignment\".\"id\" = 1 LIMIT 21 FOR UPDATE"
+        }
+      ],
+      "locks": [
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "practical_training_repairclaim_key_key",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "practical_training_repairclaim_claim_id_key",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "learning_map_taskpackage_challenge_id_3a70a571",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "practical_training_repairclaim_assignment_id_4c5c60fa",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "practical_training_repairclaim_pkey",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "practical_training_repairclaim_key_1f90ce8e_like",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "practical_training_repairclaim_evidence_id_key",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "practical_training_repairclaim_retest_id_key",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "practical_training_repairclaim_attempt_id_key",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "practical_training_repairclaim",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "learning_map_taskpackage_pkey",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "learning_map_taskpackage",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "learning_map_unique_task_version",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "learning_map_taskpackage_catalog_id_cceaf5f5",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "RowShareLock",
+          "granted": true,
+          "relation": "practical_training_challengemapping_pkey",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "RowShareLock",
+          "granted": true,
+          "relation": "practical_training_challengemapping_repair_task_id_295caaed",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "RowShareLock",
+          "granted": true,
+          "relation": "practical_training_labassignment_mapping_id_0789a49b",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "RowShareLock",
+          "granted": true,
+          "relation": "practical_training_labassignment_container_id_key",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "RowShareLock",
+          "granted": true,
+          "relation": "practical_training_labassignment_attempt_id_key",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "RowShareLock",
+          "granted": true,
+          "relation": "practical_training_labassignment_assignment_id_key",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "RowShareLock",
+          "granted": true,
+          "relation": "practical_training_labassignment_pkey",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "RowShareLock",
+          "granted": true,
+          "relation": "practical_training_labassignment",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "RowShareLock",
+          "granted": true,
+          "relation": "practical_training_challengemapping",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "RowShareLock",
+          "granted": true,
+          "relation": "practical_training_challengemapping_reviewed_by_id_2bb19e26",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "RowShareLock",
+          "granted": true,
+          "relation": "practical_training_challengemapping_task_id_key",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "transactionid",
+          "mode": "ExclusiveLock",
+          "granted": true,
+          "relation": null,
+          "transactionid": "1697",
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "virtualxid",
+          "mode": "ExclusiveLock",
+          "granted": true,
+          "relation": null,
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18256,
+          "locktype": "relation",
+          "mode": "RowShareLock",
+          "granted": true,
+          "relation": "practical_training_labassignment_container_id_key",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18256,
+          "locktype": "relation",
+          "mode": "RowShareLock",
+          "granted": true,
+          "relation": "practical_training_labassignment_mapping_id_0789a49b",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18256,
+          "locktype": "relation",
+          "mode": "RowShareLock",
+          "granted": true,
+          "relation": "practical_training_labassignment_attempt_id_key",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18256,
+          "locktype": "relation",
+          "mode": "RowShareLock",
+          "granted": true,
+          "relation": "practical_training_labassignment_assignment_id_key",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18256,
+          "locktype": "relation",
+          "mode": "RowShareLock",
+          "granted": true,
+          "relation": "practical_training_labassignment_pkey",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18256,
+          "locktype": "relation",
+          "mode": "RowShareLock",
+          "granted": true,
+          "relation": "practical_training_labassignment",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18256,
+          "locktype": "transactionid",
+          "mode": "ShareLock",
+          "granted": false,
+          "relation": null,
+          "transactionid": "1697",
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18256,
+          "locktype": "tuple",
+          "mode": "AccessExclusiveLock",
+          "granted": true,
+          "relation": "practical_training_labassignment",
+          "transactionid": null,
+          "page": 0,
+          "tuple": 2
+        },
+        {
+          "pid": 18256,
+          "locktype": "virtualxid",
+          "mode": "ExclusiveLock",
+          "granted": true,
+          "relation": null,
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        }
+      ]
+    },
+    {
+      "phase": "parent_released_workers_compete",
+      "at": 1793252658.7037919,
+      "activity": [
+        {
+          "pid": 18255,
+          "application_name": "r2pg-repair-duplicate-submit-0",
+          "state": "idle in transaction",
+          "wait_event_type": "Client",
+          "wait_event": "ClientRead",
+          "blockers": [],
+          "query": "SELECT \"learning_map_capability\".\"stable_id\" AS \"stable_id\" FROM \"learning_map_capability\" INNER JOIN \"learning_map_taskpackage_capabilities\" ON (\"learning_map_capability\".\"id\" = \"learning_map_taskpackage_capabilities\".\"capability_id\") WHERE \"learning_map_taskpackage_capabilities\".\"taskpackage_id\" = 1 ORDER BY \"learning_map_capability\".\"course_order\" ASC, 1 ASC"
+        },
+        {
+          "pid": 18256,
+          "application_name": "r2pg-repair-duplicate-submit-1",
+          "state": "active",
+          "wait_event_type": "Lock",
+          "wait_event": "transactionid",
+          "blockers": [
+            18255
+          ],
+          "query": "SELECT \"practical_training_labassignment\".\"id\", \"practical_training_labassignment\".\"assignment_id\", \"practical_training_labassignment\".\"mapping_id\", \"practical_training_labassignment\".\"attempt_id\", \"practical_training_labassignment\".\"container_id\", \"practical_training_labassignment\".\"task_snapshot\", \"practical_training_labassignment\".\"scope\", \"practical_training_labassignment\".\"policy\", \"practical_training_labassignment\".\"accepted_at\", \"practical_training_labassignment\".\"expires_at\", \"practical_training_labassignment\".\"state\", \"practical_training_labassignment\".\"physical_cleanup\", \"practical_training_labassignment\".\"baseline_observed_at\", \"practical_training_labassignment\".\"created_at\" FROM \"practical_training_labassignment\" WHERE \"practical_training_labassignment\".\"id\" = 1 LIMIT 21 FOR UPDATE"
+        }
+      ],
+      "locks": [
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "challenges_challenge",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "practical_training_repairclaim_assignment_id_4c5c60fa",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "practical_training_repairclaim_key_1f90ce8e_like",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "practical_training_repairclaim_evidence_id_key",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "practical_training_repairclaim_retest_id_key",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "practical_training_repairclaim_attempt_id_key",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "practical_training_repairclaim_key_key",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "practical_training_repairclaim_claim_id_key",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "practical_training_repairclaim_pkey",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "practical_training_repairclaim",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "learning_map_catalogversion",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "learning_map_taskattempt_catalog_id_42c920a5",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "learning_map_taskpackage_capabilities",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "learning_map_catalogversion_version_key",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "learning_map_catalogversion_created_by_id_2641eae3",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "learning_map_taskpackage_catalog_id_cceaf5f5",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "challenges_challenge_pkey",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "learning_map_taskpackage_challenge_id_3a70a571",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "learning_map_taskpackage_capabilities_capability_id_c1377926",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "learning_map_taskattempt_attempt_id_key",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "learning_map_catalogversion_pkey",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "learning_map_knowledgepoint_pkey",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "learning_map_taskpackage_taskpackage_id_capabilit_d2ef96a9_uniq",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "learning_map_taskattempt",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "learning_map_capability_catalog_id_94e5a1e5",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "learning_map_capability_kn_knowledgepoint_id_bc3130e3",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "learning_ma_student_e6e3ea_idx",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "learning_map_knowledgepoint_catalog_id_12d2ec3b",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "learning_map_taskattempt_student_id_35df5631",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "learning_map_capability_knowledge_points_pkey",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "learning_map_knowledgepoint_concept_id_e4ffe783",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "learning_map_taskpackage_capabilities_taskpackage_id_80bdf4d6",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "learning_map_unique_capability_per_catalog",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "learning_map_capability_supersedes_id_125f3b02",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "learning_map_taskpackage_taskpackage_id_capabilit_b25a2e10_uniq",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "learning_map_capability_pkey",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "learning_map_taskpackage_capabilities_pkey",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "challenges_challenge_category_id_3b71f90c",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "learning_map_unique_task_version",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "learning_map_taskpackage_prerequisite_capabilities",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "learning_map_taskpackage_p_capability_id_e6abdc85",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "learning_map_taskattempt_task_id_405ab797",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "learning_map_capability",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "learning_map_knowledgepoint",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "learning_map_capability__capability_id_knowledgep_523773f6_uniq",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "learning_map_taskattempt_pkey",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "learning_map_catalogversion_version_5af7550b_like",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "learning_map_capability_knowledge_points",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "learning_map_unique_kp_per_catalog",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "learning_map_taskpackage_prerequisite_capabilities_pkey",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "learning_map_capability_knowledge_points_capability_id_d692c55f",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "learning_map_taskpackage_p_taskpackage_id_1d4e4b9f",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "learning_map_taskpackage_pkey",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "learning_map_taskpackage",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "RowShareLock",
+          "granted": true,
+          "relation": "practical_training_labassignment_mapping_id_0789a49b",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "RowShareLock",
+          "granted": true,
+          "relation": "practical_training_labassignment_container_id_key",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "RowShareLock",
+          "granted": true,
+          "relation": "practical_training_labassignment_attempt_id_key",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "RowShareLock",
+          "granted": true,
+          "relation": "practical_training_labassignment_assignment_id_key",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "RowShareLock",
+          "granted": true,
+          "relation": "practical_training_labassignment_pkey",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "RowShareLock",
+          "granted": true,
+          "relation": "practical_training_labassignment",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "RowShareLock",
+          "granted": true,
+          "relation": "practical_training_challengemapping_reviewed_by_id_2bb19e26",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "RowShareLock",
+          "granted": true,
+          "relation": "practical_training_challengemapping_pkey",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "RowShareLock",
+          "granted": true,
+          "relation": "practical_training_challengemapping",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "RowShareLock",
+          "granted": true,
+          "relation": "practical_training_challengemapping_task_id_key",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "RowShareLock",
+          "granted": true,
+          "relation": "practical_training_challengemapping_repair_task_id_295caaed",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "transactionid",
+          "mode": "ExclusiveLock",
+          "granted": true,
+          "relation": null,
+          "transactionid": "1697",
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "virtualxid",
+          "mode": "ExclusiveLock",
+          "granted": true,
+          "relation": null,
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18256,
+          "locktype": "relation",
+          "mode": "RowShareLock",
+          "granted": true,
+          "relation": "practical_training_labassignment_pkey",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18256,
+          "locktype": "relation",
+          "mode": "RowShareLock",
+          "granted": true,
+          "relation": "practical_training_labassignment",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18256,
+          "locktype": "relation",
+          "mode": "RowShareLock",
+          "granted": true,
+          "relation": "practical_training_labassignment_container_id_key",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18256,
+          "locktype": "relation",
+          "mode": "RowShareLock",
+          "granted": true,
+          "relation": "practical_training_labassignment_attempt_id_key",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18256,
+          "locktype": "relation",
+          "mode": "RowShareLock",
+          "granted": true,
+          "relation": "practical_training_labassignment_assignment_id_key",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18256,
+          "locktype": "relation",
+          "mode": "RowShareLock",
+          "granted": true,
+          "relation": "practical_training_labassignment_mapping_id_0789a49b",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18256,
+          "locktype": "transactionid",
+          "mode": "ShareLock",
+          "granted": false,
+          "relation": null,
+          "transactionid": "1697",
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18256,
+          "locktype": "tuple",
+          "mode": "AccessExclusiveLock",
+          "granted": true,
+          "relation": "practical_training_labassignment",
+          "transactionid": null,
+          "page": 0,
+          "tuple": 2
+        },
+        {
+          "pid": 18256,
+          "locktype": "virtualxid",
+          "mode": "ExclusiveLock",
+          "granted": true,
+          "relation": null,
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        }
+      ]
+    },
+    {
+      "phase": "parent_released_workers_compete",
+      "at": 1793252658.7322538,
+      "activity": [
+        {
+          "pid": 18255,
+          "application_name": "r2pg-repair-duplicate-submit-0",
+          "state": "active",
+          "wait_event_type": null,
+          "wait_event": null,
+          "blockers": [],
+          "query": "SELECT \"skill_review_retestassignment\".\"id\", \"skill_review_retestassignment\".\"assignment_id\", \"skill_review_retestassignment\".\"student_id\", \"skill_review_retestassignment\".\"catalog_id\", \"skill_review_retestassignment\".\"capability_id\", \"skill_review_retestassignment\".\"capability_ids\", \"skill_review_retestassignment\".\"original_attempt_id\", \"skill_review_retestassignment\".\"original_submission_id\", \"skill_review_retestassignment\".\"pool_snapshot\", \"skill_review_retestassignment\".\"selected_task_id\", \"skill_review_retestassignment\".\"selection_reason\", \"skill_review_retestassignment\".\"rule_version\", \"skill_review_retestassignment\".\"status\", \"skill_review_retestassignment\".\"scheduled_at\", \"skill_review_retestassignment\".\"due_at\", \"skill_review_retestassignment\".\"grace_until\", \"skill_review_retestassignment\".\"started_attempt_id\", \"skill_review_retestassignment\".\"completed_submission_id\", \"skill_review_retestassignment\".\"adjustment_note\", \"skill_review_retestassignment\".\"outcome\", \"skill_review_retestassignment\".\"compl"
+        },
+        {
+          "pid": 18256,
+          "application_name": "r2pg-repair-duplicate-submit-1",
+          "state": "active",
+          "wait_event_type": "Lock",
+          "wait_event": "transactionid",
+          "blockers": [
+            18255
+          ],
+          "query": "SELECT \"practical_training_labassignment\".\"id\", \"practical_training_labassignment\".\"assignment_id\", \"practical_training_labassignment\".\"mapping_id\", \"practical_training_labassignment\".\"attempt_id\", \"practical_training_labassignment\".\"container_id\", \"practical_training_labassignment\".\"task_snapshot\", \"practical_training_labassignment\".\"scope\", \"practical_training_labassignment\".\"policy\", \"practical_training_labassignment\".\"accepted_at\", \"practical_training_labassignment\".\"expires_at\", \"practical_training_labassignment\".\"state\", \"practical_training_labassignment\".\"physical_cleanup\", \"practical_training_labassignment\".\"baseline_observed_at\", \"practical_training_labassignment\".\"created_at\" FROM \"practical_training_labassignment\" WHERE \"practical_training_labassignment\".\"id\" = 1 LIMIT 21 FOR UPDATE"
+        }
+      ],
+      "locks": [
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "learning_map_taskpackage_catalog_id_cceaf5f5",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "practical_training_repairclaim_assignment_id_4c5c60fa",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "practical_training_repairclaim_key_1f90ce8e_like",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "practical_training_repairclaim_evidence_id_key",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "practical_training_repairclaim_retest_id_key",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "practical_training_repairclaim_attempt_id_key",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "practical_training_repairclaim_key_key",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "practical_training_repairclaim_claim_id_key",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "practical_training_repairclaim_pkey",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "practical_training_repairclaim",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "learning_map_knowledgepoint_pkey",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "learning_map_taskpackage_taskpackage_id_capabilit_d2ef96a9_uniq",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "skill_review_retestassignment_student_id_8df12d7c",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "learning_map_taskattempt",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "practical_training_serverevidence",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "skill_review_one_first_effective_per_attempt",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "learning_map_capability_catalog_id_94e5a1e5",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "learning_map_capability_kn_knowledgepoint_id_bc3130e3",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "learning_ma_student_e6e3ea_idx",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "challenges_challengecontainer_pkey",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "skill_review_unique_attempt_sequence",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "learning_map_knowledgepoint_catalog_id_12d2ec3b",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "challenges__user_id_611ba5_idx",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "skill_review_verificationresult_pkey",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "skill_review_retestassignment_assignment_id_key",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "challenges_challengecontainer",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "learning_map_taskattempt_student_id_35df5631",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "learning_map_capability_knowledge_points_pkey",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "learning_map_knowledgepoint_concept_id_e4ffe783",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "learning_map_taskpackage_capabilities_taskpackage_id_80bdf4d6",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "practical_training_serverevidence_result_id_key",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "skill_review_verificationresult_student_id_07db8e42",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "challenges_challengecontainer_user_id_eba80b48",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "practical_training_challengemapping_reviewed_by_id_2bb19e26",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "practical_training_serverevidence_evidence_id_key",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "skill_review_retestassignment",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "learning_map_unique_capability_per_catalog",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "practical_training_serverevidence_attempt_id_822283ec",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "skill_review_verificationresult_result_id_key",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "learning_map_capability_supersedes_id_125f3b02",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "skill_revie_catalog_2519db_idx",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "skill_review_submissionsnapshot_catalog_id_9d1e5066",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "learning_map_taskpackage_taskpackage_id_capabilit_b25a2e10_uniq",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "skill_review_retestassignment_original_submission_id_key",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "learning_map_capability_pkey",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "learning_map_taskpackage_capabilities_pkey",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "practical_training_serverevidence_key_d5680cd4_like",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "skill_revie_overall_9a3f9e_idx",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "practical_training_environmentapproval_reviewed_by_id_7396dde6",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "challenges_challengecontainer_container_id_key",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "challenges_challenge_category_id_3b71f90c",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "skill_review_submissionsnapshot",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "practical_training_challengemapping",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "learning_map_unique_task_version",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "practical_training_challengemapping_pkey",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "learning_map_taskpackage_prerequisite_capabilities",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "learning_map_taskpackage_p_capability_id_e6abdc85",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "skill_review_retestassignment_selected_task_id_364b316b",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "practical_training_serverevidence_key_key",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "learning_map_taskattempt_task_id_405ab797",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "practical_training_challengemapping_task_id_key",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "skill_review_retestassignment_completed_submission_id_29a32caa",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "learning_map_capability",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "practical_training_serverevidence_pkey",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "learning_map_knowledgepoint",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "skill_review_retestassignment_original_attempt_id_fa57908c",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "skill_review_verificationresult_submission_id_d829e2dd",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "skill_review_retestassignment_catalog_id_e0906687",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "learning_map_capability__capability_id_knowledgep_523773f6_uniq",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "learning_map_taskattempt_pkey",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "practical_training_serverevidence_assignment_id_e0725cd8",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "skill_review_unique_client_submission",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "skill_review_retestassignment_pkey",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "learning_map_catalogversion_version_5af7550b_like",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "learning_map_capability_knowledge_points",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "challenges_challengecontainer_container_id_49c5b4a6_like",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "skill_review_retestassignment_capability_id_f66e4f61",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "learning_map_unique_kp_per_catalog",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "skill_review_verificationresult_catalog_id_2d80fcc1",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "challenges_challengecontainer_challenge_id_f189907c",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "learning_map_taskpackage_prerequisite_capabilities_pkey",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "skill_revie_student_ad9fc5_idx",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "skill_review_submissionsnapshot_student_id_a9bd2d45",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "learning_map_capability_knowledge_points_capability_id_d692c55f",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "challenges__expires_ec1553_idx",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "learning_map_taskpackage_p_taskpackage_id_1d4e4b9f",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "skill_review_unique_result_version",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "skill_review_verificationresult_task_id_e9f4ca5d",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "learning_map_taskpackage_pkey",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "learning_map_taskpackage",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "skill_review_submissionsnapshot_attempt_id_6825c4c7",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "skill_review_verificationresult_supersedes_id_5c246eed",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "practical_training_challengemapping_repair_task_id_295caaed",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "skill_review_one_current_result",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "practical_training_environmentapproval",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "learning_map_catalogversion",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "learning_map_taskattempt_catalog_id_42c920a5",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "practical_training_environmentapproval_container_id_key",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "learning_map_taskpackage_capabilities",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "skill_review_verificationresult",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "learning_map_catalogversion_version_key",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "skill_review_submissionsnapshot_submission_id_key",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "skill_revie_status_ae9151_idx",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "skill_review_submissionsnapshot_pkey",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "learning_map_catalogversion_created_by_id_2641eae3",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "challenges_challenge",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "skill_review_verificationresult_attempt_id_2b1549cd",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "skill_revie_student_82a12e_idx",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "challenges__status_4698a8_idx",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "skill_review_retestassignment_started_attempt_id_09ad8c05",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "challenges_challenge_pkey",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "skill_review_submissionsnapshot_task_id_318e5812",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "learning_map_taskpackage_challenge_id_3a70a571",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "learning_map_taskpackage_capabilities_capability_id_c1377926",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "learning_map_taskattempt_attempt_id_key",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "practical_training_environmentapproval_pkey",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "AccessShareLock",
+          "granted": true,
+          "relation": "learning_map_catalogversion_pkey",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "RowShareLock",
+          "granted": true,
+          "relation": "practical_training_labassignment_mapping_id_0789a49b",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "RowShareLock",
+          "granted": true,
+          "relation": "practical_training_labassignment_container_id_key",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "RowShareLock",
+          "granted": true,
+          "relation": "practical_training_labassignment_attempt_id_key",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "RowShareLock",
+          "granted": true,
+          "relation": "practical_training_labassignment_assignment_id_key",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "RowShareLock",
+          "granted": true,
+          "relation": "practical_training_labassignment_pkey",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "RowShareLock",
+          "granted": true,
+          "relation": "practical_training_labassignment",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "RowShareLock",
+          "granted": true,
+          "relation": "practical_training_challengemapping_repair_task_id_295caaed",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "RowShareLock",
+          "granted": true,
+          "relation": "practical_training_challengemapping_reviewed_by_id_2bb19e26",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "RowShareLock",
+          "granted": true,
+          "relation": "practical_training_challengemapping_pkey",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "RowShareLock",
+          "granted": true,
+          "relation": "practical_training_challengemapping_task_id_key",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "relation",
+          "mode": "RowShareLock",
+          "granted": true,
+          "relation": "practical_training_challengemapping",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "transactionid",
+          "mode": "ExclusiveLock",
+          "granted": true,
+          "relation": null,
+          "transactionid": "1697",
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18255,
+          "locktype": "virtualxid",
+          "mode": "ExclusiveLock",
+          "granted": true,
+          "relation": null,
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18256,
+          "locktype": "relation",
+          "mode": "RowShareLock",
+          "granted": true,
+          "relation": "practical_training_labassignment_assignment_id_key",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18256,
+          "locktype": "relation",
+          "mode": "RowShareLock",
+          "granted": true,
+          "relation": "practical_training_labassignment",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18256,
+          "locktype": "relation",
+          "mode": "RowShareLock",
+          "granted": true,
+          "relation": "practical_training_labassignment_container_id_key",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18256,
+          "locktype": "relation",
+          "mode": "RowShareLock",
+          "granted": true,
+          "relation": "practical_training_labassignment_attempt_id_key",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18256,
+          "locktype": "relation",
+          "mode": "RowShareLock",
+          "granted": true,
+          "relation": "practical_training_labassignment_pkey",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18256,
+          "locktype": "relation",
+          "mode": "RowShareLock",
+          "granted": true,
+          "relation": "practical_training_labassignment_mapping_id_0789a49b",
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18256,
+          "locktype": "transactionid",
+          "mode": "ShareLock",
+          "granted": false,
+          "relation": null,
+          "transactionid": "1697",
+          "page": null,
+          "tuple": null
+        },
+        {
+          "pid": 18256,
+          "locktype": "tuple",
+          "mode": "AccessExclusiveLock",
+          "granted": true,
+          "relation": "practical_training_labassignment",
+          "transactionid": null,
+          "page": 0,
+          "tuple": 2
+        },
+        {
+          "pid": 18256,
+          "locktype": "virtualxid",
+          "mode": "ExclusiveLock",
+          "granted": true,
+          "relation": null,
+          "transactionid": null,
+          "page": null,
+          "tuple": null
+        }
+      ]
+    }
+  ]
+}

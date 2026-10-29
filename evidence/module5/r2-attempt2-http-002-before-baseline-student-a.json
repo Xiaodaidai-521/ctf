@@ -1,0 +1,28 @@
+{
+  "at": "2026-10-29T05:33:34.019178+00:00",
+  "label": "before-baseline-student-a",
+  "request": {
+    "method": "GET",
+    "url": "http://127.0.0.1:18380/api/practical-training/assignments/8ec27db9-e278-4ba4-8cee-c5376af1ef7d/",
+    "payload": null,
+    "authorization": "REDACTED"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Date": "Thu, 29 Oct 2026 05:33:34 GMT",
+      "Server": "WSGIServer/0.2 CPython/3.12.3",
+      "Content-Type": "application/json",
+      "Vary": "Accept, Cookie, origin",
+      "Allow": "GET, HEAD, OPTIONS",
+      "X-Frame-Options": "DENY",
+      "Content-Length": "1207",
+      "X-Content-Type-Options": "nosniff",
+      "Referrer-Policy": "same-origin",
+      "Cross-Origin-Opener-Policy": "same-origin",
+      "Connection": "close"
+    },
+    "body": "{\"assignment_id\":\"8ec27db9-e278-4ba4-8cee-c5376af1ef7d\",\"attempt_id\":\"8ab11bf4-f249-44b6-aa1d-1794ed148209\",\"task_id\":1,\"task_version\":\"1.0.0\",\"state\":\"allocated\",\"expires_at\":\"2026-10-29T06:33:33.688332Z\",\"scope\":{\"target\":\"\",\"port\":18111,\"container_id\":\"r2-process-16092\",\"aup_version\":\"m5-aup-v1\",\"ends_at\":\"2026-10-29T06:33:33.688332+00:00\",\"acceptance_scope\":\"operator-only local evidence path, not production start/verify\"},\"policy\":{\"scope\":\"local_acceptance_not_production_admission\",\"memory_as_bytes\":2147483648,\"cpu_affinity_cores\":1,\"pids_cap\":null,\"outbound\":\"private_loopback_only\"},\"physical_cleanup\":\"not_requested\",\"materials\":{\"student_material_refs\":[\"module5:document-access-v1\"],\"withdrawn\":false,\"knowledge\":\"公开链接不等于公开授权。先判断文档的数据范围，再检查服务端读取路径的身份与权限。客户端隐藏链接不能代替服务端拒绝访问。只读取本次个人实验实例内的合成文档。\",\"source_refs\":[\"OWASP WSTG v4.2 / WSTG-ATHZ-02\"],\"scope\":\"教学合成数据，不构成生产修复或合规证明。\"},\"acceptance\":{\"server_evidence\":true,\"scope\":\"教学合成数据，不构成生产修复或合规证明。\"},\"evidence\":[]}",
+    "sha256": "0ffb1dfc5ddcfd66ec73f6eb49792b1624fe7fb1c46a25f946a73b3ee73ad4c7"
+  }
+}

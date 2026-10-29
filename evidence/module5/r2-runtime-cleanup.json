@@ -1,0 +1,19 @@
+{
+  "stopped_at": 1793252755.1780164,
+  "instances": {
+    "student-a": {
+      "ports_errno": {
+        "student_port": 111,
+        "observer_port": 111
+      },
+      "supervisor_gone": true
+    },
+    "student-b": {
+      "ports_errno": {
+        "student_port": 111,
+        "observer_port": 111
+      },
+      "supervisor_gone": true
+    }
+  }
+}

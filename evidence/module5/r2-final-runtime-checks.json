@@ -1,0 +1,19 @@
+{
+  "checked_at": "2026-10-29T06:11:19.391951+00:00",
+  "host_ports_errno": {
+    "18111": 111,
+    "18112": 111,
+    "18211": 111,
+    "18212": 111,
+    "18380": 111,
+    "18390": 111,
+    "18411": 111,
+    "18412": 111,
+    "55465": 111,
+    "58165": 111
+  },
+  "matching_owned_runtime_processes": [],
+  "scope": "only known module5-r2 runtime paths and ports; no unrelated processes stopped",
+  "processes_stopped_by_this_check": 0,
+  "automatic_scheduler_installed": false
+}

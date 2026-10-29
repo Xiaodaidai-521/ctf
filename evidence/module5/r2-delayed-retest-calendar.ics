@@ -1,0 +1,26 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Module5//R2 pending real retest//EN
+BEGIN:VEVENT
+UID:m5-r2-day3-69bd0d26-cd86-4309-a948-2ada8d00b1a8
+DTSTAMP:20261029T054957Z
+DTSTART:20261101T054542Z
+SUMMARY:Module5 day3 observation pending human/fresh task
+STATUS:TENTATIVE
+DESCRIPTION:Synthetic account baseline only. No human retention claim.
+  Baseline evidence 69bd0d26-cd86-4309-a948-2ada8d00b1a8.
+  Require fresh reviewed task and new evidence. No scheduler installed.
+  A real learner needs their own baseline and waiting period.
+END:VEVENT
+BEGIN:VEVENT
+UID:m5-r2-day7-69bd0d26-cd86-4309-a948-2ada8d00b1a8
+DTSTAMP:20261029T054957Z
+DTSTART:20261105T054542Z
+SUMMARY:Module5 day7 observation pending human/fresh task
+STATUS:TENTATIVE
+DESCRIPTION:Synthetic account baseline only. No human retention claim.
+  Baseline evidence 69bd0d26-cd86-4309-a948-2ada8d00b1a8.
+  Require fresh reviewed task and new evidence. No scheduler installed.
+  A real learner needs their own baseline and waiting period.
+END:VEVENT
+END:VCALENDAR

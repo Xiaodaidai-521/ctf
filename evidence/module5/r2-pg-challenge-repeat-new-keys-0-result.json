@@ -1,0 +1,13 @@
+{
+  "label": "challenge-repeat-new-keys-0",
+  "os_pid": 18286,
+  "pg_pid": 18310,
+  "database": "module5_r2",
+  "version": "PostgreSQL 16.13 on x86_64-pc-linux-gnu, compiled by gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0, 64-bit",
+  "retries": [],
+  "status": 400,
+  "body": [
+    "尝试已提交，请为重试领取新尝试和环境。"
+  ],
+  "elapsed_s": 1.200346551000166
+}
