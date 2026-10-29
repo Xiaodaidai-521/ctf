@@ -94,6 +94,7 @@ INSTALLED_APPS = [
     'teaching_agent',
     'learning_knowledge',
     'feedback_center',
+    'evaluation_center',
 ]
 
 
