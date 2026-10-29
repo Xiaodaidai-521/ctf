@@ -110,6 +110,18 @@ const routes = [
     meta: { title: '学习路径', requiresAuth: true }
   },
   {
+    path: '/data-lab',
+    name: 'DataLab',
+    component: () => import('@/views/DataLab/DataLab.vue'),
+    meta: { title: '数据安全案例实验台', requiresAuth: true }
+  },
+  {
+    path: '/data-lab/teacher',
+    name: 'DataLabTeacher',
+    component: () => import('@/views/DataLab/DataLabTeacher.vue'),
+    meta: { title: '数据安全案例教学管理', requiresAuth: true, requiresTeacher: true }
+  },
+  {
     path: '/my-results',
     name: 'MyResults',
     component: () => import('@/views/SkillReview/MyResults.vue'),

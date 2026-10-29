@@ -92,6 +92,10 @@ def dispatch_result(result, *, correction=None):
     result; it is stored as a failed notice for retry.
     """
 
+    if (result.task.validator or {}).get('type') == 'data_lab':
+        from data_lab.handoff import dispatch_result as dispatch_lab_result
+        return dispatch_lab_result(result, correction=correction)
+
     from learning_map.services.handoff import FactConflict, ingest_verification_fact
 
     if not result.submission.first_effective and correction is None:
@@ -232,6 +236,10 @@ def dispatch_result(result, *, correction=None):
 
 def retry_module1_notice(notice):
     """Retry one failed module-1 notice; no other target is retried."""
+
+    if (notice.result.task.validator or {}).get('type') == 'data_lab':
+        from data_lab.handoff import retry_module1_notice as retry_lab_notice
+        return retry_lab_notice(notice)
 
     from learning_map.services.handoff import ingest_verification_fact
 

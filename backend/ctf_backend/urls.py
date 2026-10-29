@@ -64,6 +64,7 @@ urlpatterns = [
     path('api/teaching/', include('teaching_agent.urls')),
     path('api/learning-knowledge/', include('learning_knowledge.urls')),
     path('api/teaching-knowledge/', include('learning_knowledge.teacher_urls')),
+    path('api/data-lab/', include('data_lab.urls')),
     path('api/feedback/', include('feedback_center.urls')),
     path('api/evaluation/', include('evaluation_center.urls')),
 ]

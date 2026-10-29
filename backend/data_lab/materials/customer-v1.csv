@@ -1,0 +1,8 @@
+demo_customer_ref,region,contact,service_note
+DEMO-U-0001,区域甲,learner01@example.invalid,模拟客户咨询，联系标识同左
+DEMO-U-0002,区域乙,learner02@example.invalid,仅统计工单数量
+DEMO-U-0003,区域甲,,自由文本另含 DEMO-U-0003
+DEMO-U-9001,区域乙,无,这是虚构设备型号；前缀相同，需结合业务事实复核
+DEMO-U-0005,,learner01@example.invalid,"中文😀开头
+带引号的换行，另含 DEMO-U-0005"
+DEMO-U-0006,区域丙,,""
