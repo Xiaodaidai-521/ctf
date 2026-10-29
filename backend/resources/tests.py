@@ -137,42 +137,54 @@ class ResourceAgentCacheTests(TestCase):
         self.assertEqual(cache.cacheHitCount, 0)
 
     def test_student_level_changes_resource_ordering(self):
+        """Rank live approved articles, never authorize fabricated IDs or source types."""
+        advanced = Article.objects.create(
+            title='SQL injection advanced hard practice',
+            content='Hard lab and bypass practice.',
+            summary='Advanced techniques for experienced learners.',
+            author=self.teacher,
+            category=self.article_category,
+            status='approved',
+            tags='sql,advanced,hard',
+        )
         context = {
             'items': [
+                {'id': str(article.id), 'type': 'article', 'score': 0.5}
+                for article in (self.article, advanced)
+            ] + [
                 {
-                    'id': 'basic',
-                    'title': 'SQL injection basic intro course',
+                    'id': fake_id,
+                    'title': 'Fabricated high-score resource',
                     'type': 'article',
-                    'entry': '/articles/basic',
-                    'summary': 'foundation example and prerequisite explanation',
-                    'score': 0.5,
-                },
-                {
-                    'id': 'advanced',
-                    'title': 'SQL injection advanced challenge practice',
-                    'type': 'challenge',
-                    'entry': '/challenges/advanced',
-                    'summary': 'hard lab and bypass practice',
-                    'difficulty': 'hard',
-                    'score': 0.5,
-                },
-            ]
+                    'entry': f'/community/article/{fake_id}',
+                    'score': 100,
+                }
+                for fake_id in ('basic', 'advanced', str(advanced.id + 1))
+            ] + [
+                {'id': str(advanced.id), 'type': 'challenge', 'score': 100},
+            ],
         }
         agent = ResourceAgent()
 
-        beginner = agent.prepare(
-            query='sorting-only',
-            student_level='beginner',
-            existing_rag_context=context,
-        )
-        excellent = agent.prepare(
-            query='sorting-only',
-            student_level='excellent',
-            existing_rag_context=context,
-        )
+        for level, expected in (
+            ('beginner', [self.article, advanced]),
+            ('excellent', [advanced, self.article]),
+        ):
+            with self.subTest(student_level=level):
+                prepared = agent.prepare(
+                    query='sorting-only',
+                    student_level=level,
+                    existing_rag_context=context,
+                )
 
-        self.assertEqual(beginner['resourceList'][0]['id'], 'basic')
-        self.assertEqual(excellent['resourceList'][0]['id'], 'advanced')
+                resources = prepared['resourceList']
+                self.assertFalse(prepared['noMatchedResource'])
+                self.assertEqual([item['id'] for item in resources], [str(article.id) for article in expected])
+                self.assertEqual([item['title'] for item in resources], [article.title for article in expected])
+                self.assertEqual([item['type'] for item in resources], ['article', 'article'])
+                self.assertEqual([item['matchScore'] for item in resources], [0.5, 0.5])
+                self.assertGreater(resources[0]['score'], resources[1]['score'])
+                self.assertNotIn('Fabricated high-score resource', {item['title'] for item in resources})
 
 
 class ResourceVisibilityTests(TestCase):
@@ -198,8 +210,9 @@ class ResourceVisibilityTests(TestCase):
         )
 
     def test_reserved_resources_are_hidden_from_public_resource_center_but_available_to_resource_agent(self):
-        visible = self._resource('Visible resource', tags='ordinary')
-        reserved = self._resource('Reserved tutoring resource', reserved=True, tags='reserved-only-resource')
+        """Reserved rows stay hidden from both public APIs and ResourceAgent inputs."""
+        visible = self._resource('Visible resource', tags='resource-agent-visibility')
+        reserved = self._resource('Reserved tutoring resource', reserved=True, tags='resource-agent-visibility')
 
         response = self.client.get('/api/resources/')
 
@@ -209,59 +222,120 @@ class ResourceVisibilityTests(TestCase):
         self.assertIn(visible.title, titles)
         self.assertNotIn(reserved.title, titles)
 
-        with patch('legal_kb.services.retrieval_service.LegalRetrievalService.retrieve', return_value=[]):
-            prepared = ResourceAgent().prepare(
-                query='reserved-only-resource',
-                student_level='beginner',
-                knowledge_point='reserved-only-resource',
-            )
+        candidates = [
+            {
+                'id': str(resource.id),
+                'type': 'resource',
+                'entry': f'/resources?highlight_resource={resource.id}&resource={resource.id}',
+            }
+            for resource in (reserved, visible)
+        ]
+        vector_matches = [
+            {'source_type': 'resource', 'object_id': resource.id, 'score': 0.9}
+            for resource in (reserved, visible)
+        ]
+        for source, matches, kwargs in (
+            ('keyword', [], {}),
+            ('vector', vector_matches, {}),
+            ('context', [], {'existing_rag_context': {'items': candidates}}),
+            ('cache', [], {'resource_cache': {'resourceList': candidates}}),
+        ):
+            with self.subTest(source=source):
+                with patch('legal_kb.services.retrieval_service.LegalRetrievalService.retrieve', return_value=matches):
+                    prepared = ResourceAgent().prepare(
+                        query='resource-agent-visibility',
+                        student_level='beginner',
+                        knowledge_point='resource-agent-visibility',
+                        **kwargs,
+                    )
 
-        prepared_titles = {item['title'] for item in prepared['resourceList']}
-        self.assertIn(reserved.title, prepared_titles)
+                self.assertEqual([item['id'] for item in prepared['resourceList']], [str(visible.id)])
+                self.assertFalse(prepared['noMatchedResource'])
+                prepared_titles = {item['title'] for item in prepared['resourceList']}
+                self.assertIn(visible.title, prepared_titles)
+                self.assertNotIn(reserved.title, prepared_titles)
 
     def test_highlight_resource_temporarily_exposes_approved_reserved_resource_first(self):
+        """A single highlight reorders readable rows without exposing reserved rows."""
         visible = self._resource('Visible list resource', tags='ordinary-visible')
+        other = self._resource('Other visible list resource', tags='ordinary-visible')
         reserved = self._resource('Reserved highlighted resource', reserved=True, tags='highlight-only')
 
         response = self.client.get(f'/api/resources/?highlight_resource={reserved.id}')
 
         self.assertEqual(response.status_code, 200)
         payload = response.data.get('results', response.data) if isinstance(response.data, dict) else response.data
-        self.assertGreaterEqual(len(payload), 2)
-        self.assertEqual(payload[0]['id'], reserved.id)
-        self.assertEqual(payload[0]['title'], reserved.title)
+        self.assertEqual([item['id'] for item in payload], [other.id, visible.id])
+        self.assertNotIn(reserved.id, {item['id'] for item in payload})
+        self.assertFalse(any(item['is_ai_highlighted'] for item in payload))
+
+        highlighted = self.client.get(f'/api/resources/?highlight_resource={visible.id}')
+
+        self.assertEqual(highlighted.status_code, 200)
+        payload = highlighted.data.get('results', highlighted.data) if isinstance(highlighted.data, dict) else highlighted.data
+        self.assertEqual([item['id'] for item in payload], [visible.id, other.id])
+        self.assertEqual(payload[0]['title'], visible.title)
         self.assertTrue(payload[0]['is_ai_highlighted'])
         self.assertEqual(payload[0]['ai_generated_label'], 'AI多模态生成')
-        self.assertIn(visible.title, {item['title'] for item in payload})
+        self.assertFalse(payload[1]['is_ai_highlighted'])
 
     def test_highlight_resources_temporarily_exposes_multiple_reserved_resources_first(self):
+        """Mixed highlights order only approved non-reserved resources."""
+        first = self._resource('First visible highlighted resource', tags='highlight-multi-first')
+        second = self._resource('Second visible highlighted resource', tags='highlight-multi-second')
         visible = self._resource('Visible multi list resource', tags='ordinary-multi-visible')
-        first = self._resource('First reserved highlighted resource', reserved=True, tags='highlight-multi-first')
-        second = self._resource('Second reserved highlighted resource', reserved=True, tags='highlight-multi-second')
+        reserved_first = self._resource('First reserved highlighted resource', reserved=True)
+        reserved_second = self._resource('Second reserved highlighted resource', reserved=True)
 
-        response = self.client.get(f'/api/resources/?highlight_resources={first.id},{second.id}')
+        response = self.client.get(f'/api/resources/?highlight_resources={reserved_first.id},{reserved_second.id}')
 
         self.assertEqual(response.status_code, 200)
         payload = response.data.get('results', response.data) if isinstance(response.data, dict) else response.data
-        self.assertGreaterEqual(len(payload), 3)
-        self.assertEqual([payload[0]['id'], payload[1]['id']], [first.id, second.id])
+        self.assertEqual([item['id'] for item in payload], [visible.id, second.id, first.id])
+        self.assertFalse(any(item['is_ai_highlighted'] for item in payload))
+
+        highlighted = self.client.get(
+            f'/api/resources/?highlight_resources={reserved_first.id},{first.id},{reserved_second.id},{second.id}'
+        )
+
+        self.assertEqual(highlighted.status_code, 200)
+        payload = highlighted.data.get('results', highlighted.data) if isinstance(highlighted.data, dict) else highlighted.data
+        self.assertEqual([item['id'] for item in payload], [first.id, second.id, visible.id])
         self.assertTrue(payload[0]['is_ai_highlighted'])
         self.assertTrue(payload[1]['is_ai_highlighted'])
+        self.assertEqual(payload[0]['ai_generated_label'], 'AI多模态生成')
+        self.assertEqual(payload[1]['ai_generated_label'], 'AI多模态生成')
+        self.assertFalse(payload[2]['is_ai_highlighted'])
         self.assertIn(visible.title, {item['title'] for item in payload})
+
     def test_reserved_resource_detail_requires_matching_highlight(self):
+        """Highlights never authorize reserved details; public details still work."""
         reserved = self._resource('Reserved detail resource', reserved=True, tags='detail-highlight-only')
+        visible = self._resource('Visible detail resource')
 
-        direct = self.client.get(f'/api/resources/{reserved.id}/')
-        highlighted = self.client.get(f'/api/resources/{reserved.id}/?highlight_resource={reserved.id}')
+        for query in ('', f'?highlight_resource={reserved.id}', f'?highlight_resources={reserved.id}'):
+            with self.subTest(query=query):
+                response = self.client.get(f'/api/resources/{reserved.id}/{query}')
+                self.assertEqual(response.status_code, 404)
 
-        self.assertEqual(direct.status_code, 404)
+        direct = self.client.get(f'/api/resources/{visible.id}/')
+        highlighted = self.client.get(f'/api/resources/{visible.id}/?highlight_resource={visible.id}')
+
+        self.assertEqual(direct.status_code, 200)
+        self.assertEqual(direct.data['id'], visible.id)
+        self.assertFalse(direct.data['is_ai_highlighted'])
         self.assertEqual(highlighted.status_code, 200)
-        self.assertEqual(highlighted.data['id'], reserved.id)
+        self.assertEqual(highlighted.data['id'], visible.id)
         self.assertTrue(highlighted.data['is_ai_highlighted'])
         self.assertEqual(highlighted.data['ai_generated_label'], 'AI多模态生成')
 
     def test_resource_agent_resource_entry_targets_highlight_and_preserves_ai_resource_type(self):
         ai_resource = self._resource(
+            'Approved AI generated resource',
+            tags='agent-highlight-ai-resource',
+            resource_type='ai_resource',
+        )
+        reserved = self._resource(
             'Reserved AI generated resource',
             reserved=True,
             tags='agent-highlight-ai-resource',
@@ -276,11 +350,14 @@ class ResourceVisibilityTests(TestCase):
             )
 
         self.assertTrue(prepared['resourceList'])
+        self.assertEqual(len(prepared['resourceList']), 1)
+        self.assertNotIn(str(reserved.id), {item['id'] for item in prepared['resourceList']})
         item = prepared['resourceList'][0]
         self.assertEqual(item['id'], str(ai_resource.id))
         self.assertEqual(item['type'], 'ai_resource')
         self.assertEqual(item['entry'], f'/resources?highlight_resource={ai_resource.id}&resource={ai_resource.id}')
         self.assertEqual(item['ai_generated_label'], 'AI多模态生成')
+        self.assertFalse(item['reserved'])
 
 
 class AIResourceTypeTests(TestCase):
@@ -455,6 +532,7 @@ class ResourceDownloadAccessTests(TestCase):
         response._resource_closers.clear()
 
     def test_reserved_download_requires_matching_highlight(self):
+        """Authenticated downloads still deny reserved rows, even with highlights."""
         reserved = Resource.objects.create(
             title='Reserved downloadable resource',
             description='Hidden download access test',
@@ -467,19 +545,14 @@ class ResourceDownloadAccessTests(TestCase):
             is_tutoring_reserved=True,
         )
 
-        direct_request = self.factory.get(f'/api/resources/{reserved.id}/download/')
-        force_authenticate(direct_request, user=self.user)
-        direct_response = resource_download_view(direct_request, reserved.id)
+        for query in ('', f'?highlight_resource={reserved.id}', f'?highlight_resources={reserved.id}'):
+            with self.subTest(query=query):
+                request = self.factory.get(f'/api/resources/{reserved.id}/download/{query}')
+                force_authenticate(request, user=self.user)
+                response = resource_download_view(request, reserved.id)
 
-        highlighted_request = self.factory.get(
-            f'/api/resources/{reserved.id}/download/?highlight_resource={reserved.id}'
-        )
-        force_authenticate(highlighted_request, user=self.user)
-        highlighted_response = resource_download_view(highlighted_request, reserved.id)
+                self.assertEqual(response.status_code, 404)
 
-        self.assertEqual(direct_response.status_code, 404)
-        self.assertEqual(highlighted_response.status_code, 200)
-        for closer in getattr(highlighted_response, '_resource_closers', []):
-            closer()
-        highlighted_response._resource_closers.clear()
+        reserved.refresh_from_db()
+        self.assertEqual(reserved.download_count, 0)
 

@@ -22,11 +22,9 @@ def diagnosis_cache_key(student_id, diagnosis_version=DIAGNOSIS_VERSION):
 
 
 def safe_cache_get(key):
-    try:
-        return cache.get(key)
-    except Exception as exc:
-        logger.warning("tutor_cache_get_failure", extra={"event": "tutor_cache_get_failure", "cache_key_prefix": key.split(":student:")[0], "error_type": type(exc).__name__})
-        return None
+    # Profile/diagnosis snapshots may derive from historical AI/material text.
+    # Their old schema carries no provenance to reauthorize; recompute instead.
+    return None
 
 
 def safe_cache_set(key, value, timeout):

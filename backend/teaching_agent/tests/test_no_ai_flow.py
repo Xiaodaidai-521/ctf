@@ -55,6 +55,13 @@ class NoAICoreFlowTests(TestCase):
         self.retest_task = self._task('M2-NO-AI-RETEST', map_constants.PURPOSE_RETEST, RETEST_VALIDATOR)
         self.task.retest_task_keys = [self.retest_task.task_key]
         self.task.save(update_fields=['retest_task_keys'])
+        # Module 3 requires an explicit course grant and reviewed material reference,
+        # not an arbitrary path in TaskPackage JSON.
+        from types import SimpleNamespace
+        from learning_knowledge.models import CourseGrant
+        from learning_knowledge.tests.helpers import material
+        CourseGrant.objects.create(user=self.student, catalog=self.catalog)
+        self.material_revision = material(SimpleNamespace(task=self.task, teacher=self.student))
         self.client = APIClient()
         self.client.force_authenticate(self.student)
 
@@ -89,7 +96,10 @@ class NoAICoreFlowTests(TestCase):
 
         run = self.client.post('/api/teaching/runs/', {'attempt_id': attempt_id}, format='json')
         self.assertEqual(run.status_code, 201, run.content)
-        self.assertEqual(run.data['task_context']['materials']['student_material_refs'], ['synthetic/data.csv'])
+        self.assertEqual(run.data['task_context']['materials']['student_material_refs'], [
+            {'material_id': str(self.material_revision.material.material_id), 'revision': 1},
+        ])
+        self.assertNotIn('synthetic/data.csv', str(run.data['task_context']))
 
         practice = self.client.post(
             f"/api/teaching/runs/{run.data['run_id']}/actions/",

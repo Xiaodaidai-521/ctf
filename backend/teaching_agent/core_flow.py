@@ -31,7 +31,7 @@ def task_snapshot(context):
         'purpose': task.purpose,
         'execution_mode': task.execution_mode,
         'capability_ids': list(context.attempt.capability_ids or []),
-        'materials': student_material_snapshot(task),
+        'materials': student_material_snapshot(task, user=context.attempt.student, attempt_id=context.attempt.attempt_id),
         'acceptance': strip_sensitive_content(task.acceptance or {}),
         'practice_contracts': {
             action_type: {'status': status, 'dependency': dependency or None}

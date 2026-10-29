@@ -14,12 +14,14 @@ class LearningRunCreateView(APIView):
     def post(self, request):
         serializer = LearningRunRequestSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        from teaching_agent.context import resolve_task_context
+        from teaching_agent.context import TaskBoundLegacyEndpoint, resolve_task_context
 
         trusted_context = resolve_task_context(
             user=request.user,
             request_data=serializer.validated_data,
         )
+        if trusted_context:
+            raise TaskBoundLegacyEndpoint()
         run = AgentGateway().run_learning_task(
             user=request.user,
             message=serializer.validated_data['message'],
@@ -31,7 +33,7 @@ class LearningRunCreateView(APIView):
             ),
             conversation_history=serializer.validated_data.get('conversation_history') or [],
         )
-        return Response(AgentRunSerializer(run).data, status=status.HTTP_201_CREATED)
+        return Response(AgentRunSerializer(run, context={'fresh_run': True}).data, status=status.HTTP_201_CREATED)
 
 
 class AgentRunListView(generics.ListAPIView):

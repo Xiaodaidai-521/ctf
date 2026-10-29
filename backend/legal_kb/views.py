@@ -45,6 +45,12 @@ class LegalDocumentViewSet(LegalKbPermissionMixin, viewsets.ModelViewSet):
     queryset = LegalDocument.objects.select_related('created_by').prefetch_related('clauses')
     serializer_class = LegalDocumentSerializer
 
+    def get_queryset(self):
+        from learning_knowledge.models import Material
+        registered = Material.objects.filter(source_type='legal_clause').values('source_object_id')
+        parents = LegalClause.objects.filter(pk__in=registered).values('document_id')
+        return super().get_queryset().exclude(pk__in=parents)
+
     def perform_create(self, serializer):
         serializer.save(created_by=self.request.user)
 
@@ -62,7 +68,8 @@ class LegalClauseViewSet(LegalKbPermissionMixin, viewsets.ModelViewSet):
     serializer_class = LegalClauseSerializer
 
     def get_queryset(self):
-        queryset = super().get_queryset()
+        from learning_knowledge.policy import filter_legacy_queryset
+        queryset = filter_legacy_queryset(super().get_queryset(), 'legal_clause', self.request.user)
         document_id = self.request.query_params.get('document')
         search = self.request.query_params.get('search')
         if document_id:

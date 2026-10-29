@@ -43,6 +43,10 @@ class AgentGateway:
         context: Optional[Dict[str, Any]] = None,
         conversation_history: Optional[List[Dict[str, Any]]] = None,
     ) -> AgentRun:
+        # Historical bodies and caller-supplied context snapshots lack provenance.
+        # They are not replayed, even if they contain a self-declared permission flag.
+        conversation_history = []
+        context = {}
         plan = [
             {'name': 'prepare_context', 'status': 'pending'},
             {'name': 'call_learning_agent', 'status': 'pending'},

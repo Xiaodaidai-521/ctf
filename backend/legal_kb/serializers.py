@@ -197,6 +197,11 @@ class KbIngestionJobSerializer(serializers.ModelSerializer):
 class LegalRetrievalLogSerializer(serializers.ModelSerializer):
     """Serializer for retrieval logs."""
 
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        data.update(query='[query omitted: material privacy]', filters={}, results=[])
+        return data
+
     class Meta:
         model = LegalRetrievalLog
         fields = [
