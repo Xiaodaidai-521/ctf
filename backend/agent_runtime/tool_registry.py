@@ -88,10 +88,15 @@ class LearningToolRegistry:
                 break
         return {'status': 'success' if items else 'empty', 'items': items}
 
-    def run(self, name: str, *, user, query: str = '') -> Dict[str, Any]:
-        tool = getattr(self, name, None)
-        if tool is None:
+    def run(self, name: str, *, user, query: str = '', task_context=None) -> Dict[str, Any]:
+        available = self.available_learning_tools()
+        if name not in available:
             return {'status': 'error', 'items': [], 'error': f'Unknown tool: {name}'}
+        if task_context is not None:
+            from teaching_agent.permissions import require_tool_permission
+
+            require_tool_permission(task_context, name)
+        tool = getattr(self, name)
         return tool(user=user, query=query)
 
     def available_learning_tools(self) -> List[str]:
