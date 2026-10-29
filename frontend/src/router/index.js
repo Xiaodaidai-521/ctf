@@ -5,6 +5,18 @@ import TeacherDashboard from '@/teacher/TeacherDashboard.vue'
 import LearningEffectAnalysis from '@/teacher/LearningEffectAnalysis.vue'
 
 const routes = [
+  {
+    path: '/teaching-knowledge',
+    name: 'TeachingKnowledge',
+    component: () => import('@/learningKnowledge/TeachingKnowledge.vue'),
+    meta: { title: '教学材料审阅', requiresAuth: true, requiresTeacher: true }
+  },
+  {
+    path: '/learning-knowledge/:attemptId',
+    name: 'LearningKnowledge',
+    component: () => import('@/learningKnowledge/LearningKnowledge.vue'),
+    meta: { title: '任务学习证据', requiresAuth: true }
+  },
   // 前台路由
   {
     path: '/',
@@ -96,6 +108,18 @@ const routes = [
     name: 'LearningPaths',
     component: () => import('@/views/LearningPaths/LearningPathsList.vue'),
     meta: { title: '学习路径', requiresAuth: true }
+  },
+  {
+    path: '/data-lab',
+    name: 'DataLab',
+    component: () => import('@/views/DataLab/DataLab.vue'),
+    meta: { title: '数据安全案例实验台', requiresAuth: true }
+  },
+  {
+    path: '/data-lab/teacher',
+    name: 'DataLabTeacher',
+    component: () => import('@/views/DataLab/DataLabTeacher.vue'),
+    meta: { title: '数据安全案例教学管理', requiresAuth: true, requiresTeacher: true }
   },
   {
     path: '/my-results',

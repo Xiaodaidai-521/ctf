@@ -44,6 +44,13 @@ def candidates(implementation, text):
                         for i, digit in enumerate(reversed(digits)))
             if len(set(digits)) > 1 and total % 10 == 0:
                 yield match.start(), match.end(), 'LUHN_VALID_NOT_ACCOUNT_PROOF'
+    elif implementation in ('demo_person_ref_v1', 'demo_contact_v1'):
+        # Fixed synthetic teaching patterns, not general PII or legal classification.
+        expression = (r'(?<![A-Z0-9-])DEMO-U-[0-9]{4}(?![A-Z0-9-])'
+                      if implementation == 'demo_person_ref_v1' else
+                      r'[a-z][a-z0-9._+-]{0,20}@example\.invalid(?![A-Za-z0-9.-])')
+        for match in re.finditer(expression, text):
+            yield match.start(), match.end(), 'SYNTHETIC_PATTERN_REQUIRES_FACTS'
     else:
         raise InputError('RULE_IMPLEMENTATION_UNSUPPORTED')
 
@@ -105,7 +112,7 @@ class RuleCache:
 
 def scan_rules(parsed, configuration: RuleConfiguration, context: BusinessContext, *, meta, asset,
                principal, scan_id, applicability_ref, parsed_ref, semantic_required=True,
-               max_findings=10000, cancelled=lambda: False, cache=None):
+               max_findings=10000, cancelled=lambda: False, cache=None, scan_columns=None):
     """Trusted internal boundary; callers must authorize asset and refs before EVERY call.
 
     applicability_ref is an owner-reserved ID, NOT proof an applicability service exists.
@@ -159,6 +166,10 @@ def scan_rules(parsed, configuration: RuleConfiguration, context: BusinessContex
                     model=None, fusion_version='not_run', sampling={'mode': 'all', 'seed': None},
                     semantic_required=semantic_required, combination_required=False,
                     scan_policy_version='rule-baseline-scan-v1', max_findings=max_findings)
+    if scan_columns is not None:
+        require(isinstance(scan_columns, (list, tuple))
+                and all(type(c) is int and c > 0 for c in scan_columns), 'SCOPE_INVALID')
+        snapshot['scan_columns'] = sorted(set(scan_columns))
     request_hash = fingerprint(snapshot)
     if cancelled():
         raise InputError('TASK_CANCELLED')
@@ -175,6 +186,10 @@ def scan_rules(parsed, configuration: RuleConfiguration, context: BusinessContex
         if cancelled():
             raise InputError('TASK_CANCELLED')
         base = dict(sheet_id=cell.sheet_id, row=cell.row, column=cell.column, channel=cell.channel)
+        if scan_columns is not None and cell.column not in scan_columns:
+            skipped.append(base)
+            outcomes.append(dict(location=base, status='not_detected', category_ids=[], reason_codes=['COLUMN_NOT_SCANNED']))
+            continue
         if not active:
             skipped.append(base)
             outcomes.append(dict(location=base, status='not_detected', category_ids=[], reason_codes=['RULES_DISABLED']))
@@ -244,7 +259,7 @@ def scan_rules(parsed, configuration: RuleConfiguration, context: BusinessContex
                     skipped_scope_ref=prefix + ':' + name + ':skipped' if skipped_count else None,
                     failed_scope_ref=prefix + ':' + name + ':failed' if failed_count else None,
                     reason_codes=list(reasons))
-    rule_status = 'not_run' if not active else 'partial' if failed or disabled else 'complete'
+    rule_status = 'not_run' if not active else 'partial' if failed or disabled or skipped else 'complete'
     rule_reasons = sorted(({'RULES_DISABLED'} if disabled else set()) | {
         reason for outcome in outcomes if outcome['status'] == 'detection_failed' for reason in outcome['reason_codes']})
     coverage = dict(parse=layer('complete', len(parsed.cells), len(parsed.cells), name='parse'),

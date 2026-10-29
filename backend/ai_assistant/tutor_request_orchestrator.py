@@ -49,6 +49,8 @@ class TutorRequestOrchestrator:
         trusted_model_context = trusted_context.model_context() if trusted_context else None
         if trusted_context:
             raise TaskBoundLegacyEndpoint()
+        # Neither supplied histories nor their derived summaries are authorized.
+        conversation_history = []
         route = TutorAgentRouter.fallback_result()
         specialists = {key: dict(value) for key, value in TutorSpecialistExecutor.EMPTY_RESULT.items()}
         fallback_reasons = []
@@ -137,6 +139,7 @@ class TutorRequestOrchestrator:
     def call_legacy_answer(self, *, message, conversation_history=None, challenge_info=None, teaching_context=None):
         from .service import get_ai_assistant_service
         service = self.answer_service or get_ai_assistant_service()
+        conversation_history = []
         try:
             return service.chat(user_message=message, conversation_history=conversation_history, challenge_info=challenge_info, teaching_context=teaching_context)
         except TypeError as exc:

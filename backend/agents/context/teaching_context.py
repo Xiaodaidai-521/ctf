@@ -69,18 +69,8 @@ def _dict_or_empty(value: Any) -> Dict[str, Any]:
 
 
 def _conversation_history(value: Any) -> Dict[str, Any]:
-    if not isinstance(value, Mapping):
-        return _default_conversation_history()
-
-    recent_messages = value.get("recentMessages", [])
-    if not isinstance(recent_messages, (list, tuple)):
-        recent_messages = []
-
-    summary = value.get("summary", "")
-    return {
-        "recentMessages": _json_safe(list(recent_messages)),
-        "summary": str(summary or ""),
-    }
+    # Legacy summaries and messages have no source-complete provenance.
+    return _default_conversation_history()
 
 
 def _extensions(value: Any) -> Dict[str, Any]:
@@ -286,17 +276,7 @@ def _clip_text(value, limit):
 
 
 def _history(value):
-    if not isinstance(value, (list, tuple)):
-        return {"recentMessages": [], "summary": ""}
-    recent = []
-    for item in value[-MAX_RECENT_MESSAGES:]:
-        if not isinstance(item, Mapping):
-            continue
-        role = str(item.get("role") or "")
-        if role not in {"user", "assistant", "system"}:
-            role = "assistant"
-        recent.append({"role": role, "content": _clip_text(item.get("content"), MAX_MESSAGE_CHARS)})
-    return {"recentMessages": recent, "summary": ""}
+    return _default_conversation_history()
 
 
 def _clip_resources(value):

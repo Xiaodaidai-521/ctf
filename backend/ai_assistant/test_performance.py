@@ -97,8 +97,10 @@ class ProfileCacheTests(TestCase):
         adapter = StudentProfileContextAdapter()
         with self.assertNumQueries(1):
             first = adapter.build(self.user)
-        with self.assertNumQueries(0):
+        cache.set(profile_cache_key(self.user.pk), {'learningGoals': 'UNVERIFIED-OLD-CONTENT'})
+        with self.assertNumQueries(1):
             second = adapter.build(self.user)
+        self.assertNotIn('UNVERIFIED-OLD-CONTENT', str(second))
         self.assertEqual(first, second)
         self.assertNotEqual(profile_cache_key(self.user.id), profile_cache_key(self.other.id))
         self.profile.learning_goals = "TCP"

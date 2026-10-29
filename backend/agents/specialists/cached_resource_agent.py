@@ -81,38 +81,6 @@ class ResourceAgent(LegacyResourceAgent):
                 metrics.record_rag((time.monotonic() - started) * 1000)
 
     def _sanitize_resource_list(self, resources):
-        sanitized = super()._sanitize_resource_list(resources)
-        if not sanitized:
-            return []
-        resource_ids = [int(item["id"]) for item in sanitized if item.get("type") in {"document", "video", "report", "zip", "resource", "ai_resource"} and str(item.get("id", "")).isdigit()]
-        article_ids = [int(item["id"]) for item in sanitized if item.get("type") == "article" and str(item.get("id", "")).isdigit()]
-        challenge_ids = [int(item["id"]) for item in sanitized if item.get("type") == "challenge" and str(item.get("id", "")).isdigit()]
-        visible_resources = set()
-        visible_articles = set()
-        visible_challenges = set()
-        try:
-            if resource_ids:
-                from resources.models import Resource
-                visible_resources = set(Resource.objects.filter(id__in=resource_ids, status="approved").values_list("id", flat=True))
-            if article_ids:
-                from articles.models import Article
-                visible_articles = set(Article.objects.filter(id__in=article_ids, status="approved").values_list("id", flat=True))
-            if challenge_ids:
-                from challenges.models import Challenge
-                visible_challenges = set(Challenge.objects.filter(id__in=challenge_ids, is_active=True).values_list("id", flat=True))
-        except Exception as exc:
-            logger.warning("resource_cache_visibility_fallback", extra={
-                "event": "resource_cache_visibility_fallback", "error_type": type(exc).__name__,
-            })
-            return []
-        result = []
-        for item in sanitized:
-            item_id = int(item["id"]) if str(item.get("id", "")).isdigit() else None
-            item_type = item.get("type")
-            if item_type == "article" and item_id in visible_articles:
-                result.append(item)
-            elif item_type == "challenge" and item_id in visible_challenges:
-                result.append(item)
-            elif item_type in {"document", "video", "report", "zip", "resource", "ai_resource"} and item_id in visible_resources:
-                result.append(item)
-        return result
+        # The base implementation rehydrates IDs and excludes registered materials
+        # on every cache hit; neither cached prose nor old visibility is reused.
+        return super()._sanitize_resource_list(resources)

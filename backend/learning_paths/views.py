@@ -389,7 +389,11 @@ class KnowledgeConceptViewSet(viewsets.ModelViewSet):
         return [permissions.IsAuthenticatedOrReadOnly()]
 
     def get_queryset(self):
-        queryset = KnowledgeConcept.objects.all()
+        from learning_knowledge.policy import filter_legacy_queryset
+
+        queryset = filter_legacy_queryset(
+            KnowledgeConcept.objects.all(), 'knowledge_concept', self.request.user,
+        )
 
         # 搜索
         search = self.request.query_params.get('search', '')

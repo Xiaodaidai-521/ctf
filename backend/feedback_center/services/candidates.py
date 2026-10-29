@@ -145,6 +145,20 @@ def submit_for_evaluation(candidate, *, actor, note=''):
     )
 
 
+def _trusted_report(candidate, report):
+    from django.apps import apps
+
+    if not apps.is_installed('evaluation_center'):
+        raise CandidateError('模块八评测记录未接通，不能登记或放行报告。')
+    from evaluation_center.evaluations import EvaluationError, resolve_report
+
+    current = FeedbackCandidate.objects.get(pk=candidate.pk)
+    try:
+        return resolve_report(current, report)
+    except EvaluationError as exc:
+        raise CandidateError(str(exc)) from exc
+
+
 @transaction.atomic
 def attach_report(candidate, *, actor, report):
     """Attach a module-8 report reference.  The report itself stays in module 8."""
@@ -163,6 +177,7 @@ def attach_report(candidate, *, actor, report):
     if report.get('candidate_config_digest') and report['candidate_config_digest'] != candidate.config_digest:
         raise CandidateError('报告针对的候选配置摘要与当前配置不一致。')
 
+    report = _trusted_report(candidate, report)
     candidate.evaluation_report_ref = {
         **report,
         'attached_at': timezone.now().isoformat(),
@@ -191,6 +206,7 @@ def complete_evaluation(candidate, *, actor, note=''):
     report = candidate.evaluation_report_ref or {}
     if not report.get('report_id'):
         raise CandidateError('缺少模块八评测报告，不能进入审批。')
+    report = _trusted_report(candidate, report)
     if report.get('recommendation') == constants.REPORT_RECOMMENDATION_PASS:
         return _transition(
             candidate, constants.CANDIDATE_PENDING_APPROVAL,
@@ -208,7 +224,7 @@ def approve(candidate, *, approver, scope, observation_window, rollback_conditio
     require_write()
     if candidate.state != constants.CANDIDATE_PENDING_APPROVAL:
         raise CandidateError('只有待审批的候选可以审批。')
-    report = candidate.evaluation_report_ref or {}
+    report = _trusted_report(candidate, candidate.evaluation_report_ref or {})
     if report.get('recommendation') != constants.REPORT_RECOMMENDATION_PASS:
         raise CandidateError('评测报告未给出通过建议。')
     if not report.get('report_digest'):
@@ -253,6 +269,10 @@ def _approval_is_current(candidate):
         return False, '评测报告已变化，旧审批失效。'
     if approval.get('approved_report_digest') != report.get('report_digest'):
         return False, '评测报告内容已变化，旧审批失效。'
+    try:
+        _trusted_report(candidate, report)
+    except CandidateError as exc:
+        return False, str(exc)
     return True, ''
 
 
@@ -264,6 +284,8 @@ def activate(candidate, *, operator, applicable_future_tasks, approver_may_relea
     ok, reason = _approval_is_current(candidate)
     if not ok:
         raise CandidateError(reason)
+    if not set(applicable_future_tasks or []).issubset(set(candidate.target_task_versions or [])):
+        raise CandidateError('发布任务范围不能超出已评测范围。')
     approval = candidate.approval or {}
     if approval.get('approver_id') == operator.id and not approver_may_release:
         raise CandidateError('审批人与发布人不能是同一人。')

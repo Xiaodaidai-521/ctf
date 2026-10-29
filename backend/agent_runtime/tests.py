@@ -454,7 +454,9 @@ class AgentRuntimeApiTests(TestCase):
         self.assertEqual(response.status_code, 200)
         results = response.data.get('results', response.data)
         self.assertEqual(len(results), 1)
-        self.assertEqual(results[0]['final_result']['content'], 'own result')
+        self.assertTrue(results[0]['final_result']['redacted'])
+        self.assertNotIn('own result', str(results))
+        self.assertNotIn('other result', str(results))
 
 
 class LearningRetrievalSemanticTests(TestCase):
@@ -467,7 +469,7 @@ class LearningRetrievalSemanticTests(TestCase):
         from learning_paths.models import KnowledgeConcept
         from legal_kb.services.platform_indexing_service import PlatformContentIndexingService
 
-        KnowledgeConcept.objects.create(
+        concept = KnowledgeConcept.objects.create(
             name='SQL注入',
             slug='sql-injection',
             description='SQL 注入通过拼接恶意语句读取数据库，应使用参数化查询进行防御。',
@@ -477,11 +479,13 @@ class LearningRetrievalSemanticTests(TestCase):
             cwe_id='CWE-89',
         )
         PlatformContentIndexingService().index_knowledge_concepts()
+        from learning_knowledge.tests.helpers import scoped_source
+        self.scope = scoped_source(self.user, 'knowledge_concept', concept)
 
     def test_semantic_docs_are_appended_with_source_refs(self):
         self._seed_concept()
 
-        result = LearningRetrievalService().retrieve(user=self.user, query='SQL 注入 如何 防御')
+        result = LearningRetrievalService().retrieve(user=self.user, query='SQL 注入 如何 防御', task_context=self.scope)
 
         source_types = {doc['source_type'] for doc in result['retrieved_docs']}
         self.assertIn('knowledge_concept', source_types)
@@ -492,7 +496,7 @@ class LearningRetrievalSemanticTests(TestCase):
         self._seed_concept()
 
         with override_settings(AGENT_RUNTIME_SEMANTIC_RETRIEVAL=False):
-            result = LearningRetrievalService().retrieve(user=self.user, query='SQL 注入 如何 防御')
+            result = LearningRetrievalService().retrieve(user=self.user, query='SQL 注入 如何 防御', task_context=self.scope)
 
         source_types = {doc['source_type'] for doc in result['retrieved_docs']}
         self.assertNotIn('knowledge_concept', source_types)
@@ -511,18 +515,10 @@ class LearningRetrievalSemanticTests(TestCase):
                     'items': [{'id': i, 'concept_name': f'C{i}'} for i in range(17)],
                 }
 
-        class OneSemantic:
-            def retrieve(self, *, query, top_k, user=None):
-                return [{
-                    'source_type': 'knowledge_concept', 'object_id': 1,
-                    'title': '语义概念', 'summary': '语义摘要', 'metadata': {},
-                }]
-
-        service = LearningRetrievalService(
-            tool_registry=ManyStatesRegistry(), knowledge_service=OneSemantic(),
-        )
+        self._seed_concept()
+        service = LearningRetrievalService(tool_registry=ManyStatesRegistry())
         with override_settings(AGENT_RUNTIME_CONTEXT_LIMIT=12, AGENT_RUNTIME_SEMANTIC_TOP_K=4):
-            result = service.retrieve(user=self.user, query='SQL 注入')
+            result = service.retrieve(user=self.user, query='SQL 注入', task_context=self.scope)
 
         docs = result['retrieved_docs']
         self.assertLessEqual(len(docs), 12)
@@ -530,4 +526,5 @@ class LearningRetrievalSemanticTests(TestCase):
         # numbering, retrieved_docs and the actual prompt stay consistent
         for doc in docs:
             self.assertIn(f"[{doc['source_ref']}]", result['knowledge_context'])
-        self.assertIn('语义概念', result['knowledge_context'])
+        self.assertIn('SQL注入', result['knowledge_context'])
+        self.assertIn('参数化查询', result['knowledge_context'])

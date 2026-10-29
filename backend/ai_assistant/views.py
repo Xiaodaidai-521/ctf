@@ -448,11 +448,14 @@ class AIConversationViewSet(viewsets.ModelViewSet):
                     {
                         'id': msg.id,
                         'role': msg.role,
-                        'content': msg.content,
+                        # No source-complete provenance exists for legacy messages.
+                        # Keep audit identity, not potentially copied material/metadata.
+                        'content': '[历史内容未能验证材料权限，已隐藏]',
                         'agent_id': msg.agent_id,
-                        'agent_name': msg.agent_name,
-                        'provider': msg.provider,
-                        'metadata': msg.metadata or {},
+                        'agent_name': '',
+                        'provider': '',
+                        'metadata': {},
+                        'redacted': True,
                         'created_at': msg.created_at.isoformat(),
                     }
                     for msg in obj.messages.all().order_by('created_at')
@@ -498,12 +501,8 @@ class AIConversationViewSet(viewsets.ModelViewSet):
             content=user_message
         )
 
-        # Build conversation history.
-        messages = list(conversation.messages.all().order_by('created_at'))
-        conversation_history = [
-            {'role': msg.role, 'content': msg.content}
-            for msg in messages[:-1]
-        ]
+        # Legacy history has no verifiable provenance; do not resend it to models.
+        conversation_history = []
 
         challenge_info = None
         if conversation.challenge:
@@ -901,6 +900,7 @@ def multi_agent_chat(request):
                 mode=mode,
                 force_ai=force_ai,
                 context=current_context,
+                user=request.user, task_context=None,
             )
 
         result = _TUTOR_REQUEST_ORCHESTRATOR.call_existing_answer_chain(
@@ -1280,6 +1280,7 @@ def multi_agent_chat_stream(request):
                     challenge_info,
                     knowledge_scope,
                     5,
+                    user=request.user, task_context=None,
                 )
             else:
                 knowledge_package = await sync_to_async(service.build_knowledge_context)(
@@ -1287,6 +1288,7 @@ def multi_agent_chat_stream(request):
                     challenge_info,
                     knowledge_scope,
                     5,
+                    user=request.user, task_context=None,
                 )
         except Exception as exc:
             logger.warning(

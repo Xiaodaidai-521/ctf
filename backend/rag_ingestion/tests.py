@@ -417,7 +417,8 @@ class IngestionOwnershipTests(TestCase):
         self.assertEqual(document.status, 'failed')
         self.assertEqual(document.filename, 'newer.txt')
         self.assertEqual(document.visibility, 'staff')
-        self.assertIn('newer parser failure', document.error_message)
+        self.assertEqual(document.error_message, 'RuntimeError')
+        self.assertNotIn('newer parser failure', document.error_message)
         texts = list(LegalKnowledgeEmbedding.objects.filter(
             source_type='document', object_id=document.id,
         ).values_list('text', flat=True))

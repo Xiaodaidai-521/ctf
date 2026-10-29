@@ -21,8 +21,8 @@ class SharedTeachingContextTests(TestCase):
             conversation_history=[{"role": "user", "content": str(i) + "x" * 900, "token": "bad"} for i in range(12)],
         )
         self.assertEqual(payload["schemaVersion"], "1.1")
-        self.assertEqual(len(payload["conversationHistory"]["recentMessages"]), 8)
-        self.assertLessEqual(len(payload["conversationHistory"]["recentMessages"][0]["content"]), 500)
+        self.assertEqual(payload["conversationHistory"]["recentMessages"], [])
+        self.assertEqual(payload["conversationHistory"]["summary"], '')
         self.assertEqual(len(payload["knowledgeDiagnosis"]["weakKnowledgePoints"]), 5)
         self.assertEqual(len(payload["resources"]["resourceList"]), 8)
         self.assertNotIn("email", payload["studentProfile"])

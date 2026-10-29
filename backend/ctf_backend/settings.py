@@ -93,7 +93,10 @@ INSTALLED_APPS = [
     'learning_map',
     'skill_review',
     'teaching_agent',
+    'learning_knowledge',
+    'data_lab',
     'feedback_center',
+    'evaluation_center',
 ]
 
 

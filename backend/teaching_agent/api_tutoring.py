@@ -41,7 +41,11 @@ def _material_hash(context):
         .order_by('level', 'version')
         .values('level', 'version', 'material_ref', 'updated_at')
     )
+    from learning_knowledge.policy import task_policy_stamp
+    from learning_knowledge.models import CourseGrant
     return canonical_hash({
+        'material_acl': task_policy_stamp(context.task),
+        'course_grants': list(CourseGrant.objects.filter(user_id=context.student_id, catalog=context.catalog).values_list('active', flat=True)),
         'materials': context.task.materials,
         'cards': cards,
         'student_solution_ref': context.task.student_solution_ref,
@@ -72,6 +76,10 @@ def _reauthorize(context, *, permission_version, material_hash):
         raise PermissionDenied('Teaching authorization changed.')
     if context.task.materials_withdrawn:
         raise PermissionDenied('Task materials have been withdrawn.')
+    from learning_knowledge.models import TaskMaterial
+    from learning_knowledge.policy import Scope, live_attempt
+    if TaskMaterial.objects.filter(task=context.task).exists():
+        live_attempt(Scope(context.attempt.student, context.attempt.attempt_id))
     if context.run.permission_version != permission_version:
         raise PermissionDenied('Teaching permission version changed.')
     if _material_hash(context) != material_hash:
@@ -81,6 +89,10 @@ def _reauthorize(context, *, permission_version, material_hash):
 def _validate_result(context, result, requested_level):
     if not isinstance(result, dict):
         raise ValueError('Provider response must be an object.')
+    from learning_knowledge.models import TaskMaterial
+    if TaskMaterial.objects.filter(task=context.task).exists():
+        # A citation ID alone cannot certify an inference. Use reviewed static cards in phase 1.
+        raise ValueError('Evidence-backed explanations require review before display.')
     content = str(result.get('content') or '').strip()
     if not content:
         raise ValueError('Provider response has no content.')
@@ -213,7 +225,24 @@ def _record_assistance_display(*, context, request, level, source_ref):
 
 
 def _fallback_response(*, context, request, category):
-    card = HintCard.objects.filter(task=context.task, level=1, is_active=True).order_by('-version', '-id').first()
+    from rest_framework.exceptions import NotFound
+    from learning_map.constants import PURPOSE_RETEST
+    card = None
+    try:
+        _reauthorize(context, permission_version=request.permission_version, material_hash=request.material_hash)
+        if context.task.purpose != PURPOSE_RETEST:
+            card = HintCard.objects.filter(task=context.task, level=1, is_active=True).order_by('-version', '-id').first()
+    except (NotFound, PermissionDenied):
+        pass
+    if card:
+        from learning_knowledge.policy import require_card
+        from rest_framework.exceptions import NotFound
+        try:
+            revision = require_card(context, card.material_ref, 'hint', card.level)
+            if revision:
+                card.content = revision.source_snapshot
+        except NotFound:
+            card = None
     if card and not context.task.materials_withdrawn:
         response = {
             'content': card.content,
@@ -328,7 +357,11 @@ def tutor(*, context, request_id, message, hint_level, provider='default', provi
         raise ValidationError({'state': 'The teaching run is not available for tutoring.'})
     if hint_level < 1 or hint_level > 4:
         raise ValidationError({'hint_level': 'Must be between 1 and 4.'})
+    from learning_map.constants import PURPOSE_RETEST
+    if context.task.purpose == PURPOSE_RETEST:
+        raise PermissionDenied('Hints are not available during an independent retest.')
     material_hash = _material_hash(context)
+    _reauthorize(context, permission_version=context.run.permission_version, material_hash=material_hash)
     payload_hash = canonical_hash({'message': message, 'hint_level': hint_level, 'provider': provider})
 
     with transaction.atomic():
@@ -339,6 +372,17 @@ def tutor(*, context, request_id, message, hint_level, provider='default', provi
             _reauthorize(context, permission_version=existing.permission_version, material_hash=existing.material_hash)
             if existing.status == TutorRequest.STATUS_PENDING:
                 raise TutorRequestConflict('The tutoring request is still pending.')
+            from learning_knowledge.models import TaskMaterial
+            if TaskMaterial.objects.filter(task=context.task).exists():
+                response = {'content': 'AI explanation requires review. Static evidence and submission remain available.',
+                            'hint_level': 0, 'sources': [], 'fallback': True}
+                if existing.fallback_card_id:
+                    from learning_knowledge.policy import require_card
+                    card = HintCard.objects.get(pk=existing.fallback_card_id, task=context.task, is_active=True)
+                    revision = require_card(context, card.material_ref, 'hint', card.level)
+                    response.update(content=revision.source_snapshot, hint_level=card.level,
+                                    sources=[card.material_ref], material_version=card.version)
+                return response, existing, False, False
             return existing.response, existing, False, False
         request = TutorRequest.objects.create(
             request_id=request_id,
@@ -359,7 +403,8 @@ def tutor(*, context, request_id, message, hint_level, provider='default', provi
             hint_level=hint_level,
             material_hash=material_hash,
         )
-        cache_entry = TutorResponseCache.objects.filter(cache_key=cache_key, expires_at__gt=timezone.now()).first()
+        from learning_knowledge.models import TaskMaterial
+        cache_entry = None if TaskMaterial.objects.filter(task=context.task).exists() else TutorResponseCache.objects.filter(cache_key=cache_key, expires_at__gt=timezone.now()).first()
         if cache_entry:
             _reauthorize(context, permission_version=cache_entry.permission_version, material_hash=cache_entry.material_hash)
             request.status = TutorRequest.STATUS_SUCCEEDED

@@ -35,6 +35,9 @@ def emit_event(
     extra=None,
 ):
     event_id = event_id or new_event_id()
+    if task and task.validator.get('type') == 'data_lab' and len(event_id) > 64:
+        from data_lab.common import short_id
+        event_id = short_id('module6_event', event_id)
     existing = LearningEvent.objects.filter(event_id=event_id).first()
     if existing:
         return existing, False

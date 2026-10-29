@@ -1,0 +1,38 @@
+{
+  "baseline_source": "User-provided dc997fe baseline; local baseline.log was interrupted",
+  "baseline": {
+    "discovered": 638,
+    "passed": 621,
+    "skipped": 11,
+    "failures": 5,
+    "errors": 1
+  },
+  "final": {
+    "discovered": 695,
+    "passed": 678,
+    "skipped": 11,
+    "failures": 5,
+    "errors": 1
+  },
+  "duration_seconds": 465.972,
+  "delta": {
+    "discovered": 57,
+    "passed": 57,
+    "skipped": 0,
+    "failures": 0,
+    "errors": 0
+  },
+  "data_lab_passed": 57,
+  "failure_ids_match_supplied_baseline": true,
+  "new_failure_ids": [],
+  "failure_ids": [
+    "challenges.tests.ChallengeProxyAccessTests.test_access_url_does_not_include_reusable_token",
+    "challenges.tests.ChallengeProxyAccessTests.test_proxy_accepts_authenticated_owner_without_cookie",
+    "challenges.tests.ChallengeProxyAccessTests.test_proxy_rejects_authenticated_non_owner",
+    "challenges.tests.ChallengeProxyAccessTests.test_proxy_rejects_unsafe_session_request_without_csrf",
+    "mainline1.test_settings",
+    "mainline1.tests.test_semantic.SemanticTests.test_real_transport_constructor_pins_options_without_provider_registry"
+  ],
+  "full_log": "d4-full-sqlite-final.log",
+  "full_log_sha256": "52c0209807e050942a4864fcbfcce8a7cdd90033b56fdb6c80ee5f7694cdbd68"
+}

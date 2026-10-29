@@ -7,7 +7,8 @@ from uuid import UUID
 
 from .parsing import InputError, fingerprint
 
-IMPLEMENTATIONS = frozenset({'email_ascii_v1', 'ipv4_v1', 'luhn_candidate_v1'})
+IMPLEMENTATIONS = frozenset({'email_ascii_v1', 'ipv4_v1', 'luhn_candidate_v1',
+                             'demo_person_ref_v1', 'demo_contact_v1'})
 
 
 def require(condition, code='CONFIG_INVALID'):

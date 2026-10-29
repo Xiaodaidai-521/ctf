@@ -9,6 +9,7 @@ from typing import Any, Dict, List, Mapping, Optional
 
 from django.conf import settings
 from django.db.models import Q
+from learning_knowledge.policy import filter_legacy_queryset
 
 
 
@@ -135,7 +136,7 @@ class ResourceAgent:
             if not resources:
                 resources.extend(self._retrieve_vector_resources(search_query))
             resources.extend(self._retrieve_database_resources(search_query))
-            resources = self._dedupe(resources)
+            resources = self._dedupe(self._sanitize_resource_list(resources))
             resources = self._rank_for_student_level(resources, normalized_student_level)[:8]
             if cache_enabled:
                 self._write_cache(student_key, normalized_knowledge_point, resources, normalized_student_level)
@@ -180,13 +181,15 @@ class ResourceAgent:
         source_type = str(item.get("source_type") or "").lower()
         object_id = item.get("object_id")
         score = self._safe_float(item.get("score"), 0.0)
-        summary = self._safe_excerpt(item.get("text") or "", 260)
+        # Vector/cache text is not authority. Rehydrate only currently public rows.
 
         try:
             if source_type == "article":
                 from articles.models import Article
 
-                article = Article.objects.filter(id=object_id, status="approved").first()
+                article = filter_legacy_queryset(
+                    Article.objects.filter(id=object_id, status="approved"), 'article', None,
+                ).first()
                 if not article:
                     return None
                 return self._resource_item(
@@ -194,7 +197,7 @@ class ResourceAgent:
                     title=article.title,
                     type="article",
                     entry=f"/community/article/{article.id}",
-                    summary=summary or getattr(article, "summary", ""),
+                    summary=getattr(article, "summary", ""),
                     score=score,
                     source="rag",
                     tags=getattr(article, "tags", ""),
@@ -203,7 +206,10 @@ class ResourceAgent:
             if source_type == "resource":
                 from resources.models import Resource
 
-                resource = Resource.objects.filter(id=object_id, status="approved").first()
+                resource = filter_legacy_queryset(
+                    Resource.objects.filter(id=object_id, status="approved", is_tutoring_reserved=False),
+                    'resource', None,
+                ).first()
                 if not resource:
                     return None
                 return self._resource_item(
@@ -211,7 +217,7 @@ class ResourceAgent:
                     title=resource.title,
                     type=self._map_type(resource.resource_type),
                     entry=f"/resources?highlight_resource={resource.id}&resource={resource.id}",
-                    summary=summary or resource.description,
+                    summary=resource.description,
                     score=score,
                     source="rag",
                     tags=resource.tags,
@@ -239,7 +245,9 @@ class ResourceAgent:
             from articles.models import Article
 
             condition = self._condition(["title", "summary", "content", "tags"], keywords)
-            queryset = Article.objects.filter(status="approved").filter(condition).order_by("-view_count")[:5]
+            queryset = filter_legacy_queryset(
+                Article.objects.filter(status="approved"), 'article', None,
+            ).filter(condition).order_by("-view_count")[:5]
             return [
                 self._resource_item(
                     id=article.id,
@@ -263,7 +271,9 @@ class ResourceAgent:
             from resources.models import Resource
 
             condition = self._condition(["title", "description", "category", "tags"], keywords)
-            queryset = Resource.objects.filter(status="approved").filter(condition).order_by("-view_count")[:5]
+            queryset = filter_legacy_queryset(
+                Resource.objects.filter(status="approved", is_tutoring_reserved=False), 'resource', None,
+            ).filter(condition).order_by("-view_count")[:5]
             return [
                 self._resource_item(
                     id=resource.id,
@@ -327,7 +337,7 @@ class ResourceAgent:
             update_fields = ["cacheHitCount", "updatedTime"]
             if student_level and cache.studentLevel != student_level:
                 cache.studentLevel = student_level
-                cache.resourceList = resources
+                cache.resourceList = [{"id": item["id"], "type": item["type"]} for item in resources]
                 update_fields.extend(["studentLevel", "resourceList"])
             cache.save(update_fields=update_fields)
         except Exception as exc:
@@ -350,7 +360,7 @@ class ResourceAgent:
                 studentId=student_id,
                 knowledgePoint=knowledge_point,
                 defaults={
-                    "resourceList": resources,
+                    "resourceList": [{"id": item["id"], "type": item["type"]} for item in resources],
                     "studentLevel": student_level,
                 },
             )
@@ -387,24 +397,23 @@ class ResourceAgent:
         for item in resources:
             if not isinstance(item, Mapping):
                 continue
-            title = str(item.get("title") or "").strip()
-            if not title:
+            raw_type = item.get("type") or item.get("source_type") or item.get("resource_type")
+            raw_id = item.get("id") or item.get("object_id") or item.get("resource_id")
+            if not str(raw_id or '').isdigit():
                 continue
-            resource_type = self._map_type(item.get("type") or item.get("source_type") or item.get("resource_type"))
-            raw_id = item.get("id") or item.get("object_id") or item.get("resource_id") or title
-            sanitized.append(self._resource_item(
-                id=raw_id,
-                title=title,
-                type=resource_type,
-                entry=item.get("entry") or self._entry_for(resource_type, raw_id),
-                summary=item.get("summary") or item.get("text") or item.get("reason") or "",
-                score=self._safe_float(item.get("matchScore", item.get("score")), 0.5),
-                source=item.get("source") or item.get("mode") or "existing_rag",
-                tags=item.get("tags", ""),
-                category=item.get("category", ""),
-                difficulty=item.get("difficulty", ""),
-                reserved=bool(item.get("reserved", item.get("is_tutoring_reserved", False))),
-            ))
+            if raw_type == 'article':
+                source_type = 'article'
+            elif raw_type in {'resource', 'video', 'document', 'zip', 'report', 'course', 'textbook', 'ai_resource'}:
+                source_type = 'resource'
+            else:
+                # Unknown source kinds (including challenge/pack vectors) fail closed.
+                continue
+            hydrated = self._hydrate_vector_item({
+                'source_type': source_type, 'object_id': int(raw_id),
+                'score': item.get('matchScore', item.get('score', 0.5)),
+            })
+            if hydrated:
+                sanitized.append(hydrated)
         return sanitized
 
     def _resource_item(

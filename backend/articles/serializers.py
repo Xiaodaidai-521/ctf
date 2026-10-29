@@ -118,6 +118,7 @@ class CommentSerializer(serializers.ModelSerializer):
             'id', 'article', 'author', 'parent', 'content',
             'like_count', 'is_liked', 'replies', 'created_at'
         ]
+        read_only_fields = ['article', 'parent', 'like_count']
 
     def get_is_liked(self, obj):
         request = self.context.get('request')
@@ -127,7 +128,7 @@ class CommentSerializer(serializers.ModelSerializer):
 
     def get_replies(self, obj):
         # 获取所有一级回复
-        replies = obj.replies.all()[:5]  # 限制显示5条
+        replies = obj.replies.filter(article_id=obj.article_id)[:5]
         return CommentSerializer(replies, many=True, context=self.context).data
 
 
@@ -137,9 +138,17 @@ class CommentCreateSerializer(serializers.ModelSerializer):
         fields = ['article', 'parent', 'content']
 
     def validate(self, data):
-        # 验证父评论是否属于同一篇文章
+        from learning_knowledge.policy import filter_legacy_queryset
+        from rest_framework.exceptions import NotFound
+
         parent = data.get('parent')
         article = data.get('article')
+        user = self.context['request'].user
+        readable = filter_legacy_queryset(Article.objects.all(), 'article', user)
+        if not user.is_staff:
+            readable = readable.filter(status='approved')
+        if not article or not readable.filter(pk=article.pk).exists():
+            raise NotFound('Article unavailable.')
         if parent and parent.article != article:
             raise serializers.ValidationError('父评论必须属于同一篇文章')
         return data

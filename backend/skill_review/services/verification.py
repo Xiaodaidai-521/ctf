@@ -198,9 +198,13 @@ def _record_suggested_causes(submission, causes):
 
 
 @transaction.atomic
-def create_result_for_submission(submission, now=None):
+def create_result_for_submission(submission, now=None, *, data_lab_evidence=None):
     now = now or timezone.now()
-    program = verify_program(submission.task, submission.payload)
+    if submission.task.validator.get('type') == 'data_lab':
+        from data_lab.verification import verify_submission
+        program = verify_submission(submission, data_lab_evidence)
+    else:
+        program = verify_program(submission.task, submission.payload)
     manual_required = program['manual_required']
     manual_status = constants.MANUAL_PENDING if manual_required else constants.MANUAL_NOT_APPLICABLE
     overall = compute_overall(
@@ -230,7 +234,7 @@ def create_result_for_submission(submission, now=None):
         item_results=item_results,
         program_result=program['internal'],
         verifier_version=program['version'],
-        rubric_version=settings.MODULE6_RUBRIC_VERSION,
+        rubric_version=program.get('rubric_version', settings.MODULE6_RUBRIC_VERSION),
         verification_error=program['error'],
     )
     if manual_required:
@@ -242,7 +246,7 @@ def create_result_for_submission(submission, now=None):
             task=submission.task,
             catalog=submission.catalog,
             rubric=rubric_snapshot(),
-            rubric_version=settings.MODULE6_RUBRIC_VERSION,
+            rubric_version=result.rubric_version,
         )
     _record_suggested_causes(submission, program['suggested_causes'])
 
