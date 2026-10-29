@@ -109,8 +109,20 @@ class LearningBehaviorEvent(models.Model):
         ('module_completed', 'Module completed'),
         ('challenge_submitted', 'Challenge submitted'),
         ('exam_submitted', 'Exam submitted'),
+        ('teaching_run_started', 'Teaching run started'),
+        ('hint_requested', 'Hint requested'),
+        ('hint_displayed', 'Hint displayed'),
+        ('teaching_run_paused', 'Teaching run paused'),
+        ('teaching_run_resumed', 'Teaching run resumed'),
+        ('teacher_ticket_opened', 'Teacher ticket opened'),
+        ('teacher_help_displayed', 'Teacher help displayed'),
+        ('student_analysis_viewed', 'Student analysis viewed'),
+        ('tutoring_degraded', 'Tutoring degraded'),
+        ('model_call_finished', 'Model call finished'),
+        ('tool_call_finished', 'Tool call finished'),
     ]
 
+    event_id = models.CharField(max_length=64, unique=True, null=True, blank=True)
     student = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,

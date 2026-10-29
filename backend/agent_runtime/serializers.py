@@ -6,6 +6,8 @@ from .models import AgentRun
 class LearningRunRequestSerializer(serializers.Serializer):
     message = serializers.CharField(allow_blank=False, trim_whitespace=True)
     agent_id = serializers.CharField(required=False, default='tutor', allow_blank=False)
+    attempt_id = serializers.UUIDField(required=False)
+    teaching_run_id = serializers.UUIDField(required=False)
     context = serializers.DictField(required=False, default=dict)
     conversation_history = serializers.ListField(
         child=serializers.DictField(),

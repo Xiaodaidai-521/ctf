@@ -1,0 +1,8 @@
+event_ref,event_kind,message,contact
+DEMO-E-001,工单,"{""actor"":{""ref"":""DEMO-U-0101""},""text"":""中文😀：合成工单""}",
+DEMO-E-002,设备,"{""device"":{""model"":""DEMO-U-9101""},""text"":""不是人关联标识""}",
+DEMO-E-003,回访,"{""actor"":{""ref"":""DEMO-U-0103""},""reply"":""learner03@example.invalid""}",
+DEMO-E-004,空事件,,
+DEMO-E-005,复核,"{""actor"":{""ref"":""ＤＥＭＯ-U-0105""},""text"":""全角前缀；仅靠ASCII规则未覆盖""}",
+DEMO-E-006,多行,"{""text"":""😀起点
+嵌套记录 DEMO-U-0106""}",learner03@example.invalid
