@@ -1,0 +1,16 @@
+{
+  "created_at": "2026-10-29T05:49:57.196570+00:00",
+  "correction": "Confidential Document is directoryListingChallenge in real Juice Shop 20.2.0",
+  "old_fixture_alias": "confidentialDocumentChallenge",
+  "human_signoff": "not_performed",
+  "initial_unsigned_document": "evidence/module5/r2-course-signoff-initial.md",
+  "hashes": {
+    "backend/practical_training/models.py": "c3946d5341994186f9a7fc79d68d7801b4ab29ba0bf790e5ed511a060eb8316a",
+    "backend/practical_training/services.py": "c495eaaf260fc232665ced95457250688c67e1c998dfc60eb90200c92b9b9060",
+    "backend/practical_training/migrations/0003_correct_juice_challenge_key.py": "b53662bff993550ffa46380824b96c2993a747b25f9be24306943a988a3f3819",
+    "backend/practical_training/test_acceptance.py": "3f55884a0a2ae3e4c1414e36642d042c28eb57b603e3633b7951668ee08551aa",
+    "backend/practical_training/test_lifecycle.py": "b8a815061148bccd5e8b908a92d5d00763de4aacf74900ec7bef4d115924b1b1",
+    "docs/module5-r2-course-signoff.md": "f1cf6a7a6a2e45a0a2465f5c6596c69a77494cc7793d52d9df1ed42313419f61",
+    "evidence/module5/r2-key-compatibility.log": "df35767bdb8b6667ebce187fb706953079a513be11382e553ea0b7f948201a64"
+  }
+}

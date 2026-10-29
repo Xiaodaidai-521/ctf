@@ -1,0 +1,73 @@
+{
+  "node_pid_in_namespace": 11,
+  "node_running": true,
+  "namespaces": {
+    "net": "net:[4026532875]",
+    "pid": "pid:[4026532874]",
+    "mnt": "mnt:[4026532873]",
+    "user": "user:[4026532872]"
+  },
+  "node_limits": "Read back from host /proc by the acceptance driver; proc is deliberately absent here",
+  "connect_attempts": {
+    "own_loopback": {
+      "host": "127.0.0.1",
+      "port": 18212,
+      "errno": 0
+    },
+    "peer_loopback": {
+      "host": "127.0.0.1",
+      "port": 18211,
+      "errno": 111
+    },
+    "host_control_canary": {
+      "host": "127.0.0.1",
+      "port": 18390,
+      "errno": 111
+    },
+    "private_network": {
+      "host": "10.0.0.1",
+      "port": 443,
+      "errno": 1
+    },
+    "production_canary_reserved": {
+      "host": "192.0.2.1",
+      "port": 443,
+      "errno": 101
+    },
+    "internet_route": {
+      "host": "1.1.1.1",
+      "port": 443,
+      "errno": 101
+    },
+    "ipv6_egress": {
+      "host": "2001:db8::1",
+      "port": 443,
+      "errno": 101
+    }
+  },
+  "host_path_visible": false,
+  "memory_enforcement_probe": {
+    "exit_code": 0,
+    "stdout": "HOST_RLIMIT_AS_ENFORCED\n",
+    "stderr": ""
+  },
+  "pids_limit": "NOT_ENFORCED: no delegated cgroup pids controller; root uid RLIMIT_NPROC is not a boundary",
+  "memory_boundary": "RLIMIT_AS virtual memory, not cgroup RSS/aggregate memory",
+  "host_processes": {
+    "16154": {
+      "cmdline": "unshare --user --map-root-user --mount --pid --fork --net --kill-child /usr/bin/python3 -I /home/hatch/workspace/ctf-module5/scripts/module5_r2/sandbox_bootstrap.py /var/tmp/module5-r2-live-uevr5f4p/student-b 18212 ",
+      "status": "Name:\tunshare\nUmask:\t0007\nState:\tS (sleeping)\nTgid:\t16154\nNgid:\t0\nPid:\t16154\nPPid:\t16065\nTracerPid:\t0\nUid:\t0\t0\t0\t0\nGid:\t0\t0\t0\t0\nFDSize:\t64\nGroups:\t \nNStgid:\t16154\nNSpid:\t16154\nNSpgid:\t16154\nNSsid:\t16154\nKthread:\t0\nVmPeak:\t    3108 kB\nVmSize:\t    3108 kB\nVmLck:\t       0 kB\nVmPin:\t       0 kB\nVmHWM:\t    1676 kB\nVmRSS:\t     688 kB\nRssAnon:\t     116 kB\nRssFile:\t     572 kB\nRssShmem:\t       0 kB\nVmData:\t     224 kB\nVmStk:\t     140 kB\nVmExe:\t      16 kB\nVmLib:\t    1752 kB\nVmPTE:\t      48 kB\nVmSwap:\t       0 kB\nHugetlbPages:\t       0 kB\nCoreDumping:\t0\nTHP_enabled:\t1\nuntag_mask:\t0xffffffffffffffff\nThreads:\t1\nSigQ:\t0/27153\nSigPnd:\t0000000000000000\nShdPnd:\t0000000000000000\nSigBlk:\t0000000000004002\nSigIgn:\t0000000000000000\nSigCgt:\t0000000000000000\nCapInh:\t0000000000000000\nCapPrm:\t000001ffffffffff\nCapEff:\t000001ffffffffff\nCapBnd:\t000001ffffffffff\nCapAmb:\t0000000000000000\nNoNewPrivs:\t1\nSeccomp:\t2\nSeccomp_filters:\t4\nSpeculation_Store_Bypass:\tthread vulnerable\nSpeculationIndirectBranch:\tconditional enabled\nCpus_allowed:\t3\nCpus_allowed_list:\t0-1\nMems_allowed:\t00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000001\nMems_allowed_list:\t0\nvoluntary_ctxt_switches:\t17\nnonvoluntary_ctxt_switches:\t0\nx86_Thread_features:\t\nx86_Thread_features_locked:\t\n",
+      "limits": "Limit                     Soft Limit           Hard Limit           Units     \nMax cpu time              unlimited            unlimited            seconds   \nMax file size             unlimited            unlimited            bytes     \nMax data size             unlimited            unlimited            bytes     \nMax stack size            8388608              unlimited            bytes     \nMax core file size        0                    0                    bytes     \nMax resident set          unlimited            unlimited            bytes     \nMax processes             27153                27153                processes \nMax open files            4096                 4096                 files     \nMax locked memory         8388608              8388608              bytes     \nMax address space         unlimited            unlimited            bytes     \nMax file locks            unlimited            unlimited            locks     \nMax pending signals       27153                27153                signals   \nMax msgqueue size         819200               819200               bytes     \nMax nice priority         0                    0                    \nMax realtime priority     0                    0                    \nMax realtime timeout      unlimited            unlimited            us        \n"
+    },
+    "16155": {
+      "cmdline": "/usr/bin/python3 -I /r2/worker.py 18212 ",
+      "status": "Name:\tpython3\nUmask:\t0007\nState:\tS (sleeping)\nTgid:\t16155\nNgid:\t0\nPid:\t16155\nPPid:\t16154\nTracerPid:\t0\nUid:\t0\t0\t0\t0\nGid:\t0\t0\t0\t0\nFDSize:\t64\nGroups:\t \nNStgid:\t16155\t1\nNSpid:\t16155\t1\nNSpgid:\t16154\t0\nNSsid:\t16154\t0\nKthread:\t0\nVmPeak:\t  241028 kB\nVmSize:\t  175492 kB\nVmLck:\t       0 kB\nVmPin:\t       0 kB\nVmHWM:\t   19916 kB\nVmRSS:\t   14636 kB\nRssAnon:\t    9948 kB\nRssFile:\t    4688 kB\nRssShmem:\t       0 kB\nVmData:\t   27864 kB\nVmStk:\t     140 kB\nVmExe:\t    2956 kB\nVmLib:\t    6436 kB\nVmPTE:\t     104 kB\nVmSwap:\t       0 kB\nHugetlbPages:\t       0 kB\nCoreDumping:\t0\nTHP_enabled:\t1\nuntag_mask:\t0xffffffffffffffff\nThreads:\t3\nSigQ:\t0/27153\nSigPnd:\t0000000000000000\nShdPnd:\t0000000000000000\nSigBlk:\t0000000000000000\nSigIgn:\t0000000001001000\nSigCgt:\t0000000100000002\nCapInh:\t0000000000000000\nCapPrm:\t0000000000000000\nCapEff:\t0000000000000000\nCapBnd:\t0000000000000000\nCapAmb:\t0000000000000000\nNoNewPrivs:\t1\nSeccomp:\t2\nSeccomp_filters:\t4\nSpeculation_Store_Bypass:\tthread vulnerable\nSpeculationIndirectBranch:\tconditional enabled\nCpus_allowed:\t3\nCpus_allowed_list:\t0-1\nMems_allowed:\t00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000001\nMems_allowed_list:\t0\nvoluntary_ctxt_switches:\t1263\nnonvoluntary_ctxt_switches:\t74\nx86_Thread_features:\t\nx86_Thread_features_locked:\t\n",
+      "limits": "Limit                     Soft Limit           Hard Limit           Units     \nMax cpu time              unlimited            unlimited            seconds   \nMax file size             unlimited            unlimited            bytes     \nMax data size             unlimited            unlimited            bytes     \nMax stack size            8388608              unlimited            bytes     \nMax core file size        0                    0                    bytes     \nMax resident set          unlimited            unlimited            bytes     \nMax processes             27153                27153                processes \nMax open files            4096                 4096                 files     \nMax locked memory         8388608              8388608              bytes     \nMax address space         unlimited            unlimited            bytes     \nMax file locks            unlimited            unlimited            locks     \nMax pending signals       27153                27153                signals   \nMax msgqueue size         819200               819200               bytes     \nMax nice priority         0                    0                    \nMax realtime priority     0                    0                    \nMax realtime timeout      unlimited            unlimited            us        \n"
+    },
+    "16165": {
+      "cmdline": "/usr/bin/node --jitless --max-old-space-size=256 /app/build/app.js ",
+      "status": "Name:\tMainThread\nUmask:\t0007\nState:\tR (running)\nTgid:\t16165\nNgid:\t0\nPid:\t16165\nPPid:\t16155\nTracerPid:\t0\nUid:\t0\t0\t0\t0\nGid:\t0\t0\t0\t0\nFDSize:\t64\nGroups:\t \nNStgid:\t16165\t11\nNSpid:\t16165\t11\nNSpgid:\t16154\t0\nNSsid:\t16154\t0\nKthread:\t0\nVmPeak:\t 1256684 kB\nVmSize:\t 1190032 kB\nVmLck:\t       0 kB\nVmPin:\t       0 kB\nVmHWM:\t  184372 kB\nVmRSS:\t   98596 kB\nRssAnon:\t   80768 kB\nRssFile:\t   16092 kB\nRssShmem:\t    1736 kB\nVmData:\t  163528 kB\nVmStk:\t     132 kB\nVmExe:\t   43728 kB\nVmLib:\t    3840 kB\nVmPTE:\t    2528 kB\nVmSwap:\t       0 kB\nHugetlbPages:\t       0 kB\nCoreDumping:\t0\nTHP_enabled:\t1\nuntag_mask:\t0xffffffffffffffff\nThreads:\t11\nSigQ:\t0/27153\nSigPnd:\t0000000000000000\nShdPnd:\t0000000000000000\nSigBlk:\t0000000000000000\nSigIgn:\t0000000001001000\nSigCgt:\t0000000100004202\nCapInh:\t0000000000000000\nCapPrm:\t0000000000000000\nCapEff:\t0000000000000000\nCapBnd:\t0000000000000000\nCapAmb:\t0000000000000000\nNoNewPrivs:\t1\nSeccomp:\t2\nSeccomp_filters:\t4\nSpeculation_Store_Bypass:\tthread vulnerable\nSpeculationIndirectBranch:\tconditional enabled\nCpus_allowed:\t1\nCpus_allowed_list:\t0\nMems_allowed:\t00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000001\nMems_allowed_list:\t0\nvoluntary_ctxt_switches:\t106952\nnonvoluntary_ctxt_switches:\t21827\nx86_Thread_features:\t\nx86_Thread_features_locked:\t\n",
+      "limits": "Limit                     Soft Limit           Hard Limit           Units     \nMax cpu time              unlimited            unlimited            seconds   \nMax file size             unlimited            unlimited            bytes     \nMax data size             unlimited            unlimited            bytes     \nMax stack size            8388608              unlimited            bytes     \nMax core file size        0                    0                    bytes     \nMax resident set          unlimited            unlimited            bytes     \nMax processes             27153                27153                processes \nMax open files            256                  256                  files     \nMax locked memory         8388608              8388608              bytes     \nMax address space         2147483648           2147483648           bytes     \nMax file locks            unlimited            unlimited            locks     \nMax pending signals       27153                27153                signals   \nMax msgqueue size         819200               819200               bytes     \nMax nice priority         0                    0                    \nMax realtime priority     0                    0                    \nMax realtime timeout      unlimited            unlimited            us        \n"
+    }
+  }
+}

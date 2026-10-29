@@ -1,0 +1,36 @@
+{
+  "label": "challenge-same-key-0",
+  "os_pid": 18231,
+  "pg_pid": 18238,
+  "database": "module5_r2",
+  "version": "PostgreSQL 16.13 on x86_64-pc-linux-gnu, compiled by gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0, 64-bit",
+  "retries": [],
+  "status": 201,
+  "body": {
+    "evidence_id": "0cd778c3-76a2-4d42-87ae-cf3041fd7a89",
+    "status": "passed",
+    "error": "",
+    "verifier_version": "m5-juice-confidential-v1",
+    "observed_at": "2026-10-29 05:44:11.985406+00:00",
+    "content_hash": "1e88113002039adef1a174fd36607893155d437cb4a48b4fab004730fb1fd953",
+    "source": {
+      "kind": "juice_shop_state",
+      "assignment_id": "9b61f2d6-1703-4bff-aedf-4b2e09db4e9e",
+      "attempt_id": "379d2f7e-163d-4101-967e-4ca10badbffe",
+      "student_id": 1,
+      "task_id": 1,
+      "task_version": "1.0.0",
+      "catalog_version": "m5-test-v1",
+      "container_id": "m5-fixture-container",
+      "challenge_id": 1,
+      "challenge_key": "directoryListingChallenge",
+      "baseline_observed_at": "2026-10-29T05:44:07.571256+00:00"
+    },
+    "result_id": "8326c011-81b7-4380-a579-8d232f325f7e",
+    "submission_id": "e61e0a1f-5266-413b-a63a-646cc40b3ee6",
+    "module1_fact_ids": {
+      "M5-TEST": "m5-8a864cbc6a1361c987ee6dff300eb208ff01a2b6"
+    }
+  },
+  "elapsed_s": 1.949144909000097
+}

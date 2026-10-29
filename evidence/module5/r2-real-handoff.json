@@ -1,0 +1,76 @@
+{
+  "student-a": {
+    "assignment_id": "ef6deca0-dec1-48f8-ae14-d7f79fcbda5c",
+    "attempt_id": "b7d18b64-d810-4ff8-8322-4e20dd81459a",
+    "student_id": 1,
+    "evidence_id": "55c0b475-611f-4fd7-9cd5-53f07b5a05fe",
+    "result_id": "65082f46-771c-4902-93e0-3ba659d72cb5",
+    "module1_fact_ids": {
+      "M5-R2-LOCAL": "m5-86c5cab3b6b07f374695a71674b4888de77c2082"
+    },
+    "status": "failed",
+    "source": {
+      "kind": "r2_real_juice_release",
+      "assignment_id": "ef6deca0-dec1-48f8-ae14-d7f79fcbda5c",
+      "attempt_id": "b7d18b64-d810-4ff8-8322-4e20dd81459a",
+      "student_id": 1,
+      "task_id": 1,
+      "task_version": "1.0.0",
+      "catalog_version": "m5-r2-local-20261029",
+      "container_id": "r2-process-16092",
+      "challenge_id": 1,
+      "challenge_key": "directoryListingChallenge",
+      "baseline_observed_at": "2026-10-29T05:45:35.114167+00:00",
+      "runtime": {
+        "profile": "r2-host-process",
+        "docker_used": false,
+        "release_version": "20.2.0",
+        "release_sha256": "dbb457f74e908e28c41d7787e36d30d121d5b9f6178524720567b4aeb41f2968",
+        "supervisor_pid": 16092,
+        "app_port": 18211,
+        "observer_port": 18111,
+        "student_port": 18411
+      },
+      "observer_endpoint": "http://127.0.0.1:18111",
+      "scope": "local_operator_acceptance_no_production_admission"
+    },
+    "observed_at": "2026-10-29T05:45:42.743597+00:00"
+  },
+  "student-b": {
+    "assignment_id": "8df32ebd-ea6f-4a3f-8a37-9168cd7804db",
+    "attempt_id": "6043cc2e-0720-46da-b170-741635f17837",
+    "student_id": 2,
+    "evidence_id": "69bd0d26-cd86-4309-a948-2ada8d00b1a8",
+    "result_id": "782ff328-618b-451c-915b-22617d398998",
+    "module1_fact_ids": {
+      "M5-R2-LOCAL": "m5-d080419bd8dd6d2c788263426e8d3c517af6d91b"
+    },
+    "status": "passed",
+    "source": {
+      "kind": "r2_real_juice_release",
+      "assignment_id": "8df32ebd-ea6f-4a3f-8a37-9168cd7804db",
+      "attempt_id": "6043cc2e-0720-46da-b170-741635f17837",
+      "student_id": 2,
+      "task_id": 1,
+      "task_version": "1.0.0",
+      "catalog_version": "m5-r2-local-20261029",
+      "container_id": "r2-process-16154",
+      "challenge_id": 1,
+      "challenge_key": "directoryListingChallenge",
+      "baseline_observed_at": "2026-10-29T05:45:35.890428+00:00",
+      "runtime": {
+        "profile": "r2-host-process",
+        "docker_used": false,
+        "release_version": "20.2.0",
+        "release_sha256": "dbb457f74e908e28c41d7787e36d30d121d5b9f6178524720567b4aeb41f2968",
+        "supervisor_pid": 16154,
+        "app_port": 18212,
+        "observer_port": 18112,
+        "student_port": 18412
+      },
+      "observer_endpoint": "http://127.0.0.1:18112",
+      "scope": "local_operator_acceptance_no_production_admission"
+    },
+    "observed_at": "2026-10-29T05:45:42.991558+00:00"
+  }
+}

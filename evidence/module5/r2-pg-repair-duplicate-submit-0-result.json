@@ -1,0 +1,19 @@
+{
+  "label": "repair-duplicate-submit-0",
+  "os_pid": 18247,
+  "pg_pid": 18255,
+  "database": "module5_r2",
+  "version": "PostgreSQL 16.13 on x86_64-pc-linux-gnu, compiled by gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0, 64-bit",
+  "retries": [],
+  "status": 201,
+  "body": {
+    "claim_id": "ed98416a-2d0a-4b5f-b9fc-6ce9ce213b0c",
+    "attempt_id": "0535bcd3-25ab-4534-9937-950d709ea8d5",
+    "retest_id": "3285961a-06d5-4623-8545-c930b2506657",
+    "completed": false,
+    "status": "pending_independent_verification",
+    "evidence_id": null,
+    "scope": "proposal_only_not_live_juice_patch"
+  },
+  "elapsed_s": 1.037949604000005
+}

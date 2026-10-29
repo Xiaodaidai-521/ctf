@@ -1,0 +1,22 @@
+{
+  "at": "2026-10-29T05:45:36.142557+00:00",
+  "label": "anonymous-gateway-student-b",
+  "request": {
+    "method": "GET",
+    "url": "http://127.0.0.1:18412/",
+    "payload": null,
+    "authorization": null
+  },
+  "response": {
+    "status": 401,
+    "headers": {
+      "Server": "BaseHTTP/0.6 Python/3.12.3",
+      "Date": "Thu, 29 Oct 2026 05:45:36 GMT",
+      "Connection": "close",
+      "Content-Type": "text/html;charset=utf-8",
+      "Content-Length": "346"
+    },
+    "body": "<!DOCTYPE HTML>\n<html lang=\"en\">\n    <head>\n        <meta charset=\"utf-8\">\n        <title>Error response</title>\n    </head>\n    <body>\n        <h1>Error response</h1>\n        <p>Error code: 401</p>\n        <p>Message: Unauthorized.</p>\n        <p>Error code explanation: 401 - No permission -- see authorization schemes.</p>\n    </body>\n</html>\n",
+    "sha256": "d9575577fbd778dae1afa92567d05aa8d0945a51436c06044618ef5a0cb3dbf3"
+  }
+}

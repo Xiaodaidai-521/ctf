@@ -1,0 +1,35 @@
+{
+  "finished_at": "2026-10-29T05:45:59.078354+00:00",
+  "real_juice_version": "20.2.0",
+  "positive_student": "student-b",
+  "negative_student": "student-a",
+  "production_admission": "CLOSED, no signoff/approval fabricated",
+  "wire_exchanges": 28,
+  "server_evidence_count": 2,
+  "fact_count": 2,
+  "real_cleanup": {
+    "stopped_at": 1793252755.1780164,
+    "instances": {
+      "student-a": {
+        "ports_errno": {
+          "student_port": 111,
+          "observer_port": 111
+        },
+        "supervisor_gone": true
+      },
+      "student-b": {
+        "ports_errno": {
+          "student_port": 111,
+          "observer_port": 111
+        },
+        "supervisor_gone": true
+      }
+    }
+  },
+  "remaining": [
+    "cgroup CPU bandwidth/RSS/PID caps unavailable",
+    "trusted host root and internal observer ports are outside the student process boundary",
+    "local HTTP harness is not a deployed multi-host production gateway",
+    "teacher signoff and genuine day3/day7 learner observation pending"
+  ]
+}

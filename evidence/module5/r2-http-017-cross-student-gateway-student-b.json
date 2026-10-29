@@ -1,0 +1,22 @@
+{
+  "at": "2026-10-29T05:45:36.249530+00:00",
+  "label": "cross-student-gateway-student-b",
+  "request": {
+    "method": "GET",
+    "url": "http://127.0.0.1:18412/",
+    "payload": null,
+    "authorization": "REDACTED"
+  },
+  "response": {
+    "status": 403,
+    "headers": {
+      "Server": "BaseHTTP/0.6 Python/3.12.3",
+      "Date": "Thu, 29 Oct 2026 05:45:36 GMT",
+      "Connection": "close",
+      "Content-Type": "text/html;charset=utf-8",
+      "Content-Length": "349"
+    },
+    "body": "<!DOCTYPE HTML>\n<html lang=\"en\">\n    <head>\n        <meta charset=\"utf-8\">\n        <title>Error response</title>\n    </head>\n    <body>\n        <h1>Error response</h1>\n        <p>Error code: 403</p>\n        <p>Message: Forbidden.</p>\n        <p>Error code explanation: 403 - Request forbidden -- authorization will not help.</p>\n    </body>\n</html>\n",
+    "sha256": "edc8240a7033b7684c56984c48617895eb3241b02e6ce5422e787844bb9c9a65"
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "at": "2026-10-29T05:45:35.529320+00:00",
+  "label": "cross-student-address-student-a",
+  "request": {
+    "method": "GET",
+    "url": "http://127.0.0.1:18380/api/practical-training/assignments/ef6deca0-dec1-48f8-ae14-d7f79fcbda5c/",
+    "payload": null,
+    "authorization": "REDACTED"
+  },
+  "response": {
+    "status": 404,
+    "headers": {
+      "Date": "Thu, 29 Oct 2026 05:45:35 GMT",
+      "Server": "WSGIServer/0.2 CPython/3.12.3",
+      "Content-Type": "application/json",
+      "Vary": "Accept, Cookie, origin",
+      "Allow": "GET, HEAD, OPTIONS",
+      "X-Frame-Options": "DENY",
+      "Content-Length": "25",
+      "X-Content-Type-Options": "nosniff",
+      "Referrer-Policy": "same-origin",
+      "Cross-Origin-Opener-Policy": "same-origin",
+      "Connection": "close"
+    },
+    "body": "{\"detail\":\"未找到。\"}",
+    "sha256": "a41e64a16e6bb3c59972ebdd1bd7fc9d7023de1be172c42286c4faeaa6552c80"
+  }
+}

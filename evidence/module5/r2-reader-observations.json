@@ -1,0 +1,80 @@
+[
+  {
+    "student": "student-a",
+    "phase": "baseline",
+    "endpoint": "http://127.0.0.1:18111",
+    "at": "2026-10-29T05:45:35.113706+00:00",
+    "observer_version": "m5-juice-confidential-v1",
+    "observation": {
+      "challenge_key": "directoryListingChallenge",
+      "solved": false
+    },
+    "paired_raw_response_sha256": "cc5bcdec578ff1a44c6c5debf92dc8b0876e87761d055e328a420faa08a77eab",
+    "note": "Raw capture and unchanged fixed reader each performed an actual GET, with no solve between them."
+  },
+  {
+    "student": "student-b",
+    "phase": "baseline",
+    "endpoint": "http://127.0.0.1:18112",
+    "at": "2026-10-29T05:45:35.889952+00:00",
+    "observer_version": "m5-juice-confidential-v1",
+    "observation": {
+      "challenge_key": "directoryListingChallenge",
+      "solved": false
+    },
+    "paired_raw_response_sha256": "7dd4b0cbb1ba3b4adfd8b1097e9d921d5a38c9de3656fdb30b3dbd766b5fed47",
+    "note": "Raw capture and unchanged fixed reader each performed an actual GET, with no solve between them."
+  },
+  {
+    "student": "student-a",
+    "phase": "peer-solved-negative",
+    "endpoint": "http://127.0.0.1:18111",
+    "at": "2026-10-29T05:45:42.537531+00:00",
+    "observer_version": "m5-juice-confidential-v1",
+    "observation": {
+      "challenge_key": "directoryListingChallenge",
+      "solved": false
+    },
+    "paired_raw_response_sha256": "cc5bcdec578ff1a44c6c5debf92dc8b0876e87761d055e328a420faa08a77eab",
+    "note": "Raw capture and unchanged fixed reader each performed an actual GET, with no solve between them."
+  },
+  {
+    "student": "student-b",
+    "phase": "actual-document-solved",
+    "endpoint": "http://127.0.0.1:18112",
+    "at": "2026-10-29T05:45:42.636471+00:00",
+    "observer_version": "m5-juice-confidential-v1",
+    "observation": {
+      "challenge_key": "directoryListingChallenge",
+      "solved": true
+    },
+    "paired_raw_response_sha256": "ba44f445a4a9125ee94511088582cd0b7b7778b0bd2e14b30de12bcc3c6dba53",
+    "note": "Raw capture and unchanged fixed reader each performed an actual GET, with no solve between them."
+  },
+  {
+    "student": "student-a",
+    "phase": "handoff",
+    "endpoint": "http://127.0.0.1:18111",
+    "at": "2026-10-29T05:45:42.737705+00:00",
+    "observer_version": "m5-juice-confidential-v1",
+    "observation": {
+      "challenge_key": "directoryListingChallenge",
+      "solved": false
+    },
+    "paired_raw_response_sha256": "cc5bcdec578ff1a44c6c5debf92dc8b0876e87761d055e328a420faa08a77eab",
+    "note": "Raw capture and unchanged fixed reader each performed an actual GET, with no solve between them."
+  },
+  {
+    "student": "student-b",
+    "phase": "handoff",
+    "endpoint": "http://127.0.0.1:18112",
+    "at": "2026-10-29T05:45:42.988908+00:00",
+    "observer_version": "m5-juice-confidential-v1",
+    "observation": {
+      "challenge_key": "directoryListingChallenge",
+      "solved": true
+    },
+    "paired_raw_response_sha256": "ba44f445a4a9125ee94511088582cd0b7b7778b0bd2e14b30de12bcc3c6dba53",
+    "note": "Raw capture and unchanged fixed reader each performed an actual GET, with no solve between them."
+  }
+]

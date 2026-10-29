@@ -1,0 +1,70 @@
+{
+  "schema": "module5-r2-course-references-v1",
+  "scope": "Reference metadata and raw response hashes only; no solution text retained; no license/legal or teacher approval",
+  "references": [
+    {
+      "id": "wstg-scenario",
+      "requested_url": "https://raw.githubusercontent.com/OWASP/wstg/v4.2/document/4-Web_Application_Security_Testing/05-Authorization_Testing/02-Testing_for_Bypassing_Authorization_Schema.md",
+      "accessed_at_utc": "2026-10-29T05:15:23.589928+00:00",
+      "body_retained": false,
+      "http_status": 200,
+      "final_url": "https://raw.githubusercontent.com/OWASP/wstg/v4.2/document/4-Web_Application_Security_Testing/05-Authorization_Testing/02-Testing_for_Bypassing_Authorization_Schema.md",
+      "bytes": 11031,
+      "sha256": "c7c729479c73a269591883a524be448e782f9c215b2ee775451704925df0fd08",
+      "metadata_excerpt": [
+        "# Testing for Bypassing Authorization Schema",
+        "|WSTG-ATHZ-02|"
+      ]
+    },
+    {
+      "id": "wstg-license",
+      "requested_url": "https://raw.githubusercontent.com/OWASP/wstg/v4.2/LICENSE",
+      "accessed_at_utc": "2026-10-29T05:15:24.322998+00:00",
+      "body_retained": false,
+      "http_status": 200,
+      "final_url": "https://raw.githubusercontent.com/OWASP/wstg/v4.2/LICENSE",
+      "bytes": 20561,
+      "sha256": "9312b09a6848f26c6046652238ddd6b32ea2124847faed48854c375c5194238d",
+      "metadata_excerpt": [
+        "Attribution-ShareAlike 4.0 International",
+        "Creative Commons Attribution-ShareAlike 4.0 International Public",
+        "Attribution-ShareAlike 4.0 International Public License (\"Public"
+      ],
+      "license_identification": "CC-BY-SA-4.0",
+      "obligation_summary": "Attribution and ShareAlike for licensed/adapted material; teacher must verify applicable scope."
+    },
+    {
+      "id": "juice-shop-license",
+      "requested_url": "https://raw.githubusercontent.com/juice-shop/juice-shop/v20.2.0/LICENSE",
+      "accessed_at_utc": "2026-10-29T05:15:25.523242+00:00",
+      "body_retained": false,
+      "http_status": 200,
+      "final_url": "https://raw.githubusercontent.com/juice-shop/juice-shop/v20.2.0/LICENSE",
+      "bytes": 1101,
+      "sha256": "fa4ca6d61009e537c953f1c0b8455dd66d69f810888546c48db8ea05f0713093",
+      "metadata_excerpt": [
+        "Copyright (c) 2014-2026 Bjoern Kimminich & the OWASP Juice Shop contributors"
+      ],
+      "license_identification": "MIT",
+      "obligation_summary": "Retain copyright and permission notices in copies or substantial portions; dependency/assets licenses require separate review."
+    }
+  ],
+  "earlier_webfetch_attempts": [
+    {
+      "url": "https://owasp.org/www-project-web-security-testing-guide/v42/4-Web_Application_Security_Testing/05-Authorization_Testing/02-Testing_for_Bypassing_Authorization_Schema",
+      "result": "HTTP 308 to https://wstg.owasp.org/v4.2/4-Web_Application_Security_Testing/05-Authorization_Testing/02-Testing_for_Bypassing_Authorization_Schema; follow-up timed out at 300 seconds"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/OWASP/wstg/v4.2/LICENSE.md",
+      "result": "HTTP 404; replaced by LICENSE"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/OWASP/wstg/v4.2/LICENSE",
+      "result": "WebFetch identified CC BY-SA 4.0; no raw body hash from that tool"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/juice-shop/juice-shop/v20.2.0/LICENSE",
+      "result": "WebFetch identified MIT terms and Bjoern Kimminich & the OWASP Juice Shop contributors (2014-2026); no raw body hash from that tool"
+    }
+  ]
+}

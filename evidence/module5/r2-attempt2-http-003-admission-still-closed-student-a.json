@@ -1,0 +1,28 @@
+{
+  "at": "2026-10-29T05:33:34.091019+00:00",
+  "label": "admission-still-closed-student-a",
+  "request": {
+    "method": "POST",
+    "url": "http://127.0.0.1:18380/api/practical-training/assignments/8ec27db9-e278-4ba4-8cee-c5376af1ef7d/start/",
+    "payload": {},
+    "authorization": "REDACTED"
+  },
+  "response": {
+    "status": 400,
+    "headers": {
+      "Date": "Thu, 29 Oct 2026 05:33:34 GMT",
+      "Server": "WSGIServer/0.2 CPython/3.12.3",
+      "Content-Type": "application/json",
+      "Vary": "Accept, Cookie, origin",
+      "Allow": "POST, OPTIONS",
+      "X-Frame-Options": "DENY",
+      "Content-Length": "34",
+      "X-Content-Type-Options": "nosniff",
+      "Referrer-Policy": "same-origin",
+      "Cross-Origin-Opener-Policy": "same-origin",
+      "Connection": "close"
+    },
+    "body": "[\"映射未审核或已暂停。\"]",
+    "sha256": "20ea0871c1331ef454b5440e82319d02aa56b84839b8cf7553aee5e563f20807"
+  }
+}
