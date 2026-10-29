@@ -46,8 +46,11 @@ class KnowledgeDiagnosisAgent:
             return dict(self.DEFAULT_RESULT)
 
     def _weak_knowledge_points(self, student_id):
-        from learning_paths.models import UserKnowledgeState
-        queryset = UserKnowledgeState.objects.filter(user_id=student_id).select_related("concept").order_by("mastery_level", "-updated_at")[:5]
+        from learning_paths.models import KnowledgeConcept, UserKnowledgeState
+        from learning_knowledge.policy import filter_legacy_queryset
+
+        concepts = filter_legacy_queryset(KnowledgeConcept.objects.all(), 'knowledge_concept', None)
+        queryset = UserKnowledgeState.objects.filter(user_id=student_id, concept__in=concepts).select_related("concept").order_by("mastery_level", "-updated_at")[:5]
         return [{"id": state.concept_id, "name": state.concept.name, "mastery": round(float(state.mastery_level) * 100, 2)} for state in queryset if state.mastery_level < 0.75]
 
     def _mastery_score(self, student_id):

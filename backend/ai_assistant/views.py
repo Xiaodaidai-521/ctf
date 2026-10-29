@@ -448,11 +448,14 @@ class AIConversationViewSet(viewsets.ModelViewSet):
                     {
                         'id': msg.id,
                         'role': msg.role,
-                        'content': msg.content,
+                        # No source-complete provenance exists for legacy messages.
+                        # Keep audit identity, not potentially copied material/metadata.
+                        'content': '[历史内容未能验证材料权限，已隐藏]',
                         'agent_id': msg.agent_id,
-                        'agent_name': msg.agent_name,
-                        'provider': msg.provider,
-                        'metadata': msg.metadata or {},
+                        'agent_name': '',
+                        'provider': '',
+                        'metadata': {},
+                        'redacted': True,
                         'created_at': msg.created_at.isoformat(),
                     }
                     for msg in obj.messages.all().order_by('created_at')
@@ -498,16 +501,13 @@ class AIConversationViewSet(viewsets.ModelViewSet):
             content=user_message
         )
 
-        # Build conversation history.
-        messages = list(conversation.messages.all().order_by('created_at'))
-        conversation_history = [
-            {'role': msg.role, 'content': msg.content}
-            for msg in messages[:-1]
-        ]
+        # Legacy history has no verifiable provenance; do not resend it to models.
+        conversation_history = []
 
         challenge_info = None
         if conversation.challenge:
             challenge_info = {
+                'id': conversation.challenge.id,
                 'title': conversation.challenge.title,
                 'category': conversation.challenge.category.name if conversation.challenge.category else None,
                 'category_name': conversation.challenge.category.name if conversation.challenge.category else 'unknown',
@@ -900,6 +900,7 @@ def multi_agent_chat(request):
                 mode=mode,
                 force_ai=force_ai,
                 context=current_context,
+                user=request.user, task_context=None,
             )
 
         result = _TUTOR_REQUEST_ORCHESTRATOR.call_existing_answer_chain(
@@ -1279,6 +1280,7 @@ def multi_agent_chat_stream(request):
                     challenge_info,
                     knowledge_scope,
                     5,
+                    user=request.user, task_context=None,
                 )
             else:
                 knowledge_package = await sync_to_async(service.build_knowledge_context)(
@@ -1286,6 +1288,7 @@ def multi_agent_chat_stream(request):
                     challenge_info,
                     knowledge_scope,
                     5,
+                    user=request.user, task_context=None,
                 )
         except Exception as exc:
             logger.warning(
@@ -1430,19 +1433,21 @@ def solve_challenge(request):
     if not message:
         return Response({'error': 'message is required'}, status=status.HTTP_400_BAD_REQUEST)
 
-    challenge = get_object_or_404(Challenge, id=challenge_id)
+    from teaching_agent.context import resolve_task_context
 
-    async def _async_solve():
-        return await solve_challenge_hybrid_async(
-            question=message,
-            challenge_id=challenge_id,
-            agent_ids=['analyst'],
-            mode='single'
-        )
-    
-    result = async_to_sync(_async_solve)()
-    
-    return Response(result)
+    resolve_task_context(
+        user=request.user,
+        request_data=request.data,
+        require_attempt=True,
+        challenge_id=challenge_id,
+    )
+    return Response(
+        {
+            'error': 'Direct task solutions are not available to students.',
+            'detail': 'Use the task tutoring endpoint and unlocked hint levels.',
+        },
+        status=status.HTTP_403_FORBIDDEN,
+    )
 
 
 # ==================== ç¼åãé¨?APIéå £Ëéåç´?====================
@@ -1581,6 +1586,11 @@ class TutoringSessionView(APIView):
         specialist_context = preparation['specialists']
         resource_preparation = _resource_preparation_from_context(specialist_context)
         teaching_context = preparation.get('teachingContext')
+        trusted = preparation.get('trustedTaskContext') or {}
+        if trusted:
+            concept_name = trusted['task']['title']
+            student_level = 'task_bound'
+            context_summary = ''
 
         async def _run(current_teaching_context):
             from .learning_orchestrator import LearningOrchestrator

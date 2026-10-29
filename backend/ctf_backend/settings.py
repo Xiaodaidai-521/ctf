@@ -91,6 +91,8 @@ INSTALLED_APPS = [
     'export_quota',
     'learning_map',
     'skill_review',
+    'teaching_agent',
+    'learning_knowledge',
     'feedback_center',
 ]
 
@@ -489,3 +491,12 @@ TUTOR_SPECIALISTS_ENABLED = os.environ.get('TUTOR_SPECIALISTS_ENABLED', 'true').
 TUTOR_CONTEXT_ENABLED = os.environ.get('TUTOR_CONTEXT_ENABLED', 'true').lower() in ('true', '1', 'yes')
 TUTOR_RESOURCE_CACHE_ENABLED = os.environ.get('TUTOR_RESOURCE_CACHE_ENABLED', 'true').lower() in ('true', '1', 'yes')
 TUTOR_METRICS_ENABLED = os.environ.get('TUTOR_METRICS_ENABLED', 'true').lower() in ('true', '1', 'yes')
+
+# Module-2 task tutoring has a page-level budget independent of the legacy
+# 180-second internal teaching-step ceiling. Operational circuit values remain
+# explicitly versioned as unapproved defaults until the first-phase config review.
+TUTORING_TOTAL_WAIT_SECONDS = min(10.0, float(os.environ.get('TUTORING_TOTAL_WAIT_SECONDS', '10')))
+TUTORING_CIRCUIT_FAILURE_THRESHOLD = int(os.environ.get('TUTORING_CIRCUIT_FAILURE_THRESHOLD', '3'))
+TUTORING_CIRCUIT_PROBE_SECONDS = int(os.environ.get('TUTORING_CIRCUIT_PROBE_SECONDS', '60'))
+TUTORING_CACHE_TTL_SECONDS = int(os.environ.get('TUTORING_CACHE_TTL_SECONDS', '300'))
+TEACHING_AGENT_PROVIDER = os.environ.get('TEACHING_AGENT_PROVIDER', 'default')

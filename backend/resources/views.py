@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from django.db.models import Case, IntegerField, Q, Value, When
 from django.http import FileResponse
 from .models import Resource
+from learning_knowledge.policy import filter_legacy_queryset
 from .serializers import (
     ResourceSerializer,
     ResourceUploadSerializer,
@@ -20,7 +21,7 @@ class ResourceAdminListView(generics.ListAPIView):
     pagination_class = pagination.PageNumberPagination
 
     def get_queryset(self):
-        queryset = super().get_queryset()
+        queryset = filter_legacy_queryset(super().get_queryset(), 'resource', self.request.user)
 
         # 状态筛选
         status_filter = self.request.query_params.get('status', None)
@@ -63,7 +64,7 @@ class ResourceListView(generics.ListAPIView):
     search_fields = ['title', 'description', 'tags']
 
     def get_queryset(self):
-        queryset = super().get_queryset()
+        queryset = filter_legacy_queryset(super().get_queryset(), 'resource', self.request.user)
         highlight_resource_id = self._highlight_resource_id()
         highlight_resource_ids = self._highlight_resource_ids()
         
@@ -86,9 +87,7 @@ class ResourceListView(generics.ListAPIView):
         if category:
             queryset = queryset.filter(category=category)
 
-        if highlight_resource_ids:
-            highlighted = Resource.objects.filter(id__in=highlight_resource_ids, status='approved')
-            queryset = (queryset | highlighted).distinct()
+        # Highlight changes ordering only; it never widens the readable queryset.
         
         # 排序
         ordering = self.request.query_params.get('ordering', '-created_at')
@@ -152,12 +151,10 @@ class ResourceDetailView(generics.RetrieveAPIView):
     lookup_field = 'id'
 
     def get_queryset(self):
-        queryset = Resource.objects.filter(status='approved')
-        highlight_resource_id = self._highlight_resource_id()
-        requested_id = self.kwargs.get(self.lookup_field)
-        if highlight_resource_id and str(highlight_resource_id) == str(requested_id):
-            return queryset
-        return queryset.filter(is_tutoring_reserved=False)
+        return filter_legacy_queryset(
+            Resource.objects.filter(status='approved', is_tutoring_reserved=False),
+            'resource', self.request.user,
+        )
 
     def get_serializer_context(self):
         context = super().get_serializer_context()
@@ -212,7 +209,9 @@ class ResourceMyListView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return Resource.objects.filter(uploader=self.request.user)
+        return filter_legacy_queryset(
+            Resource.objects.filter(uploader=self.request.user), 'resource', self.request.user,
+        )
 
 
 @api_view(['POST'])
@@ -223,7 +222,7 @@ def resource_review_view(request):
     serializer.is_valid(raise_exception=True)
     
     try:
-        resource = Resource.objects.get(id=serializer.validated_data['resource_id'])
+        resource = filter_legacy_queryset(Resource.objects.all(), 'resource', request.user).get(id=serializer.validated_data['resource_id'])
     except Resource.DoesNotExist:
         return Response(
             {'error': '资源不存在'},
@@ -247,19 +246,11 @@ def resource_review_view(request):
 def resource_download_view(request, resource_id):
     """资源下载"""
     try:
-        resource = Resource.objects.get(id=resource_id, status='approved')
+        resource = filter_legacy_queryset(
+            Resource.objects.filter(status='approved', is_tutoring_reserved=False),
+            'resource', request.user,
+        ).get(id=resource_id)
     except Resource.DoesNotExist:
-        return Response(
-            {'error': '资源不存在或未通过审核'},
-            status=status.HTTP_404_NOT_FOUND
-        )
-
-    raw_highlight = request.query_params.get('highlight_resource')
-    try:
-        highlight_resource_id = int(raw_highlight)
-    except (TypeError, ValueError):
-        highlight_resource_id = None
-    if resource.is_tutoring_reserved and highlight_resource_id != resource.id:
         return Response(
             {'error': '资源不存在或未通过审核'},
             status=status.HTTP_404_NOT_FOUND

@@ -196,10 +196,10 @@ class LegalRetrievalService:
     def _record_results(self, *, query, top_k, filters, results, started, user):
         latency_ms = int((time.perf_counter() - started) * 1000)
         LegalRetrievalLog.objects.create(
-            query=query,
+            query='[query omitted: material privacy]',
             top_k=top_k,
-            filters=filters,
-            results=results,
+            filters={'source_type': filters.get('source_type', [])},
+            results=[{'id': row.get('id'), 'source_type': row.get('source_type')} for row in results],
             latency_ms=latency_ms,
             user=user if getattr(user, 'is_authenticated', True) else None,
         )

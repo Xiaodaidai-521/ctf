@@ -29,11 +29,13 @@ class LearningToolRegistry:
         return {'status': 'success', 'items': [item]}
 
     def read_user_knowledge_state(self, *, user, query: str = '') -> Dict[str, Any]:
-        from learning_paths.models import UserKnowledgeState
+        from learning_paths.models import KnowledgeConcept, UserKnowledgeState
+        from learning_knowledge.policy import filter_legacy_queryset
 
+        concepts = filter_legacy_queryset(KnowledgeConcept.objects.all(), 'knowledge_concept', user)
         queryset = (
             UserKnowledgeState.objects
-            .filter(user=user)
+            .filter(user=user, concept__in=concepts)
             .select_related('concept')
             .order_by('mastery_level', '-updated_at')[:8]
         )
@@ -43,13 +45,11 @@ class LearningToolRegistry:
                 'id': state.id,
                 'concept_id': state.concept_id,
                 'concept_name': state.concept.name,
-                'concept_description': state.concept.description,
+                # Descriptions and derived prose require separate evidence authority.
                 'mastery_level': state.mastery_level,
                 'recall_probability': state.recall_probability,
                 'lab_attempts': state.lab_attempts,
                 'lab_successes': state.lab_successes,
-                'recommended_intervention': state.recommended_intervention,
-                'struggle_indicators': state.struggle_indicators,
             })
         return {'status': 'success' if items else 'empty', 'items': items}
 
@@ -67,10 +67,7 @@ class LearningToolRegistry:
         for module in queryset[:40]:
             haystack = ' '.join([
                 module.title,
-                module.description,
-                module.content,
                 module.learning_path.title,
-                module.learning_path.description,
             ]).lower()
             if tokens and not any(token in haystack for token in tokens):
                 continue
@@ -79,19 +76,23 @@ class LearningToolRegistry:
                 'learning_path_id': module.learning_path_id,
                 'learning_path_title': module.learning_path.title,
                 'title': module.title,
-                'description': module.description,
+                # Navigation metadata only; module.content is not evidence.
                 'module_type': module.module_type,
-                'content': module.content,
                 'order': module.order,
             })
             if len(items) >= 8:
                 break
         return {'status': 'success' if items else 'empty', 'items': items}
 
-    def run(self, name: str, *, user, query: str = '') -> Dict[str, Any]:
-        tool = getattr(self, name, None)
-        if tool is None:
+    def run(self, name: str, *, user, query: str = '', task_context=None) -> Dict[str, Any]:
+        available = self.available_learning_tools()
+        if name not in available:
             return {'status': 'error', 'items': [], 'error': f'Unknown tool: {name}'}
+        if task_context is not None:
+            from teaching_agent.permissions import require_tool_permission
+
+            require_tool_permission(task_context, name)
+        tool = getattr(self, name)
         return tool(user=user, query=query)
 
     def available_learning_tools(self) -> List[str]:

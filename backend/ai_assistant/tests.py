@@ -272,16 +272,29 @@ class LegalReviewerAgentTests(TestCase):
             tags='SQL 注入,参数化查询',
         )
         PlatformContentIndexingService().index_articles(actor=self.user)
+        from learning_knowledge.tests.helpers import scoped_source
+        scope = scoped_source(self.user, 'article', article)
+        service = MultiAgentChatService()
 
-        result = MultiAgentChatService()._build_tutoring_vector_context(
-            'SQL 注入',
-            '参数化查询为什么能防止注入？',
-        )
+        denied = service._build_tutoring_vector_context('SQL 注入', '参数化查询', user=self.user)
+        self.assertEqual(denied['items'], [])
+        with patch('legal_kb.services.retrieval_service.LegalRetrievalService.retrieve',
+                   side_effect=AssertionError('Static evidence must not call vector retrieval')):
+            result = service._build_tutoring_vector_context(
+                'SQL 注入', '参数化查询为什么能防止注入？', user=self.user, task_context=scope,
+            )
 
-        self.assertEqual(result['mode'], 'vector')
+        self.assertEqual(result['mode'], 'lexical')
         self.assertTrue(result['items'])
-        self.assertEqual(result['items'][0]['title'], article.title)
-        self.assertEqual(result['items'][0]['entry'], f'/community/article/{article.id}')
+        item = result['items'][0]
+        self.assertEqual(item['title'], article.title)
+        self.assertIn('参数化查询', item['summary'])
+        self.assertEqual(item['entry'], f"/api/learning-knowledge/evidence/{item['evidence_id']}/")
+        article.status = 'pending'
+        article.save(update_fields=['status'])
+        self.assertEqual(service._build_tutoring_vector_context(
+            'SQL 注入', '参数化查询', user=self.user, task_context=scope,
+        )['items'], [])
 
     def test_legal_reviewer_fallback_mentions_evidence_gap(self):
         LegalKnowledgeEmbedding.objects.create(
@@ -395,7 +408,7 @@ class LegalReviewerAgentTests(TestCase):
 
 
 class KnowledgeContextSemanticFusionTests(TestCase):
-    """KnowledgeAgent context should reach the shared semantic store, not only keywords."""
+    """Legacy entry names now project authorized lexical evidence, never old packs."""
 
     def setUp(self):
         self.user = User.objects.create_user(
@@ -408,7 +421,7 @@ class KnowledgeContextSemanticFusionTests(TestCase):
     def _seed_concept(self):
         from learning_paths.models import KnowledgeConcept
 
-        KnowledgeConcept.objects.create(
+        concept = KnowledgeConcept.objects.create(
             name='SQL注入',
             slug='sql-injection',
             description='SQL 注入通过拼接恶意 SQL 语句读取数据库数据，应使用参数化查询防御。',
@@ -418,12 +431,16 @@ class KnowledgeContextSemanticFusionTests(TestCase):
             cwe_id='CWE-89',
         )
         PlatformContentIndexingService().index_knowledge_concepts(actor=self.user)
+        from learning_knowledge.tests.helpers import scoped_source
+        self.scope = scoped_source(self.user, 'knowledge_concept', concept)
 
     def test_semantic_concepts_surface_without_challenge_context(self):
         self._seed_concept()
 
-        package = MultiAgentChatService().build_knowledge_context(
-            'SQL 注入如何防御', None, 'category', 5,
+        service = MultiAgentChatService()
+        self.assertEqual(service.build_knowledge_context('SQL 注入如何防御', user=self.user)['items'], [])
+        package = service.build_knowledge_context(
+            'SQL 注入如何防御', None, 'category', 5, user=self.user, task_context=self.scope,
         )
 
         self.assertGreaterEqual(package.get('semantic_count', 0), 1)
@@ -434,16 +451,20 @@ class KnowledgeContextSemanticFusionTests(TestCase):
     def test_semantic_disabled_setting_falls_back_to_keyword_only(self):
         self._seed_concept()
 
-        with override_settings(KNOWLEDGE_RAG_SEMANTIC_ENABLED=False):
+        with override_settings(KNOWLEDGE_RAG_SEMANTIC_ENABLED=False), \
+             patch('legal_kb.services.retrieval_service.LegalRetrievalService.retrieve',
+                   side_effect=AssertionError('Lexical fallback must not call vector retrieval')):
             package = MultiAgentChatService().build_knowledge_context(
-                'SQL 注入如何防御', None, 'category', 5,
+                'SQL 注入如何防御', None, 'category', 5, user=self.user, task_context=self.scope,
             )
 
-        self.assertEqual(package.get('semantic_count', 0), 0)
+        # Compatibility count is evidence count, not a claim that vector search ran.
+        self.assertEqual(package['semantic_count'], len(package['items']))
+        self.assertTrue(package['items'])
+        self.assertIn('参数化查询', package['context_text'])
 
     def test_semantic_evidence_appended_when_pack_context_present(self):
-        """When a knowledge pack already set context_text, semantic recall must
-        still reach context_text (previously it was dropped into items only)."""
+        """A poisoned legacy pack is excluded before current evidence reaches the prompt."""
         self._seed_concept()
         pack_like = {
             'scope': 'category',
@@ -456,15 +477,20 @@ class KnowledgeContextSemanticFusionTests(TestCase):
             }],
             'context_text': '【题目知识包】这是已有的题目解题上下文。',
         }
-        with patch.object(MultiAgentChatService, 'search_simple_knowledge', return_value=pack_like):
+        with patch.object(MultiAgentChatService, '_get_pack_based_knowledge', return_value=pack_like) as old_pack:
             package = MultiAgentChatService().build_knowledge_context(
                 'SQL 注入如何防御', {'title': 'x'}, 'category', 5,
+                user=self.user, task_context=self.scope,
             )
 
+        old_pack.assert_not_called()
         self.assertGreaterEqual(package.get('semantic_count', 0), 1)
-        self.assertIn('题目知识包', package['context_text'])        # pack context preserved
-        self.assertIn('补充语义检索证据', package['context_text'])   # supplement header present
-        self.assertIn('SQL注入', package['context_text'])          # semantic evidence reached prompt
+        self.assertNotIn('题目知识包', str(package))
+        self.assertNotIn('某题目', str(package))
+        self.assertNotIn('challenge', {item['source_type'] for item in package['items']})
+        self.assertIn('SQL注入', package['context_text'])
+        self.assertIn('参数化查询', package['context_text'])
+        self.assertTrue(all(item.get('evidence_id') for item in package['items']))
 
     def test_merge_reserves_slots_for_both_sources(self):
         """Many semantic hits must not starve keyword/pack items from `items`."""
@@ -494,10 +520,14 @@ class KnowledgeContextSemanticFusionTests(TestCase):
             # Mentions the concept title but NOT its explanation body.
             'context_text': 'Topic: SQL注入. 请阅读题面说明。',
         }
-        with patch.object(MultiAgentChatService, 'search_simple_knowledge', return_value=pack_like):
+        with patch.object(MultiAgentChatService, '_get_pack_based_knowledge', return_value=pack_like) as old_pack:
             package = MultiAgentChatService().build_knowledge_context(
                 'SQL 注入如何防御', {'title': 'x'}, 'category', 5,
+                user=self.user, task_context=self.scope,
             )
 
+        old_pack.assert_not_called()
+        self.assertNotIn('请阅读题面说明', str(package))
         # Concept explanation body (not just the name) reached context_text.
+        self.assertIn('SQL注入', package['context_text'])
         self.assertIn('参数化查询', package['context_text'])

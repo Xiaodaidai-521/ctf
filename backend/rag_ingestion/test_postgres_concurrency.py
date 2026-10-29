@@ -228,7 +228,8 @@ class PostgresIngestionConcurrencyTests(TransactionTestCase):
         document.refresh_from_db()
         self.assertEqual(document.status, 'failed')
         self.assertEqual(document.filename, 'newer.txt')
-        self.assertIn('newer parser failure', document.error_message)
+        self.assertEqual(document.error_message, 'RuntimeError')
+        self.assertNotIn('newer parser failure', document.error_message)
         self.assertEqual(list(LegalKnowledgeEmbedding.objects.filter(
             source_type='document', object_id=document.pk,
         ).order_by('chunk_index').values_list('text', flat=True)),
