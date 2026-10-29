@@ -1,220 +1,257 @@
-# 模块二首期交付说明（工作包 2-1 至 2-4）
+# 模块八第一阶段交付记录
 
-交付日期：2026-10-29  
-分支：`feat/module2-teaching-agent`  
-范围：任务型 AI 教学智能体首期；未 commit、未 push。
+日期：2026-10-29。工作目录：`/home/hatch/workspace/ctf-module8`；分支：`feat/module8-evaluation-center`；基底：`dc997fe`。
 
-## 1. 已完成工作包
+**M8-1 至 M8-5 的代码、本地适用范围自动测试与前端构建已完成。全量保留6项既存失败/错误，无新增回归。真实设施联调未完成，不等于两条试点已满足全部开放条件。**
 
-| 工作包 | 状态 | 交付摘要 |
+改动留在worktree待审查；未commit、未push，未读取或修改主检出与模块五worktree。没有新增Python/Node运行依赖，没有引入平台组件、LangGraph或promptfoo。
+
+## 1. 交付范围
+
+| 工作包 | 已实现并本地验证 | 边界 |
 |---|---|---|
-| 2-1 上下文与权限 | 完成 | 可信任务/尝试/运行上下文、材料与工具矩阵、学生知识包题解隔离、旧入口适配、LearningBehaviorEvent 幂等事件 ID |
-| 2-2 无 AI 核心链路 | 完成 | 复用模块一领取/进度与模块六提交/核验/复测，静态材料快照，模块四/五缺失依赖的契约状态 |
-| 2-3 四级提示与状态 | 完成 | 四级审核卡、请求/展示分离、七态运行、版本化暂停/恢复、教师工单、独立鉴权静态解析 |
-| 2-4 API 与故障处理 | 完成 | 10 秒总预算、取消与迟到隔离、故障分类、熔断/探测、预置卡降级、调用事实、权限缓存、工具建议复核 |
+| M8-1 | M1/M6只读版本化投影、当前/历史结果、首次资格、帮助与事件对账、真实复测、更正链 | 不从浏览器事件生成成绩，不写推荐/画像，不跨版本拼接提升 |
+| M8-2 | 学生本人/教师管理员查询、最小字段、筛选、显式演示隔离、M2运行/费用摘要、教师证据页 | 未知token/费用保持null；正式空数据不自动补演示；浏览器联调未执行 |
+| M8-3 | 提案周边待办、五类队列、revision认领冲突、转交审计、处理摘要、当前独立新场景复测验证、更正重算回执 | 成绩和源队列处理仍归M6；本地回执不伪装为上游推送已接通 |
+| M8-4 | 冻结清单、独立账号、逐例持久化、预算/中断、三组报告、digest、测试专用令牌适配器、M7真实报告校验 | 25例合成规则回归不是全球教学/生产准确率；模型/提示/知识库变化未做真实API评测 |
+| M8-5 | 版本化场景1–10测试选择器、故障到教师处理/复测的真实本地API流程、缺依赖拒绝成功、缺陷修复与全量对账 | 网络实例/物理隔离等仅有消费侧契约，不冒充真实验收 |
 
-详细逐包记录和证据见 [`PROGRESS.md`](PROGRESS.md)。
+统一指标包含分子、分母、缺失量、窗口、版本与来源；没有合并总分。M3/M4/M5显示未接通，执行未开展，实际保护未评估。平台内独立不代表已排除平台外帮助。
 
 ## 2. 修改文件清单
 
-### 2.1 新增 `teaching_agent` 应用
+### 新应用 `backend/evaluation_center/`
 
-- `backend/teaching_agent/__init__.py`
-- `backend/teaching_agent/apps.py`
-- `backend/teaching_agent/models.py`：运行、提示卡、提示交付、恢复回执、教师工单、学生解析、辅导请求、模型调用、熔断、练习动作、响应缓存。
-- `backend/teaching_agent/context.py`：从 `TaskAttempt`/`TeachingRun` 解析可信上下文和所有权。
-- `backend/teaching_agent/permissions.py`：学生材料净化、服务端材料/工具矩阵和敏感字段隔离。
-- `backend/teaching_agent/events.py`：≤64 字符事件 ID 和模块二事件统一写入适配。
-- `backend/teaching_agent/core_flow.py`：静态任务快照及模块四/五契约侧练习动作适配。
-- `backend/teaching_agent/tutoring_state.py`：提示、状态、暂停/恢复、教师帮助和解析鉴权。
-- `backend/teaching_agent/api_tutoring.py`：有界 API 辅导、故障/熔断、降级、调用事实、迟到隔离和缓存。
-- `backend/teaching_agent/serializers.py`
-- `backend/teaching_agent/views.py`
-- `backend/teaching_agent/urls.py`
-- `backend/teaching_agent/tests/test_context_permissions.py`
-- `backend/teaching_agent/tests/test_no_ai_flow.py`
-- `backend/teaching_agent/tests/test_hints_state.py`
-- `backend/teaching_agent/tests/test_api_failures.py`
+- 基础：`__init__.py`、`apps.py`、`models.py`、`permissions.py`、`provenance.py`、`metrics.py`。
+- 事实与查询：`projections.py`、`runtime.py`、`serializers.py`、`views.py`、`urls.py`。
+- 教师协作：`operations.py`、`operations_views.py`。
+- 评测内核：`evaluations.py`、`evaluation_fixtures.py`、`evaluation_views.py`、`test_settings.py`、`test_urls.py`。
+- 固定验收：`acceptance.py`、`management/__init__.py`、`management/commands/__init__.py`、`management/commands/test_evaluation_acceptance.py`。
+- 文档：`README.md`。
+- 迁移：`migrations/__init__.py`及下节三个迁移。
+- 测试：`tests/__init__.py`、`factories.py`、`test_metrics.py`、`test_permissions.py`、`test_provenance.py`、`test_projections.py`、`test_api.py`、`test_operations.py`、`test_evaluations.py`、`test_acceptance.py`、`test_acceptance_manifest.py`。
 
-### 2.2 既有入口适配
+### 既有应用与前端
 
-- `backend/agent_runtime/serializers.py`：支持任务尝试/教学运行定位字段。
-- `backend/agent_runtime/views.py`：任务绑定请求改用服务端可信上下文。
-- `backend/agent_runtime/tool_registry.py`：由动态 `getattr` 改为显式白名单，并执行任务权限复核。
-- `backend/ai_assistant/tutor_request_orchestrator.py`：解析任务绑定；任务辅导不再进入旧的无预算链路。
-- `backend/ai_assistant/views.py`：题目上下文补服务器 ID；直接题解 API 对学生任务关闭；旧任务聊天/SSE 转向模块二入口。
-- `backend/ai_assistant/service.py`：学生知识包不再读取或写入 `ChallengeSolution.content`。
-- `backend/learning_analytics/models.py`：`LearningBehaviorEvent` 增加兼容的唯一事件 ID 和模块二事件类型。
-- `backend/learning_analytics/events.py`：支持严格幂等、同键异内容冲突和可靠失败语义；旧调用保持 best-effort 兼容。
-- `backend/ctf_backend/settings.py`：注册应用及 10 秒预算、缓存、熔断配置。
-- `backend/ctf_backend/urls.py`：注册 `/api/teaching/`。
-- `PROGRESS.md`：开工核对、逐包结果及全量测试对账。
+- `backend/ctf_backend/settings.py`：仅新增 `'evaluation_center'` 注册行。
+- `backend/ctf_backend/urls.py`：仅新增 `/api/evaluation/` include行。
+- `backend/feedback_center/services/candidates.py`：最小报告信任接缝，详见第5节。
+- `backend/feedback_center/tests/test_phase3.py`：原假报告fixture替换为真实隔离评测服务生成的报告。
+- `backend/feedback_center/tests/test_forged_report_repro.py`：保留原复现文件，反转三个攻击断言并扩展为11项安全回归。
+- `frontend/src/api/evaluation.js`：新增本应用客户端。
+- `frontend/src/teacher/LearningEffectAnalysis.vue`：替换自动混入演示的逻辑，接真实证据查询与显式模式。
+- `frontend/src/teacher/TeacherOperations.vue`：新增协作操作区、实时源状态、复测证据与审计。
+- 根目录 `PROGRESS.md`、`DELIVERY.md`：重建阶段进度与交付记录。
 
-## 3. 数据迁移
+未修改M1/M2/M6的成绩、事件、画像或提案状态模型/服务；未修改生产导出策略。
 
-1. `backend/learning_analytics/migrations/0011_learningbehaviorevent_event_id_and_more.py`
-   - `LearningBehaviorEvent.event_id`：`CharField(max_length=64, unique=True, null=True, blank=True)`。
-   - 扩展模块二事件类型。
-2. `backend/teaching_agent/migrations/0001_initial.py`
-   - 初始教学运行、提示卡、工单、学生解析、辅导请求、模型调用及熔断表。
-3. `backend/teaching_agent/migrations/0002_practiceaction.py`
-   - 幂等练习动作账本。
-4. `backend/teaching_agent/migrations/0003_hintdelivery_resumereceipt.py`
-   - 提示交付绑定和持久化恢复回执。
-5. `backend/teaching_agent/migrations/0004_tutorrequest_material_hash_tutorresponsecache.py`
-   - 请求材料哈希及权限感知响应缓存。
+## 3. 数据迁移与配置
 
-迁移一致性：`manage.py makemigrations --check --dry-run` 返回 `No changes detected`。
+三个迁移均已在Django测试库执行；**未对实际业务数据库运行migrate**。
 
-## 4. API 说明
+1. `0001_initial.py`：NonFormalAccount，显式标记demo/offline来源。
+2. `0002_projectionreceipt_teachertodo_todoaction.py`：TeacherTodo、TodoAction、ProjectionReceipt。
+3. `0003_evaluationrun_evaluationreport_evaluationcaseresult.py`：EvaluationRun、EvaluationCaseResult、EvaluationReport及`manage_evaluation`权限。
 
-所有接口均需认证。学生端资源通过服务端用户与 `TaskAttempt`/`TeachingRun` 所有权关联，不接受客户端自报授权。
+部署审查通过后可按现有部署流程运行 `python backend/manage.py migrate`；此命令本次未执行到实际数据库。
 
-| 方法与路径 | 说明 |
-|---|---|
-| `POST /api/teaching/runs/` | 以 `attempt_id` 创建或返回活动教学运行，并返回净化任务上下文/快照 |
-| `GET /api/teaching/runs/{run_id}/` | 读取自有运行和当前权限上下文 |
-| `POST /api/teaching/runs/{run_id}/actions/` | 幂等登记练习动作；模块四/五仅返回明确契约状态 |
-| `POST /api/teaching/runs/{run_id}/tutor/` | 任务绑定辅导；总等待硬上限 10 秒，响应先校验后展示 |
-| `POST /api/teaching/runs/{run_id}/hints/request/` | 请求审核提示，不返回提示正文，不计实际帮助展示 |
-| `POST /api/teaching/runs/{run_id}/hints/{request_id}/display/` | 重新鉴权后展示提示并登记实际帮助 |
-| `POST /api/teaching/runs/{run_id}/pause/` | 按预期 `state_version` 暂停 |
-| `POST /api/teaching/runs/{run_id}/resume/` | 按请求 ID 和预期版本幂等恢复；重复请求返回原结果 |
-| `POST /api/teaching/runs/{run_id}/teacher-tickets/` | 创建教师帮助工单 |
-| `GET /api/teaching/teacher-tickets/{ticket_id}/` | 学生读取自有工单，教师读取待处理工单 |
-| `POST /api/teaching/teacher-tickets/{ticket_id}/help/` | 教师登记并展示实际帮助 |
-| `GET /api/teaching/runs/{run_id}/analysis/` | 仅任务程序核验通过后读取审核静态学生解析；`private, no-store` |
+- 正式/演示/离线账号应由部署负责人显式登记，不能靠用户名猜测。页面内置演示是无数据库写入的合成响应。
+- `evaluation_center.test_settings`仅供隔离测试：内存数据库、本地缓存、测试用密码哈希；不得当生产配置。
+- 评测写服务要求 `EVALUATION_ISOLATED_TESTS=True` 且 `ROOT_URLCONF='evaluation_center.test_urls'`；操作者还须为有效、具有评测权限、标记offline的独立账号。正式配置下管理员也不能执行评测。
+- 测试适配器需显式配置 `EVALUATION_SERVICE_TOKEN`、`EVALUATION_SERVICE_ACCOUNT_ID`，没有默认有效凭证；认证头为 `Authorization: Evaluation <token>`。请求只提交冻结run_id，不接受自带角色、任意URL或案例输入。
+- M7第三阶段创建/发布开关保持原默认值，本次没有启用生产发布。
 
-任务绑定请求若进入旧聊天、SSE 或旧辅导入口，返回 409 `task_tutoring_endpoint_required`；`POST /api/ai/solve/` 不向学生任务返回完整题解。
+## 4. API与数据语义
 
-## 5. 权限、事件与故障口径
+公共前缀：`/api/evaluation/`。
 
-- 模型上下文仅含任务目标、尝试状态、受控证据引用、运行版本、学生材料引用及允许工具；不含学生身份资料、原始提交、教师答案、评分键、隐藏验证器或完整学生解析。
-- `LearningBehaviorEvent` 是模块二唯一行为事件写入口。模块二事件 ID 不超过 64 字符；同 ID 同内容返回原记录，同 ID 不同内容拒绝。
-- 提示请求和实际展示分开；请求失败或未展示不计实际帮助。教师实际帮助和解析查看继续写入模块六 `AssistanceRecord`，模块二不复制成绩判断。
-- 调用记录保留 provider、model、template、token、latency、状态、错误类别、重试、取消和费用口径；供应商未返回的 token/费用保持 `NULL`/`unknown`。
-- 断连、供应商错误、超时、429、额度耗尽分别分类。超时只记录尽力取消；没有供应商确认时不声称已成功取消。
-- 缓存键含学生、尝试、运行、学科/任务、提示层级、上下文版本、权限版本、材料哈希和模板版本。每次命中重新鉴权；材料撤回、卡片变化、权限版本变化均使旧内容不可读。
+| 路径 | 方法 | 权限/用途 |
+|---|---|---|
+| `students/` | GET | 教师/管理员，最小学生列表，显式formal/demo |
+| `learning/` | GET | 学生仅本人；教师/管理员平台范围；按学生/任务/知识点/目录版本/时间筛选 |
+| `attempts/<uuid>/` | GET | 本人或教师/管理员；展开安全的事实/版本/帮助/事件对账 |
+| `runtime/` | GET | 教师/管理员；M2持久调用账本摘要，不返回响应正文/供应商凭证 |
+| `todos/` | GET、POST | 教师/管理员；五类队列，创建可绑定本人提案的协作待办 |
+| `todos/sync/` | POST | 幂等导入求助、开放题必评、抽查（含需更正）、争议 |
+| `todos/<uuid>/` | POST | revision + claim/transfer/handle/verify；非负责人拒绝，过期revision返回409 |
+| `receipts/` | GET、POST | 读取/显式消费M6通知并保存本地幂等重算回执 |
+| `runs/` | GET、POST | 独立评测权限；列出/创建冻结运行，写入还需隔离环境和账号 |
+| `runs/<uuid>/` | GET | 冻结摘要与完整性，不返回任意配置正文 |
+| `runs/<uuid>/execute/`、`interrupt/` | POST | 隔离评测执行/中断封存 |
+| `reports/<uuid>/` | GET | 独立评测权限，校验后返回reference与JSON报告，可保存响应作为报告文件 |
 
-## 6. 实际测试命令与结果
+`/api/evaluation/adapter/` **只存在于专用测试URLConf**，不注册到正式应用路由；请求鉴权也复验环境与服务端账号。
 
-测试解释器：`~/workspace/ctf-venv/bin/python`。SQLite 测试使用：
+普通教师不自动具有系统评测权限；管理员/超级管理员，或持有`evaluation_center.manage_evaluation`的教师才可读评测报告。
 
-```bash
-DATABASE_BACKEND=sqlite SQLITE_DATABASE_PATH=/tmp/ctf-module2.sqlite3 \
-  ~/workspace/ctf-venv/bin/python backend/manage.py test <labels>
+协作注意事项：
+- 原提案不因M8待办操作而改变状态。源队列实时状态与导入快照分别展示。
+- 处理完成不等于改善；须同学生/原尝试关联的新场景、干预后实际提交、当前平台内独立通过复测。`verified`不是因果效果证明。
+- 更正使证据失效时重开待验证；即便通知尚未消费，读侧也不展示陈旧成功。
+- 回执按学生、任务/目录版本和原提交日窗口重算，保留原结果引用；不改写源notice。当前为显式消费，没有新建后台调度平台。
+- M8数据库写失败返回503 / `save_pending_retry`，更新和审计同事务，不先报成功。
+
+## 5. 模块七安全闭环（单列）
+
+登记、完成评测、审批、发布有效性检查均解析M8真实持久记录，验证：run/report真实存在、完整报告digest、冻结配置/清单/逐例结果、候选UUID、基准与候选配置内容摘要、版本及任务范围。复制候选自身digest不能伪造运行；发布范围不能扩大到未测任务。
+
+原三个攻击均被拒绝；额外覆盖真实报告缺/伪造摘要、相同配置不同候选、配置正文变更但未更新digest、基准/候选版本和scope变更、审批/发布复验及HTTP挂接。合法完整报告仍可走原M7生命周期；真实完整fail/insufficient_evidence走需修订，不搬迁M7状态机。
+
+固定集合 `m8-synthetic-regression/1` 仅支持合成 TASK-X@1.0.0 的 `export_record_limit` 单因素：100→120正例可通过，100→200产生真实规则退化与fail。其它scope、模型、提示、知识库、组合配置不能借固定模型输出获准。
+
+`report_digest`覆盖全部报告（含运行ID、时间及耗时）；`replay_digest`用于比较同版本逻辑证据。不要求不同运行的完整报告digest相同。
+
+## 6. 实际验证与证据
+
+Python命令均使用 `/home/hatch/workspace/ctf-venv/bin/python`，工作目录为本worktree。下列秒数是测试主体耗时，不是包含建库的总墙钟时间。
+
+| 检查 | 结果 | 证据 |
+|---|---|---|
+| M8-1/2整包 | 44/44通过 | `/tmp/module8-m8-2.log` |
+| M8-3整包 | 60/60通过，10.536秒 | `/tmp/module8-m8-3.log` |
+| M8-4内核 | 44/44通过，20.058秒 | `/tmp/claude-0/-home-hatch-workspace-ctf-module8/f4ae79c9-a207-4447-9e56-96395927c7d1/tasks/bp71drbbo.output` |
+| M7状态机及安全闭环 | 32/32通过，228.939秒 | `/tmp/module8-m7-trust-final.log` |
+| M1/M2/M6源回归 | 84/84通过，959.238秒 | `/tmp/module8-source-regression.log` |
+| M8-5新增固定集成 | 8/8通过，2.865秒 | `/tmp/module8-m8-5-focused.log` |
+| 最终M8整包 | **115/115通过，44.597秒** | `/tmp/module8-m8-5-final.log` |
+| 最终全量普通配置SQLite | **764发现、747通过、11跳过、5 FAIL、1 ERROR**，2169.157秒，退出码1 | `/tmp/module8-full.log` |
+| 前端最终构建 | 成功，3分22秒；大于500kB的chunk警告 | `/tmp/module8-frontend-build-final.log` |
+| 迁移一致性、Django check、Python compileall、git diff --check | 通过 | 实际命令如下 |
+
+主要实际命令：
+
+```sh
+DATABASE_BACKEND=sqlite /home/hatch/workspace/ctf-venv/bin/python backend/manage.py test evaluation_center --noinput
+DATABASE_BACKEND=sqlite /home/hatch/workspace/ctf-venv/bin/python backend/manage.py test feedback_center.tests.test_phase3 feedback_center.tests.test_forged_report_repro --noinput
+DATABASE_BACKEND=sqlite SQLITE_DATABASE_PATH=:memory: /home/hatch/workspace/ctf-venv/bin/python backend/manage.py test teaching_agent learning_map skill_review --noinput
+DATABASE_BACKEND=sqlite /home/hatch/workspace/ctf-venv/bin/python backend/manage.py test backend --noinput
+DATABASE_BACKEND=sqlite /home/hatch/workspace/ctf-venv/bin/python backend/manage.py makemigrations evaluation_center --check --dry-run --settings=evaluation_center.test_settings
+DATABASE_BACKEND=sqlite /home/hatch/workspace/ctf-venv/bin/python backend/manage.py check
+/home/hatch/workspace/ctf-venv/bin/python -m compileall -q backend/evaluation_center backend/feedback_center/services/candidates.py backend/feedback_center/tests/test_forged_report_repro.py
+git diff --check
+npm ci --prefix frontend --ignore-scripts --no-audit --no-fund
+npm run build --prefix frontend
 ```
 
-### 6.1 分包及回归测试
+`npm ci`安装的是现有锁定依赖（241包），没有修改依赖清单/锁文件。基础settings会将相对字符串`:memory:`拼成文件路径；一次迁移历史检查生成的空文件已检查并删除，测试仍用Django内存测试库。后续迁移检查使用专用test_settings。
 
-| 命令标签 | 结果 |
-|---|---|
-| `teaching_agent.tests.test_context_permissions` | 6/6 通过（最初 5 项通过，加入直接题解负向用例后纳入全模块 15 项） |
-| `teaching_agent.tests.test_no_ai_flow` | 1/1 通过 |
-| `teaching_agent.tests.test_hints_state` | 3/3 通过 |
-| `teaching_agent.tests.test_api_failures` | 5/5 通过 |
-| `teaching_agent.tests` | 15/15 通过 |
-| `teaching_agent.tests agent_runtime.tests ai_assistant.test_main_chain ai_assistant.test_performance` | 56/56 通过 |
-| `manage.py check` | 0 问题 |
-| `manage.py makemigrations --check --dry-run` | 无遗漏迁移 |
+中间失败均保留记录：M8-3测试fixture的返回值解包/来源枚举错误；M7的insufficient枚举对接错误；M8整包的条件URLConf缓存与错误测试选择器。均修正后复跑，不把中途失败或中断记为通过。最初基线复跑600秒被终止，最终全量使用7200秒时限并完整结束。
 
-### 6.2 无 AI 证据
+### 全量基线对账
 
-`backend/teaching_agent/tests/test_no_ai_flow.py` 在以下条件下完成领取→材料→练习→模块六提交/程序核验→模块一进度→复盘卡→新场景复测：
+| 项目 | 基底dc997fe | 最终 | 差值 |
+|---|---:|---:|---:|
+| 发现 | 638 | 764 | +126 |
+| 通过 | 621 | 747 | +126 |
+| 跳过 | 11 | 11 | 0 |
+| FAIL | 5 | 5 | 0 |
+| ERROR | 1 | 1 | 0 |
 
-- 关闭学习地图 AI、语义检索、路由、专员和教学上下文开关。
-- 在模型服务边界设置“调用即失败”。
-- 断言模型边界调用次数为 0。
-- 断言 `ModelCallRecord` 数量为 0。
+新增126项 = 115项M8测试 + 11项M7安全回归；基底通过数未下降。以下集合与context.md已知失败一致，未修改它们来掩盖失败：
 
-结果：1/1 通过，核心链路没有先尝试外部模型再降级。
+1. `challenges.tests.ChallengeProxyAccessTests.test_access_url_does_not_include_reusable_token`：URL仍包含可复用token。
+2. `...test_proxy_accepts_authenticated_owner_without_cookie`：401而非200。
+3. `...test_proxy_rejects_authenticated_non_owner`：401而非403。
+4. `...test_proxy_rejects_unsafe_session_request_without_csrf`：401而非403。
+5. `mainline1.tests.test_semantic.SemanticTests.test_real_transport_constructor_pins_options_without_provider_registry`：平台路由已导入ai_providers，与隔离断言冲突。
+6. `mainline1.test_settings`加载错误：缺少MAINLINE1_TEST_PORT。
 
-### 6.3 全量 SQLite 测试
+完整日志SHA256：`0e020f87d86732a59a069e4de4481e52f2144d2a9437cfdc3629358bac259c9c`。日志为本机/tmp证据，不是已上传或永久归档的工件。
 
-完整命令在 `backend/` 目录运行：
+## 7. 固定验收与未运行项目
 
-```bash
-DATABASE_BACKEND=sqlite SQLITE_DATABASE_PATH=/tmp/ctf-module2.sqlite3 \
-  ~/workspace/ctf-venv/bin/python manage.py test --verbosity 1
+`acceptance.py`的 `m8-phase1-acceptance/1` 将场景1–10映射至真实自动测试，并逐项声明依赖。选择器解析与去重已测试；所选测试路径已被最终全量覆盖。另提供 `manage.py test_evaluation_acceptance` 快捷命令，**该快捷命令本身未额外运行一次**，避免将重复运行伪算为新样本。
+
+- 场景1–5：本地版本/授权/来源/帮助/保存与更正路径已测试；真实课程签收、M3全部检索路径及跨服务恢复仍需联调。
+- 场景6–7：注入断连、超时、429、额度耗尽及全模型停用时，实际调用M1/M2/M6 API走通数据规则、人工必评、教师处理和新场景复测。超时测试用50ms缩短预算并断言小于10秒；不是对真实供应商十秒SLA的实测。
+- 场景8：只有未接通与拒绝浏览器自报成功的契约；宿主/内网/生产地址、白名单、学生实例隔离、资源回收、暂停和凭证回收均未做真实靶场验收。
+- 场景9：冻结无网络规则回放、预算/中断与报告信任已测试；真实新模型/提示/知识库API比较未开展。
+- 场景10：数据线现为M1/M2/M6合成本地闭环；模块四实验台未接通。网络线缺模块五服务端挑战/修复证据，不能宣称两条真实试点均已走通。
+- M6源提交HTTP数据库错误仍返回通用失败；本应用没有擅改其错误契约。M8自身待办写失败已明确返回保存待重试。
+- 未做浏览器/真实后端联调，未对实际数据库migrate；没有生产部署、真实API调用或外部报告发布。
+- 里程碑I未开展；无实际脱敏/交付/配额/回执/结算/保护通过率，不据此开放执行课程。
+
+方案理解、代码完成、本地检查通过与真实联调通过以上分别登记，不互相替代。
+
+## 8. 保留项补做（第二轮，2026-10-29）
+
+本节为第二轮增量，前述第一轮“未运行”记录保留其当时含义。**第一、三、四项已实测；第二项的真实HTTP请求、持久故障报告及M7故障报告挂接已实测，但成功模型输出/有效两配置比较仍开放。** 不将网关报错、mock测试或模型目录可见算作模型评测通过。
+
+### 8.1 逐项结论
+
+| 保留项 | 已实测 | 仍开放及原因 |
+|---|---|---|
+| 验收快捷命令 | 真正执行 `test_evaluation_acceptance --verbosity 2`，原`m8-phase1-acceptance/1`选择器139/139通过，44.803秒，退出0；完整输出含迁移与逐例名称 | 这是补跑，不增加139个样本；扩展后`/2`选择器的底层测试在最终两应用回归中覆盖，未另行声称执行过`/2`快捷命令 |
+| 真实模型批次/M7 | 实际向127.0.0.1:8317发送74次chat HTTP请求，按M8现有模型保存运行、逐例、报告；72次503批次的完整不足证据报告成功经M7挂接并进入needs_revision；两份403缺例报告被拒绝挂接 | 没有取得任何有效模型输出：flash先403、随后72次503，v4.1也403。真实成功/失败分类通过率无法测量；需恢复网关模型chat调用后重跑。不是模型质量差或0%通过率的结论 |
+| 固定因素扩展 | 新集合`m8-live-export-classification/1`及prompt_version/model_id因素；6例、2模型、2提示、每臂2次观测；登记/隔离/持久化/信任/重试/密钥/最小输入测试通过 | 模型间有效比较、知识库对比未实测；注册支持不等于已取得真实模型结果 |
+| 真实数据库迁移 | 新建磁盘SQLite scratch库，真实执行M8三项迁移及依赖，随后完整migrate补齐账号/M7所需表；新进程能读回运行与报告 | PostgreSQL未做：无pg_isready、127.0.0.1:5432不可用、常用socket不存在；未安装或启动新数据库。未迁移业务库 |
+
+### 8.2 实现与配置增量
+
+- 新增 `live_fixtures.py`、`live_evaluations.py`、`gateway.py`、`scratch_settings.py`、`management/commands/run_live_evaluation.py` 和对应测试；扩展现有evaluations分发、API登记集合字段、acceptance注册与README。继续复用 EvaluationRun / EvaluationCaseResult / EvaluationReport，不新增数据模型/迁移，不迁移M7状态机。
+- 普通模式仍默认无网络合成回放；真实模式要求既有隔离URLConf/offline管理账号门禁及独立live开关。接口不能传自带用例、角色、任意URL或密钥。所有生产发布开关保持关闭。
+- 原 `m8-synthetic-regression/1` 25例不变，固定内容摘要断言为 `4de3c74803971973b2028c4d1600175120e6f640aafd389bf2f1a942790ff5b1`；固定验收选择器更新为`m8-phase1-acceptance/2`，显式区分无网络规则集合、mock传输合同测试与手动授权真实批次。
+- 网关地址固定为 `http://127.0.0.1:8317/v1/chat/completions`，不走环境代理、不跟随重定向。凭据从指定config.yaml内存读取；本机实际采用 `access.api-keys`，顶层`api-keys`是供应商分组。兼容旧数组结构，绝不选择上游供应商密钥作为客户端密钥。
+- 两臂共用合成输入，每次仅发送该例必要字段和对应提示，不发送预期答案、整表、学生身份、其他用例或无关上下文。报告保存规范化action、白名单错误及usage，不保存模型原始正文/推理或原始错误体。配置快照无凭据。
+- 429/502/503/504及连接/超时最多3次尝试，等待2/4秒后重试；401/403不盲重试。每socket操作最多30秒，批次有总预算，但不宣称对慢流作硬墙钟取消。每次最多256个输出token，价格未知，没有伪造费用上限或免费假设。
+- 未安装新依赖、未改依赖清单；使用现有LangChain环境已包含的PyYAML 6.0.3。公共settings/urls仍仅第一轮的本应用注册/include各一行。没有改主检出或模块五worktree。
+
+### 8.3 真实批次、冻结配置与事实结果
+
+原集合输入仍为合成数据；`mode=live_gateway, simulated=false, input_source=synthetic`只表示请求使用真实传输，不表示真实学生材料、真实生产操作或成功模型推理。
+
+| 运行ID | 请求模型/提示 | 真实chat尝试 | 模型有效输出 | 报告与M7结果 |
+|---|---|---:|---:|---|
+| `7d87fb1f-52db-493d-b9ab-52ddfeda6ee3` | flash，v1→v2 | 0 | 0 | 首次解析器不支持嵌套配置，credentials_unavailable；6例均无证据，完整insufficient_evidence报告登记为needs_revision；**不计真实批次** |
+| `082a079b-9c96-4b94-bdca-7285b5deda19` | deepseek-v4-flash，v1→v2 | 1（403） | 0 | 1条逐例记录，缺5例，不完整报告被M7拒绝 |
+| `6cdc353f-d8b0-4d46-abd2-ab07d9b90546` | deepseek-v4-flash，v1→v2 | 72（全部503） | 0 | 6例×两臂×2观测均按3次上限等待重试；完整故障报告挂接并进入needs_revision |
+| `25b6dfe9-af20-4ace-acc3-d2db633164b2` | deepseek-v4.1，v1→v2 | 1（403） | 0 | 1条逐例记录，缺5例，被M7拒绝挂接 |
+
+两个配置的提示版本全名为 `export-classifier/v1`、`export-classifier/v2`；参数固定 `temperature=0, max_tokens=256`。同一批次的模型ID相同，唯一因素为prompt_version。模型目录GET实测列出了两者，但错误响应没有证明上游完成了推理，表中是**请求模型ID**，不是伪造的供应商执行确认。
+
+完整故障报告：
+- report_id：`b4ca91da-d78c-4999-9299-22a57c2ae75b`
+- report_digest：`b954a7996eda8a28d078abbd46bc8d31d3b6907d2e70ffcb8ba10f885633ddea`
+- baseline_config_digest：`d806ff73ae2bd6efd21df30afa272c98cd1ef77ab294772c093045c5e1a5129a`
+- candidate_config_digest：`3740a2b521c56c50a082620d622eb66d536464a8272d0cb53e9873c52a4c144a`
+- 两臂各6例；有效判定分子0、分母0、缺失6，**value=null、受环境影响**。prompt/completion/total token均未提供，全部为null；费用null。72次请求是重试次数，不是72个新案例或模型成功响应。
+- M7调用 `attach_report` → `complete_evaluation`，事件含report_attached / evaluation_started / evaluation_not_passed；状态needs_revision。没有调用approve/activate或修改教学配置。
+
+中间问题没有抹去：最初误把供应商分组名用于模型目录探测得到401；修正读取结构后目录调用成功。首次零调用持久报告与随后403/503报告全部保留。诊断脚本只观测原始HTTPError中的白名单关键词后重抛，没有替换响应、注入模型答案或把mock结果写入真实批次；其shell退出0只是捕获异常后结束，不是评测通过。403根因尚未证实，不能据此断言客户端凭据错误或模型质量问题。
+
+### 8.4 Scratch迁移与实际命令
+
+独立库：`/tmp/m8-scratch-round2.CiF1Ua/evaluation.sqlite3`，非Django内存测试库，非业务库。0001/0002/0003在真实磁盘库应用成功；`showmigrations evaluation_center`三项均[X]。关闭live开关的新进程回读4份报告，均通过M8校验；两份完整不足证据报告已挂接，两份缺例报告未挂接，全部未发布。
+
+本轮主要实际命令（均从ctf-module8运行）：
+
+```sh
+DATABASE_BACKEND=sqlite /home/hatch/workspace/ctf-venv/bin/python backend/manage.py test_evaluation_acceptance --verbosity 2
+EVALUATION_SCRATCH_DATABASE=/tmp/m8-scratch-round2.CiF1Ua/evaluation.sqlite3 DATABASE_BACKEND=sqlite /home/hatch/workspace/ctf-venv/bin/python backend/manage.py migrate evaluation_center --noinput --settings=evaluation_center.scratch_settings
+EVALUATION_SCRATCH_DATABASE=/tmp/m8-scratch-round2.CiF1Ua/evaluation.sqlite3 DATABASE_BACKEND=sqlite /home/hatch/workspace/ctf-venv/bin/python backend/manage.py migrate --noinput --settings=evaluation_center.scratch_settings
+EVALUATION_SCRATCH_DATABASE=/tmp/m8-scratch-round2.CiF1Ua/evaluation.sqlite3 EVALUATION_LIVE_GATEWAY=1 DATABASE_BACKEND=sqlite /home/hatch/workspace/ctf-venv/bin/python backend/manage.py run_live_evaluation --settings=evaluation_center.scratch_settings
+DATABASE_BACKEND=sqlite /home/hatch/workspace/ctf-venv/bin/python backend/manage.py test evaluation_center feedback_center --noinput --verbosity 2
+DATABASE_BACKEND=sqlite /home/hatch/workspace/ctf-venv/bin/python backend/manage.py makemigrations evaluation_center --check --dry-run --settings=evaluation_center.test_settings
 ```
 
-完整输出：`/tmp/ctf-module2-full-sqlite-20261029.log`。
+第二次flash诊断批次与v4.1替代模型批次经同一scratch配置下的`manage.py shell`调用M7候选服务、M8 create_run/execute_run、M7 attach_report/complete_evaluation；未伪称它们由快捷命令成功退出。完整命令与执行过程见本会话，本地输出证据如下。
 
-结果：
+### 8.5 最终测试与证据
 
-- 发现并运行：638
-- 严格通过：621
-- 跳过：11
-- FAIL：5
-- ERROR：1
-- 未 FAIL/ERROR：632/638
-- 进程结果：失败（非零退出）
+- 最终两应用套件：**217发现、217通过，93.473秒，退出0**，其中M8 **164/164**、M7 **53/53**；M8相比第一轮新增49项回归。早一轮215项通过后补齐2项嵌套密钥结构测试，再执行最终217项。
+- live记录/清单聚焦25/25通过；网关聚焦27/27通过。测试使用mock供应商，不算真实API样本。
+- 迁移无漂移，Python编译与diff空白检查通过。第二轮没有前端改动、没有重跑浏览器/前端构建，也未重跑整仓全量；第一轮764项基线对账不能冒充第二轮全仓结论。
 
-#### 失败清单
-
-1. ERROR `mainline1.test_settings` — `KeyError: MAINLINE1_TEST_PORT`。
-2. FAIL `challenges.tests.ChallengeProxyAccessTests.test_access_url_does_not_include_reusable_token` — URL 仍含 `access_token=`。
-3. FAIL `challenges.tests.ChallengeProxyAccessTests.test_proxy_accepts_authenticated_owner_without_cookie` — 期望 200，实际 401。
-4. FAIL `challenges.tests.ChallengeProxyAccessTests.test_proxy_rejects_authenticated_non_owner` — 期望 403，实际 401。
-5. FAIL `challenges.tests.ChallengeProxyAccessTests.test_proxy_rejects_unsafe_session_request_without_csrf` — 期望 403，实际 401。
-6. FAIL `mainline1.tests.test_semantic.SemanticTests.test_real_transport_constructor_pins_options_without_provider_registry` — `ai_providers` 已在 Django 进程的 `sys.modules`。
-
-第 6 项单独运行仍失败；未修改不属于本模块范围的 `mainline1`。
-
-#### 与给定基线逐项对账
-
-给定基线：512 项、501 未失败；4 个 challenges proxy FAIL、6 个 mainline1 loader ERROR、1 个 learning_map `jsonschema` 导入 ERROR。
-
-- 4 个 challenges proxy FAIL：完整复现，名称和类别一致。
-- mainline1 loader：本次测试运行器仅汇总 1 个 `mainline1.test_settings` ERROR，首个缺失环境变量为 `MAINLINE1_TEST_PORT`；没有得到 6 个独立 ERROR，不能宣称其余 5 项已修复。
-- learning_map `jsonschema`：本环境未复现该导入 ERROR；不能据此宣称代码已修复。
-- 基线外失败：新增记录 1 个 mainline1 semantic FAIL（上列第 6 项）。
-- 测试总数比给定基线多 126；其中模块二新增 15 项，其余差异来自当前分支/测试发现范围，不能用给定 512 项直接推导回归通过率。
-
-## 7. 验收证据位置
-
-| 验收关注点 | 证据 |
+| 证据 | 路径 |
 |---|---|
-| 跨学生尝试、运行、SSE 拒绝 | `backend/teaching_agent/tests/test_context_permissions.py` |
-| 学生 API/知识包/直接题解不泄露教师答案 | `backend/teaching_agent/tests/test_context_permissions.py` |
-| 模型越权工具建议被平台拒绝 | `backend/teaching_agent/tests/test_api_failures.py` |
-| 无 AI 核心链路、外部调用为零 | `backend/teaching_agent/tests/test_no_ai_flow.py` |
-| 四级提示请求/展示分离及材料撤回 | `backend/teaching_agent/tests/test_hints_state.py` |
-| 暂停、重启语义恢复、重复继续、过期版本 | `backend/teaching_agent/tests/test_hints_state.py` |
-| 工单所有权和教师实际帮助 | `backend/teaching_agent/tests/test_hints_state.py` |
-| 静态学生解析独立鉴权 | `backend/teaching_agent/tests/test_hints_state.py` |
-| 10 秒预算、取消、迟到隔离 | `backend/teaching_agent/tests/test_api_failures.py` |
-| 断连、429、额度、熔断和恢复探测 | `backend/teaching_agent/tests/test_api_failures.py` |
-| 权限缓存及材料撤回失效 | `backend/teaching_agent/tests/test_api_failures.py` |
-| 完整逐包记录 | `PROGRESS.md` |
-| 全量原始输出 | `/tmp/ctf-module2-full-sqlite-20261029.log`（本机临时证据，不纳入 Git） |
+| 快捷命令完整输出 | `/tmp/module8-round2/acceptance-command.log` |
+| M8定向迁移 / scratch全迁移 | `/tmp/module8-round2/migrate-evaluation.log` / `migrate-scratch-all.log` |
+| 首次零调用、403、503、替代模型输出 | `/tmp/module8-round2/live-batch-key0.log`、`live-batch.log`、`live-diagnostic.log`、`live-alternate-model.log` |
+| 新进程持久回读 | `/tmp/module8-round2/persistent-readback.log` |
+| 最终M8+M7测试 | `/tmp/module8-round2/m8-m7-regression-final.log` |
 
-## 8. 未运行项目
+关键SHA256：快捷日志 `b3d6e146d13810f4445d70569fc550391f8b2784068f6e1a3cda21469ee24c2b`；最终回归 `ab8990f2d55112107042e5efdf66768dfc95efb85da2e12474b33bfd64ed7e63`；M8迁移 `67a5767e13702b8ee0e6c20c15734037aba12afb186f4d8f7fe596a58a82995e`；503诊断批次 `c400af79e71bc38929509a613da0e60bec9ac1dec7a50ea939c6885149eeb484`。
 
-- 未调用任何真实模型供应商，未产生真实 token/费用。
-- 未执行真实供应商 429 `Retry-After`、真实额度耗尽、真实取消确认或真实恢复探测；使用合成异步供应商和故障异常做契约测试。
-- 未与模块三知识服务联调；首期只传服务端身份、任务范围、材料用途和权限版本契约。
-- 未与模块四沙箱/网络实训联调；返回 `unavailable`，不伪造执行结果。
-- 未与模块五数据工具联调；首期数据导出动作返回 `not_applicable`，不伪造导出能力。
-- 未与模块八评测/对账平台联调；调用、降级、提示、暂停恢复事实已保留在当前数据库契约中。
-- 未在 PostgreSQL 或生产多进程部署运行迁移/恢复演练；SQLite 测试验证数据库持久化和新客户端恢复，不等同于生产部署演练。
-- 未运行浏览器端页面验收或真实 SSE 前端交互；任务绑定旧 SSE 已通过 API 负向测试关闭绕过。
+所有日志及scratch库用实际客户端密钥字节作本机检查，无密钥值命中；检查只输出泄漏数量0。密钥未打印、未写入文件/数据库/日志、未传入模型文本。工件在本机/tmp，未上传、未承诺永久保留。
 
-## 9. 剩余依赖与配置审核
-
-1. **模块三**：知识卡权限、缺失/冲突/过期状态的服务端实现与联调。
-2. **模块四**：沙箱/网络实训动作登记、幂等执行和证据回传。
-3. **模块五**：受控数据工具动作及首期之后的数据导出策略。
-4. **模块八**：统一调用成本、故障、事件对账与验收报告接入。
-5. **真实供应商**：provider/model/token/cost 字段映射、429 重试提示、取消确认、额度恢复和小流量探测。
-6. **运营审核**：熔断阈值、探测间隔、缓存 TTL 和重试策略当前使用 `unapproved-default`/环境变量默认值，需平台及测试负责人冻结配置版本后才能作为正式策略。
-7. **内容治理**：三模式审核提示卡和学生解析内容需由课程教师按正式版本发布；当前自动化证据使用合成卡片。
-8. **全量基线差异**：需由主线维护者确认 638 项当前发现范围、mainline1 专用环境设置及新增 semantic FAIL；模块二没有修改这些失败所属实现。**复核结论（2026-10-29，主 agent 亲自核查）**：同一环境同一方法枚举，干净 e118f5b 发现 623 个测试、本分支 638 个，差值恰为 teaching_agent 新增的 15 个，旧测试零减少；旧 512 基线系当时 mainline1 大面积加载失败与 jsonschema 缺失导致的少算。该 semantic FAIL 在干净 e118f5b 上以相同断言复现——平台 manage.py test 加载总路由后 ai_assistant 调用链已将 ai_providers 引入 sys.modules，与该用例为隔离测试环境设计的断言冲突，属既存现象而非模块二回归；其处理归 mainline1 侧，不在本分支范围内。
-
-## 10. 约束确认
-
-- 未引入 LangGraph。
-- 未引入新平台组件或第三方依赖。
-- 未新增第二套任务、成绩、事件或用户体系。
-- 模块一/六复用真实契约；模块三/四/五/八仅做契约侧适配。
-- 实施期间未 commit、未 push；2026-10-29 应用户决定提交到本地分支 feat/module2-teaching-agent，未推送。
+本轮未触及模块四实验台、里程碑I、模块三检索路径、课程人工签收、模块五靶场证据；不依赖并行模块五会话。无commit、无push、无部署或对外报告发布。
