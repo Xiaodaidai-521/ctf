@@ -77,14 +77,17 @@ def strip_sensitive_content(value: Any) -> Any:
     return str(value)
 
 
-def student_material_snapshot(task) -> dict[str, Any]:
-    materials = task.materials if isinstance(task.materials, dict) else {}
-    if materials.get('withdrawn'):
-        return {'withdrawn': True, 'student_material_refs': []}
-    return {
-        'withdrawn': False,
-        'student_material_refs': strip_sensitive_content(materials.get('student_material_refs') or []),
-    }
+def student_material_snapshot(task, *, user=None, attempt_id=None) -> dict[str, Any]:
+    from learning_knowledge.policy import Scope, authorize
+    from learning_knowledge.models import TaskMaterial
+    refs = []
+    if user is not None and attempt_id is not None:
+        scope = Scope(user, attempt_id)
+        for binding in TaskMaterial.objects.filter(task=task).select_related('revision__material'):
+            if authorize(binding.revision_id, scope):
+                refs.append({'material_id': str(binding.revision.material.material_id),
+                             'revision': binding.revision.revision})
+    return {'withdrawn': task.materials_withdrawn, 'student_material_refs': refs}
 
 
 def material_permission(*, material_type: str, context, requested_level: int | None = None) -> PermissionDecision:

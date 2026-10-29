@@ -80,7 +80,7 @@ class TrustedTaskContext:
                 'context_version': self.context_version,
                 'permission_version': self.permission_version,
             },
-            'materials': student_material_snapshot(task),
+            'materials': student_material_snapshot(task, user=self.attempt.student, attempt_id=self.attempt.attempt_id),
             'allowed_tools': sorted(allowed_tools(self)),
         }
 

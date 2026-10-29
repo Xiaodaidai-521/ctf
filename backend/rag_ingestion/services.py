@@ -6,6 +6,7 @@ from typing import Dict, Optional
 from uuid import uuid4
 
 from django.db import transaction
+from rest_framework.exceptions import ValidationError
 
 from .interfaces import SupersededIngestionError
 from .models import DocumentSource
@@ -32,15 +33,24 @@ class IngestionService:
         metadata: Optional[Dict] = None,
         reingest: bool = False,
     ) -> DocumentSource:
+        visibility_order = {'staff': 0, 'internal': 1, 'learner': 2}
+        if visibility not in visibility_order:
+            raise ValidationError('Unknown document visibility.')
         source_hash = hashlib.sha256(data or b'').hexdigest()
         # Serialize task claims, not parsing or remote embedding. get_or_create
         # retries a concurrent unique-key insert; the row lock then protects the
         # completed check and assignment of a new task token together.
         with transaction.atomic():
-            document, _ = DocumentSource.objects.select_for_update().get_or_create(
+            document, created = DocumentSource.objects.select_for_update().get_or_create(
                 source_hash=source_hash,
             )
+            if not created:
+                previous_visibility = document.visibility if document.visibility in visibility_order else 'staff'
+                visibility = min((previous_visibility, visibility), key=visibility_order.get)
             if document.status == 'completed' and not reingest:
+                if document.visibility != visibility:
+                    document.visibility = visibility
+                    document.save(update_fields=['visibility', 'updated_at'])
                 return document
             token = uuid4()
             document.title = title or filename
@@ -49,7 +59,8 @@ class IngestionService:
             document.byte_size = len(data or b'')
             document.visibility = visibility
             document.metadata = metadata or {}
-            document.uploaded_by = uploaded_by
+            if created:
+                document.uploaded_by = uploaded_by
             document.status = 'running'
             document.ingestion_token = token
             document.error_message = ''
@@ -62,7 +73,7 @@ class IngestionService:
                 mime=mime,
                 document_id=document.id,
                 source_type='document',
-                base_metadata={'visibility': visibility, **(metadata or {})},
+                base_metadata={**(metadata or {}), 'visibility': visibility},
                 title=document.title,
                 ingestion_token=token,
             )
@@ -72,7 +83,7 @@ class IngestionService:
         except Exception as exc:
             document, updated = self._finish(
                 document.id, token, status='failed',
-                error_message=f'{type(exc).__name__}: {exc}',
+                error_message=type(exc).__name__,
             )
             if updated:
                 self._audit(document, action='ingest_failed', actor=uploaded_by)
@@ -111,7 +122,7 @@ class IngestionService:
 
             AuditEvent.log(
                 category='kb_ingestion',
-                summary=f'RAG document {action}: {document.title}',
+                summary=f'RAG document {document.pk}: {action}',
                 user=actor,
                 detail={
                     'document_id': document.id,

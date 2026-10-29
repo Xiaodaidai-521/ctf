@@ -14,7 +14,7 @@ class KnowledgeAgent:
         "commonMistakes": [], "retrievalContext": [], "sources": [],
     }
 
-    def analyze(self, *, query="", challenge_info=None, knowledge_point=""):
+    def analyze(self, *, query="", challenge_info=None, knowledge_point="", user=None, task_context=None):
         if not str(query or knowledge_point or "").strip():
             return dict(self.DEFAULT_RESULT)
         try:
@@ -22,6 +22,7 @@ class KnowledgeAgent:
 
             package = MultiAgentChatService().build_knowledge_context(
                 str(query or knowledge_point), challenge_info, "category", 8,
+                user=user, task_context=task_context,
             )
             items = [item for item in package.get("items", []) if isinstance(item, Mapping)][:8]
             point = str(knowledge_point or (challenge_info or {}).get("title") or query)[:120]

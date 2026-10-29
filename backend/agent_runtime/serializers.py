@@ -17,6 +17,19 @@ class LearningRunRequestSerializer(serializers.Serializer):
 
 
 class AgentRunSerializer(serializers.ModelSerializer):
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        if not self.context.get('fresh_run'):
+            # Legacy run snapshots have no source-complete provenance. Retain run
+            # identity/status, but never serialize arbitrary nested body/metadata.
+            for field in ('plan', 'retrieved_docs', 'used_tools'):
+                data[field] = []
+            for field in ('intermediate_result', 'verification_result'):
+                data[field] = {}
+            data['final_result'] = {'content': '[历史内容未能验证材料权限，已隐藏]', 'redacted': True}
+            data['error_message'] = ''
+        return data
+
     class Meta:
         model = AgentRun
         fields = [

@@ -35,7 +35,15 @@ from .tutoring_state import (
 )
 
 
-class TeachingRunCreateView(APIView):
+class PrivateTeachingView(APIView):
+    def finalize_response(self, request, response, *args, **kwargs):
+        response = super().finalize_response(request, response, *args, **kwargs)
+        response['Cache-Control'] = 'private, no-store'
+        response['Vary'] = 'Authorization, Cookie'
+        return response
+
+
+class TeachingRunCreateView(PrivateTeachingView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
@@ -65,7 +73,7 @@ class TeachingRunCreateView(APIView):
         return Response(payload, status=status.HTTP_201_CREATED if created else status.HTTP_200_OK)
 
 
-class TeachingRunDetailView(APIView):
+class TeachingRunDetailView(PrivateTeachingView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, run_id):
@@ -111,7 +119,7 @@ class PracticeActionCreateView(APIView):
         }, status=status.HTTP_201_CREATED if created else status.HTTP_200_OK)
 
 
-class TaskTutorView(APIView):
+class TaskTutorView(PrivateTeachingView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, run_id):
@@ -165,7 +173,7 @@ class HintRequestView(APIView):
         }, status=status.HTTP_201_CREATED if created else status.HTTP_200_OK)
 
 
-class HintDisplayView(APIView):
+class HintDisplayView(PrivateTeachingView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, run_id, request_id):

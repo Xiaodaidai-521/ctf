@@ -33,10 +33,13 @@ class SafeKnowledgeRetrievalService:
         safe_source_types=None,
     ):
         self.retrieval_service = retrieval_service or LegalRetrievalService()
-        configured = safe_source_types or getattr(
+        configured = safe_source_types if safe_source_types is not None else getattr(
             settings, 'KNOWLEDGE_RAG_SAFE_SOURCE_TYPES', None
         )
-        self.safe_source_types = tuple(configured or DEFAULT_SAFE_SOURCE_TYPES)
+        self.safe_source_types = tuple(
+            value for value in (configured if configured is not None else DEFAULT_SAFE_SOURCE_TYPES)
+            if value in DEFAULT_SAFE_SOURCE_TYPES
+        )
 
     def retrieve(
         self,
@@ -45,21 +48,31 @@ class SafeKnowledgeRetrievalService:
         top_k: int = 8,
         user=None,
         extra_filters: Optional[Dict] = None,
+        task_context=None,
     ) -> List[Dict]:
         """Return normalized knowledge items, or an empty list when query is blank."""
         text = str(query or '').strip()
         if not text:
             return []
-        filters = {'source_type': list(self.safe_source_types)}
-        if extra_filters:
-            filters.update(extra_filters)
-        matches = self.retrieval_service.retrieve(
-            query=text,
-            top_k=top_k,
-            filters=filters,
-            user=user,
-        )
-        return [self._normalize(match) for match in matches]
+        requested = (extra_filters or {}).get('source_type', self.safe_source_types)
+        if isinstance(requested, str):
+            requested = [requested]
+        allowed = set(self.safe_source_types).intersection(requested or [])
+        if not allowed:
+            return []
+        from learning_knowledge.policy import Scope
+        from learning_knowledge.services import search
+        if not isinstance(task_context, Scope) or task_context.user != user:
+            return []
+        # Phase 1 deliberately uses the authorized deterministic path. No unfiltered
+        # candidate text is sent to an embedding provider or reranker.
+        cards = search(task_context, query=text)['results']
+        return [{
+            'source_type': card['source_kind'], 'title': card['title'],
+            'summary': card['excerpt'], 'text': card['excerpt'],
+            'url': card['view_endpoint'], 'evidence_id': card['evidence_id'],
+            'retrieval': 'lexical', 'metadata': {},
+        } for card in cards if card['source_kind'] in allowed][:top_k]
 
     def _normalize(self, match: Dict) -> Dict:
         source_type = match.get('source_type') or ''

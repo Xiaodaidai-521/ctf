@@ -6,8 +6,8 @@ ingest time. A snapshot can go stale (visibility tightened after ingest, or an
 old index kept after a failed re-ingest), so relying on it would leak content.
 When a chunk has no live DocumentSource, access is denied (fail closed).
 
-Platform content (legal clauses, challenges, articles, resources, knowledge
-concepts) has no restricted visibility and is never filtered here.
+Registered course materials use a separate task-scoped gateway. Non-document
+content is never implicitly public merely because its source type sounds safe.
 
 This is the single place that decides who may read restricted documents, so it
 is reused by every read path (REST browse API and RAG retrieval) instead of
@@ -73,6 +73,14 @@ def apply_embedding_visibility(queryset, user):
         visibility__in=allowed
     ).values('id')
 
+    from learning_knowledge.models import Material
+    # No old challenge/pack index is a learner-safe or ordinary-log source.
+    queryset = queryset.exclude(source_type='challenge')
+    for source_type in ('article', 'resource', 'knowledge_concept', 'legal_clause', 'document'):
+        registered = Material.objects.filter(source_type=source_type).values('source_object_id')
+        queryset = queryset.exclude(source_type=source_type, object_id__in=registered)
+    if not (_is_staff_or_admin(user) or _is_teacher(user)):
+        queryset = queryset.filter(source_type='document')
     return queryset.exclude(
         Q(source_type='document')
         & ~Q(content_type=document_ct, object_id__in=allowed_document_ids)

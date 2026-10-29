@@ -54,6 +54,8 @@ def _hint_unlocked(run, card):
 
 
 def request_hint(*, context, request_id, level, source='card'):
+    if context.task.purpose == map_constants.PURPOSE_RETEST:
+        raise PermissionDenied('Hints are not available during an independent retest.')
     payload = {'level': int(level), 'source': source}
     payload_hash = canonical_hash(payload)
     with transaction.atomic():
@@ -70,6 +72,8 @@ def request_hint(*, context, request_id, level, source='card'):
             raise ValidationError({'level': 'No active reviewed hint card is available at this level.'})
         except HintCard.MultipleObjectsReturned:
             card = HintCard.objects.filter(task=run.attempt.task, level=level, is_active=True).order_by('-version', '-id').first()
+        from learning_knowledge.policy import require_card
+        require_card(context, card.material_ref, 'hint', card.level)
         unlocked, reason = _hint_unlocked(run, card)
         if not unlocked:
             raise PermissionDenied(f'Hint level is locked: {reason}.')
@@ -112,8 +116,15 @@ def display_hint(*, context, request_id):
             raise ValidationError({'request_id': 'Hint request not found.'})
         if delivery.student_id != context.student_id or delivery.run_id != run.pk:
             raise PermissionDenied('This hint request belongs to another student.')
+        if run.attempt.task.purpose == map_constants.PURPOSE_RETEST:
+            raise PermissionDenied('Hints are not available during an independent retest.')
         if run.attempt.task.materials_withdrawn or not delivery.card.is_active:
             raise PermissionDenied('The hint material has been withdrawn.')
+        from learning_knowledge.policy import require_card
+        revision = require_card(context, delivery.card.material_ref, 'hint', delivery.card.level)
+        if revision:
+            delivery.card.content = revision.source_snapshot
+            delivery.card.title = revision.title
         if delivery.permission_version != run.permission_version:
             raise PermissionDenied('Hint authorization is stale; request it again.')
         if not delivery.displayed_at:
@@ -276,6 +287,11 @@ def authorized_analysis(*, context):
     analysis = StudentAnalysis.objects.filter(task=context.task, is_active=True).order_by('-version', '-id').first()
     if not analysis:
         raise ValidationError({'analysis': 'No active student analysis is available.'})
+    from learning_knowledge.policy import require_card
+    revision = require_card(context, analysis.content_ref, 'student_analysis')
+    if revision:
+        analysis.content = revision.source_snapshot
+        analysis.title = revision.title
     record = assistance_service.record_analysis_view(
         student=context.attempt.student,
         task=context.task,

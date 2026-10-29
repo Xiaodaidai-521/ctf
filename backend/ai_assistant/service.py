@@ -359,16 +359,8 @@ class MultiAgentChatService:
         return hashlib.sha256(encoded.encode('utf-8')).hexdigest()
 
     def _get_cached_knowledge_result(self, cache_key: str) -> Optional[Dict]:
-        now = time.monotonic()
-        with self._knowledge_cache_lock:
-            cached = self._knowledge_cache.get(cache_key)
-            if not cached:
-                return None
-            if cached['expires_at'] <= now:
-                self._knowledge_cache.pop(cache_key, None)
-                return None
-            cached['last_accessed_at'] = now
-            return dict(cached['value'])
+        # Legacy bodies have no material provenance or live authorization stamp.
+        return None
 
     def _set_cached_knowledge_result(self, cache_key: str, value: Dict) -> None:
         now = time.monotonic()
@@ -419,16 +411,8 @@ class MultiAgentChatService:
         return hashlib.sha256(encoded.encode('utf-8')).hexdigest()
 
     def _get_cached_response_result(self, cache_key: str) -> Optional[Dict]:
-        now = time.monotonic()
-        with self._response_cache_lock:
-            cached = self._response_cache.get(cache_key)
-            if not cached:
-                return None
-            if cached['expires_at'] <= now:
-                self._response_cache.pop(cache_key, None)
-                return None
-            cached['last_accessed_at'] = now
-            return copy.deepcopy(cached['value'])
+        # Generated replies can contain material bodies; a TTL is not authority.
+        return None
 
     def _set_cached_response_result(self, cache_key: str, value: Dict) -> None:
         now = time.monotonic()
@@ -1075,50 +1059,17 @@ class MultiAgentChatService:
         question: str,
         challenge_info: Optional[Dict],
         top_k: int = 5,
+        *, user=None, task_context=None,
     ) -> Dict:
-        """Retrieve legal and challenge vectors for the legal reviewer agent."""
-        from legal_kb.models import LegalKnowledgeEmbedding
-        from legal_kb.services.embedding_service import cosine_similarity
-
-        query_parts = [question or '']
-        if challenge_info:
-            query_parts.extend([
-                challenge_info.get('title') or '',
-                challenge_info.get('category_name') or challenge_info.get('category') or '',
-                challenge_info.get('description') or '',
-                challenge_info.get('hint') or '',
-            ])
-        query = '\n'.join(part for part in query_parts if part)
-        from django.db import connection
-
-        embedding_service = self._legal_embedding_service()
-        query_embedding = (
-            embedding_service.embed_text(query)
-            if connection.vendor == 'postgresql'
-            else embedding_service.embed_local_text(query)
+        """Only authorized legal evidence; challenge vectors may contain solutions."""
+        items = self._semantic_knowledge_items(
+            question, top_k, user=user, task_context=task_context,
         )
-
-        legal_items = self._rank_legal_embeddings(
-            query_embedding=query_embedding,
-            queryset=LegalKnowledgeEmbedding.objects.filter(
-                source_type__in=['legal_clause', 'legal_document', 'legal_case', 'legal_template'],
-            ),
-            top_k=top_k,
-        )
-
-        challenge_queryset = LegalKnowledgeEmbedding.objects.filter(source_type='challenge')
-        if challenge_info and challenge_info.get('id'):
-            challenge_queryset = challenge_queryset.filter(object_id=challenge_info.get('id'))
-        challenge_items = self._rank_legal_embeddings(
-            query_embedding=query_embedding,
-            queryset=challenge_queryset,
-            top_k=top_k,
-        )
-
         return {
-            'legal_items': legal_items,
-            'challenge_items': challenge_items,
-            'query': query,
+            'legal_items': [dict(item, text=item['summary']) for item in items
+                            if item['source_type'] == 'legal_clause'],
+            'challenge_items': [],
+            'query': question,
         }
 
     def _legal_embedding_service(self):
@@ -1268,11 +1219,14 @@ class MultiAgentChatService:
         question: str,
         challenge_info: Optional[Dict],
         context: Dict,
+        user=None, task_context=None,
     ) -> Dict:
-        """Run legal reviewer RAG and force a model pass when possible."""
+        """Run legal reviewer using authorized legal evidence only."""
         from asgiref.sync import sync_to_async
 
-        retrieval = await sync_to_async(self.build_legal_review_context)(question, challenge_info, 5)
+        retrieval = await sync_to_async(self.build_legal_review_context)(
+            question, challenge_info, 5, user=user, task_context=task_context,
+        )
         legal_items = retrieval.get('legal_items', [])
         challenge_items = retrieval.get('challenge_items', [])
         instruction = self._build_legal_review_instruction(
@@ -1516,180 +1470,15 @@ class MultiAgentChatService:
         }
 
     def _get_pack_based_knowledge(self, challenge_info: Optional[Dict], scope: str) -> Optional[Dict]:
-        if not challenge_info:
-            return None
-
-        normalized_scope = self._normalize_knowledge_scope(scope)
-        challenge_pack = self._ensure_challenge_knowledge_pack(challenge_info.get('id'))
-        if normalized_scope == 'current':
-            pack = challenge_pack
-            if not pack:
-                return None
-            return {
-                'scope': normalized_scope,
-                'resolved_scope': normalized_scope,
-                'keywords': pack.keywords or [],
-                'items': [
-                    {
-                        'source_type': 'challenge',
-                        'source_id': pack.challenge_id,
-                        'title': pack.challenge.title,
-                        'summary': pack.summary,
-                        'category': pack.category_name,
-                        'url': f'/challenge/{pack.challenge_id}',
-                        'score': 100,
-                    }
-                ],
-                'context_text': pack.context_text,
-                'cache_hit': False,
-                'pack_source': 'challenge_pack',
-            }
-
-        if normalized_scope == 'category':
-            merged_items = []
-            keywords = []
-            context_chunks = []
-            if challenge_pack:
-                merged_items.append({
-                    'source_type': 'challenge',
-                    'source_id': challenge_pack.challenge_id,
-                    'title': challenge_pack.challenge.title,
-                    'summary': challenge_pack.summary,
-                    'category': challenge_pack.category_name,
-                    'url': f'/challenge/{challenge_pack.challenge_id}',
-                    'score': 100,
-                })
-                keywords.extend(challenge_pack.keywords or [])
-                if challenge_pack.context_text:
-                    context_chunks.append(challenge_pack.context_text)
-
-            category_name = challenge_info.get('category_name') or challenge_info.get('category')
-            category_pack = self._ensure_category_knowledge_pack(category_name)
-            try:
-                if not category_pack:
-                    raise CategoryKnowledgePack.DoesNotExist
-                keywords.extend(category_pack.keywords or [])
-                for item in category_pack.featured_challenges[:2]:
-                    merged_items.append({
-                        'source_type': 'challenge',
-                        'source_id': item.get('id'),
-                        'title': item.get('title'),
-                        'summary': '同分类代表性题目。',
-                        'category': category_name,
-                        'url': item.get('url', ''),
-                        'score': 60,
-                    })
-                if category_pack.context_text:
-                    context_chunks.append(category_pack.context_text)
-            except CategoryKnowledgePack.DoesNotExist:
-                category_pack = None
-
-            if not challenge_pack and not category_pack:
-                return None
-
-            deduped_items = []
-            seen = set()
-            for item in merged_items:
-                dedupe_key = (item.get('source_type'), item.get('source_id'))
-                if dedupe_key in seen:
-                    continue
-                seen.add(dedupe_key)
-                deduped_items.append(item)
-
-            return {
-                'scope': normalized_scope,
-                'resolved_scope': normalized_scope,
-                'keywords': list(dict.fromkeys(keywords))[:12],
-                'items': deduped_items[:5],
-                'context_text': '\n\n'.join(chunk for chunk in context_chunks if chunk),
-                'cache_hit': False,
-                'pack_source': 'category_pack',
-            }
-
+        # Neither pack_version nor has_solution_walkthrough proves source authorization.
         return None
 
     def _ensure_challenge_knowledge_pack(self, challenge_id: Optional[int]):
-        """Return a challenge pack, creating it on demand for new challenges."""
-        if not challenge_id:
-            return None
-        try:
-            return ChallengeKnowledgePack.objects.select_related('challenge').get(
-                challenge_id=challenge_id
-            )
-        except ChallengeKnowledgePack.DoesNotExist:
-            pass
-
-        try:
-            from challenges.models import Challenge
-
-            challenge = Challenge.objects.select_related('category').get(
-                id=challenge_id,
-                is_active=True,
-            )
-            payload = self.build_challenge_knowledge_pack_payload(challenge)
-            pack, _ = ChallengeKnowledgePack.objects.update_or_create(
-                challenge=challenge,
-                defaults={
-                    'category_name': payload.get('category_name', ''),
-                    'difficulty': payload.get('difficulty', ''),
-                    'score': payload.get('score', 0),
-                    'keywords': payload.get('keywords', []),
-                    'summary': payload.get('summary', ''),
-                    'challenge_snapshot': payload.get('challenge_snapshot', {}),
-                    'related_challenges': payload.get('related_challenges', []),
-                    'related_articles': payload.get('related_articles', []),
-                    'related_resources': payload.get('related_resources', []),
-                    'context_text': payload.get('context_text', ''),
-                    'pack_version': payload.get('pack_version', 1),
-                    'metadata': payload.get('metadata', {}),
-                },
-            )
-            return pack
-        except Exception as exc:
-            logger.warning(
-                'tutor_challenge_knowledge_pack_build_failed',
-                extra={
-                    'event': 'tutor_challenge_knowledge_pack_build_failed',
-                    'error_type': type(exc).__name__,
-                    'challenge_id': challenge_id,
-                },
-            )
-            return None
+        """Legacy packs are quarantined, not rebuilt or implicitly approved on read."""
+        return None
 
     def _ensure_category_knowledge_pack(self, category_name: Optional[str]):
-        """Return a category pack, creating it on demand when possible."""
-        if not category_name:
-            return None
-        try:
-            return CategoryKnowledgePack.objects.get(category_name=category_name)
-        except CategoryKnowledgePack.DoesNotExist:
-            pass
-
-        try:
-            payload = self.build_category_knowledge_pack_payload(category_name)
-            pack, _ = CategoryKnowledgePack.objects.update_or_create(
-                category_name=category_name,
-                defaults={
-                    'keywords': payload.get('keywords', []),
-                    'featured_challenges': payload.get('featured_challenges', []),
-                    'featured_articles': payload.get('featured_articles', []),
-                    'featured_resources': payload.get('featured_resources', []),
-                    'context_text': payload.get('context_text', ''),
-                    'pack_version': payload.get('pack_version', 1),
-                    'metadata': payload.get('metadata', {}),
-                },
-            )
-            return pack
-        except Exception as exc:
-            logger.warning(
-                'tutor_category_knowledge_pack_build_failed',
-                extra={
-                    'event': 'tutor_category_knowledge_pack_build_failed',
-                    'error_type': type(exc).__name__,
-                    'category_name': category_name,
-                },
-            )
-            return None
+        return None
 
     def search_simple_knowledge(
         self,
@@ -1697,102 +1486,22 @@ class MultiAgentChatService:
         challenge_info: Optional[Dict] = None,
         scope: str = 'category',
         limit: int = 5,
+        *, user=None, task_context=None,
     ) -> Dict:
-        from challenges.models import Challenge
-
+        # The legacy scope string/challenge ID is not a task authorization scope.
+        # Do not fall back to unknown keywords, packs or vectors on denial/failure.
+        items = self._semantic_knowledge_items(
+            query, limit, user=user, task_context=task_context,
+        )
         normalized_scope = self._normalize_knowledge_scope(scope)
-        resolved_scope = normalized_scope
-
-        keywords = self._extract_knowledge_keywords(query, challenge_info)
-        cache_key = self._build_knowledge_cache_key(query, challenge_info, normalized_scope, limit)
-        cached = self._get_cached_knowledge_result(cache_key)
-        if cached:
-            cached['cache_hit'] = True
-            return cached
-
-        pack_result = self._get_pack_based_knowledge(challenge_info, normalized_scope)
-        if pack_result and pack_result.get('items'):
-            self._set_cached_knowledge_result(cache_key, pack_result)
-            return pack_result
-
-        if not challenge_info and normalized_scope in {'current', 'category'}:
-            result = {
-                'scope': normalized_scope,
-                'resolved_scope': normalized_scope,
-                'keywords': keywords,
-                'items': [],
-                'cache_hit': False,
-            }
-            self._set_cached_knowledge_result(cache_key, result)
-            return result
-
-        items = []
-        if resolved_scope == 'current' and challenge_info:
-            items.append(self._build_current_challenge_knowledge_item(challenge_info, keywords))
-        else:
-            challenge_category = None
-            if challenge_info:
-                challenge_category = (
-                    challenge_info.get('category_name')
-                    or challenge_info.get('category')
-                    or None
-                )
-            search_limit = max(limit * 2, 8)
-
-            challenge_queryset = Challenge.objects.filter(is_active=True).select_related('category')
-            if resolved_scope == 'category' and challenge_category:
-                challenge_queryset = challenge_queryset.filter(category__name=challenge_category)
-            if keywords:
-                challenge_queryset = challenge_queryset.filter(
-                    self._keyword_query(['title', 'description', 'hint', 'category__name'], keywords)
-                )
-            for challenge in challenge_queryset.order_by('difficulty', '-solve_count', '-updated_at')[:search_limit]:
-                score = self._practice_match_score({
-                    'title': challenge.title,
-                    'category': challenge.category.name if challenge.category else '',
-                    'summary': challenge.description,
-                    'body': challenge.hint,
-                }, keywords)
-                if score <= 0 and keywords:
-                    continue
-                items.append({
-                    'source_type': 'challenge',
-                    'source_id': challenge.id,
-                    'title': challenge.title,
-                    'summary': self._safe_excerpt(challenge.description or challenge.hint or ''),
-                    'category': challenge.category.name if challenge.category else '',
-                    'url': f"/challenge/{challenge.id}",
-                    'score': score,
-                })
-
-        deduped_items = []
-        seen_keys = set()
-        for item in sorted(items, key=lambda entry: entry.get('score', 0), reverse=True):
-            dedupe_key = (item.get('source_type'), item.get('source_id'))
-            if dedupe_key in seen_keys:
-                continue
-            seen_keys.add(dedupe_key)
-            deduped_items.append({
-                'source_type': item.get('source_type'),
-                'source_id': item.get('source_id'),
-                'title': item.get('title'),
-                'summary': item.get('summary', ''),
-                'category': item.get('category', ''),
-                'url': item.get('url', ''),
-                'score': item.get('score', 0),
-            })
-            if len(deduped_items) >= limit:
-                break
-
-        result = {
+        return {
             'scope': normalized_scope,
-            'resolved_scope': resolved_scope,
-            'keywords': keywords,
-            'items': deduped_items,
+            'resolved_scope': normalized_scope,
+            'keywords': [],
+            'items': items,
+            'context_text': self._format_knowledge_context_text(items) if items else '',
             'cache_hit': False,
         }
-        self._set_cached_knowledge_result(cache_key, result)
-        return result
 
     def build_knowledge_context(
         self,
@@ -1800,33 +1509,13 @@ class MultiAgentChatService:
         challenge_info: Optional[Dict] = None,
         scope: str = 'category',
         limit: int = 5,
+        *, user=None, task_context=None,
     ) -> Dict:
-        retrieval = self.search_simple_knowledge(
-            query=query,
-            challenge_info=challenge_info,
-            scope=scope,
-            limit=limit,
+        result = self.search_simple_knowledge(
+            query=query, challenge_info=challenge_info, scope=scope, limit=limit,
+            user=user, task_context=task_context,
         )
-        result = dict(retrieval)
-        keyword_items = result.get('items') or []
-        semantic_items = self._semantic_knowledge_items(query, limit)
-        fused_items = self._merge_knowledge_items(semantic_items, keyword_items, limit)
-        result['items'] = fused_items
-        result['semantic_count'] = len(semantic_items)
-        base_context = result.get('context_text')
-        if not base_context:
-            result['context_text'] = self._format_knowledge_context_text(fused_items)
-        else:
-            # A pack already provided a (richer) context. Keep it, but still append
-            # the newly recalled semantic evidence so it reaches the answer chain
-            # instead of being dropped (it would otherwise only live in `items`).
-            prefixed = (
-                '以下是平台知识库检索结果。回答题目解答、题目编号或题目名称相关问题时，'
-                '必须优先基于这些资料回答；不要直接泄露 flag 或内部预设答案。\n\n'
-                f"{base_context}"
-            )
-            supplement = self._format_semantic_supplement(semantic_items, base_context)
-            result['context_text'] = f'{prefixed}\n\n{supplement}' if supplement else prefixed
+        result['semantic_count'] = len(result['items'])
         return result
 
     def _format_semantic_supplement(self, semantic_items: List[Dict], base_context: str) -> str:
@@ -1864,34 +1553,32 @@ class MultiAgentChatService:
                 break
         return '\n'.join(lines) if added else ''
 
-    def _semantic_knowledge_items(self, query: str, limit: int) -> List[Dict]:
-        """Semantic recall over the shared vector store (teaching-safe sources).
+    def _semantic_knowledge_items(
+        self, query: str, limit: int, *, user=None, task_context=None,
+    ) -> List[Dict]:
+        """Compatibility projection of live, task-authorized evidence cards only."""
+        from learning_knowledge.policy import Scope, authenticated
 
-        Degrades to an empty list (never raises) so the keyword path and the
-        calling agents keep working when embeddings/DB are unavailable.
-        """
-        if not getattr(settings, 'KNOWLEDGE_RAG_SEMANTIC_ENABLED', True):
-            return []
-        text = str(query or '').strip()
-        if not text:
+        if (not isinstance(task_context, Scope) or not authenticated(user)
+                or not authenticated(task_context.user)
+                or task_context.user.pk != user.pk or task_context.purpose != 'lesson'):
             return []
         try:
-            from legal_kb.services.knowledge_retrieval_service import (
-                SafeKnowledgeRetrievalService,
-            )
+            from learning_knowledge.services import search
 
-            return SafeKnowledgeRetrievalService().retrieve(
-                query=text,
-                top_k=max(int(limit or 5), 5),
-            )
+            cards = search(task_context, query=str(query or '').strip()).get('results', [])
+            return [{
+                'source_type': card['source_kind'],
+                'source_id': card['evidence_id'],
+                'evidence_id': card['evidence_id'],
+                'title': card['title'],
+                'summary': card['excerpt'],
+                'url': card['view_endpoint'],
+            } for card in cards[:max(1, min(int(limit or 5), 10))]]
         except Exception as exc:
-            logger.warning(
-                'semantic_knowledge_retrieval_failed',
-                extra={
-                    'event': 'semantic_knowledge_retrieval_failed',
-                    'error_type': type(exc).__name__,
-                },
-            )
+            logger.warning('controlled_knowledge_retrieval_failed', extra={
+                'event': 'controlled_knowledge_retrieval_failed', 'error_type': type(exc).__name__,
+            })
             return []
 
     def _merge_knowledge_items(
@@ -2190,49 +1877,17 @@ class MultiAgentChatService:
         question: str,
         student_level: str = 'beginner',
         top_k: int = 4,
+        *, user=None, task_context=None,
     ) -> Dict:
-        """Retrieve safe, approved learning references for the tutoring loop.
-
-        Challenge records remain outside this prompt context because their indexed
-        text can contain solution material.  The challenge/topic still influences
-        the query, while only approved articles and resources are exposed to the
-        model and the learner as references.
-        """
+        """Compatibility name; phase 1 only uses current authorized lexical evidence."""
         query = ' '.join(part.strip() for part in [concept_name, question] if part and part.strip())
-        if not query:
-            return {'mode': 'vector', 'query': '', 'items': []}
-
-        try:
-            from legal_kb.services.retrieval_service import LegalRetrievalService
-
-            matches = LegalRetrievalService().retrieve(
-                query=query,
-                top_k=top_k * 2,
-                filters={'source_type': ['article', 'resource']},
-            )
-            seen = set()
-            items = []
-            for item in matches:
-                key = (item['source_type'], item['object_id'])
-                if key in seen:
-                    continue
-                seen.add(key)
-                items.append({
-                    'type': item['source_type'],
-                    'title': item['title'] or '未命名资料',
-                    'entry': (
-                        f'/community/article/{item["object_id"]}'
-                        if item['source_type'] == 'article'
-                        else f'/resources?highlight_resource={item["object_id"]}&resource={item["object_id"]}'
-                    ),
-                    'summary': self._safe_excerpt(item.get('text') or '', 260),
-                })
-                if len(items) >= top_k:
-                    break
-            return {'mode': 'vector', 'query': query, 'items': items}
-        except Exception as exc:
-            logger.warning('Tutoring vector retrieval failed: %s', exc)
-            return {'mode': 'vector', 'query': query, 'items': []}
+        matches = self._semantic_knowledge_items(query, top_k, user=user, task_context=task_context) if query else []
+        items = [
+            {'type': item['source_type'], 'title': item['title'],
+             'entry': item['url'], 'summary': item['summary'], 'evidence_id': item['evidence_id']}
+            for item in matches if item['source_type'] in {'article', 'resource'}
+        ]
+        return {'mode': 'lexical', 'query': query, 'items': items}
 
     def _format_tutoring_vector_context(self, references: Dict) -> str:
         items = references.get('items') or []
@@ -2748,11 +2403,8 @@ class MultiAgentChatService:
         if context and context.get('agent_task_instruction'):
             messages.append(Message(role='system', content=context['agent_task_instruction']))
         
-        # 娣诲姞鍘嗗彶
-        if conversation_history:
-            for msg in trim_history(conversation_history):
-                role = 'user' if msg.get('role') == 'user' else 'assistant'
-                messages.append(Message(role=role, content=msg.get('content', '')))
+        # Legacy/caller-supplied histories have no source-complete provenance.
+        # A metadata flag or a recent timestamp cannot authorize their replay.
         
         messages.append(Message(role='user', content=prompt_message))
 
@@ -3089,7 +2741,8 @@ async def solve_challenge_hybrid_async(
     agent_ids: List[str] = None, 
     mode: str = 'collaborative',
     force_ai: bool = False,
-    context: Dict = None
+    context: Dict = None,
+    *, user=None, task_context=None,
 ) -> Dict:
     """Run hybrid challenge solving asynchronously."""
     from asgiref.sync import sync_to_async
@@ -3193,6 +2846,7 @@ async def solve_challenge_hybrid_async(
         runtime_context.get('challenge_info'),
         knowledge_scope,
         5,
+        user=user, task_context=task_context,
     )
     runtime_context['knowledge_scope'] = knowledge_scope
     runtime_context['knowledge_context'] = knowledge_package.get('context_text')

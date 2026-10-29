@@ -38,10 +38,10 @@ class LegalKbChunkRepository:
         # previous index intact instead of a half-rebuilt one. Parsing and (remote)
         # embedding already happened before this call, so the transaction is short.
         with transaction.atomic():
-            if ingestion_token is not None:
-                document = DocumentSource.objects.select_for_update().get(pk=document_id)
-                if document.ingestion_token != ingestion_token or document.status != 'running':
-                    raise SupersededIngestionError('A newer ingestion owns this document.')
+            document = DocumentSource.objects.select_for_update().get(pk=document_id)
+            if (document.ingestion_token != ingestion_token
+                    or (ingestion_token is not None and document.status != 'running')):
+                raise SupersededIngestionError('A newer ingestion owns this document.')
             LegalKnowledgeEmbedding.objects.filter(
                 content_type=content_type,
                 object_id=document_id,
