@@ -63,6 +63,7 @@ urlpatterns = [
     path('api/skill-review/', include('skill_review.urls')),
     path('api/teaching/', include('teaching_agent.urls')),
     path('api/feedback/', include('feedback_center.urls')),
+    path('api/evaluation/', include('evaluation_center.urls')),
 ]
 
 # 开发环境下的媒体文件服务
