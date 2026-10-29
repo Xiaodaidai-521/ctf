@@ -1348,7 +1348,7 @@ class MultiAgentChatService:
         }
 
     def build_challenge_knowledge_pack_payload(self, challenge) -> Dict:
-        from challenges.models import Challenge, ChallengeRelation, ChallengeSolution
+        from challenges.models import Challenge, ChallengeRelation
 
         challenge_info = {
             'id': challenge.id,
@@ -1372,14 +1372,6 @@ class MultiAgentChatService:
             limit=260,
         )
         solution_guide = self._build_challenge_solution_guide(challenge_info)
-        preset_solution = ChallengeSolution.objects.filter(challenge=challenge, is_enabled=True).first()
-        solution_context = ''
-        if preset_solution:
-            solution_context = (
-                '【本题标准解题思路】\n'
-                f'{preset_solution.content}\n'
-                '说明：以上内容用于讲解解题路线，不用于直接泄露 flag。'
-            )
 
         related_challenges = []
         explicit_relations = list(
@@ -1457,14 +1449,13 @@ class MultiAgentChatService:
             'related_resources': related_resources,
             'context_text': (
                 f'{solution_guide}\n\n'
-                f'{solution_context}\n\n'
                 f'{self._format_knowledge_context_text(context_items)}'
             ),
             'pack_version': 3,
             'metadata': {
                 'generated_by': 'build_challenge_knowledge_pack_payload',
                 'solution_guide': solution_guide,
-                'has_solution_walkthrough': bool(preset_solution),
+                'has_solution_walkthrough': False,
                 'related_counts': {
                     'challenges': len(related_challenges),
                     'articles': len(related_articles),

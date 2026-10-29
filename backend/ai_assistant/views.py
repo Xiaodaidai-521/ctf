@@ -508,6 +508,7 @@ class AIConversationViewSet(viewsets.ModelViewSet):
         challenge_info = None
         if conversation.challenge:
             challenge_info = {
+                'id': conversation.challenge.id,
                 'title': conversation.challenge.title,
                 'category': conversation.challenge.category.name if conversation.challenge.category else None,
                 'category_name': conversation.challenge.category.name if conversation.challenge.category else 'unknown',
@@ -1430,19 +1431,21 @@ def solve_challenge(request):
     if not message:
         return Response({'error': 'message is required'}, status=status.HTTP_400_BAD_REQUEST)
 
-    challenge = get_object_or_404(Challenge, id=challenge_id)
+    from teaching_agent.context import resolve_task_context
 
-    async def _async_solve():
-        return await solve_challenge_hybrid_async(
-            question=message,
-            challenge_id=challenge_id,
-            agent_ids=['analyst'],
-            mode='single'
-        )
-    
-    result = async_to_sync(_async_solve)()
-    
-    return Response(result)
+    resolve_task_context(
+        user=request.user,
+        request_data=request.data,
+        require_attempt=True,
+        challenge_id=challenge_id,
+    )
+    return Response(
+        {
+            'error': 'Direct task solutions are not available to students.',
+            'detail': 'Use the task tutoring endpoint and unlocked hint levels.',
+        },
+        status=status.HTTP_403_FORBIDDEN,
+    )
 
 
 # ==================== ç¼åãé¨?APIéå £Ëéåç´?====================
@@ -1581,6 +1584,11 @@ class TutoringSessionView(APIView):
         specialist_context = preparation['specialists']
         resource_preparation = _resource_preparation_from_context(specialist_context)
         teaching_context = preparation.get('teachingContext')
+        trusted = preparation.get('trustedTaskContext') or {}
+        if trusted:
+            concept_name = trusted['task']['title']
+            student_level = 'task_bound'
+            context_summary = ''
 
         async def _run(current_teaching_context):
             from .learning_orchestrator import LearningOrchestrator
