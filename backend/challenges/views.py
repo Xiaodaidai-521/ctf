@@ -1,18 +1,18 @@
 from rest_framework import generics, status, viewsets
 from rest_framework.decorators import api_view, permission_classes, authentication_classes, action
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from rest_framework.authentication import SessionAuthentication, TokenAuthentication
+from rest_framework.authentication import TokenAuthentication
 from rest_framework.response import Response
 from django.conf import settings
 from django.db.models import Min
 from django.http import HttpResponse, StreamingHttpResponse
-from django.views.decorators.csrf import csrf_exempt
 from .models import Category, Challenge, ChallengeContainer
 from .serializers import CategorySerializer, ChallengeSerializer, ChallengeListSerializer, SubmissionSerializer
 from .container_manager import get_container_manager
 from .container_audit import record_container_audit, record_flag_submission_audit
 from .access import (
     COOKIE_NAME,
+    ChallengeProxySessionAuthentication,
     access_cookie_max_age,
     build_access_cookie_value,
     build_access_url,
@@ -359,9 +359,8 @@ def challenge_detail_view(request, pk):
 
 # ==================== CTF代理视图 ====================
 
-@csrf_exempt
 @api_view(['GET', 'POST', 'PUT', 'DELETE', 'HEAD', 'OPTIONS'])
-@authentication_classes([])
+@authentication_classes([TokenAuthentication, ChallengeProxySessionAuthentication])
 @permission_classes([AllowAny])
 def proxy_challenge_view(request, path):
     """
@@ -382,18 +381,12 @@ def proxy_challenge_view(request, path):
         return HttpResponse("Invalid container ID format", status=400)
 
     access_cookie = request.COOKIES.get(COOKIE_NAME)
-    access_query_token = request.GET.get('access_token')
-    cookie_is_valid = (
-        validate_access_token(access_cookie, user_id, container_uuid)
-        or validate_access_token(access_query_token, user_id, container_uuid)
-    )
+    cookie_is_valid = validate_access_token(access_cookie, user_id, container_uuid)
 
     proxy_user = request.user
-    if not proxy_user.is_authenticated:
-        proxy_user = getattr(request._request, 'user', None)
-    if proxy_user and proxy_user.is_authenticated and proxy_user.id != user_id:
+    if proxy_user.is_authenticated and proxy_user.id != user_id:
         return HttpResponse("Container owner mismatch", status=403)
-    if (not proxy_user or not proxy_user.is_authenticated) and not cookie_is_valid:
+    if not proxy_user.is_authenticated and not cookie_is_valid:
         return HttpResponse("Authentication required", status=401)
 
     container_filter = ChallengeContainer.objects.filter(
@@ -401,7 +394,7 @@ def proxy_challenge_view(request, path):
         user_id=user_id,
         status='running',
     )
-    if proxy_user and proxy_user.is_authenticated:
+    if proxy_user.is_authenticated:
         container_filter = container_filter.filter(user=proxy_user)
     container = container_filter.first()
     if not container or container.is_expired:

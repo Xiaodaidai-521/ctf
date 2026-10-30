@@ -1,12 +1,18 @@
-from urllib.parse import urlencode
-
 from django.conf import settings
 from django.core import signing
 from django.utils import timezone
+from rest_framework.authentication import SessionAuthentication
 
 
 ACCESS_SALT = 'challenge-container-access'
 COOKIE_NAME = 'challenge_access'
+
+
+class ChallengeProxySessionAuthentication(SessionAuthentication):
+    def enforce_csrf(self, request):
+        # Avoid DRF body parsers and preserve raw multipart data for forwarding.
+        _ = request._request.body
+        super().enforce_csrf(request._request)
 
 
 def build_access_url(container):
@@ -14,9 +20,7 @@ def build_access_url(container):
         return container.access_url if container.is_running else ''
     host = getattr(settings, 'CONTAINER_PROXY_HOST', 'localhost:8000')
     scheme = getattr(settings, 'CONTAINER_PROXY_SCHEME', 'http')
-    token = build_access_cookie_value(container)
-    query = urlencode({'access_token': token})
-    return f'{scheme}://{host}/challenge/{container.user_id}-{container.container_id}/?{query}'
+    return f'{scheme}://{host}/challenge/{container.user_id}-{container.container_id}/'
 
 
 def build_access_cookie_value(container):

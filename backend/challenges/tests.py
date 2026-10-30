@@ -249,6 +249,100 @@ class ChallengeProxyAccessTests(TestCase):
         self.assertTrue(cookie['httponly'])
         self.assertEqual(cookie['path'], self.path)
 
+    @patch('challenges.views.requests.request')
+    def test_proxy_rejects_valid_query_token(self, request_mock):
+        token = build_access_cookie_value(self.container)
+
+        response = APIClient().get(self.path, {'access_token': token})
+
+        self.assertEqual(response.status_code, 401)
+        request_mock.assert_not_called()
+
+    @patch('challenges.views.requests.request')
+    def test_proxy_accepts_owner_session_without_scoped_cookie(self, request_mock):
+        upstream = MagicMock()
+        upstream.status_code = 200
+        upstream.content = b'challenge ready'
+        upstream.headers = {'content-type': 'text/plain'}
+        request_mock.return_value = upstream
+        client = APIClient(enforce_csrf_checks=True)
+        self.assertTrue(client.login(username=self.user.username, password='pass12345'))
+
+        response = client.get(self.path)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.content, b'challenge ready')
+        request_mock.assert_called_once()
+
+    @patch('challenges.views.requests.request')
+    def test_proxy_accepts_unsafe_owner_session_with_csrf(self, request_mock):
+        upstream = MagicMock()
+        upstream.status_code = 200
+        upstream.content = b'challenge ready'
+        upstream.headers = {'content-type': 'text/plain'}
+        request_mock.return_value = upstream
+        client = APIClient(enforce_csrf_checks=True)
+        self.assertTrue(client.login(username=self.user.username, password='pass12345'))
+        self.assertEqual(client.get('/api/users/csrf/').status_code, 200)
+
+        bodies = [
+            ('text/plain', b'payload'),
+            ('application/octet-stream', b'\x00payload\xff'),
+            ('application/json', b'{"value": "challenge"}'),
+            ('application/x-www-form-urlencoded', b'field=value'),
+            (
+                'multipart/form-data; boundary=proxy-boundary',
+                b'--proxy-boundary\r\n'
+                b'Content-Disposition: form-data; name="field"\r\n\r\n'
+                b'value\r\n--proxy-boundary--\r\n',
+            ),
+        ]
+        for content_type, body in bodies:
+            with self.subTest(content_type=content_type):
+                request_mock.reset_mock()
+
+                response = client.post(
+                    self.path,
+                    data=body,
+                    content_type=content_type,
+                    HTTP_X_CSRFTOKEN=client.cookies['csrftoken'].value,
+                )
+
+                self.assertEqual(response.status_code, 200)
+                request_mock.assert_called_once()
+                self.assertEqual(request_mock.call_args.kwargs['data'], body)
+
+    @patch('challenges.views.requests.request')
+    def test_proxy_rejects_unsafe_session_with_scoped_cookie_without_csrf(self, request_mock):
+        client = APIClient(enforce_csrf_checks=True)
+        self.assertTrue(client.login(username=self.user.username, password='pass12345'))
+        client.cookies[COOKIE_NAME] = build_access_cookie_value(self.container)
+        self.assertEqual(client.get('/api/users/csrf/').status_code, 200)
+
+        response = client.post(self.path, data=b'payload', content_type='text/plain')
+
+        self.assertEqual(response.status_code, 403)
+        self.assertIn('CSRF Failed', str(response.data))
+        request_mock.assert_not_called()
+
+    @patch('challenges.views.requests.request')
+    def test_proxy_rejects_non_owner_even_with_valid_scoped_cookie(self, request_mock):
+        other_user = User.objects.create_user(username='proxy-other', password='pass12345')
+        token = Token.objects.create(user=other_user)
+        for authentication in ('token', 'session'):
+            with self.subTest(authentication=authentication):
+                client = APIClient(enforce_csrf_checks=True)
+                client.cookies[COOKIE_NAME] = build_access_cookie_value(self.container)
+                if authentication == 'token':
+                    client.credentials(HTTP_AUTHORIZATION=f'Token {token.key}')
+                else:
+                    client.force_login(other_user)
+
+                response = client.get(self.path)
+
+                self.assertEqual(response.status_code, 403)
+                request_mock.assert_not_called()
+
 
 class ContainerIsolationTests(TestCase):
     @override_settings(CONTAINER_PROXY_MODE='host_port')
