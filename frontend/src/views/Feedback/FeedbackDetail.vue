@@ -2,10 +2,10 @@
   <div class="fb-page">
     <div class="fb-header">
       <div>
-        <span class="fb-eyebrow">模块七 · 反馈详情</span>
-        <h1 class="fb-title">{{ detail ? `${detail.category_label} · ${detail.issue_type_label}` : '反馈详情' }}</h1>
+        <span class="fb-eyebrow">反馈详情</span>
+        <h1 class="fb-title">{{ detail ? `${feedbackLabel('category', detail.category)} · ${feedbackLabel('issue', detail.issue_type)}` : '反馈详情' }}</h1>
         <p class="fb-sub" v-if="detail">
-          反馈 ID：<span class="fb-badge fb-badge-muted">{{ detail.feedback_id }}</span>
+
           提交于 {{ formatDate(detail.created_at) }}
         </p>
       </div>
@@ -21,21 +21,21 @@
     <template v-else>
       <div class="fb-notice">
         <strong>处理状态与规则生效分开。</strong>
-        当前工单状态：{{ detail.status_label }}；教学效果：{{ detail.effect_status_label }}。
+        当前工单状态：{{ feedbackLabel('status', detail.status) }}；教学效果：{{ feedbackLabel('effect', detail.effect_status) }}。
         处理完成不等于教学效果已验证，也不等于新规则已生效。原始判定与历史结论保留。
       </div>
 
       <div class="fb-grid">
         <section class="fb-panel">
           <h2>工单摘要</h2>
-          <div class="fb-row"><span>状态</span><strong>{{ detail.status_label }}</strong></div>
+          <div class="fb-row"><span>状态</span><strong>{{ feedbackLabel('status', detail.status) }}</strong></div>
           <div class="fb-row"><span>任务</span><strong>{{ detail.task_title || '未关联' }} · {{ detail.task_version || '—' }}</strong></div>
-          <div class="fb-row"><span>尝试</span><strong>{{ detail.attempt_status || '未关联' }}</strong></div>
+          <div class="fb-row"><span>尝试</span><strong>{{ detail.attempt_status ? feedbackLabel('attemptStatus', detail.attempt_status) : '未关联' }}</strong></div>
           <div class="fb-row"><span>能力/知识点</span><strong>{{ detail.capability_title || detail.knowledge_point_name || '未映射' }}</strong></div>
-          <div class="fb-row"><span>处理去向</span><strong>{{ detail.handling_destination_label }}</strong></div>
-          <div class="fb-row"><span>责任人</span><strong>{{ detail.owner_name || '未分配' }}（{{ detail.owner_role_label }}）</strong></div>
+          <div class="fb-row"><span>处理去向</span><strong>{{ feedbackLabel('destination', detail.handling_destination) }}</strong></div>
+          <div class="fb-row"><span>责任人</span><strong>{{ detail.owner_name || '未分配' }}（{{ feedbackLabel('owner', detail.owner_role) }}）</strong></div>
           <div class="fb-row"><span>候选依据</span><strong>{{ detail.candidate_eligible ? '满足' : '不满足' }}</strong></div>
-          <div class="fb-row"><span>重复记录</span><strong>{{ detail.duplicate_of || '否' }}</strong></div>
+          <div class="fb-row"><span>重复记录</span><strong>{{ detail.duplicate_of ? '已关联主反馈' : '否' }}</strong></div>
 
           <h3>具体争议</h3>
           <p class="fb-pre">{{ detail.dispute }}</p>
@@ -51,9 +51,9 @@
             </ul>
           </div>
           <div v-if="detail.missing_mapping?.length" class="fb-missing">
-            <strong>未映射字段</strong>
+            <strong>待补充的关联资料</strong>
             <ul>
-              <li v-for="field in detail.missing_mapping" :key="field">{{ field }}</li>
+              <li v-for="field in detail.missing_mapping" :key="field">{{ feedbackLabel('mapping', field) }}</li>
             </ul>
           </div>
         </section>
@@ -65,17 +65,18 @@
           <div v-else class="fb-list">
             <article v-for="item in detail.evidence" :key="item.evidence_id" class="fb-card">
               <div class="fb-card-head">
-                <strong>{{ item.slot_label }}</strong>
+                <strong>{{ feedbackLabel('slot', item.slot) }}</strong>
                 <span class="fb-badge" :class="item.status === 'provided' ? 'fb-badge-ok' : 'fb-badge-warn'">
-                  {{ item.status_label }}
+                  {{ feedbackLabel('evidence', item.status) }}
                 </span>
               </div>
               <p class="fb-muted">{{ item.summary || '—' }}</p>
               <div class="fb-meta">
                 <span>版本：{{ item.version || '—' }}</span>
-                <span>来源：{{ item.source_label }}</span>
-                <span v-if="item.ref">引用：{{ item.ref }}</span>
+                <span>来源：{{ feedbackLabel('source', item.source) }}</span>
+                <span v-if="item.ref">关联资料：已提供</span>
               </div>
+              <RecordView :value="item" title="反馈证据" />
               <div v-if="item.attachment" class="fb-actions">
                 <button class="fb-btn" type="button" @click="download(item.attachment)">
                   下载 {{ item.attachment.original_name }}
@@ -94,7 +95,7 @@
         </p>
         <div class="fb-form-grid">
           <label>
-            证据槽
+            证据类别
             <select v-model="evidenceForm.slot" class="fb-select">
               <option v-for="slot in slotOptions" :key="slot.slot" :value="slot.slot">
                 {{ slot.label }}{{ detail.missing_evidence?.includes(slot.slot) ? '（缺失）' : '' }}
@@ -105,10 +106,7 @@
             版本
             <input v-model="evidenceForm.version" class="fb-input" placeholder="如 v2" />
           </label>
-          <label class="fb-full">
-            证据引用
-            <input v-model="evidenceForm.ref" class="fb-input" placeholder="受控证据引用，不要粘贴答案正文" />
-          </label>
+          <div class="fb-full"><ReferenceImport title="补充证据关联" :fields="referenceFields" :model-value="{ ref: evidenceForm.ref }" @update:model-value="Object.assign(evidenceForm, $event)" /></div>
           <label class="fb-full">
             必要摘要
             <textarea v-model="evidenceForm.summary" class="fb-textarea" rows="3"></textarea>
@@ -131,7 +129,7 @@
 
         <h3>上传受控附件</h3>
         <p class="fb-muted">
-          支持 PDF、PNG、JPG、TXT、CSV、JSON、Markdown，单文件不超过 10 MB。附件只通过鉴权下载接口访问。
+          支持文档、图片、文本、表格和结构化资料，单文件不超过 10 MB。只有获授权的账号可以下载附件。
         </p>
         <div class="fb-form-grid">
           <label class="fb-full">
@@ -158,8 +156,8 @@
         <div v-else class="fb-timeline">
           <div v-for="action in detail.actions" :key="action.action_id" class="fb-timeline-item" :class="{ 'is-current': action.to_status === detail.status }">
             <div class="fb-inline">
-              <strong>{{ action.action_label }}</strong>
-              <span class="fb-badge fb-badge-muted">{{ action.from_status_label || '—' }} → {{ action.to_status_label || '—' }}</span>
+              <strong>{{ feedbackLabel('action', action.action) }}</strong>
+              <span class="fb-badge fb-badge-muted">{{ feedbackLabel('status', action.from_status) }} → {{ feedbackLabel('status', action.to_status) }}</span>
               <span class="fb-muted">{{ formatDate(action.created_at) }} · {{ action.actor_name }}</span>
             </div>
             <p class="fb-muted" v-if="action.reason">{{ action.reason }}</p>
@@ -173,7 +171,7 @@
         <div v-else class="fb-list">
           <article v-for="review in detail.reviews" :key="review.review_id" class="fb-card">
             <div class="fb-card-head">
-              <strong>{{ review.conclusion_label }}</strong>
+              <strong>{{ feedbackLabel('status', review.conclusion) }}</strong>
               <span class="fb-badge" :class="review.is_current ? 'fb-badge-info' : 'fb-badge-muted'">
                 {{ review.is_current ? '当前结论' : '历史结论' }}
               </span>
@@ -195,6 +193,9 @@
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import service from '@/api'
+import ReferenceImport from '@/shared/forms/ReferenceImport.vue'
+import RecordView from '@/shared/forms/RecordView.vue'
+import { feedbackError, feedbackLabel } from '@/shared/feedback/presentation.js'
 
 const route = useRoute()
 const detail = ref(null)
@@ -205,6 +206,7 @@ const submitting = ref(false)
 const uploading = ref(false)
 const uploadFile = ref(null)
 const uploadVisibility = ref('student')
+const referenceFields = [{ key: 'ref', label: '证据关联' }]
 const evidenceForm = reactive({
   slot: '',
   ref: '',
@@ -245,7 +247,7 @@ async function load() {
       evidenceForm.slot = detailRes.missing_evidence?.[0] || slotOptions.value[0]?.slot || ''
     }
   } catch (err) {
-    error.value = err.response?.data?.detail || '加载反馈详情失败。'
+    error.value = feedbackError(err, '加载反馈详情失败。')
   }
 }
 
@@ -253,7 +255,7 @@ async function addEvidence() {
   error.value = ''
   message.value = ''
   if (!evidenceForm.slot) {
-    error.value = '请选择证据槽。'
+    error.value = '请选择证据类别。'
     return
   }
   submitting.value = true
@@ -273,7 +275,7 @@ async function addEvidence() {
     evidenceForm.summary = ''
     evidenceForm.attachment_id = ''
   } catch (err) {
-    error.value = err.response?.data?.detail || '补充证据失败。'
+    error.value = feedbackError(err, '补充证据失败。')
   } finally {
     submitting.value = false
   }
@@ -297,7 +299,7 @@ async function upload() {
     uploadFile.value = null
     await load()
   } catch (err) {
-    error.value = err.response?.data?.detail || '上传附件失败。'
+    error.value = feedbackError(err, '上传附件失败。')
   } finally {
     uploading.value = false
   }
@@ -315,7 +317,7 @@ async function download(attachment) {
     link.remove()
     window.URL.revokeObjectURL(url)
   } catch (err) {
-    error.value = err.response?.data?.detail || '下载附件失败。'
+    error.value = feedbackError(err, '下载附件失败。')
   }
 }
 

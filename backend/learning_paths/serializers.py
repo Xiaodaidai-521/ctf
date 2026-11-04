@@ -1,4 +1,8 @@
+import uuid
+
 from rest_framework import serializers
+from rest_framework.validators import UniqueValidator
+from django.utils.text import slugify
 from django.contrib.auth import get_user_model
 from django.db.models import Q
 from .models import (
@@ -19,10 +23,10 @@ class LearningPathListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = LearningPath
-        fields = ['id', 'title', 'description', 'difficulty', 'estimated_hours',
+        fields = ['id', 'slug', 'title', 'description', 'difficulty', 'estimated_hours',
                  'total_modules', 'total_labs', 'color', 'order', 'is_published',
                  'created_at', 'updated_at', 'modules']
-        read_only_fields = ['created_at', 'updated_at']
+        read_only_fields = ['slug', 'created_at', 'updated_at']
 
     def get_total_modules(self, obj):
         return obj.modules.filter(is_required=True).count()
@@ -81,10 +85,10 @@ class LearningPathDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = LearningPath
-        fields = ['id', 'title', 'description', 'difficulty', 'estimated_hours',
+        fields = ['id', 'slug', 'title', 'description', 'difficulty', 'estimated_hours',
                  'total_modules', 'total_labs', 'color', 'order', 'is_published',
                  'created_at', 'updated_at', 'modules']
-        read_only_fields = ['created_at', 'updated_at']
+        read_only_fields = ['slug', 'created_at', 'updated_at']
 
     def get_total_modules(self, obj):
         return obj.modules.filter(is_required=True).count()
@@ -99,10 +103,22 @@ class LearningPathDetailSerializer(serializers.ModelSerializer):
 
 class LearningPathCreateSerializer(serializers.ModelSerializer):
     """学习路径创建序列化器"""
+    slug = serializers.SlugField(
+        max_length=200, required=False,
+        validators=[UniqueValidator(queryset=LearningPath.objects.all())]
+    )
+
     class Meta:
         model = LearningPath
-        fields = ['title', 'description', 'difficulty', 'estimated_hours',
-                 'color', 'order', 'is_active']
+        fields = ['id', 'slug', 'title', 'description', 'difficulty', 'estimated_hours',
+                 'color', 'order', 'is_published']
+        read_only_fields = ['id']
+
+    def create(self, validated_data):
+        if 'slug' not in validated_data:
+            base = slugify(validated_data['title'])[:167] or 'learning-path'
+            validated_data['slug'] = f'{base}-{uuid.uuid4().hex}'
+        return super().create(validated_data)
 
 
 class PathModuleCreateSerializer(serializers.ModelSerializer):
@@ -116,8 +132,18 @@ class PathModuleCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = PathModule
-        fields = ['title', 'description', 'module_type', 'order', 'is_required',
-                 'theory_content', 'theory_url', 'estimated_minutes', 'requires']
+        fields = ['id', 'learning_path', 'parent_module', 'title', 'description', 'module_type',
+                 'content', 'order', 'is_required', 'estimated_minutes', 'requires']
+        read_only_fields = ['id']
+
+    def validate(self, attrs):
+        path = attrs['learning_path']
+        parent = attrs.get('parent_module')
+        if parent and parent.learning_path_id != path.pk:
+            raise serializers.ValidationError({'parent_module': 'Parent must belong to this path.'})
+        if any(module.learning_path_id != path.pk for module in attrs.get('requires', [])):
+            raise serializers.ValidationError({'requires': 'Prerequisites must belong to this path.'})
+        return attrs
 
     def create(self, validated_data):
         requires_data = validated_data.pop('requires', [])

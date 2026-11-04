@@ -1,0 +1,49 @@
+.governance-page { max-width: var(--page-width); margin-inline: auto; padding: var(--space-3) var(--page-gutter); color: var(--ink); }
+.governance-hero { text-align: center; padding-block: var(--space-3); margin-bottom: var(--space-3); }
+.governance-hero h1 { margin: 0 0 var(--space-2); font-size: clamp(var(--text-page), 5vw, var(--student-hero-size)); background: var(--student-hero-gradient); background-clip: text; -webkit-background-clip: text; color: transparent; }
+.governance-page h2 { font-size: var(--text-section); margin: 0 0 var(--space-2); }
+.governance-page h3 { font-size: var(--text-card); margin: 0; }
+.governance-page p { margin: var(--space-1) 0; line-height: var(--leading-body); }
+.governance-muted { color: var(--ink-secondary); font-size: var(--text-caption); }
+.governance-heading, .governance-row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: var(--density-gap); margin-bottom: var(--space-2); }
+.governance-panel { background: var(--surface); border-radius: var(--radius-panel); padding: var(--space-2); margin-block: var(--space-2); min-width: 0; }
+.governance-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--density-gap); }
+.governance-grid > :first-child { grid-column: span 2; }
+.governance-card { display: grid; gap: var(--space-1); padding: var(--space-2); border-radius: var(--radius-panel); background: var(--surface); color: var(--ink); text-decoration: none; min-width: 0; }
+.governance-card strong { color: var(--ink); font-size: var(--text-page); }
+.governance-card p, .governance-card small { color: var(--ink-secondary); font-size: var(--text-caption); }
+.governance-card:hover { background: var(--surface-hover); }
+.governance-error { color: var(--negative); background: var(--negative-soft); padding: var(--space-1); border-radius: var(--radius-control); }
+.governance-notice { background: var(--surface-muted); padding: var(--space-2); border-radius: var(--radius-control); }
+.governance-actions { display: flex; flex-wrap: wrap; gap: var(--space-1); align-items: center; }
+.governance-page button, .governance-page input, .governance-page select, .governance-page textarea { font: inherit; min-height: var(--control-height); border: var(--stroke) solid var(--line-strong); border-radius: var(--radius-control); padding: var(--space-1) var(--space-2); background: var(--surface); color: var(--ink); max-width: 100%; }
+.governance-page button { cursor: pointer; }
+.governance-page button:hover:not(:disabled) { background: var(--surface-hover); }
+.governance-page .governance-primary { background: var(--button-primary); color: var(--on-action); border-color: var(--button-primary); }
+.governance-page .governance-primary:hover:not(:disabled) { background: var(--button-primary-hover); }
+.governance-page button:disabled { cursor: not-allowed; background: var(--disabled); color: var(--disabled-ink); }
+.governance-page :is(a, button, input, select, textarea, summary):focus-visible { outline: var(--focus-width) solid var(--action); outline-offset: var(--focus-offset); }
+.governance-page a:not(.governance-card) { color: var(--action); }
+.governance-table-wrap { max-width: 100%; overflow-x: auto; }
+.governance-page table { border-collapse: collapse; width: 100%; font-size: var(--text-caption); }
+.governance-page th, .governance-page td { text-align: left; padding: var(--space-1); border-bottom: var(--stroke) solid var(--line); vertical-align: top; }
+.governance-page th { color: var(--ink-secondary); white-space: nowrap; font-weight: var(--weight-medium); }
+.governance-page td { overflow-wrap: anywhere; }
+.governance-page dl { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: var(--space-1); font-size: var(--text-caption); }
+.governance-page dt { color: var(--ink-secondary); }
+.governance-page dd { margin: 0; overflow-wrap: anywhere; }
+.governance-form { display: grid; gap: var(--space-2); max-width: var(--search-width); }
+.governance-form label { display: grid; gap: var(--space-1); }
+.governance-page summary { cursor: pointer; padding-block: var(--space-1); }
+@media (max-width: 768px) {
+  .governance-grid { grid-template-columns: minmax(0, 1fr); }
+  .governance-grid > :first-child { grid-column: auto; }
+  .governance-heading { align-items: flex-start; }
+  .governance-page th, .governance-page td { min-width: var(--row-label-width); }
+  .governance-mobile-records, .governance-mobile-records tbody { display: block; width: 100%; }
+  .governance-mobile-records thead { display: none; }
+  .governance-mobile-records tr { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-1); padding-block: var(--space-2); border-bottom: var(--stroke) solid var(--line); }
+  .governance-mobile-records td { min-width: 0; padding: 0; border: 0; }
+  .governance-mobile-records td:first-child, .governance-mobile-records td:last-child { grid-column: 1 / -1; }
+  .governance-mobile-records td::before { content: attr(data-label); display: block; color: var(--ink-secondary); margin-bottom: var(--space-1); }
+}

@@ -3,6 +3,7 @@
 
 import os
 import asyncio
+from contextvars import copy_context
 import re
 import json
 from datetime import datetime
@@ -27,9 +28,10 @@ def _run_async(coro):
     except RuntimeError:
         return asyncio.run(coro)
     with concurrent.futures.ThreadPoolExecutor() as pool:
-        return pool.submit(asyncio.run, coro).result(timeout=300)
+        return pool.submit(copy_context().run, asyncio.run, coro).result(timeout=300)
 
 from .models import AgentPreset, AIConversation, AIMessage
+from .history import Origin, create_message, history_message, track_origin
 from .service import (
     get_ai_assistant_service,
     solve_challenge_hybrid_async,
@@ -339,7 +341,7 @@ def _build_teaching_context(agent_route, request, message, specialist_context=No
 
 async def _persist_stream_message(**kwargs):
     try:
-        await sync_to_async(AIMessage.objects.create, thread_sensitive=True)(**kwargs)
+        await sync_to_async(create_message, thread_sensitive=True)(**kwargs)
     except Exception as exc:
         logger.warning('Unable to persist streamed AI message: %s', exc)
 
@@ -445,19 +447,7 @@ class AIConversationViewSet(viewsets.ModelViewSet):
 
             def get_messages(self, obj):
                 return [
-                    {
-                        'id': msg.id,
-                        'role': msg.role,
-                        # No source-complete provenance exists for legacy messages.
-                        # Keep audit identity, not potentially copied material/metadata.
-                        'content': '[历史内容未能验证材料权限，已隐藏]',
-                        'agent_id': msg.agent_id,
-                        'agent_name': '',
-                        'provider': '',
-                        'metadata': {},
-                        'redacted': True,
-                        'created_at': msg.created_at.isoformat(),
-                    }
+                    history_message(msg, self.context['request'].user)
                     for msg in obj.messages.all().order_by('created_at')
                 ]
 
@@ -495,9 +485,9 @@ class AIConversationViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        AIMessage.objects.create(
+        create_message(
             conversation=conversation,
-            role='user',
+            role='user', origin=Origin(request.user),
             content=user_message
         )
 
@@ -533,17 +523,18 @@ class AIConversationViewSet(viewsets.ModelViewSet):
             conversation_history=conversation_history,
             existing_request_data=dict(request.data),
         )
-        ai_response = _TUTOR_REQUEST_ORCHESTRATOR.call_legacy_answer(
-            message=user_message,
-            conversation_history=conversation_history,
-            challenge_info=challenge_info,
-            teaching_context=preparation.get('teachingContext'),
-        )
+        with track_origin(preparation.get('_history_origin')):
+            ai_response = _TUTOR_REQUEST_ORCHESTRATOR.call_legacy_answer(
+                message=user_message,
+                conversation_history=conversation_history,
+                challenge_info=challenge_info,
+                teaching_context=preparation.get('teachingContext'),
+            )
 
         # æ·æ¿ç¨AIé¥ç²
-        assistant_message = AIMessage.objects.create(
+        assistant_message = create_message(
             conversation=conversation,
-            role='assistant',
+            role='assistant', origin=preparation.get('_history_origin'),
             content=ai_response,
             metadata=_assistant_metadata_from_preparation(preparation, include_resources=True),
         )
@@ -739,9 +730,9 @@ def multi_agent_chat(request):
         student_level = student_level or 'beginner'
 
         conversation = _get_or_create_ai_conversation(request, challenge_info)
-        AIMessage.objects.create(
+        create_message(
             conversation=conversation,
-            role='user',
+            role='user', origin=Origin(request.user),
             content=message,
             agent_id='tutor',
             agent_name='\u6559\u5b66\u667a\u80fd\u4f53',
@@ -802,9 +793,9 @@ def multi_agent_chat(request):
                 'rag_sources': step.get('rag_sources', []),
             })
             if content.strip() and provider != 'error':
-                AIMessage.objects.create(
+                create_message(
                     conversation=conversation,
-                    role='assistant',
+                    role='assistant', origin=preparation.get('_history_origin'),
                     content=content,
                     agent_id='tutor',
                     agent_name=tutor_config.get('name', '\u6559\u5b66\u667a\u80fd\u4f53'),
@@ -859,9 +850,9 @@ def multi_agent_chat(request):
         agent_ids = ['xiaohei']
 
     conversation = _get_or_create_ai_conversation(request, challenge_info)
-    AIMessage.objects.create(
+    create_message(
         conversation=conversation,
-        role='user',
+        role='user', origin=Origin(request.user),
         content=message,
         metadata={
                 **_TUTOR_REQUEST_ORCHESTRATOR.metadata_summary(preparation),
@@ -965,9 +956,9 @@ def multi_agent_chat(request):
             })
 
             if content.strip():
-                AIMessage.objects.create(
+                create_message(
                     conversation=conversation,
-                    role='assistant',
+                    role='assistant', origin=preparation.get('_history_origin'),
                     content=content,
                     agent_id=agent_id,
                     agent_name=agent_name,
@@ -1134,9 +1125,9 @@ def multi_agent_chat_stream(request):
         agent_ids = ['xiaohei']
 
     conversation = _get_or_create_ai_conversation(request, challenge_info)
-    AIMessage.objects.create(
+    create_message(
         conversation=conversation,
-        role='user',
+        role='user', origin=Origin(request.user),
         content=message,
         agent_id='tutor' if tutor_only else None,
         agent_name='\u6559\u5b66\u667a\u80fd\u4f53' if tutor_only else None,
@@ -1220,7 +1211,7 @@ def multi_agent_chat_stream(request):
                 if formatted['content'].strip() and formatted['provider'] != 'error':
                     await _persist_stream_message(
                         conversation=conversation,
-                        role='assistant',
+                        role='assistant', origin=preparation.get('_history_origin'),
                         content=formatted['content'],
                         agent_id='tutor',
                         agent_name=formatted['agent_name'],
@@ -1274,22 +1265,23 @@ def multi_agent_chat_stream(request):
             runtime_context['challenge_info'] = challenge_info
 
         try:
-            if settings.DATABASES['default']['ENGINE'].endswith('sqlite3'):
-                knowledge_package = service.build_knowledge_context(
-                    message,
-                    challenge_info,
-                    knowledge_scope,
-                    5,
-                    user=request.user, task_context=None,
-                )
-            else:
-                knowledge_package = await sync_to_async(service.build_knowledge_context)(
-                    message,
-                    challenge_info,
-                    knowledge_scope,
-                    5,
-                    user=request.user, task_context=None,
-                )
+            with track_origin(preparation.get('_history_origin')):
+                if settings.DATABASES['default']['ENGINE'].endswith('sqlite3'):
+                    knowledge_package = service.build_knowledge_context(
+                        message,
+                        challenge_info,
+                        knowledge_scope,
+                        5,
+                        user=request.user, task_context=None,
+                    )
+                else:
+                    knowledge_package = await sync_to_async(service.build_knowledge_context)(
+                        message,
+                        challenge_info,
+                        knowledge_scope,
+                        5,
+                        user=request.user, task_context=None,
+                    )
         except Exception as exc:
             logger.warning(
                 'ai_assistant_knowledge_package_build_failed',
@@ -1345,7 +1337,7 @@ def multi_agent_chat_stream(request):
             if formatted['content'].strip():
                 await _persist_stream_message(
                     conversation=conversation,
-                    role='assistant',
+                    role='assistant', origin=preparation.get('_history_origin'),
                     content=formatted['content'],
                     agent_id=formatted['agent_id'],
                     agent_name=formatted['agent_name'],
@@ -1606,9 +1598,9 @@ class TutoringSessionView(APIView):
             )
 
         conversation = _get_or_create_ai_conversation(request)
-        AIMessage.objects.create(
+        create_message(
             conversation=conversation,
-            role='user',
+            role='user', origin=Origin(request.user),
             content=question,
             agent_id='tutor',
             agent_name='\u6559\u5b66\u667a\u80fd\u4f53',
@@ -1637,9 +1629,9 @@ class TutoringSessionView(APIView):
             content = _normalize_ai_content(step.get('content', ''))
             provider = step.get('provider', 'unknown')
             if content.strip() and provider != 'error':
-                AIMessage.objects.create(
+                create_message(
                     conversation=conversation,
-                    role='assistant',
+                    role='assistant', origin=preparation.get('_history_origin'),
                     content=content,
                     agent_id='tutor',
                     agent_name='\u6559\u5b66\u667a\u80fd\u4f53',

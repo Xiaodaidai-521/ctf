@@ -1,0 +1,181 @@
+/* 一期设计契约：颜色、尺寸与状态只在这里定义。 */
+:root {
+  --surface-page: #fafafa;
+  --surface: #ffffff;
+  --surface-muted: #f4f4f5;
+  --surface-hover: #ededf0;
+  --ink: #131316;
+  --ink-secondary: #5d5d66;
+  --ink-muted: #71717a;
+  --line: #e2e2e6;
+  --line-strong: #8d8d96;
+  --action: #b7352d;
+  --action-hover: #942a24;
+  --action-pressed: #79221d;
+  --action-soft: #fbefea;
+  --on-action: #ffffff;
+  --agent-accent: #b7352d;
+  --agent-soft: #fbefea;
+  --positive: #227047;
+  --positive-soft: #edf7f0;
+  --warning: #855600;
+  --warning-soft: #fff6df;
+  --negative: #b3293d;
+  --negative-soft: #fff0f2;
+  --disabled: #e6e6e9;
+  --disabled-ink: #5d5d66;
+  --overlay: #13131666;
+  --series-1: #2a78d6;
+  --series-2: #eb6834;
+  --series-3: #199e70;
+  --series-1-soft: #2a78d61f;
+  --series-2-soft: #eb683433;
+  --sequence-low: #cde2fb;
+  --sequence-mid: #86b6ef;
+  --sequence-high: #1c5cab;
+  --negative-strong: #8f2031;
+  --chart-height: 320px;
+  --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', system-ui, sans-serif;
+  --text-page: 32px;
+  --text-section: 24px;
+  --text-card: 18px;
+  --text-body: 16px;
+  --text-caption: 14px;
+  --leading-tight: 1.25;
+  --leading-body: 1.65;
+  --weight-normal: 400;
+  --weight-medium: 500;
+  --weight-strong: 600;
+  --space-1: 8px;
+  --space-2: 16px;
+  --space-3: 24px;
+  --space-4: 32px;
+  --space-5: 40px;
+  --space-6: 48px;
+  --space-7: 56px;
+  --space-8: 64px;
+  --space-10: 80px;
+  --radius-control: 16px;
+  --radius-panel: 20px;
+  --radius-pill: 999px;
+  --stroke: 1px;
+  --focus-width: 3px;
+  --focus-offset: 3px;
+  --shadow-raised: 0 12px 32px #1e1e5014;
+  --shadow-overlay: 0 30px 70px #1e1e5021;
+  --motion-fast: 150ms;
+  --motion-normal: 200ms;
+  --motion-slow: 250ms;
+  --motion-ease: cubic-bezier(.2, 0, 0, 1);
+  --header-height: 72px;
+  --nav-height: 56px;
+  --sidebar-width: 224px;
+  --control-height: 40px;
+  --icon-size: 20px;
+  --avatar-size: 40px;
+  --pet-size: 56px;
+  --reading-width: 880px;
+  --page-width: 1280px;
+  --form-width: 448px;
+  --search-width: 640px;
+  --message-width: 480px;
+  --menu-width: 280px;
+  --panel-width: 320px;
+  --thumbnail-short-height: 96px;
+  --thumbnail-height: 160px;
+  --tile-short-height: 104px;
+  --tile-height: 128px;
+  --tile-tall-height: 192px;
+  --content-short-height: 224px;
+  --content-height: 480px;
+  --row-label-width: 128px;
+  --row-value-width: 192px;
+  --table-width: 1120px;
+  --motion-loop: 1200ms;
+  --z-overlay: 1000;
+  --z-header: 100;
+  --z-pet: 110;
+  --page-gutter: var(--space-4);
+  --density-gap: var(--space-3);
+
+  /* 二轮三端同源：品牌点缀与主要操作分开，统计系列身份不变。 */
+  --button-primary: #131316;
+  --button-primary-hover: #26262b;
+  --button-primary-pressed: #000000;
+  --student-hero-size: 58px;
+  --student-hero-gradient: linear-gradient(92deg, #b7352d, #d96c33 55%, #e8a93d);
+  --student-console-radius: 22px;
+
+  /* 现有页面与 Arco 的兼容别名；不另造一套皮肤。 */
+  --primary-color: var(--action);
+  --secondary-color: var(--agent-accent);
+  --success-color: var(--positive);
+  --warning-color: var(--warning);
+  --error-color: var(--negative);
+  --text-primary: var(--ink);
+  --text-secondary: var(--ink-secondary);
+  --text-muted: var(--ink-muted);
+  --border-color: var(--line);
+  --bg-light: var(--surface);
+  --bg-card: var(--surface);
+  --bg-gray: var(--surface-muted);
+  --bg-page: var(--surface-page);
+  --bg-paper: var(--surface-page);
+  --bg-paper-2: var(--surface-muted);
+  --bg-dark: var(--ink);
+  --bg-dark-2: var(--ink-secondary);
+  --shadow-sm: none;
+  --shadow-md: var(--shadow-raised);
+  --shadow-lg: var(--shadow-overlay);
+  --radius-sm: var(--radius-control);
+  --radius-md: var(--radius-control);
+  --radius-lg: var(--radius-panel);
+  --admin-sidebar-width: var(--sidebar-width);
+  --admin-header-height: var(--header-height);
+  --admin-primary-color: var(--action);
+  --admin-dark-color: var(--ink);
+  --admin-bg-light: var(--surface-page);
+  --admin-border-color: var(--line);
+}
+
+body {
+  --primary-6: 183, 53, 45;
+  --primary-5: 148, 42, 36;
+  --primary-7: 121, 34, 29;
+  --primary-1: 251, 239, 234;
+  --success-6: 34, 112, 71;
+  --success-1: 237, 247, 240;
+  --warning-6: 133, 86, 0;
+  --warning-1: 255, 246, 223;
+  --danger-6: 179, 41, 61;
+  --danger-1: 255, 240, 242;
+  --color-primary: var(--action);
+  --color-bg-1: var(--surface-page);
+  --color-bg-2: var(--surface);
+  --color-bg-3: var(--surface);
+  --color-bg-4: var(--surface);
+  --color-bg-5: var(--surface);
+  --color-bg-light: var(--surface);
+  --color-fill-1: var(--surface-muted);
+  --color-fill-2: var(--surface-muted);
+  --color-fill-3: var(--surface-hover);
+  --color-fill-4: var(--disabled);
+  --color-text-1: var(--ink);
+  --color-text-2: var(--ink-secondary);
+  --color-text-3: var(--ink-muted);
+  --color-text-4: var(--disabled-ink);
+  --color-border: var(--line);
+  --color-border-1: var(--line);
+  --color-border-2: var(--line);
+  --color-border-3: var(--line-strong);
+  --color-error: var(--negative);
+}
+
+[data-density='teacher'] { --density-gap: var(--space-2); }
+[data-density='admin'] { --density-gap: var(--space-1); }
+@media (max-width: 768px) {
+  :root { --page-gutter: var(--space-2); --text-page: var(--text-section); }
+}
+@media (prefers-reduced-motion: reduce) {
+  :root { --motion-fast: 0ms; --motion-normal: 0ms; --motion-slow: 0ms; }
+}

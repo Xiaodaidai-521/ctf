@@ -31,7 +31,7 @@ def register(*, actor, catalog, material_class, tasks, metadata, hint_level=None
 def new_revision(*, actor, material, tasks, metadata):
     with transaction.atomic():
         material = Material.objects.select_for_update().get(pk=material.pk)
-        if not can_manage(actor, material):
+        if material.published_scope == 'deleted' or not can_manage(actor, material):
             raise unavailable()
         if not tasks or any(task.catalog_id != material.catalog_id for task in tasks):
             raise ValidationError('Tasks must belong to the material catalog.')
@@ -174,6 +174,8 @@ def parse_candidate(*, revision_id, token):
     with transaction.atomic():
         material = Material.objects.select_for_update().get(pk=revision.material_id)
         revision = MaterialRevision.objects.select_for_update().get(pk=revision_id)
+        if material.published_scope == 'deleted':
+            raise unavailable()
         if str(material.ingestion_token) != str(token) or str(revision.ingestion_token) != str(token):
             raise ValidationError('Superseded ingestion token.')
         if revision.review_status != 'draft':
@@ -221,7 +223,7 @@ def transition(*, actor, material_id, expected_revision, action, idempotency_key
             revision = MaterialRevision.objects.select_for_update().get(material=material, revision=expected_revision)
         except (Material.DoesNotExist, MaterialRevision.DoesNotExist):
             raise unavailable()
-        if not can_manage(actor, material):
+        if material.published_scope == 'deleted' or not can_manage(actor, material):
             raise unavailable()
         fingerprint = digest(json.dumps([actor.pk, action, expected_revision, reason], ensure_ascii=False))
         previous = ReviewAction.objects.filter(revision=revision, idempotency_key=idempotency_key).first()
@@ -275,8 +277,48 @@ def transition(*, actor, material_id, expected_revision, action, idempotency_key
         return revision
 
 
+def soft_delete(*, actor, material_id, expected_revision, idempotency_key, reason):
+    """Revoke the whole material, preserving snapshots, bindings and review history."""
+    if not reason.strip() or not idempotency_key or len(idempotency_key) > 64:
+        raise ValidationError('Reason and bounded idempotency key are required.')
+    with transaction.atomic():
+        try:
+            material = Material.objects.select_for_update().get(material_id=material_id)
+            revision = MaterialRevision.objects.select_for_update().get(material=material, revision=expected_revision)
+        except (Material.DoesNotExist, MaterialRevision.DoesNotExist):
+            raise unavailable()
+        if not can_manage(actor, material):
+            raise unavailable()
+        fingerprint = digest(json.dumps([actor.pk, 'delete', expected_revision, reason], ensure_ascii=False))
+        previous = ReviewAction.objects.filter(revision=revision, idempotency_key=idempotency_key).first()
+        if previous:
+            if previous.fingerprint != fingerprint:
+                raise ValidationError('Idempotency key conflicts with previous action.')
+            return revision
+        if material.published_scope == 'deleted':
+            raise unavailable()
+        if material.revisions.order_by('-revision').first().pk != revision.pk:
+            raise ValidationError('Revision has changed; refresh before deletion.')
+        # revoked_at alone is also ordinary withdrawal, which remains manageable.
+        # The existing scope field is the tombstone; no snapshot is physically removed.
+        material.published_scope = 'deleted'
+        material.revoked_at = timezone.now()
+        material.acl_version += 1
+        material.ingestion_token = uuid.uuid4()
+        material.save(update_fields=['published_scope', 'revoked_at', 'acl_version', 'ingestion_token'])
+        material.revisions.all().update(review_status='withdrawn')
+        revision.review_status = 'withdrawn'
+        from teaching_agent.models import HintCard, StudentAnalysis
+        refs = [material_ref(item) for item in material.revisions.all()]
+        HintCard.objects.filter(material_ref__in=refs).update(is_active=False)
+        StudentAnalysis.objects.filter(content_ref__in=refs).update(is_active=False)
+        ReviewAction.objects.create(revision=revision, actor=actor, action='delete', idempotency_key=idempotency_key,
+                                   fingerprint=fingerprint, reason=reason[:500], acl_version=material.acl_version)
+        return revision
+
+
 def inspection(revision, actor):
-    if not can_manage(actor, revision.material):
+    if revision.material.published_scope == 'deleted' or not can_manage(actor, revision.material):
         raise unavailable()
     return {
         'material_id': str(revision.material.material_id), 'revision': revision.revision,

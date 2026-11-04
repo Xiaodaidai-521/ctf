@@ -2,18 +2,19 @@
   <main v-if="managing" class="knowledge-library">
     <header class="library-header">
       <div>
-        <h1>知识资料库</h1>
+        <h1>{{ user.userInfo?.role === 'admin' ? names.foundation : names.knowledge }}</h1>
         <p class="library-subtitle">查找资料，核对出处与原文。</p>
       </div>
       <div class="library-actions">
-        <router-link :to="resourcePath" class="library-link">返回资源中心</router-link>
+        <router-link :to="resourcePath" class="library-link">返回{{ names.resourceReview }}</router-link>
         <template v-if="managing">
-          <router-link to="/teaching-knowledge" class="library-link">材料创建与审阅</router-link>
-          <a-button type="primary" :disabled="state.busy || paused" @click="state.uploadOpen = !state.uploadOpen">上传文档入库</a-button>
+          <router-link :to="user.userInfo?.role === 'teacher' ? '/teacher/materials' : '/admin/legal/kb/authorization'" class="library-link">{{ user.userInfo?.role === 'teacher' ? names.materials : '授权监督' }}</router-link>
+          <a-button :disabled="state.busy || paused" @click="state.uploadOpen = !state.uploadOpen">上传文档入库</a-button>
         </template>
       </div>
     </header>
 
+    <ContentAreaNav v-if="user.userInfo?.role === 'teacher'" />
     <!-- Keep the picker mounted while a native file dialog blurs the window. Only a fresh
          selection may resume the cleared page; old forms and requests are never restored. -->
     <input v-if="managing" ref="fileInput" class="library-file-input" type="file"
@@ -34,7 +35,7 @@
         <div><h2 id="upload-heading">上传文档入库</h2><p>上传后可在“法律库”的“上传文档”中查找。</p></div>
         <a-button type="text" :disabled="state.busy" @click="closeUpload">收起</a-button>
       </div>
-      <a-alert type="info">如需向学生发布课程材料，请使用“材料创建与审阅”。</a-alert>
+      <a-alert type="info">如需向学生发布课程材料，请使用“{{ names.materials }}”。</a-alert>
       <form class="library-upload-form" @submit.prevent="controller.upload">
         <div class="library-file-row">
           <a-button :disabled="state.busy" @click="fileInput?.click()">选择文档</a-button>
@@ -60,6 +61,8 @@
       <p class="library-muted">上传中断时，请先核对资料列表，避免重复上传。</p>
     </section>
 
+    <p v-if="deletionState.message" class="library-muted" role="status">{{ deletionState.message }} <a-button v-if="deletionState.uncertain" @click="resume">重新加载</a-button></p>
+    <MaterialDeleteDialog v-if="deletionState.target && !paused" :state="deletionState" @close="deletion.close" @confirm="deletion.confirm" @reload="resume" />
     <section class="library-panel library-browser" aria-label="按来源浏览知识资料">
       <a-tabs :active-key="state.group" @change="changeGroup">
         <a-tab-pane key="teaching" title="教学材料" />
@@ -88,7 +91,7 @@
                 </template>
               </a-select>
             </label>
-            <a-button type="primary" html-type="submit" :loading="state.busy">搜索资料</a-button>
+            <a-button :type="state.uploadOpen ? 'secondary' : 'primary'" html-type="submit" :loading="state.busy">搜索资料</a-button>
             <a-button v-if="managing" :disabled="state.busy" @click="resetSearch">重置</a-button>
           </form>
           <div class="library-results-heading" aria-live="polite">
@@ -110,7 +113,8 @@
                 <p v-if="state.group === 'teaching' && Number.isSafeInteger(row.revision)" class="library-provenance">第 {{ row.revision }} 版</p>
                 <p v-else-if="formatLocator(row.locator)" class="library-provenance">{{ formatLocator(row.locator) }}</p>
                 <div class="library-result-footer">
-                  <a-button size="small" type="text" :disabled="state.busy" @click="controller.inspect(row)">查看出处与段落</a-button>
+                  <a-button size="small" type="text" :disabled="state.busy || deletionState.busy" @click="controller.inspect(row)">查看出处与段落</a-button>
+                  <a-button v-if="state.group === 'teaching'" size="small" type="text" status="danger" :disabled="state.busy || deletionState.busy || deletionState.uncertain" @click="deletion.open(row)">删除材料</a-button>
                 </div>
               </article>
               <div v-if="managing && state.group !== 'teaching' && state.searched" class="library-pagination">
@@ -141,8 +145,14 @@
                 <div class="library-actions">
                   <router-link v-if="internalSourcePath" :to="internalSourcePath" class="library-link">查看原文</router-link>
                   <a v-if="externalSourceUrl" :href="externalSourceUrl" target="_blank" rel="noopener noreferrer" class="library-link">查看外部来源</a>
-                  <router-link v-if="state.group === 'teaching'" to="/teaching-knowledge" class="library-link">材料创建与审阅</router-link>
+                  <router-link v-if="state.group === 'teaching'" :to="user.userInfo?.role === 'teacher' ? '/teacher/materials' : '/admin/legal/kb/authorization'" class="library-link">{{ user.userInfo?.role === 'teacher' ? names.materials : '授权监督' }}</router-link>
                 </div>
+                <div v-if="user.userInfo?.role === 'teacher'" class="library-actions teaching-actions">
+                  <a-button :disabled="!canTransfer" @click="prepareMaterial">加入材料草稿</a-button>
+                  <a-button :disabled="!canTransfer" @click="preparePath">准备学习任务</a-button>
+                  <p class="library-muted">先核对原文与许可，再补充教学目标、练习和检验；不会直接向学生发布。只有段落时会标明摘录，不当作完整原文。</p>
+                </div>
+                <p v-if="transferMessage" class="library-muted" role="status">{{ transferMessage }}</p>
                 <details v-if="state.detail.full_text || state.detail.source_snapshot" class="library-chunk">
                   <summary>完整原文</summary>
                   <pre class="library-source">{{ state.detail.full_text || state.detail.source_snapshot }}</pre>
@@ -163,24 +173,53 @@
 </template>
 
 <script setup>
+import { names } from '@/shared/navigation/names'
+
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useUserStore } from '@/store/user'
-import { knowledgeApi } from './api.js'
+import { useRouter } from 'vue-router'
+import ContentAreaNav from '@/shared/knowledge/ContentAreaNav.vue'
+import MaterialDeleteDialog from '@/shared/knowledge/MaterialDeleteDialog.vue'
+import { createMaterialDeletion, initialMaterialDeletion } from '@/shared/knowledge/materialDeletion.js'
+import { prepareTeachingTransfer, teachingSource } from '@/shared/knowledge/teachingTransfer.js'
+import { staffKnowledgeApi as knowledgeApi } from '@/shared/knowledge/staffApi.js'
 import { usePrivatePage } from './usePrivatePage.js'
 import { canManageLibrary, classLabel, createLibraryController, formatLocator, initialLibraryState, libraryError, safeSourceLink, sourceText, statusLabel } from './libraryController.js'
 import './learningKnowledge.css'
 
 const user = useUserStore()
+const router = useRouter()
+const transferMessage = ref('')
+const canTransfer = computed(() => Boolean(teachingSource(state.detail)))
+function transfer(kind, path) {
+  try {
+    prepareTeachingTransfer(user.userInfo, kind, state.detail)
+    router.push({ path, query: { from: 'knowledge' } })
+  } catch (error) { transferMessage.value = error.message }
+}
+const prepareMaterial = () => transfer('material', '/teacher/materials')
+const preparePath = () => transfer('path', '/teacher/learning-paths/new')
 const state = reactive(initialLibraryState())
+const deletionState = reactive(initialMaterialDeletion())
 const fileInput = ref(null)
 const managing = computed(() => canManageLibrary(user.userInfo?.role))
 const resourcePath = computed(() => user.userInfo?.role === 'teacher' ? '/teacher/resources' : user.userInfo?.role === 'admin' ? '/admin/resources' : '/resources')
 const privacy = usePrivatePage(() => {
   controller.clear()
+  deletion.clear()
   if (fileInput.value) fileInput.value.value = ''
 })
 const { paused, sessionChanged } = privacy
 const controller = createLibraryController({ state, privacy, api: knowledgeApi, getRole: () => user.userInfo?.role })
+const deletion = createMaterialDeletion({ state: deletionState, privacy, api: knowledgeApi, getRole: () => user.userInfo?.role,
+  reload: async (ticket, id) => {
+    state.detail = null
+    const result = await knowledgeApi.materialSearch(state.query.trim(), ticket.signal)
+    if (!ticket.isCurrent()) return
+    if (!Array.isArray(result.results) || result.results.some(row => row.material_id === id)) throw new Error('列表尚未更新')
+    state.rows = result.results; state.count = result.results.length; state.searched = true
+  },
+})
 const groupTitle = computed(() => ({ teaching: '课程材料', legal: '法律文档与上传资料', platform: '文章、资源与知识点' }[state.group]))
 const groupDescription = computed(() => ({
   teaching: '查找课程材料，查看版本与出处。',
@@ -210,6 +249,7 @@ function changeGroup(group) {
   controller.search()
 }
 function resetSearch() {
+  deletion.clear()
   state.query = ''
   state.sourceType = ''
   controller.search()
@@ -236,66 +276,66 @@ onMounted(resume)
 </script>
 
 <style scoped>
-.knowledge-library { max-width: 1440px; margin: 0 auto; padding: 32px; color: var(--text-primary, #1e1c18); }
-.library-header, .library-section-heading { display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; }
-.library-header { margin-bottom: 28px; }
-.library-header h1 { font-size: 30px; letter-spacing: -.04em; margin: 5px 0 10px; }
-.library-eyebrow { margin: 0; color: var(--accent-red, #b42318); font-size: 11px; font-weight: 700; letter-spacing: .09em; }
-.library-subtitle, .library-section-heading p { color: var(--text-secondary, #625a4d); line-height: 1.75; margin: 5px 0 0; }
-.library-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; }
-.library-header > .library-actions { padding-top: 12px; justify-content: flex-end; }
-.library-link { color: var(--accent-red, #b42318); font-size: 13px; font-weight: 600; text-decoration: none; }
-.library-link:hover { text-decoration: underline; }
-.library-panel { background: var(--bg-card, #fffdf8); border: 1px solid var(--border-color, #d9cfbe); border-radius: 8px; }
-.library-browser { overflow: hidden; }
-.library-browser :deep(.arco-tabs-nav) { padding: 4px 18px 0; background: rgba(233, 223, 207, .2); }
-.library-browser :deep(.arco-tabs-content) { display: none; }
-.library-browser-body, .library-upload { padding: 24px; }
-.library-section-heading h2 { font-size: 18px; margin: 0 0 6px; line-height: 1.5; overflow-wrap: anywhere; }
-.library-section-heading { margin-bottom: 20px; }
-.library-notice { margin-bottom: 18px; }
-.library-notice-actions { margin-top: 10px; }
-.library-search { display: flex; align-items: flex-end; flex-wrap: wrap; gap: 12px; }
-.library-search label, .library-upload-form label { display: grid; gap: 7px; font-size: 13px; font-weight: 600; }
-.library-query { flex: 1; min-width: 200px; }
-.library-source-filter { width: 175px; }
-.library-muted { color: var(--text-secondary, #716858); font-size: 12px; line-height: 1.7; overflow-wrap: anywhere; }
-.library-results-heading { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-top: 22px; padding: 16px 0; border-top: 1px solid var(--border-color, #e6ded0); font-size: 13px; }
-.library-content { display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px; }
-.library-content-split { grid-template-columns: minmax(270px, 2fr) minmax(0, 3fr); }
-.library-result-list { min-width: 0; }
-.library-result { padding: 20px 0; border-bottom: 1px solid var(--border-color, #e6ded0); }
-.library-result:first-of-type { padding-top: 6px; }
-.library-result h3 { margin: 10px 0 8px; line-height: 1.6; }
-.library-title-button { border: 0; padding: 0; background: none; font: inherit; font-size: 16px; color: inherit; cursor: pointer; text-align: left; overflow-wrap: anywhere; }
-.library-title-button:hover { color: var(--accent-red, #b42318); }
-.library-title-button:focus-visible { outline: 2px solid var(--accent-red, #b42318); outline-offset: 4px; }
-.library-result-tags { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
-.library-excerpt { line-height: 1.8; font-size: 13px; color: var(--text-secondary, #625a4d); white-space: pre-wrap; overflow-wrap: anywhere; }
-.library-provenance { font-size: 12px; line-height: 1.7; color: var(--text-secondary, #625a4d); overflow-wrap: anywhere; }
-.library-result-footer { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
-.library-source-text { color: var(--text-muted, #857b6d); font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.library-result-footer :deep(.arco-btn) { flex-shrink: 0; }
-.library-pagination { display: flex; align-items: center; justify-content: flex-end; gap: 12px; padding-top: 20px; font-size: 12px; }
-.library-detail { min-width: 0; border: 1px solid var(--border-color, #d9cfbe); background: var(--bg-paper, #faf7f0); border-radius: 6px; padding: 20px; max-height: 78vh; overflow: auto; position: sticky; top: 20px; align-self: start; }
-.library-detail .library-section-heading { gap: 12px; }
-.library-meta { display: grid; grid-template-columns: 110px minmax(0, 1fr); gap: 12px; margin: 16px 0; font-size: 12px; line-height: 1.7; }
-.library-meta dt { color: var(--text-secondary, #716858); }
-.library-meta dd { margin: 0; overflow-wrap: anywhere; }
-.library-chunks-title { font-size: 15px; margin: 22px 0 12px; }
-.library-chunk { border: 1px solid var(--border-color, #e6ded0); background: var(--bg-card, #fffdf8); border-radius: 5px; margin-top: 12px; padding: 14px; }
-.library-chunk summary { cursor: pointer; font-size: 13px; font-weight: 600; line-height: 1.6; overflow-wrap: anywhere; }
-.library-source { white-space: pre-wrap; overflow-wrap: anywhere; font-family: inherit; font-size: 13px; line-height: 1.9; margin-bottom: 0; }
-.library-upload { margin-bottom: 24px; }
-.library-upload-form { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 16px; margin: 20px 0; }
-.library-file-row, .library-full { grid-column: 1 / -1; }
-.library-file-row { display: flex; align-items: center; gap: 12px; font-size: 13px; overflow-wrap: anywhere; }
-.library-upload-form > :deep(.arco-btn) { justify-self: start; }
-.library-file-input { display: none; }
-.library-error-text { white-space: pre-wrap; overflow-wrap: anywhere; font: inherit; }
-.library-privacy { color: var(--text-muted, #857b6d); font-size: 11px; text-align: center; margin: 18px 0 0; }
-.library-detail :deep(.lk-card) { background: transparent; padding: 0; border: 0; }
-.library-detail :deep(.lk-meta) { grid-template-columns: 105px minmax(0, 1fr); font-size: 12px; }
-@media (max-width: 1100px) { .library-header { flex-direction: column; }.library-header > .library-actions { padding: 0; }.library-content-split { grid-template-columns: minmax(0, 1fr); }.library-detail { position: static; max-height: none; } }
-@media (max-width: 600px) { .knowledge-library { padding: 20px 12px; }.library-browser-body, .library-upload { padding: 16px; }.library-header h1 { font-size: 26px; }.library-section-heading { flex-wrap: wrap; }.library-upload-form { grid-template-columns: minmax(0, 1fr); }.library-source-filter { width: 100%; }.library-meta { grid-template-columns: 85px minmax(0, 1fr); }.library-detail { padding: 14px; }.library-result-footer { align-items: flex-start; flex-direction: column; }.library-source-text { max-width: 100%; } }
+.knowledge-library { max-width:var(--page-width); margin:0 auto; padding:var(--space-4); color:var(--text-primary, var(--ink)); }
+.library-header, .library-section-heading { display:flex; justify-content:space-between; align-items:flex-start; gap:var(--space-2); }
+.library-header { margin-bottom:var(--space-3); }
+.library-header h1 { font-size:var(--text-section); letter-spacing:-.04em; margin:calc(var(--space-1) / 2) 0 var(--space-1); }
+.library-eyebrow { margin:0; color:var(--action); font-size:var(--text-caption); font-weight: var(--weight-strong); letter-spacing:.09em; }
+.library-subtitle, .library-section-heading p { color:var(--text-secondary, var(--ink-secondary)); line-height:1.75; margin:calc(var(--space-1) / 2) 0 0; }
+.library-actions { display:flex; align-items:center; flex-wrap:wrap; gap:var(--space-1); }
+.library-header > .library-actions { padding-top:var(--space-1); justify-content:flex-end; }
+.library-link { color:var(--action); font-size:var(--text-caption); font-weight: var(--weight-strong); text-decoration:none; }
+.library-link:hover { text-decoration:underline; }
+.library-panel { background:var(--bg-card, var(--surface)); border:var(--stroke) solid var(--border-color, var(--line)); border-radius:var(--radius-control); }
+.library-browser { overflow:hidden; }
+.library-browser :deep(.arco-tabs-nav) { padding:calc(var(--space-1) / 2) var(--space-2) 0; background:var(--surface-muted); }
+.library-browser :deep(.arco-tabs-content) { display:none; }
+.library-browser-body, .library-upload { padding:var(--space-3); }
+.library-section-heading h2 { font-size:var(--text-card); margin:0 0 calc(var(--space-1) / 2); line-height:1.5; overflow-wrap:anywhere; }
+.library-section-heading { margin-bottom:var(--space-2); }
+.library-notice { margin-bottom:var(--space-2); }
+.library-notice-actions { margin-top:var(--space-1); }
+.library-search { display:flex; align-items:flex-end; flex-wrap:wrap; gap:var(--space-1); }
+.library-search label, .library-upload-form label { display:grid; gap:calc(var(--space-1) / 2); font-size:var(--text-caption); font-weight: var(--weight-strong); }
+.library-query { flex:1; min-width:var(--row-value-width); }
+.library-source-filter { width:var(--row-value-width); }
+.library-muted { color:var(--text-secondary, var(--ink-secondary)); font-size:var(--text-caption); line-height:1.7; overflow-wrap:anywhere; }
+.library-results-heading { display:flex; justify-content:space-between; flex-wrap:wrap; gap:var(--space-1); margin-top:var(--space-3); padding:var(--space-2) 0; border-top:var(--stroke) solid var(--border-color, var(--line)); font-size:var(--text-caption); }
+.library-content { display:grid; grid-template-columns:minmax(0, 1fr); gap:var(--space-3); }
+.library-content-split { grid-template-columns:minmax(var(--menu-width), 2fr) minmax(0, 3fr); }
+.library-result-list { min-width:0; }
+.library-result { padding:var(--space-2) 0; border-bottom:var(--stroke) solid var(--border-color, var(--line)); }
+.library-result:first-of-type { padding-top:calc(var(--space-1) / 2); }
+.library-result h3 { margin:var(--space-1) 0 var(--space-1); line-height:1.6; }
+.library-title-button { border:0; padding:0; background:none; font:inherit; font-size:var(--text-body); color:inherit; cursor:pointer; text-align:left; overflow-wrap:anywhere; }
+.library-title-button:hover { color:var(--action); }
+.library-title-button:focus-visible { outline:calc(var(--stroke) * 2) solid var(--action); outline-offset:calc(var(--space-1) / 2); }
+.library-result-tags { display:flex; align-items:center; flex-wrap:wrap; gap:var(--space-1); }
+.library-excerpt { line-height:1.8; font-size:var(--text-caption); color:var(--text-secondary, var(--ink-secondary)); white-space:pre-wrap; overflow-wrap:anywhere; }
+.library-provenance { font-size:var(--text-caption); line-height:1.7; color:var(--text-secondary, var(--ink-secondary)); overflow-wrap:anywhere; }
+.library-result-footer { display:flex; justify-content:space-between; align-items:center; gap:var(--space-1); }
+.library-source-text { color:var(--text-muted, var(--ink-secondary)); font-size:var(--text-caption); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.library-result-footer :deep(.arco-btn) { flex-shrink:0; }
+.library-pagination { display:flex; align-items:center; justify-content:flex-end; gap:var(--space-1); padding-top:var(--space-2); font-size:var(--text-caption); }
+.library-detail { min-width:0; border:var(--stroke) solid var(--border-color, var(--line)); background:var(--bg-paper, var(--surface)); border-radius:var(--radius-control); padding:var(--space-2); max-height:78vh; overflow:auto; position:sticky; top:var(--space-2); align-self:start; }
+.library-detail .library-section-heading { gap:var(--space-1); }
+.library-meta { display:grid; grid-template-columns:var(--row-label-width) minmax(0, 1fr); gap:var(--space-1); margin:var(--space-2) 0; font-size:var(--text-caption); line-height:1.7; }
+.library-meta dt { color:var(--text-secondary, var(--ink-secondary)); }
+.library-meta dd { margin:0; overflow-wrap:anywhere; }
+.library-chunks-title { font-size:var(--text-caption); margin:var(--space-3) 0 var(--space-1); }
+.library-chunk { border:var(--stroke) solid var(--border-color, var(--line)); background:var(--bg-card, var(--surface)); border-radius:var(--radius-control); margin-top:var(--space-1); padding:var(--space-2); }
+.library-chunk summary { cursor:pointer; font-size:var(--text-caption); font-weight: var(--weight-strong); line-height:1.6; overflow-wrap:anywhere; }
+.library-source { white-space:pre-wrap; overflow-wrap:anywhere; font-family: var(--font-family); font-size:var(--text-caption); line-height:1.9; margin-bottom:0; }
+.library-upload { margin-bottom:var(--space-3); }
+.library-upload-form { display:grid; grid-template-columns:minmax(0, 2fr) minmax(0, 1fr); gap:var(--space-2); margin:var(--space-2) 0; }
+.library-file-row, .library-full { grid-column:1 / -1; }
+.library-file-row { display:flex; align-items:center; gap:var(--space-1); font-size:var(--text-caption); overflow-wrap:anywhere; }
+.library-upload-form > :deep(.arco-btn) { justify-self:start; }
+.library-file-input { display:none; }
+.library-error-text { white-space:pre-wrap; overflow-wrap:anywhere; font:inherit; }
+.library-privacy { color:var(--text-muted, var(--ink-secondary)); font-size:var(--text-caption); text-align:center; margin:var(--space-2) 0 0; }
+.library-detail :deep(.lk-card) { background:transparent; padding:0; border:0; }
+.library-detail :deep(.lk-meta) { grid-template-columns:var(--row-label-width) minmax(0, 1fr); font-size:var(--text-caption); }
+@media (max-width: 1120px) { .library-header { flex-direction:column; }.library-header > .library-actions { padding:0; }.library-content-split { grid-template-columns:minmax(0, 1fr); }.library-detail { position:static; max-height:none; } }
+@media (max-width: 768px) { .knowledge-library { padding:var(--space-2) var(--space-1); }.library-browser-body, .library-upload { padding:var(--space-2); }.library-header h1 { font-size:var(--text-section); }.library-section-heading { flex-wrap:wrap; }.library-upload-form { grid-template-columns:minmax(0, 1fr); }.library-source-filter { width:100%; }.library-meta { grid-template-columns:var(--row-label-width) minmax(0, 1fr); }.library-detail { padding:var(--space-2); }.library-result-footer { align-items:flex-start; flex-direction:column; }.library-source-text { max-width:100%; } }
 </style>

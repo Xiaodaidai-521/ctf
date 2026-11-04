@@ -1,23 +1,59 @@
 <script setup>
-import { computed, onMounted, reactive, ref, watch } from 'vue'
+import { names } from '@/shared/navigation/names'
+
+import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
+import { useUserStore } from '@/store/user'
 import { useRoute, useRouter } from 'vue-router'
 import { labApi } from './api'
 import { splitCodepoints } from './codepoints'
 import { readableError } from './errors'
 import { currentReplays, latestRevealedReplays, replayVariants } from './replaySelection'
+import RecordView from '@/shared/forms/RecordView.vue'
 
 const route = useRoute(), router = useRouter()
+const user = useUserStore()
+const resultsDestination = computed(() => user.userInfo?.role === 'student' ? '/dashboard?section=results' : '/my-results')
 const cases = ref([]), attempts = ref([]), selectedTask = ref(''), attemptId = ref('')
 const state = ref(null), step = ref(0), saving = ref(false), saveStatus = ref('尚未保存'), error = ref('')
 const indexLoading = ref(false), indexError = ref('')
 const selected = ref(null), result = ref(null), help = ref(''), analysis = ref('')
 const steps = ['任务简介', '依据与事实', '发现与复核', '四轮回放', '提交与结果']
+const decisionLabel = value => ({ allow: '允许', mask: '脱敏', deny: '拒绝', defer: '暂缓', require_approval: '需要审批' }[value] || '结论待确认')
+const categoryLabels = {
+  DEMO_PERSON_REF: '人员信息（演示）', DEMO_CONTACT: '联系信息（演示）',
+}
+const categoryLabel = value => categoryLabels[value] || '类别待确认'
+const scenarioLabels = { A1: '常规导出', A2: '越权接收', A3: '授权未知', A4: '累计超限' }
+const scenarioLabel = value => scenarioLabels[value] || '回放场景'
+const obligationLabels = {
+  mask: '脱敏后交付', approval: '交付前审批', log: '交付留痕', review: '人工复核', base_protection: '施加基础保护',
+}
+const obligationLabel = value => obligationLabels[value] || '保护义务'
+const reviewActionLabels = {
+  confirm: '确认候选', correct: '纠正分类', false_positive: '标记误报', add_manual: '补录漏报',
+}
+const reviewActionLabel = value => reviewActionLabels[value] || '复核操作'
+const judgmentLabels = { determined: '已判定', pending_review: '待复核', conflict: '存在冲突', insufficient: '依据不足' }
+const judgmentLabel = value => judgmentLabels[value] || '判定待确认'
+const coverageLabels = { complete: '已完成', partial: '部分完成', missing: '未完成', unavailable: '不可用', skipped: '未启用' }
+const coverageLabel = value => coverageLabels[value] || '状态待确认'
+const caseStatusLabels = { published: '已发布', draft: '草案', signed_off: '已签收', withdrawn: '已撤回', pending: '待审阅' }
+const caseStatusLabel = value => caseStatusLabels[value] || '状态待确认'
+const cardStatusLabels = { verified: '已核验', pending: '待核验', unverified: '未核验' }
+const cardStatusLabel = value => cardStatusLabels[value] || '状态待确认'
+function caseTitle(taskKey) {
+  return cases.value.find(item => item.task_key === taskKey)?.title || '案例'
+}
+const positionLabels = { row: '所在行', column: '所在列', start: '起始位置（含）', end: '结束位置（不含）' }
+const submissionLabels = { saved: '已保存', pending: '待核查', passed: '通过', failed: '未通过', not_applicable: '不适用', independent: '平台内独立', assisted: '受助', unknown: '待确认', not_run: '未核验' }
+const submissionLabel = value => Object.hasOwn(submissionLabels, value) ? submissionLabels[value] : '待确认'
 const emptyBasis = () => ({ entity_category: '', personal_information: '', data_classification: '', uncertainties: '', fact_ids: [], basis_ids: [] })
 const emptyReview = () => ({ action: 'confirm', reason: '', category_id: 'DEMO_PERSON_REF', row: 2, column: 1, start: 0, end: 1 })
 const basis = reactive(emptyBasis()), review = reactive(emptyReview())
 const predictions = reactive({}), explanation = ref('')
 const pending = new Map(), pendingHelp = new Map()
 let generation = 0
+let alive = true
 const material = computed(() => state.value?.material)
 const scan = computed(() => state.value?.scan)
 const rows = computed(() => [...new Set((scan.value?.cells || []).map(c => c.row))])
@@ -54,7 +90,8 @@ async function load(id = attemptId.value, token = generation) {
   if (token !== generation) return
   if (next.scan?.scan_id !== scan.value?.scan_id || next.scan?.profile_id !== scan.value?.profile_id) selected.value = null
   state.value = next
-  Object.assign(basis, emptyBasis(), next.basis)
+  const defaults = emptyBasis()
+  Object.assign(basis, Object.fromEntries(Object.keys(defaults).map(key => [key, next.basis?.[key] ?? defaults[key]])))
   for (const r of next.replays) {
     predictions[r.replay_id] ||= { actions: r.scenario_variant === 'A4' ? ['', ''] : [''], reason: '' }
   }
@@ -84,7 +121,8 @@ async function claim() {
 }
 async function saveBasis() {
   const id = attemptId.value, token = generation
-  await labApi.post(aid('basis/', id), { ...basis, expected_revision: state.value.revision })
+  const fields = Object.fromEntries(Object.keys(emptyBasis()).map(key => [key, basis[key]]))
+  await labApi.post(aid('basis/', id), { ...fields, expected_revision: state.value.revision })
   await load(id, token)
 }
 async function identify() {
@@ -104,7 +142,7 @@ async function saveReview() {
     const c = cell(Number(review.row), Number(review.column))
     if (!c) throw new Error('请选择原文中的逻辑单元格')
     const span = { start: Number(review.start), end: Number(review.end) }
-    if (!splitCodepoints(c.source_text, span).selected) throw new Error('码点位置无效：须满足 0 ≤ start < end ≤ 原文码点数')
+    if (!splitCodepoints(c.source_text, span).selected) throw new Error('原文位置无效：起始位置须小于结束位置，且不能超出原文长度。')
     body.category_id = review.category_id
     body.locations = [{ kind: 'span', sheet_id: c.sheet_id, row: c.row, column: c.column, channel: c.channel, span }]
   } else {
@@ -128,7 +166,7 @@ async function judge(r) {
 }
 async function submit() {
   const id = attemptId.value, token = generation
-  if (missingVariants.value.length) throw new Error(`请先完成当前扫描与画像的 ${missingVariants.value.join('、')} 回放判断`)
+  if (missingVariants.value.length) throw new Error(`请先完成当前扫描与画像的 ${missingVariants.value.map(scenarioLabel).join('、')} 回放判断`)
   const saved = await send(aid('submissions/', id), { explanation: explanation.value, scan_id: scan.value.scan_id,
     profile_id: scan.value.profile_id, replay_ids: submissionReplays.value.map(r => r.replay_id) })
   if (token === generation) result.value = saved
@@ -157,28 +195,44 @@ async function hint(level) {
   if (token === generation) { help.value = displayed.content; pendingHelp.delete(level) }
 }
 async function loadIndex() {
-  if (indexLoading.value) return
+  if (!alive || indexLoading.value) return
+  const token = generation
   indexLoading.value = true; indexError.value = ''
   try {
-    const index = await labApi.get('cases/'); cases.value = index.cases; attempts.value = index.attempts
+    const index = await labApi.get('cases/')
+    if (token !== generation) return
+    cases.value = index.cases; attempts.value = index.attempts
     if (!selectedTask.value) selectedTask.value = cases.value[0]?.task_key || ''
-  } catch (e) { indexError.value = readableError(e, '无法读取课程，请重试') }
-  finally { indexLoading.value = false }
+  } catch (e) { if (token === generation) indexError.value = readableError(e, '无法读取课程，请重试') }
+  finally { if (token === generation) indexLoading.value = false }
 }
 watch(() => route.query.attempt, value => {
   resetAttempt(typeof value === 'string' ? value : '')
   if (attemptId.value) void act(resume)
 }, { immediate: true })
+function clearPrivateState() {
+  resetAttempt('')
+  cases.value = []; attempts.value = []; selectedTask.value = ''
+  indexLoading.value = false; indexError.value = ''
+}
+watch(() => [user.userInfo?.id, user.userInfo?.role], () => {
+  clearPrivateState()
+  Promise.resolve(router.replace({ query: { ...route.query, attempt: undefined } })).then(loadIndex)
+}, { flush: 'sync' })
+onBeforeUnmount(() => { alive = false; clearPrivateState() })
 onMounted(loadIndex)
 </script>
 
 <template>
   <main class="data-lab">
     <header class="lab-header">
-      <h1>数据安全案例实验台</h1>
+      <router-link to="/resources">返回{{ names.resources }}</router-link>
+      <p class="topic-label">{{ names.resources }}专题</p>
+      <h1>数据安全案例</h1>
+      <p>按五步完成案例学习：了解任务、核对依据、发现与复核、回放判断、提交并复盘。</p>
       <strong>教学演练：只看决策，不执行导出</strong>
-      <p>执行：未开展 · 实际保护：未评估 · 教学阈值：draft（不作为业务审批标准）</p>
-      <p>尝试 {{ attemptId || '未领取' }} · 材料 {{ material?.material_version || '—' }} · 规则 {{ material?.rule_version || '—' }}</p>
+      <p>尚未执行真实操作，实际保护效果未评估；教学规则为草案，不作为业务审批标准。</p>
+      <p>{{ attemptId ? '已领取练习' : '未领取练习' }} · 材料 {{ material?.material_version || '—' }} · 规则 {{ material?.rule_version || '—' }}</p>
       <output aria-live="polite">{{ saveStatus }}</output>
     </header>
     <p v-if="error" role="alert" class="error">{{ error }}</p>
@@ -186,30 +240,30 @@ onMounted(loadIndex)
       <p v-if="indexError" role="alert" class="error">{{ indexError }}</p>
       <button :disabled="indexLoading || saving" @click="loadIndex">{{ indexLoading ? '正在读取列表…' : '刷新任务列表' }}</button>
       <template v-if="!state">
-        <label>案例 <select v-model="selectedTask" :disabled="saving || indexLoading"><option v-for="c in cases" :key="c.task_key" :value="c.task_key">{{ c.title }} · {{ c.status }}{{ c.paused ? ' · 已暂停' : '' }}{{ c.withdrawn ? ' · 已撤回' : '' }}</option></select></label>
+        <label>案例 <select v-model="selectedTask" :disabled="saving || indexLoading"><option v-for="c in cases" :key="c.task_key" :value="c.task_key">{{ c.title }}{{ c.status ? ` · ${caseStatusLabel(c.status)}` : '' }}{{ c.paused ? ' · 已暂停' : '' }}{{ c.withdrawn ? ' · 已撤回' : '' }}</option></select></label>
         <button :disabled="saving || indexLoading || !selectedTask" @click="act(claim)">领取任务</button>
         <button v-if="attemptId" :disabled="saving" @click="act(resume)">重试读取当前尝试</button>
-        <p>草案/未签收材料不能领取。复测须从结果与复盘页领取已分配新场景。</p>
+        <p>草案/未签收材料不能领取。复测须从{{ names.growth }} · 结果与复盘页领取已分配新场景。</p>
       </template>
       <button v-if="attemptId" :disabled="saving" @click="open('')">返回任务选择</button>
-      <button v-for="a in attempts" :key="a.attempt_id" :disabled="saving || a.attempt_id === attemptId" @click="open(a.attempt_id)">继续 {{ a.task_key }} / {{ a.attempt_id }}</button>
+      <button v-for="a in attempts" :key="a.attempt_id" :disabled="saving || a.attempt_id === attemptId" @click="open(a.attempt_id)">继续 {{ caseTitle(a.task_key) }}</button>
       <p>切换尝试会清空本页未保存的输入、结果与提示。</p>
     </section>
     <template v-if="state">
       <nav aria-label="实验步骤"><button v-for="(label, i) in steps" :key="label" :aria-current="step === i ? 'step' : undefined" @click="step = i">{{ i + 1 }}. {{ label }}</button></nav>
       <section v-if="step === 0">
         <h2>{{ material.title }}</h2><p>{{ material.synthetic_declaration }}</p>
-        <p>资产版本：{{ material.asset_version_id }} · SHA-256：<code>{{ material.sha256 }}</code></p>
+        <p>练习材料版本：{{ material.material_version || '未提供' }}</p>
         <p>{{ material.position_contract }}</p>
         <p>先说明适用事实与三个不同结论，再识别、复核、提出回放建议并交证据。规则分数不是法律分类或校准概率。</p>
         <aside><h3>教师预制讲解样例</h3><p>{{ material.teacher_example.before }} → {{ material.teacher_example.after }}</p><p>{{ material.teacher_example.label }}</p></aside>
       </section>
       <section v-if="step === 1">
         <h2>依据与事实</h2>
-        <label v-for="(fact, id) in material.facts" :key="id"><input v-model="basis.fact_ids" type="checkbox" :value="id"> {{ id }}：{{ fact }}</label>
+        <label v-for="(fact, id) in material.facts" :key="id"><input v-model="basis.fact_ids" type="checkbox" :value="id"> {{ fact }}</label>
         <article v-for="card in state.basis_cards" :key="card.card_id">
-          <label><input v-model="basis.basis_ids" type="checkbox" :value="card.card_id"> {{ card.card_id }} · {{ card.source_title }} {{ card.source_clause }}</label>
-          <p>{{ card.source_version }} · 核验日 {{ card.verified_date || '待核验' }} · {{ card.status }}</p>
+          <label><input v-model="basis.basis_ids" type="checkbox" :value="card.card_id"> {{ card.source_title }} {{ card.source_clause }}</label>
+          <p>{{ card.source_version }} · 核验日 {{ card.verified_date || '待核验' }} · {{ cardStatusLabel(card.status) }}</p>
           <a :href="card.source_url" target="_blank" rel="noopener noreferrer">官方来源</a><p>{{ card.uncertainties }}</p>
         </article>
         <label>实体识别类别<textarea v-model="basis.entity_category" maxlength="2048" /></label>
@@ -224,54 +278,54 @@ onMounted(loadIndex)
         <p v-if="scan?.status !== 'completed'">{{ scan?.message || '尚未识别' }}</p>
         <template v-else>
           <p>原扫描：{{ scan.counts.original_findings }} 个候选；学生补录：{{ scan.counts.manual_additions }}；复核后：{{ scan.counts.reviewed_findings }}。</p>
-          <p>规则覆盖 {{ scan.coverage.rule.processed_count }} / {{ scan.coverage.rule.target_count }} 格；语义 {{ scan.coverage.semantic.status }}。人工补录不增加原检测覆盖。</p>
+          <p>规则覆盖 {{ scan.coverage.rule.processed_count }} / {{ scan.coverage.rule.target_count }} 格；语义检查{{ coverageLabel(scan.coverage.semantic.status) }}。人工补录不增加原检测覆盖。</p>
           <div class="review-grid">
             <table><caption>逻辑行（表头占第1行）；选候选后按码点高亮</caption><thead><tr><th>行</th><th v-for="n in 4" :key="n">列 {{ n }}</th></tr></thead>
               <tbody><tr v-for="row in rows" :key="row"><th>{{ row }}</th><td v-for="col in 4" :key="col"><span>{{ parts(cell(row,col)).before }}</span><mark v-if="parts(cell(row,col)).selected">{{ parts(cell(row,col)).selected }}</mark><span>{{ parts(cell(row,col)).after }}</span><em v-if="!cell(row,col)?.source_text">（空值）</em></td></tr></tbody>
             </table>
-            <div><button v-for="f in scan.findings.items" :key="f.finding_id" @click="selected = f">{{ f.category_id }} · 行{{ f.locations[0].row }}列{{ f.locations[0].column }} · {{ f.source_type === 'manual' ? '学生复核' : '自动候选' }}</button>
-              <p v-if="selected">{{ selected.judgment }} · {{ selected.detector_version || '人工' }} · 原始分数 {{ selected.raw_score ?? '不适用' }}（非概率）</p>
+            <div><button v-for="f in scan.findings.items" :key="f.finding_id" @click="selected = f">{{ categoryLabel(f.category_id) }} · 行{{ f.locations[0].row }}列{{ f.locations[0].column }} · {{ f.source_type === 'manual' ? '学生复核' : '自动候选' }}</button>
+              <p v-if="selected">{{ judgmentLabel(selected.judgment) }} · {{ selected.detector_version ? '规则识别' : '人工补录' }} · 规则参考分 {{ selected.raw_score ?? '不适用' }}（非概率）</p>
               <label>动作<select v-model="review.action"><option value="confirm">确认</option><option value="correct">纠正</option><option value="false_positive">误报</option><option value="add_manual">漏报补录</option></select></label>
-              <label v-if="['correct','add_manual'].includes(review.action)">类别<select v-model="review.category_id"><option>DEMO_PERSON_REF</option><option>DEMO_CONTACT</option></select></label>
-              <fieldset v-if="review.action === 'add_manual'"><legend>原文码点位置 [start,end)</legend><label v-for="k in ['row','column','start','end']" :key="k">{{ k }} <input v-model.number="review[k]" type="number" min="0"></label></fieldset>
+              <label v-if="['correct','add_manual'].includes(review.action)">类别<select v-model="review.category_id"><option value="DEMO_PERSON_REF">人员信息（演示）</option><option value="DEMO_CONTACT">联系信息（演示）</option></select></label>
+              <fieldset v-if="review.action === 'add_manual'"><legend>原文位置（从零开始，含起点、不含终点）</legend><label v-for="k in ['row','column','start','end']" :key="k">{{ positionLabels[k] }} <input v-model.number="review[k]" type="number" min="0"></label></fieldset>
               <label>复核理由（引用上一步选定事实/依据卡）<textarea v-model="review.reason" maxlength="1500" /></label>
               <button :disabled="saving || (!selected && review.action !== 'add_manual')" @click="act(saveReview)">保存复核与后继画像</button>
             </div>
           </div>
           <button :disabled="saving" @click="act(load)">刷新最新画像（冲突后先查看差异）</button>
-          <details><summary>复核历史</summary><p v-for="r in scan.review_history" :key="r.review_id">{{ r.action }} · {{ r.reason }} · {{ r.successor_profile_id }}</p></details>
+          <details><summary>复核历史</summary><p v-for="r in scan.review_history" :key="r.review_id">{{ reviewActionLabel(r.action) }} · {{ r.reason }}</p></details>
         </template>
       </section>
       <section v-if="step === 3">
         <h2>四轮决策回放</h2><p>先保存自己的建议，后显示程序建议。回放使用教师冻结参考画像，不把学生原扫描覆盖写成100%。</p>
-        <p>仅展示当前扫描 {{ scan?.scan_id || '—' }} / 画像 {{ scan?.profile_id || '—' }} 的回放；重新扫描或复核后须重新完成四轮。</p>
-        <button v-for="v in replayVariants" :key="v" :disabled="saving || scan?.status !== 'completed'" @click="act(() => replay(v))">开始 {{ v }}</button>
+        <p>仅展示当前扫描与画像的回放；重新扫描或复核后须重新完成四轮。</p>
+        <button v-for="(v, index) in replayVariants" :key="v" :disabled="saving || scan?.status !== 'completed'" @click="act(() => replay(v))">开始第 {{ index + 1 }} 轮</button>
         <article v-for="r in replays" :key="r.replay_id">
-          <h3>{{ r.scenario_variant }} · {{ r.policy_version }} / draft</h3><p>评估时刻 {{ r.evaluation_time }}</p>
+          <h3>{{ scenarioLabel(r.scenario_variant) }} · 教学策略草案版</h3><p>评估时刻 {{ r.evaluation_time }}</p>
           <template v-if="!r.revealed">
             <label v-for="(_, i) in predictions[r.replay_id]?.actions" :key="i">{{ r.scenario_variant === 'A4' ? `${50+i}次（每次10条）` : '我的建议' }}
-              <select v-model="predictions[r.replay_id].actions[i]"><option value="">请选择</option><option v-for="a in ['allow','mask','deny','defer','require_approval']" :key="a">{{ a }}</option></select>
+              <select v-model="predictions[r.replay_id].actions[i]"><option value="">请选择</option><option v-for="a in ['allow','mask','deny','defer','require_approval']" :key="a" :value="a">{{ decisionLabel(a) }}</option></select>
             </label><textarea v-model="predictions[r.replay_id].reason" aria-label="回放理由" maxlength="2048" />
             <button :disabled="saving" @click="act(() => judge(r))">保存判断并查看程序对照</button>
           </template>
-          <template v-else><p>我的建议 {{ r.judgment.actions.join(' → ') }}；理由：{{ r.judgment.reason }}</p>
-            <p v-for="(s, i) in r.frozen.steps" :key="i">程序建议 {{ s.result.recommended_action }}；请求次数 {{ s.inputs.features.values.req_count_long }}；已计入当前请求 {{ s.inputs.features.current_request_counted }}；义务 {{ s.result.obligations.map(o => o.type).join('、') || '无' }}</p>
-            <p v-for="(reason, code) in r.reason_explanations" :key="code"><code>{{ code }}</code>：{{ reason }}</p>
-            <details><summary>冻结输入与摘要</summary><pre>{{ JSON.stringify(r.frozen, null, 2) }}</pre></details>
+          <template v-else><p>我的建议 {{ r.judgment.actions.map(decisionLabel).join(' → ') }}；理由：{{ r.judgment.reason }}</p>
+            <p v-for="(s, i) in r.frozen.steps" :key="i">程序建议 {{ decisionLabel(s.result.recommended_action) }}；累计请求 {{ s.inputs.features.values.req_count_long }} 次；当前请求已计入：{{ s.inputs.features.current_request_counted ? '是' : '否' }}；义务：{{ (s.result.obligations || []).map(o => obligationLabel(o.type)).join('、') || '无' }}</p>
+            <p v-for="(reason, code) in r.reason_explanations" :key="code">{{ reason }}</p>
+            <details><summary>回放依据与输入摘要</summary><RecordView :value="r.frozen" title="回放依据" /></details>
           </template>
         </article>
       </section>
       <section v-if="step === 4">
         <h2>提交与结果</h2><label>依据、因果、证据与改进说明<textarea v-model="explanation" maxlength="4000" /></label>
-        <p v-if="missingVariants.length">当前扫描/画像尚缺已揭示回放：{{ missingVariants.join('、') }}。</p>
+        <p v-if="missingVariants.length">当前扫描/画像尚缺已揭示回放：{{ missingVariants.map(scenarioLabel).join('、') }}。</p>
         <p v-else>将提交每个变体最新的已揭示结果（不使用其他扫描或旧画像的回放）。</p>
-        <ul><li v-for="r in submissionReplays" :key="r.replay_id">{{ r.scenario_variant }}：{{ r.replay_id }}</li></ul>
-        <p>本阶段先保存证据；模块六交接以服务端返回状态为准，不将保存成功当作核验通过。</p>
+        <ul><li v-for="r in submissionReplays" :key="r.replay_id">{{ scenarioLabel(r.scenario_variant) }}</li></ul>
+        <p>先保存证据，再查看实际核验状态；保存成功不代表核验通过。</p>
         <button :disabled="saving || scan?.status !== 'completed' || missingVariants.length > 0" @click="act(submit)">保存证据 / 查询核验状态</button>
-        <button v-for="id in state.submissions" :key="id" :disabled="saving" @click="act(() => showSubmission(id))">查看提交 {{ id }}</button>
-        <article v-if="result"><p>保存 {{ result.save_status }} · 核验 {{ result.program_status }} · 人工 {{ result.manual_status }} · 帮助 {{ result.independence }}</p><p>{{ result.message }}</p>
+        <button v-for="(id, index) in state.submissions" :key="id" :disabled="saving" @click="act(() => showSubmission(id))">查看第 {{ index + 1 }} 次提交</button>
+        <article v-if="result"><p>保存 {{ submissionLabel(result.save_status) }} · 核验 {{ submissionLabel(result.program_status) }} · 人工 {{ submissionLabel(result.manual_status) }} · 帮助 {{ submissionLabel(result.independence) }}</p><p>{{ result.message }}</p>
           <p>执行：未开展；实际保护：未评估（不计执行成绩）</p><button :disabled="saving" @click="act(() => showSubmission(result.submission_id, true))">重试核验/交接</button></article>
-        <router-link to="/my-results">模块六：结果、教师待评、复盘与新场景复测</router-link>
+        <router-link :to="resultsDestination">{{ names.growth }} · 结果与复盘：教师待评与新场景复测</router-link>
         <button :disabled="saving" @click="act(showAnalysis)">查看已解锁学生解析</button><p>{{ analysis }}</p>
       </section>
       <aside class="help"><h2>预置帮助（可选，无 AI 也能继续）</h2><p>请求与实际展示分别记录；任何层级展示均记受助。无提示复测仍可提交，不自动展开帮助。</p>
@@ -282,12 +336,12 @@ onMounted(loadIndex)
 </template>
 
 <style scoped>
-.data-lab { max-width: 1240px; margin: 0 auto; padding: 24px; color: var(--color-text-1, #17212b); }
-.lab-header { position: sticky; top: 0; z-index: 3; background: var(--color-bg-1, #fff); border-bottom: 2px solid #46596b; padding: 12px 0; }
-.lab-header h1 { margin: 0 0 8px; font-size: 24px; } p { line-height: 1.65; } code { overflow-wrap: anywhere; }
-nav { display: flex; flex-wrap: wrap; gap: 8px; margin: 20px 0; } section, article, aside { margin: 20px 0; padding: 16px; border: 1px solid var(--color-border-2, #c7cdd3); border-radius: 6px; }
-button, select, input, textarea { font: inherit; } button { margin: 4px; padding: 8px 12px; cursor: pointer; } button:disabled { cursor: not-allowed; opacity: .6; } [aria-current="step"] { font-weight: bold; outline: 2px solid #46596b; }
-label { display: block; margin: 12px 0; } textarea { display: block; width: 100%; min-height: 80px; box-sizing: border-box; } input[type="number"] { width: 85px; }
-.review-grid { display: grid; grid-template-columns: minmax(0, 3fr) minmax(260px, 2fr); gap: 16px; } table { border-collapse: collapse; width: 100%; } td, th { border: 1px solid #a6aeb6; padding: 8px; white-space: pre-wrap; overflow-wrap: anywhere; } td { max-width: 180px; } mark { background: #f6de8a; color: #17212b; } pre { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 360px; overflow: auto; } .error { border-left: 4px solid #a82b2b; padding: 12px; }
-@media(max-width: 800px) { .review-grid { display: block; } .data-lab { padding: 12px; } .lab-header { position: static; } }
+.data-lab { max-width:var(--page-width); margin:0 auto; padding:var(--space-3); color:var(--color-text-1, var(--action)); }
+.lab-header { position:sticky; top:0; z-index:3; background:var(--color-bg-1, var(--surface)); border-bottom:calc(var(--stroke) * 2) solid var(--line); padding:var(--space-1) 0; }
+.lab-header h1 { margin:0 0 var(--space-1); font-size:var(--text-section); } p { line-height:1.65; } code { overflow-wrap:anywhere; }
+nav { display:flex; flex-wrap:wrap; gap:var(--space-1); margin:var(--space-2) 0; } section, article, aside { margin:var(--space-2) 0; padding:var(--space-2); border:var(--stroke) solid var(--color-border-2, var(--line)); border-radius:var(--radius-control); }
+button, select, input, textarea { font:inherit; } button { margin:calc(var(--space-1) / 2); padding:var(--space-1) var(--space-1); cursor:pointer; } button:disabled { cursor:not-allowed; opacity:.6; } [aria-current="step"] { font-weight:bold; outline:calc(var(--stroke) * 2) solid var(--line); }
+label { display:block; margin:var(--space-1) 0; } textarea { display:block; width:100%; min-height:var(--space-10); box-sizing:border-box; } input[type="number"] { width:var(--row-label-width); }
+.review-grid { display:grid; grid-template-columns:minmax(0, 3fr) minmax(var(--menu-width), 2fr); gap:var(--space-2); } table { border-collapse:collapse; width:100%; } td, th { border:var(--stroke) solid var(--line); padding:var(--space-1); white-space:pre-wrap; overflow-wrap:anywhere; } td { max-width:var(--row-value-width); } mark { background:var(--action-soft); color:var(--action); } pre { white-space:pre-wrap; overflow-wrap:anywhere; max-height:var(--chart-height); overflow:auto; } .error { border-left:calc(var(--space-1) / 2) solid var(--negative); padding:var(--space-1); }
+@media (max-width: 768px) { .review-grid { display:block; } .data-lab { padding:var(--space-1); } .lab-header { position:static; } }
 </style>

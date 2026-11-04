@@ -119,6 +119,8 @@ class AIMessage(models.Model):
     agent_name = models.CharField(max_length=100, null=True, blank=True)
     provider = models.CharField(max_length=50, null=True, blank=True)
     metadata = models.JSONField(default=dict, blank=True)
+    # Server-sealed body provenance. Empty for legacy/imported messages; never an API input.
+    history_origin = models.JSONField(default=dict, blank=True, editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

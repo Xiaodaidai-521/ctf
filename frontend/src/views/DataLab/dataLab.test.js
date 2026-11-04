@@ -2,6 +2,8 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { runInNewContext } from 'node:vm'
+import { guardDestination, pageTitle } from '../../shared/navigation/access.js'
+import { teachingDestination, feedbackCandidateDestination } from '../../shared/navigation/phase3.js'
 import { splitCodepoints } from './codepoints.js'
 import { readableError } from './errors.js'
 import { currentReplays, latestRevealedReplays } from './replaySelection.js'
@@ -102,7 +104,8 @@ function routerFor(user) {
   return runInNewContext(source.trimStart().replace(/^import .*$/gm, '').replace('export default router', 'router'), {
     createRouter: options => ({ ...options, beforeEach(guard) { this.guard = guard } }),
     createWebHistory: () => ({}), useUserStore: () => user, document: {},
-    TeacherLayout: {}, TeacherDashboard: {}, LearningEffectAnalysis: {},
+    TeacherLayout: {}, TeacherDashboard: {}, LearningEffectAnalysis: {}, guardDestination, pageTitle,
+    teachingDestination, feedbackCandidateDestination,
   })
 }
 test('module routes: student is authenticated and teacher is an independent teacher/admin route', () => {
@@ -115,7 +118,7 @@ test('module routes: student is authenticated and teacher is an independent teac
   assert.equal(teacher.meta.requiresTeacherOnly, undefined)
 })
 for (const [role, authenticated, expected] of [
-  ['guest', false, '/login'], ['student', true, '/'], ['teacher', true, undefined], ['admin', true, undefined],
+  ['guest', false, '/login'], ['student', true, '/access-denied'], ['teacher', true, undefined], ['admin', true, undefined],
 ]) {
   test(`module teacher guard: ${role}`, () => {
     const router = routerFor({ isAuthenticated: authenticated, userInfo: { role } })

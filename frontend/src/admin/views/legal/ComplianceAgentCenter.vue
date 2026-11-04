@@ -47,12 +47,12 @@
       <div v-if="latestRun" class="agent-trace">
         <h4>最近运行轨迹</h4>
         <div class="trace-row">
-          <span>Agent</span>
-          <strong>{{ latestRun.agent_id }}</strong>
+          <span>执行角色</span>
+          <strong>{{ latestRun.role_label || '合规审查智能体' }}</strong>
         </div>
         <div class="trace-row">
           <span>模型</span>
-          <strong>{{ latestRun.provider }} / {{ latestRun.model }}</strong>
+          <strong>{{ modelLabel }}</strong>
         </div>
         <div class="trace-row">
           <span>耗时</span>
@@ -84,8 +84,8 @@ const form = ref({
 
 const columns = [
   { key: 'title', label: '任务' },
-  { key: 'source_type', label: '来源' },
-  { key: 'status', label: '状态', badge: true },
+  { key: 'source_type', label: '来源', labelKey: 'source' },
+  { key: 'status', label: '状态', labelKey: 'taskStatus', badge: true },
   { key: 'result_summary', label: '结论摘要', formatter: (value) => value ? String(value).slice(0, 56) : '-' },
   { key: 'created_at', label: '创建时间', formatter: formatDate },
 ]
@@ -99,10 +99,16 @@ const metrics = computed(() => [
   { label: '分析任务', value: tasks.value.length, hint: '当前任务页' },
   { label: '风险发现', value: findings.value.length, hint: '当前发现页' },
   { label: '合规报告', value: reports.value.length, hint: '自动生成报告' },
-  { label: 'Agent 运行', value: agentRuns.value.length, hint: '编排器调用记录' },
+  { label: '智能体运行', value: agentRuns.value.length, hint: '编排器调用记录' },
 ])
 
 const latestRun = computed(() => agentRuns.value[0] || null)
+const providerLabels = { local: '本地规则', openai: '云端智能体', anthropic: '云端智能体', deepseek: '云端智能体', moonshot: '云端智能体', qwen: '云端智能体' }
+const modelLabel = computed(() => {
+  const run = latestRun.value
+  if (!run) return '未记录'
+  return providerLabels[run.provider] || (run.provider ? '智能体服务' : '未记录')
+})
 
 async function loadData() {
   loading.value = true
@@ -168,58 +174,58 @@ onMounted(loadData)
 
 <style scoped>
 .agent-form {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+  display:flex;
+  flex-direction:column;
+  gap:var(--space-1);
 }
 
 .agent-form label {
-  color: #334155;
-  display: flex;
-  flex-direction: column;
-  font-size: 13px;
-  font-weight: 600;
-  gap: 6px;
+  color:var(--ink);
+  display:flex;
+  flex-direction:column;
+  font-size:var(--text-caption);
+  font-weight: var(--weight-strong);
+  gap:calc(var(--space-1) / 2);
 }
 
 .agent-trace {
-  border-top: 1px solid #e2e8f0;
-  margin-top: 16px;
-  padding-top: 14px;
+  border-top:var(--stroke) solid var(--line);
+  margin-top:var(--space-2);
+  padding-top:var(--space-2);
 }
 
 .agent-trace h4 {
-  color: #0f172a;
-  font-size: 14px;
-  margin: 0 0 10px;
+  color:var(--action);
+  font-size:var(--text-caption);
+  margin:0 0 var(--space-1);
 }
 
 .trace-row {
-  align-items: center;
-  display: flex;
-  justify-content: space-between;
-  padding: 6px 0;
+  align-items:center;
+  display:flex;
+  justify-content:space-between;
+  padding:calc(var(--space-1) / 2) 0;
 }
 
 .trace-row span {
-  color: #64748b;
+  color:var(--ink-secondary);
 }
 
 .trace-row strong {
-  color: #0f172a;
-  font-size: 13px;
+  color:var(--action);
+  font-size:var(--text-caption);
 }
 
 .agent-trace p {
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 6px;
-  color: #334155;
-  line-height: 1.6;
-  margin: 10px 0 0;
-  max-height: 220px;
-  overflow: auto;
-  padding: 10px;
-  white-space: pre-wrap;
+  background:var(--surface);
+  border:var(--stroke) solid var(--line);
+  border-radius:var(--radius-control);
+  color:var(--ink);
+  line-height:1.6;
+  margin:var(--space-1) 0 0;
+  max-height:var(--content-short-height);
+  overflow:auto;
+  padding:var(--space-1);
+  white-space:pre-wrap;
 }
 </style>

@@ -13,7 +13,7 @@
     <!-- 消息列表 -->
     <div class="messages-area" ref="messagesRef">
       <div v-if="!messages || messages.length === 0" class="empty-state">
-        <div class="empty-icon">📚</div>
+        <div class="empty-icon"><AppIcon name="bi-book" /></div>
         <p>开始你的学习之旅</p>
         <p class="hint">AI 导师将引导你完成学习</p>
       </div>
@@ -34,7 +34,7 @@
 
         <!-- 导师消息（复用 MultiAgentChat 气泡样式） -->
         <template v-else-if="msg.type === 'tutor'">
-          <div class="tutor-avatar">🤖</div>
+          <div class="tutor-avatar"><AppIcon name="bi-cpu" /></div>
           <div class="message-content tutor-message">
             <div class="message-label-row">
               <span class="tutor-label">{{ msg.agent_name || 'AI导师' }}</span>
@@ -48,7 +48,7 @@
         <!-- 系统消息 -->
         <template v-else-if="msg.type === 'system'">
           <div class="system-message">
-            <span class="icon">⚡</span>
+            <span class="icon"><AppIcon name="bi-lightning-charge" /></span>
             {{ msg.content }}
           </div>
         </template>
@@ -130,181 +130,181 @@ onMounted(() => {
 
 <style scoped>
 .ai-tutor-chat {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  background: var(--color-bg-1);
-  border-radius: 8px;
-  overflow: hidden;
+  display:flex;
+  flex-direction:column;
+  height:100%;
+  background:var(--color-bg-1);
+  border-radius:var(--radius-control);
+  overflow:hidden;
 }
 
 /* 步骤条 */
 .tutor-steps {
-  padding: 12px 16px;
-  background: var(--color-bg-2);
-  border-bottom: 1px solid var(--color-border);
-  flex-shrink: 0;
+  padding:var(--space-1) var(--space-2);
+  background:var(--color-bg-2);
+  border-bottom:var(--stroke) solid var(--color-border);
+  flex-shrink:0;
 }
 
 /* 消息区域 */
 .messages-area {
-  flex: 1;
-  overflow-y: auto;
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  min-height: 0;
+  flex:1;
+  overflow-y:auto;
+  padding:var(--space-2);
+  display:flex;
+  flex-direction:column;
+  gap:var(--space-2);
+  min-height:0;
 }
 
 .messages-area::-webkit-scrollbar {
-  width: 6px;
+  width:calc(var(--space-1) / 2);
 }
 .messages-area::-webkit-scrollbar-track {
-  background: transparent;
+  background:transparent;
 }
 .messages-area::-webkit-scrollbar-thumb {
-  background: var(--color-fill-3);
-  border-radius: 3px;
+  background:var(--color-fill-3);
+  border-radius:var(--radius-control);
 }
 
 .empty-state {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  color: var(--color-text-3);
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  color:var(--color-text-3);
 }
 
 .empty-icon {
-  font-size: 48px;
-  margin-bottom: 16px;
-  opacity: 0.5;
+  font-size:var(--text-page);
+  margin-bottom:var(--space-2);
+  opacity:0.5;
 }
 
 .hint {
-  font-size: 12px;
-  margin-top: 8px;
+  font-size:var(--text-caption);
+  margin-top:var(--space-1);
 }
 
 /* 消息项 */
 .message-item {
-  display: flex;
-  gap: 12px;
+  display:flex;
+  gap:var(--space-1);
 }
 
 .message-item.user {
-  flex-direction: row-reverse;
+  flex-direction:row-reverse;
 }
 
 .message-content {
-  max-width: 70%;
-  padding: 12px 16px;
-  border-radius: 12px;
-  background: var(--color-bg-2);
+  max-width:70%;
+  padding:var(--space-1) var(--space-2);
+  border-radius:var(--radius-panel);
+  background:var(--color-bg-2);
 }
 
 .user-message {
-  background: rgb(var(--primary-6));
-  color: #fff;
+  background:var(--action);
+  color:var(--on-action);
 }
 
 /* 标签行（对齐 MultiAgentChat 样式） */
 .message-label-row {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-bottom: 8px;
-  font-size: 12px;
+  display:flex;
+  align-items:center;
+  gap:calc(var(--space-1) / 2);
+  margin-bottom:var(--space-1);
+  font-size:var(--text-caption);
 }
 
 .tutor-label {
-  padding: 2px 10px;
-  background: rgb(var(--primary-6));
-  color: #fff;
-  border-radius: 10px;
-  font-weight: 500;
-  font-size: 12px;
+  padding:calc(var(--stroke) * 2) var(--space-1);
+  background:var(--action);
+  color:var(--on-action);
+  border-radius:var(--radius-control);
+  font-weight: var(--weight-medium);
+  font-size:var(--text-caption);
 }
 
 .step-badge {
-  padding: 1px 8px;
-  background: rgb(var(--warning-6));
-  color: #fff;
-  border-radius: 10px;
-  font-size: 11px;
-  font-weight: 600;
+  padding:var(--stroke) var(--space-1);
+  background:var(--warning);
+  color:var(--on-action);
+  border-radius:var(--radius-control);
+  font-size:var(--text-caption);
+  font-weight: var(--weight-strong);
 }
 
 .time {
-  margin-left: auto;
-  font-size: 11px;
-  color: var(--color-text-3);
-  white-space: nowrap;
+  margin-left:auto;
+  font-size:var(--text-caption);
+  color:var(--color-text-3);
+  white-space:nowrap;
 }
 
 .tutor-avatar {
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
-  flex-shrink: 0;
-  background: rgb(var(--primary-6));
+  width:var(--space-4);
+  height:var(--space-4);
+  border-radius:var(--radius-control);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:var(--text-card);
+  flex-shrink:0;
+  background:var(--action);
 }
 
 .text {
-  line-height: 1.6;
+  line-height:1.6;
 }
 
-.text :deep(p) { margin: 0 0 8px; }
-.text :deep(p:last-child) { margin: 0; }
-.text :deep(code) {
-  background: rgba(0,0,0,0.1);
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-size: 13px;
+.text:deep(p) { margin:0 0 var(--space-1); }
+.text:deep(p:last-child) { margin:0; }
+.text:deep(code) {
+  background:var(--surface-muted);
+  padding:calc(var(--stroke) * 2) calc(var(--space-1) / 2);
+  border-radius:var(--radius-control);
+  font-size:var(--text-caption);
 }
-.text :deep(pre) {
-  background: var(--color-bg-3);
-  padding: 12px;
-  border-radius: 8px;
-  overflow-x: auto;
+.text:deep(pre) {
+  background:var(--color-bg-3);
+  padding:var(--space-1);
+  border-radius:var(--radius-control);
+  overflow-x:auto;
 }
 
 .system-message {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 16px;
-  background: var(--color-fill-1);
-  border-radius: 16px;
-  font-size: 13px;
-  color: var(--color-text-2);
-  margin: 0 auto;
+  display:flex;
+  align-items:center;
+  gap:var(--space-1);
+  padding:var(--space-1) var(--space-2);
+  background:var(--color-fill-1);
+  border-radius:var(--radius-panel);
+  font-size:var(--text-caption);
+  color:var(--color-text-2);
+  margin:0 auto;
 }
 
 .system-message .icon {
-  font-size: 16px;
+  font-size:var(--text-body);
 }
 
 /* 输入区域 */
 .input-area {
-  padding: 12px 16px;
-  background: var(--color-bg-2);
-  border-top: 1px solid var(--color-border);
-  flex-shrink: 0;
+  padding:var(--space-1) var(--space-2);
+  background:var(--color-bg-2);
+  border-top:var(--stroke) solid var(--color-border);
+  flex-shrink:0;
 }
 
 .input-row {
-  display: flex;
-  gap: 12px;
+  display:flex;
+  gap:var(--space-1);
 }
 
-.input-row :deep(.arco-textarea) {
-  flex: 1;
+.input-row:deep(.arco-textarea) {
+  flex:1;
 }
 </style>

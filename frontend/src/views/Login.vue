@@ -32,6 +32,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/store/user'
+import { landingFor } from '@/shared/navigation/names.js'
 
 const userStore = useUserStore()
 const router = useRouter()
@@ -52,7 +53,7 @@ const handleLogin = async () => {
       error.value = result.message
       return
     }
-    await router.push(userStore.userInfo?.role === 'teacher' ? '/teacher' : '/')
+    await router.push(landingFor(userStore.userInfo?.role))
   } catch {
     error.value = '登录失败，请稍后重试。'
   } finally {
@@ -62,5 +63,15 @@ const handleLogin = async () => {
 </script>
 
 <style scoped>
-.login-page{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:linear-gradient(90deg,rgba(24,23,19,.045) 1px,transparent 1px) 0 0/44px 44px,linear-gradient(180deg,#faf7f0 0%,var(--bg-paper) 100%)}.login-container{width:100%;max-width:400px;padding:40px;border:1px solid var(--border-color);border-radius:var(--radius-lg);background:rgba(255,250,242,.86);box-shadow:14px 14px 0 var(--bg-paper-2)}.login-header{text-align:center;margin-bottom:32px}.login-title{margin:0 0 8px;font-size:32px;line-height:1.05;font-weight:950;color:var(--text-primary)}.login-subtitle{margin:0;color:var(--text-secondary);font-size:14px}.login-form{margin-bottom:24px}.form-group{display:block;margin-bottom:20px}.form-label{display:block;margin-bottom:8px;color:var(--text-primary);font-size:14px;font-weight:850}.btn-large{width:100%;margin-top:8px;padding:12px 24px;font-size:16px}.form-footer{margin-top:24px;padding-top:20px;border-top:1px solid #e8dfd2;text-align:center}.form-footer-text{color:var(--text-secondary);font-size:14px}.form-footer-link{margin-left:4px;color:var(--primary-color);font-size:14px;font-weight:850;text-decoration:none}.form-footer-link:hover{color:#8e2721}.error-message{margin:0;padding:12px;border:1px solid rgba(183,53,45,.28);border-radius:var(--radius-sm);background:rgba(183,53,45,.1);color:var(--error-color);font-size:14px;text-align:center}
+.login-page { min-height: calc(100vh - var(--header-height) - var(--nav-height)); display: grid; place-items: center; padding: var(--page-gutter); }
+.login-container { width: 100%; max-width: var(--form-width); padding: var(--space-4); border-radius: var(--radius-panel); background: var(--surface); box-shadow: var(--shadow-raised); }
+.login-header { margin-bottom: var(--space-4); }
+.login-title { margin-bottom: var(--space-1); font-size: var(--text-page); }
+.login-subtitle, .form-footer-text { color: var(--ink-secondary); }
+.form-group { display: block; margin-bottom: var(--space-3); }
+.form-label { display: block; margin-bottom: var(--space-1); font-weight: var(--weight-medium); }
+.btn-large { width: 100%; }
+.form-footer { margin-top: var(--space-3); text-align: center; }
+.form-footer-link { margin-left: var(--space-1); }
+.error-message { margin: var(--space-2) 0 0; padding: var(--space-2); border-radius: var(--radius-control); background: var(--negative-soft); color: var(--negative); }
 </style>

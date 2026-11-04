@@ -22,6 +22,7 @@ from datetime import datetime
 from django.conf import settings
 
 from .models import ChallengeKnowledgePack, CategoryKnowledgePack
+from .history import record_items
 
 logger = logging.getLogger(__name__)
 
@@ -1516,6 +1517,8 @@ class MultiAgentChatService:
             from learning_knowledge.services import search
 
             cards = search(task_context, query=str(query or '').strip()).get('results', [])
+            cards = cards[:max(1, min(int(limit or 5), 10))]
+            record_items(cards)
             return [{
                 'source_type': card['source_kind'],
                 'source_id': card['evidence_id'],
@@ -1523,7 +1526,7 @@ class MultiAgentChatService:
                 'title': card['title'],
                 'summary': card['excerpt'],
                 'url': card['view_endpoint'],
-            } for card in cards[:max(1, min(int(limit or 5), 10))]]
+            } for card in cards]
         except Exception as exc:
             logger.warning('controlled_knowledge_retrieval_failed', extra={
                 'event': 'controlled_knowledge_retrieval_failed', 'error_type': type(exc).__name__,
@@ -1659,6 +1662,7 @@ class MultiAgentChatService:
                     'body': article.content[:1000],
                 }, keywords)
                 items.append({
+                    'id': article.pk,
                     'type': 'article',
                     'title': article.title,
                     'reason': f"Matches current keywords: {query_terms}",
@@ -1692,6 +1696,8 @@ class MultiAgentChatService:
                     'summary': resource.description,
                 }, keywords)
                 items.append({
+                    'id': resource.pk,
+                    'source_type': 'resource',
                     'type': resource.resource_type or 'resource',
                     'title': resource.title,
                     'reason': f"Matches current keywords: {query_terms}",
@@ -1729,9 +1735,11 @@ class MultiAgentChatService:
                     'body': challenge.hint,
                 }, keywords)
                 items.append({
+                    'id': challenge.pk,
                     'type': 'challenge',
                     'title': challenge.title,
                     'reason': f"Same or adjacent practice topic: {challenge.category.name if challenge.category else 'CTF'} / {challenge.difficulty}",
+                    'category': challenge.category.name if challenge.category else '',
                     'entry': f"/challenge/{challenge.id}",
                     'summary': (challenge.description or '')[:160],
                     'difficulty': challenge.difficulty,
@@ -1750,6 +1758,9 @@ class MultiAgentChatService:
         items.sort(key=lambda item: item.get('_score', 0), reverse=True)
         for item in items:
             item.pop('_score', None)
+        # Capture the entire practice-input set, not just the displayed rag_sources.
+        # The verification step also consumes the generated practice text.
+        record_items(items[:5])
         return {'keywords': keywords, 'items': items[:5]}
 
     def _format_practice_references(self, references: Dict) -> str:

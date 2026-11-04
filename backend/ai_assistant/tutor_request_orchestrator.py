@@ -14,6 +14,7 @@ from agents.specialists.tutor_executor import TutorSpecialistExecutor
 from agents.task_plan import QUESTION_ANSWER, execution_plan_for
 from .performance import TutorPerformanceMetrics, activate_metrics, log_metrics
 from .response_adapter import build_compatible_chat_response
+from .history import preparation_origin, track_origin
 
 logger = logging.getLogger(__name__)
 
@@ -134,6 +135,7 @@ class TutorRequestOrchestrator:
             "fallbackReasons": fallback_reasons,
             "durationMs": round((time.monotonic() - started) * 1000, 2),
             "conversation": conversation, "performanceMetrics": metrics,
+            "_history_origin": preparation_origin(user, specialists, challenge_info, request_data),
         }
 
     def call_legacy_answer(self, *, message, conversation_history=None, challenge_info=None, teaching_context=None):
@@ -151,26 +153,30 @@ class TutorRequestOrchestrator:
     def call_existing_answer_chain(self, preparation, answer_chain):
         teaching_context = preparation.get("teachingContext")
         try:
-            return answer_chain(teaching_context)
+            with track_origin(preparation.get('_history_origin')):
+                return answer_chain(teaching_context)
         except Exception as exc:
             if teaching_context is None:
                 raise
             preparation.setdefault("fallbackReasons", []).append("answer_chain_context")
             preparation["performanceMetrics"].fallback_used = True
             logger.warning("tutor_answer_chain_context_fallback", extra={"event": "tutor_answer_chain_context_fallback", "error_type": type(exc).__name__})
-            return answer_chain(None)
+            with track_origin(preparation.get('_history_origin')):
+                return answer_chain(None)
 
     async def call_existing_answer_chain_async(self, preparation, answer_chain):
         teaching_context = preparation.get("teachingContext")
         try:
-            return await answer_chain(teaching_context)
+            with track_origin(preparation.get('_history_origin')):
+                return await answer_chain(teaching_context)
         except Exception as exc:
             if teaching_context is None:
                 raise
             preparation.setdefault("fallbackReasons", []).append("answer_chain_context")
             preparation["performanceMetrics"].fallback_used = True
             logger.warning("tutor_answer_chain_context_fallback", extra={"event": "tutor_answer_chain_context_fallback", "error_type": type(exc).__name__})
-            return await answer_chain(None)
+            with track_origin(preparation.get('_history_origin')):
+                return await answer_chain(None)
 
     def adapt_response(self, preparation, payload=None, *, responses=None, conversation_id=None, challenge_info=None, metadata=None):
         metrics = preparation.get("performanceMetrics")

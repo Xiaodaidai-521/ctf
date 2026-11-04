@@ -1,929 +1,336 @@
 <template>
   <div class="module-learning-page">
-    <!-- 页面头部 -->
     <div class="page-header">
       <div class="header-content">
-        <button class="back-button" @click="goBack">
-          <i class="bi bi-arrow-left"></i>
-          返回路径
+        <button type="button" class="back-button" @click="goBack">
+          <icon-arrow-left aria-hidden="true" />
+          返回{{ names.paths }}
         </button>
-        <div class="module-breadcrumb">
-          <span>{{ path.title }}</span>
-          <i class="bi bi-arrow-right"></i>
-          <span>{{ module.title }}</span>
-        </div>
+        <nav class="module-breadcrumb" aria-label="章节位置">
+          <router-link :to="`/learning-paths/${pathId}`">{{ path.title || '航线详情' }}</router-link>
+          <icon-arrow-right aria-hidden="true" />
+          <span>{{ view.title }}</span>
+        </nav>
         <div class="module-meta">
-          <span class="difficulty-badge" :class="path.difficulty">
-            {{ getDifficultyLabel(path.difficulty) }}
-          </span>
-          <span class="type-badge" :class="module.module_type">
-            {{ getModuleTypeLabel(module.module_type) }}
-          </span>
+          <span class="difficulty-badge">{{ difficultyLabel(path.difficulty) }}</span>
+          <span class="type-badge">{{ view.typeLabel }}</span>
+          <span v-if="view.required" class="type-badge">必修</span>
+          <span class="type-badge">{{ view.minutesLabel }}</span>
+          <span class="type-badge">{{ position.label }}</span>
         </div>
-        <h1 class="module-title">{{ module.title }}</h1>
-        <p v-if="module.description" class="module-description">
-          {{ module.description }}
+        <h1 class="module-title">{{ view.title }}</h1>
+        <p v-if="view.description" class="module-description">{{ view.description }}</p>
+        <p class="module-requires">{{ requires.label }}</p>
+        <p class="status-line">
+          章节状态：<strong>{{ status.label }}</strong>
+          <span v-if="status.startedLabel !== '—'"> · 开始于 {{ status.startedLabel }}</span>
+          <span v-if="status.completedLabel !== '—'"> · 完成于 {{ status.completedLabel }}</span>
         </p>
       </div>
 
       <div class="header-actions">
-        <button v-if="moduleProgress?.status !== 'COMPLETED'" class="btn btn-success" @click="markComplete">
-          <i class="bi bi-check-circle"></i>
-          标记完成
+        <button v-if="status.canStart" type="button" class="btn btn-primary" :disabled="starting" :aria-busy="starting" @click="startModule">
+          <icon-play-arrow aria-hidden="true" />
+          {{ starting ? '正在记录…' : '开始学习' }}
         </button>
-        <button v-else class="btn btn-primary" disabled>
-          <i class="bi bi-check-circle"></i>
+        <button v-if="status.canComplete" type="button" class="btn" :disabled="completing" :aria-busy="completing" @click="markComplete">
+          <icon-check-circle aria-hidden="true" />
+          {{ completing ? '正在记录…' : '标记完成' }}
+        </button>
+        <span v-else class="btn btn-success" aria-disabled="true">
+          <icon-check-circle aria-hidden="true" />
           已完成
-        </button>
+        </span>
       </div>
     </div>
 
-    <!-- 主内容区域 -->
-    <div class="main-content">
-      <!-- 加载中 -->
-      <div v-if="loading" class="loading-container">
-        <div class="spinner"></div>
-        <p>加载中...</p>
-      </div>
+    <p class="page-note">{{ status.note }} 完成只表示已学完章节，不称已独立掌握。</p>
 
-      <!-- 内容区域 -->
-      <div v-else>
-        <!-- 左侧：理论内容 -->
-        <div class="content-section">
-          <div class="content-card">
-            <!-- 理论内容渲染 -->
-            <div v-if="module.module_type === 'theory'" class="theory-content">
-              <div v-html="renderMarkdown(module.content)" class="markdown-body"></div>
-            </div>
-
-            <!-- 介绍内容 -->
-            <div v-if="module.module_type === 'intro'" class="intro-content">
-              <div v-html="renderMarkdown(module.content)" class="markdown-body"></div>
-            </div>
-
-            <!-- 实践内容 -->
-            <div v-if="module.module_type === 'practice'" class="practice-content">
-              <div v-html="renderMarkdown(module.content)" class="markdown-body"></div>
-            </div>
-
-            <!-- 挑战内容 -->
-            <div v-if="module.module_type === 'challenge'" class="challenge-content">
-              <div v-html="renderMarkdown(module.content)" class="markdown-body"></div>
-            </div>
-
-            <!-- 默认内容渲染（作为兜底） -->
-            <div v-if="module.content && !['theory', 'intro', 'practice', 'challenge'].includes(module.module_type)" class="default-content">
-              <div v-html="renderMarkdown(module.content)" class="markdown-body"></div>
-            </div>
-
-            <!-- 空内容提示 -->
-            <div v-if="!module.content || module.content === ''" style="padding: 32px; text-align: center; color: #999;">
-              <i class="bi bi-file-earmark-text" style="font-size: 48px; display: block; margin-bottom: 16px;"></i>
-              <p>暂无内容</p>
-            </div>
-
-            <!-- 笔记区域 -->
-            <div class="notes-section">
-              <h3>我的笔记</h3>
-              <textarea
-                v-model="notes"
-                placeholder="在这里记录你的学习笔记..."
-                rows="4"
-                class="form-control"
-              ></textarea>
-              <button class="btn btn-secondary" @click="saveNotes">
-                保存笔记
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <!-- 右侧：实验列表 -->
-        <div v-if="module.labs && module.labs.length" class="labs-section">
-          <h3 class="section-title">实践实验</h3>
-
-          <div class="labs-list">
-            <div
-              v-for="lab in module.labs"
-              :key="lab.id"
-              class="lab-card"
-              :class="{
-                'completed': isLabCompleted(lab),
-                'in-progress': isLabInProgress(lab)
-              }"
-            >
-              <div class="lab-header">
-                <div class="lab-icon">
-                  <i v-if="isLabCompleted(lab)" class="bi bi-flask completed"></i>
-                  <i v-else-if="isLabInProgress(lab)" class="bi bi-arrow-repeat spinning"></i>
-                  <i v-else class="bi bi-flask"></i>
-                </div>
-                <div class="lab-info">
-                  <h4 class="lab-title">{{ lab.lab?.title || '未知实验' }}</h4>
-                  <p class="lab-description">{{ lab.lab?.description || '暂无描述' }}</p>
-                </div>
-              </div>
-
-              <div class="lab-meta">
-                <span v-if="lab.lab?.difficulty" class="meta-item">
-                  <i class="bi bi-lightning"></i>
-                  {{ lab.lab.difficulty }}
-                </span>
-                <span class="meta-item">
-                  <i class="bi bi-trophy"></i>
-                  {{ lab.lab_score || 0 }} 分
-                </span>
-              </div>
-
-              <div class="lab-actions">
-                <button
-                  v-if="!isLabCompleted(lab) && lab.lab"
-                  class="btn btn-primary btn-sm"
-                  @click="startLab(lab.lab)"
-                >
-                  {{ isLabInProgress(lab) ? '继续实验' : '开始实验' }}
-                </button>
-                <button v-else class="btn btn-success btn-sm" disabled>
-                  已完成
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+    <div v-if="loading" class="state-box" role="status">
+      <div class="spinner" aria-hidden="true"></div>
+      <p>正在读取章节…</p>
     </div>
 
-    <!-- 实验弹窗 -->
-    <div v-if="labModalVisible" class="modal-overlay" @click.self="closeLabModal">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h3>{{ currentLab?.title }}</h3>
-          <button class="close-btn" @click="closeLabModal">✕</button>
-        </div>
-        <div class="modal-body">
-          <div class="lab-modal-content">
-            <!-- 实验内容区域 -->
-            <div class="lab-content">
-              <div v-html="renderMarkdown(currentLab?.description)" class="markdown-body"></div>
-
-              <div v-if="currentLab?.attachment" class="lab-attachment">
-                <h4>实验附件</h4>
-                <a :href="currentLab.attachment" class="btn-link">
-                  <i class="bi bi-download"></i>
-                  下载附件
-                </a>
-              </div>
-
-              <!-- Flag 提交表单 -->
-              <div class="flag-submission">
-                <h4>提交 Flag</h4>
-                <div class="input-group">
-                  <input
-                    v-model="flagInput"
-                    type="text"
-                    class="form-control"
-                    placeholder="输入 flag..."
-                    @keyup.enter="submitFlag"
-                  />
-                  <button class="btn btn-primary" @click="submitFlag">
-                    提交
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <!-- 实验终端/环境 -->
-            <div class="lab-terminal">
-              <div class="terminal-header">
-                <span>实验环境</span>
-                <button class="btn-sm btn-secondary" @click="refreshTerminal">
-                  <i class="bi bi-arrow-clockwise"></i>
-                  刷新
-                </button>
-              </div>
-              <div class="terminal-content">
-                <pre>{{ terminalOutput }}</pre>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+    <div v-else-if="error" class="state-box state-error" role="alert">
+      <icon-exclamation-circle aria-hidden="true" />
+      <h2>{{ notFound ? '章节不存在或已下架' : '章节暂时无法读取' }}</h2>
+      <p>{{ error }}</p>
+      <button type="button" class="btn" @click="loadData">重试</button>
     </div>
+
+    <template v-else>
+      <div class="learning-columns" :class="{ 'has-labs': labs.length }">
+        <div class="content-column">
+          <ModuleContent :view="view" :html="renderedContent" />
+          <ModuleNotes
+            v-model="notes"
+            :status="notesStatus"
+            @save-local="saveLocal"
+            @copy="copyNotes"
+            @download="downloadNotes"
+          />
+        </div>
+        <ModuleLabs :labs="labs" :capability="capability" />
+      </div>
+
+      <PathConceptPreview :path-id="pathId" />
+
+      <nav class="module-nav" aria-label="章节切换">
+        <router-link v-if="position.previous" :to="position.previous.to" class="btn">
+          <icon-arrow-left aria-hidden="true" /> 上一章：{{ position.previous.title }}
+        </router-link>
+        <router-link v-if="position.next" :to="position.next.to" class="btn">
+          下一章：{{ position.next.title }} <icon-arrow-right aria-hidden="true" />
+        </router-link>
+        <p v-if="!position.known" class="page-note">章节目录暂未读取，无法显示上一章/下一章；不按编号推测相邻章节。</p>
+      </nav>
+    </template>
+
+    <div v-if="message.visible" class="toast" :class="`toast-${message.type}`" role="status">{{ message.text }}</div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
+import { onBeforeRouteLeave, onBeforeRouteUpdate, useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '@/store/user'
-import api from '@/api'
+import { names } from '@/shared/navigation/names'
+import { pathsApi } from '@/learning/paths/api.js'
+import { difficultyLabel } from '@/learning/paths/presentation.js'
+import {
+  completeFailure, completeResult, labCapability, labViews, loadFailure, modulePosition,
+  moduleStatusView, moduleView, notesView, requiresView, startFailure,
+} from '@/learning/paths/moduleLearning.js'
+import { asList } from '@/learning/contracts.js'
 import { marked } from 'marked'
 import { sanitizeHtml } from '@/utils/sanitize'
+import ModuleContent from '@/learning/paths/components/ModuleContent.vue'
+import ModuleNotes from '@/learning/paths/components/ModuleNotes.vue'
+import ModuleLabs from '@/learning/paths/components/ModuleLabs.vue'
+import PathConceptPreview from '@/learning/paths/components/PathConceptPreview.vue'
 
 const route = useRoute()
 const router = useRouter()
-const userStore = useUserStore()
+const user = useUserStore()
 const pathId = computed(() => route.params.pathId)
 const moduleId = computed(() => route.params.moduleId)
 
-// 状态
-const loading = ref(false)
+const loading = ref(true)
+const error = ref('')
+const notFound = ref(false)
 const path = ref({})
-const module = ref({})
-const moduleProgress = ref(null)
-const labProgress = ref({})
+const moduleRaw = ref({})
+const catalog = ref([])
+const view = computed(() => moduleView(moduleRaw.value))
+const requires = computed(() => requiresView(view.value.requires, catalog.value))
+const position = computed(() => modulePosition(moduleId.value, catalog.value, pathId.value))
+const labs = computed(() => labViews(moduleRaw.value.labs))
+const capability = labCapability()
+
+// 章节进度只来自 start/complete 的真响应；GET 详情不会创建学习记录。
+const progressRecord = ref(null)
+const status = computed(() => moduleStatusView(progressRecord.value))
+const starting = ref(false)
+const completing = ref(false)
+
 const notes = ref('')
+const savedNotes = ref('')
+const notesStatus = computed(() => notesView({ content: notes.value, saved: savedNotes.value }))
+const notesKey = computed(() => `ctf:module-notes:${user.userInfo?.id ?? 'guest'}:${pathId.value}:${moduleId.value}`)
 
-const labModalVisible = ref(false)
-const currentLab = ref(null)
-const flagInput = ref('')
-const terminalOutput = ref('等待连接实验环境...\n')
+const renderedContent = computed(() => view.value.hasContent ? sanitizeHtml(marked(view.value.content)) : '')
+const message = reactive({ visible: false, type: 'info', text: '' })
+let messageTimer = null
 
-// 方法
-const loadData = async () => {
+function showMessage(type, text) {
+  message.visible = true
+  message.type = type
+  message.text = text
+  clearTimeout(messageTimer)
+  messageTimer = setTimeout(() => { message.visible = false }, 3600)
+}
+
+function readLocalDraft() {
+  try {
+    return localStorage.getItem(notesKey.value) || ''
+  } catch {
+    return ''
+  }
+}
+
+let loadVersion = 0
+
+async function loadData() {
+  const version = ++loadVersion
   loading.value = true
-  try {
-    // 并行加载路径、模块、进度数据
-    const [pathRes, moduleRes, progressRes] = await Promise.all([
-      api.learningPaths.detail(pathId.value),
-      api.pathModules.detail(moduleId.value),
-      api.learningProgress.overview().catch(() => null),
-    ])
-
-    path.value = pathRes
-    module.value = moduleRes
-
-    // 加载模块的实验室关联
-    await loadModuleLabs()
-
-    // 获取模块进度
-    if (progressRes && progressRes.modules) {
-      const moduleProgressData = progressRes.modules.find(
-        m => m.module === parseInt(moduleId.value)
-      )
-      if (moduleProgressData) {
-        moduleProgress.value = moduleProgressData
-      }
-    }
-
-    // 加载笔记
-    await loadNotes()
-
-    // 加载实验室进度
-    if (module.value.labs && module.value.labs.length) {
-      await loadLabProgress()
-    }
-  } catch (error) {
-    console.error('Failed to load module:', error)
-  } finally {
+  error.value = ''
+  notFound.value = false
+  progressRecord.value = null
+  const [pathResult, moduleResult, catalogResult] = await Promise.allSettled([
+    pathsApi.detail(pathId.value),
+    pathsApi.module(moduleId.value),
+    pathsApi.modules({ learning_path: pathId.value }),
+  ])
+  // 连续切换章节时只采用最后一次请求，避免上一章响应覆盖当前页。
+  if (version !== loadVersion) return
+  path.value = pathResult.status === 'fulfilled' ? (pathResult.value || {}) : {}
+  catalog.value = catalogResult.status === 'fulfilled' ? asList(catalogResult.value) : []
+  if (moduleResult.status === 'rejected') {
+    // 章节不存在/已下架与网络失败分开说明，不把后端英文原文直接展示给学生。
+    const failure = loadFailure(moduleResult.reason)
+    notFound.value = failure.notFound
+    error.value = failure.message
     loading.value = false
-  }
-}
-
-const loadModuleLabs = async () => {
-  try {
-    if (module.value.labs && module.value.labs.length > 0) {
-      // labs 已经在 module 数据中了
-      console.log('Module labs:', module.value.labs)
-    }
-  } catch (error) {
-    console.error('Failed to load module labs:', error)
-  }
-}
-
-const loadNotes = async () => {
-  try {
-    const res = await api.pathModules.getNotes(moduleId.value)
-    notes.value = res.content || ''
-  } catch (error) {
-    // 如果没有笔记，忽略错误
-    notes.value = ''
-  }
-}
-
-const loadLabProgress = async () => {
-  try {
-    const progress = await api.learningProgress.overview()
-    if (progress && progress.modules) {
-      const moduleData = progress.modules.find(m => m.module === parseInt(moduleId.value))
-      if (moduleData && moduleData.lab_progress) {
-        moduleData.lab_progress.forEach(lp => {
-          labProgress.value[lp.lab] = lp
-        })
-      }
-    }
-  } catch (error) {
-    console.error('Failed to load lab progress:', error)
-  }
-}
-
-const saveNotes = async () => {
-  try {
-    await api.pathModules.saveNotes(moduleId.value, { content: notes.value })
-    alert('笔记保存成功')
-  } catch (error) {
-    console.error('Failed to save notes:', error)
-    alert('笔记保存失败')
-  }
-}
-
-const markComplete = async () => {
-  try {
-    await api.pathModules.markComplete(moduleId.value)
-    moduleProgress.value = {
-      ...moduleProgress.value,
-      status: 'COMPLETED',
-      completed_at: new Date().toISOString()
-    }
-    alert('已标记为完成')
-  } catch (error) {
-    console.error('Failed to mark complete:', error)
-    alert('标记完成失败')
-  }
-}
-
-const startLab = (lab) => {
-  if (!lab) {
-    alert('实验数据不完整')
     return
   }
-  currentLab.value = lab
-  labModalVisible.value = true
-  terminalOutput.value = '正在启动实验环境...\n'
-  setTimeout(() => {
-    terminalOutput.value += '实验环境已启动\n'
-    terminalOutput.value += '提示: 点击下方链接访问实验环境\n'
-    if (lab.url) {
-      terminalOutput.value += `访问地址: ${lab.url}\n`
-    }
-  }, 1000)
+  moduleRaw.value = moduleResult.value || {}
+  notes.value = readLocalDraft()
+  savedNotes.value = notes.value
+  loading.value = false
 }
 
-const closeLabModal = () => {
-  labModalVisible.value = false
-  currentLab.value = null
-  flagInput.value = ''
-}
-
-const refreshTerminal = () => {
-  terminalOutput.value = '刷新中...\n'
-  setTimeout(() => {
-    terminalOutput.value += '实验环境运行正常\n'
-  }, 500)
-}
-
-const submitFlag = async () => {
-  if (!flagInput.value.trim()) {
-    alert('请输入 flag')
-    return
-  }
-
+async function startModule() {
+  if (starting.value) return
+  starting.value = true
   try {
-    const res = await api.pathModules.submitFlag(moduleId.value, currentLab.value.id, {
-      flag: flagInput.value
-    })
-
-    if (res.success) {
-      alert('Flag 提交成功！')
-      labProgress.value[currentLab.value.id] = {
-        ...labProgress.value[currentLab.value.id],
-        status: 'COMPLETED',
-        completed_at: new Date().toISOString()
-      }
-    } else {
-      alert('Flag 错误，请重试')
-    }
-  } catch (error) {
-    console.error('Failed to submit flag:', error)
-    alert('Flag 提交失败')
+    const record = await pathsApi.startModule(moduleId.value)
+    progressRecord.value = record
+    showMessage('success', '已记录本章节开始；进度以平台记录为准。')
+  } catch (failure) {
+    const result = startFailure(failure)
+    showMessage(result.blocked ? 'warning' : 'error', result.message)
+  } finally {
+    starting.value = false
   }
 }
 
-const goBack = () => {
+async function markComplete() {
+  if (completing.value) return
+  completing.value = true
+  try {
+    const payload = await pathsApi.completeModule(moduleId.value)
+    const result = completeResult(payload, moduleId.value)
+    if (result.ok) progressRecord.value = payload
+    showMessage(result.ok ? 'success' : 'warning', result.message)
+  } catch (failure) {
+    const result = completeFailure(failure)
+    if (result.needsStart) progressRecord.value = null
+    showMessage(result.needsStart ? 'warning' : 'error', result.message)
+  } finally {
+    completing.value = false
+  }
+}
+
+function saveLocal() {
+  try {
+    localStorage.setItem(notesKey.value, notes.value)
+    savedNotes.value = notes.value
+    showMessage('success', '已保存到本机浏览器；服务器暂不接收章节笔记。')
+  } catch {
+    showMessage('error', '本机保存失败，请复制或下载笔记保全内容。')
+  }
+}
+
+async function copyNotes() {
+  try {
+    await navigator.clipboard.writeText(notes.value)
+    showMessage('success', '笔记已复制到剪贴板。')
+  } catch {
+    showMessage('warning', '浏览器未允许自动复制，请手动选中复制，或下载为文件。')
+  }
+}
+
+function downloadNotes() {
+  const blob = new Blob([notes.value], { type: 'text/markdown;charset=utf-8' })
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = `章节笔记-${moduleId.value}.md`
+  link.click()
+  URL.revokeObjectURL(url)
+  showMessage('success', '已生成本地笔记文件；不会上传到服务器。')
+}
+
+function beforeUnload(event) {
+  if (!notesStatus.value.dirty) return
+  event.preventDefault()
+  event.returnValue = ''
+}
+
+function goBack() {
   router.push(`/learning-paths/${pathId.value}`)
 }
 
-const isLabCompleted = (lab) => {
-  if (!lab?.lab?.id) return false
-  return labProgress.value[lab.lab.id]?.status === 'COMPLETED'
+const unsavedNotesGuard = () => {
+  if (!notesStatus.value.dirty) return true
+  return window.confirm('笔记还没有保存到本机，也没有服务器笔记接口。离开会丢失当前输入，确定离开吗？')
 }
 
-const isLabInProgress = (lab) => {
-  if (!lab?.lab?.id) return false
-  const status = labProgress.value[lab.lab.id]?.status
-  return status === 'IN_PROGRESS' || status === 'ATTEMPTED'
-}
+onBeforeRouteLeave(unsavedNotesGuard)
+// 上一章/下一章复用同一路由记录，离开守卫不会触发；参数变化同样先询问未保存笔记。
+onBeforeRouteUpdate(unsavedNotesGuard)
 
-const getDifficultyLabel = (difficulty) => {
-  const labels = { AP: '入门', PR: '进阶', EX: '专家' }
-  return labels[difficulty] || difficulty
-}
-
-const getModuleTypeLabel = (type) => {
-  const labels = {
-    intro: '介绍',
-    theory: '理论',
-    practice: '实践',
-    challenge: '挑战'
-  }
-  return labels[type] || type
-}
-
-const formatDuration = (seconds) => {
-  if (!seconds) return '0 分钟'
-  const minutes = Math.floor(seconds / 60)
-  const hours = Math.floor(minutes / 60)
-  const remainingMinutes = minutes % 60
-
-  if (hours > 0) {
-    return `${hours} 小时 ${remainingMinutes} 分钟`
-  }
-  return `${remainingMinutes} 分钟`
-}
-
-const renderMarkdown = (content) => {
-  if (!content) return ''
-  return sanitizeHtml(marked(content))
-}
-
-// 生命周期
-onMounted(() => {
+// 站内切换章节时复用组件：按真实路径/章节参数重新读取，不沿用上一章的进度与内容。
+watch([pathId, moduleId], ([nextPath, nextModule], [previousPath, previousModule]) => {
+  if (nextPath === previousPath && nextModule === previousModule) return
+  message.visible = false
   loadData()
+})
+
+watch(notesStatus, value => {
+  if (value.dirty) window.addEventListener('beforeunload', beforeUnload)
+  else window.removeEventListener('beforeunload', beforeUnload)
+})
+
+onMounted(loadData)
+onBeforeUnmount(() => {
+  window.removeEventListener('beforeunload', beforeUnload)
+  clearTimeout(messageTimer)
 })
 </script>
 
 <style scoped>
-.module-learning-page {
-  min-height: 100vh;
-  background: #f5f5f5;
-}
-
-.page-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  padding: 24px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.header-content {
-  flex: 1;
-}
-
-.back-button {
-  background: rgba(255, 255, 255, 0.2);
-  border: none;
-  color: white;
-  padding: 8px 16px;
-  border-radius: 4px;
-  cursor: pointer;
-  margin-bottom: 16px;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.back-button:hover {
-  background: rgba(255, 255, 255, 0.3);
-}
-
-.module-breadcrumb {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  opacity: 0.9;
-  margin-bottom: 12px;
-  font-size: 14px;
-}
-
-.module-meta {
-  display: flex;
-  gap: 12px;
-  margin-bottom: 16px;
-}
-
-.difficulty-badge,
-.type-badge {
-  padding: 4px 12px;
-  border-radius: 12px;
-  font-size: 12px;
-  font-weight: 600;
-}
-
-.difficulty-badge.AP {
-  background: #52c41a;
-}
-
-.difficulty-badge.PR {
-  background: #faad14;
-}
-
-.difficulty-badge.EX {
-  background: #f5222d;
-}
-
-.type-badge.intro {
-  background: #1890ff;
-}
-
-.type-badge.theory {
-  background: #722ed1;
-}
-
-.type-badge.practice {
-  background: #13c2c2;
-}
-
-.type-badge.challenge {
-  background: #eb2f96;
-}
-
-.module-title {
-  font-size: 28px;
-  font-weight: 700;
-  margin: 0 0 8px 0;
-}
-
-.module-description {
-  font-size: 16px;
-  opacity: 0.9;
-  margin: 0;
-}
-
-.header-actions {
-  display: flex;
-  gap: 12px;
-}
-
-.main-content {
-  display: grid;
-  grid-template-columns: 1fr 350px;
-  gap: 24px;
-  padding: 24px;
-  max-width: 1400px;
-  margin: 0 auto;
-}
-
-.content-section {
-  flex: 1;
-}
-
-.content-card {
-  background: white;
-  border-radius: 8px;
-  padding: 24px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.theory-content,
-.intro-content,
-.practice-content,
-.challenge-content {
-  margin-bottom: 24px;
-}
-
-.markdown-body {
-  line-height: 1.8;
-}
-
-.notes-section {
-  margin-top: 24px;
-  padding-top: 24px;
-  border-top: 1px solid #f0f0f0;
-}
-
-.notes-section h3 {
-  margin-bottom: 12px;
-  font-size: 18px;
-}
-
-.notes-section textarea {
-  width: 100%;
-  padding: 12px;
-  border: 1px solid #d9d9d9;
-  border-radius: 4px;
-  margin-bottom: 12px;
-  font-family: inherit;
-  resize: vertical;
-}
-
-.labs-section {
-  background: white;
-  border-radius: 8px;
-  padding: 24px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.section-title {
-  font-size: 20px;
-  font-weight: 600;
-  margin: 0 0 16px 0;
-}
-
-.labs-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.lab-card {
-  border: 1px solid #f0f0f0;
-  border-radius: 8px;
-  padding: 16px;
-  transition: all 0.3s;
-}
-
-.lab-card:hover {
-  border-color: #1890ff;
-  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.15);
-}
-
-.lab-card.completed {
-  border-color: #52c41a;
-}
-
-.lab-card.in-progress {
-  border-color: #faad14;
-}
-
-.lab-header {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  margin-bottom: 12px;
-}
-
-.lab-icon {
-  font-size: 24px;
-  color: #1890ff;
-}
-
-.lab-icon .completed {
-  color: #52c41a;
-}
-
-.lab-icon .spinning {
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.lab-info {
-  flex: 1;
-}
-
-.lab-title {
-  font-size: 16px;
-  font-weight: 600;
-  margin: 0 0 4px 0;
-}
-
-.lab-description {
-  font-size: 14px;
-  color: #666;
-  margin: 0;
-}
-
-.lab-meta {
-  display: flex;
-  gap: 16px;
-  margin-bottom: 12px;
-  font-size: 14px;
-  color: #666;
-}
-
-.meta-item {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.lab-actions {
-  display: flex;
-  justify-content: flex-end;
-}
-
-.btn {
-  padding: 8px 16px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: all 0.3s;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.btn-primary {
-  background: #1890ff;
-  color: white;
-}
-
-.btn-primary:hover {
-  background: #40a9ff;
-}
-
-.btn-secondary {
-  background: #f5f5f5;
-  color: #333;
-}
-
-.btn-secondary:hover {
-  background: #e6e6e6;
-}
-
-.btn-success {
-  background: #52c41a;
-  color: white;
-}
-
-.btn-sm {
-  padding: 6px 12px;
-  font-size: 13px;
-}
-
-.btn-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  color: #1890ff;
-  text-decoration: none;
-  cursor: pointer;
-}
-
-.btn-link:hover {
-  text-decoration: underline;
-}
-
-.input-group {
-  display: flex;
-  gap: 8px;
-}
-
-.form-control {
-  flex: 1;
-  padding: 8px 12px;
-  border: 1px solid #d9d9d9;
-  border-radius: 4px;
-  font-size: 14px;
-}
-
-.form-control:focus {
-  outline: none;
-  border-color: #1890ff;
-  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
-}
-
-/* Modal styles */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-
-.modal-content {
-  background: white;
-  border-radius: 8px;
-  width: 90%;
-  max-width: 1200px;
-  max-height: 90vh;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-}
-
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16px 24px;
-  border-bottom: 1px solid #f0f0f0;
-}
-
-.modal-header h3 {
-  margin: 0;
-  font-size: 20px;
-}
-
-.close-btn {
-  background: none;
-  border: none;
-  font-size: 24px;
-  cursor: pointer;
-  color: #999;
-}
-
-.close-btn:hover {
-  color: #333;
-}
-
-.modal-body {
-  padding: 24px;
-  overflow-y: auto;
-  flex: 1;
-}
-
-.lab-modal-content {
-  display: grid;
-  grid-template-columns: 1fr 400px;
-  gap: 24px;
-}
-
-.lab-content {
-  flex: 1;
-}
-
-.lab-attachment {
-  margin: 24px 0;
-  padding: 16px;
-  background: #f5f5f5;
-  border-radius: 4px;
-}
-
-.lab-attachment h4 {
-  margin: 0 0 8px 0;
-  font-size: 16px;
-}
-
-.flag-submission {
-  margin: 24px 0;
-}
-
-.flag-submission h4 {
-  margin: 0 0 12px 0;
-  font-size: 16px;
-}
-
-.lab-terminal {
-  background: #1e1e1e;
-  color: #d4d4d4;
-  border-radius: 8px;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-}
-
-.terminal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 16px;
-  background: #2d2d2d;
-  border-bottom: 1px solid #3e3e3e;
-}
-
-.terminal-header button {
-  background: rgba(255, 255, 255, 0.1);
-  border: none;
-  color: white;
-  padding: 4px 12px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 12px;
-}
-
-.terminal-header button:hover {
-  background: rgba(255, 255, 255, 0.2);
-}
-
-.terminal-content {
-  padding: 16px;
-  flex: 1;
-  overflow-y: auto;
-  font-family: 'Courier New', monospace;
-  font-size: 13px;
-  line-height: 1.6;
-}
-
-.terminal-content pre {
-  margin: 0;
-  white-space: pre-wrap;
-  word-wrap: break-word;
-}
-
-@media (max-width: 1200px) {
-  .main-content {
-    grid-template-columns: 1fr;
-  }
-
-  .lab-modal-content {
-    grid-template-columns: 1fr;
-  }
+.module-learning-page { display: grid; gap: var(--space-3); width: min(var(--page-width), calc(100% - var(--page-gutter) * 2)); margin: var(--space-4) auto var(--space-8); color: var(--ink); }
+.page-header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: var(--space-3); padding-bottom: var(--space-3); border-bottom: var(--stroke) solid var(--line); }
+.header-content { display: grid; gap: var(--space-1); min-width: 0; flex: 1; }
+.back-button { justify-self: start; display: inline-flex; align-items: center; gap: var(--space-1); min-height: var(--control-height); padding: 0 var(--space-2); border: var(--stroke) solid var(--line); border-radius: var(--radius-control); background: var(--surface); color: var(--ink-secondary); font: inherit; font-size: var(--text-caption); cursor: pointer; }
+.module-breadcrumb { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-1); color: var(--ink-secondary); font-size: var(--text-caption); }
+.module-breadcrumb a { color: var(--action); }
+.module-meta { display: flex; flex-wrap: wrap; gap: var(--space-1); }
+.difficulty-badge, .type-badge { padding: 0 var(--space-1); border-radius: var(--radius-pill); background: var(--surface-muted); color: var(--ink-secondary); font-size: var(--text-caption); }
+.module-title { margin: 0; font-size: var(--text-page); line-height: var(--leading-tight); overflow-wrap: anywhere; }
+.module-description { margin: 0; color: var(--ink-secondary); }
+.module-requires, .status-line, .page-note { margin: 0; color: var(--ink-secondary); font-size: var(--text-caption); line-height: 1.6; }
+.header-actions { display: flex; flex-wrap: wrap; gap: var(--space-1); }
+.learning-columns { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-3); align-items: start; }
+.learning-columns.has-labs { grid-template-columns: minmax(0, 1fr) var(--menu-width); }
+.content-column { display: grid; gap: var(--space-3); min-width: 0; }
+.module-nav { display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--space-1); }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: var(--space-1); min-height: var(--control-height); padding: 0 var(--space-2); border: var(--stroke) solid var(--line-strong); border-radius: var(--radius-control); background: var(--surface); color: var(--ink); font: inherit; font-size: var(--text-caption); cursor: pointer; }
+.btn-primary { border-color: var(--action); background: var(--action); color: var(--on-action); }
+.btn:hover:not(:disabled) { border-color: var(--action); color: var(--action); }
+.btn-primary:hover:not(:disabled) { background: var(--action-hover); border-color: var(--action-hover); color: var(--on-action); }
+.btn:active:not(:disabled) { background: var(--surface-muted); }
+.btn-primary:active:not(:disabled) { background: var(--action-pressed); border-color: var(--action-pressed); }
+.btn:disabled, .btn.btn-success { cursor: not-allowed; }
+.btn:disabled { border-color: var(--line); background: var(--surface-muted); color: var(--ink-muted); }
+.btn-success { border-color: var(--positive); background: var(--positive-soft); color: var(--positive); }
+.back-button:hover, .btn:focus-visible, .back-button:focus-visible, .module-breadcrumb a:focus-visible { border-color: var(--action); }
+:is(.btn, .back-button, .module-breadcrumb a):focus-visible { outline: var(--focus-width) solid var(--action); outline-offset: var(--focus-offset); }
+.state-box { display: grid; justify-items: center; gap: var(--space-1); padding: var(--space-6) var(--space-2); border: var(--stroke) solid var(--line); border-radius: var(--radius-panel); background: var(--surface); color: var(--ink-secondary); text-align: center; }
+.state-box p { margin: 0; }
+.state-error { border-color: var(--negative); background: var(--negative-soft); color: var(--negative); }
+.spinner { width: var(--control-height); height: var(--control-height); border: var(--focus-width) solid var(--line); border-top-color: var(--action); border-radius: var(--radius-pill); animation: spin calc(var(--motion-slow) * 4) linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.toast { position: fixed; top: calc(var(--header-height) + var(--space-2)); left: 50%; transform: translateX(-50%); z-index: var(--z-overlay); max-width: calc(100% - var(--page-gutter) * 2); padding: var(--space-1) var(--space-2); border: var(--stroke) solid var(--line); border-radius: var(--radius-control); background: var(--surface); color: var(--ink); font-size: var(--text-caption); box-shadow: var(--shadow-raised); }
+.toast-success { background: var(--positive-soft); color: var(--positive); }
+.toast-warning { background: var(--warning-soft); color: var(--warning); }
+.toast-error { background: var(--negative-soft); color: var(--negative); }
+.is-compact .module-learning-page .page-header { flex-direction: column; align-items: stretch; }
+.is-compact .module-learning-page .header-actions .btn { flex: 1; }
+.is-compact .module-learning-page :is(.learning-columns.has-labs) { grid-template-columns: minmax(0, 1fr); }
+.is-compact .module-learning-page .module-nav { flex-direction: column; align-items: stretch; }
+@media (prefers-reduced-motion: reduce) {
+  .spinner { animation: none; }
 }
 </style>

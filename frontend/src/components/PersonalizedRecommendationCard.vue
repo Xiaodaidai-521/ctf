@@ -27,6 +27,8 @@
 </template>
 
 <script setup>
+import { names } from '@/shared/navigation/names'
+
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 
@@ -45,7 +47,7 @@ const TYPE_CONFIG = {
   article: { label: '文章', color: 'purple' },
   video: { label: '视频', color: 'red' },
   resource: { label: '资源', color: 'green' },
-  path: { label: '学习路径', color: 'orange' },
+  path: { label: names.paths, color: 'orange' },
   exercise: { label: '练习', color: 'cyan' }
 }
 
@@ -66,68 +68,68 @@ const handleAction = () => {
 
 <style scoped>
 .recommendation-card {
-  background: var(--color-bg-1);
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-  padding: 16px;
-  cursor: pointer;
-  transition: box-shadow 0.2s, transform 0.2s;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+  background:var(--color-bg-1);
+  border:var(--stroke) solid var(--color-border);
+  border-radius:var(--radius-control);
+  padding:var(--space-2);
+  cursor:pointer;
+  transition:box-shadow var(--motion-normal), transform var(--motion-normal);
+  display:flex;
+  flex-direction:column;
+  gap:var(--space-1);
 }
 
 .recommendation-card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  transform: translateY(-2px);
+  box-shadow: var(--shadow-raised);
+  transform:translateY(calc(calc(var(--stroke) * 2) * -1));
 }
 
 .card-header {
-  display: flex;
-  align-items: center;
+  display:flex;
+  align-items:center;
 }
 
 .card-title {
-  margin: 0;
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--color-text-1);
-  line-height: 1.4;
+  margin:0;
+  font-size:var(--text-caption);
+  font-weight: var(--weight-strong);
+  color:var(--color-text-1);
+  line-height:1.4;
 }
 
 .card-reason {
-  margin: 0;
-  font-size: 13px;
-  color: var(--color-text-2);
-  line-height: 1.6;
-  display: -webkit-box;
+  margin:0;
+  font-size:var(--text-caption);
+  color:var(--color-text-2);
+  line-height:1.6;
+  display:-webkit-box;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
-  overflow: hidden;
+  overflow:hidden;
 }
 
 .card-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-top: auto;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-top:auto;
 }
 
 .footer-info {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-size: 12px;
-  color: var(--color-text-3);
+  display:flex;
+  align-items:center;
+  gap:var(--space-1);
+  font-size:var(--text-caption);
+  color:var(--color-text-3);
 }
 
 .info-item {
-  display: flex;
-  align-items: center;
-  gap: 4px;
+  display:flex;
+  align-items:center;
+  gap:calc(var(--space-1) / 2);
 }
 
 .info-item.gain {
-  color: rgb(var(--green-6));
+  color:var(--positive);
 }
 </style>

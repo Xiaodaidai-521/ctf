@@ -1,0 +1,38 @@
+.teacher-insights, .teacher-assessment, .teacher-growth { color: var(--ink); background: var(--surface-page); padding: var(--space-2); min-width: 0; }
+.page-head { margin-bottom: var(--space-3); }
+.page-head h1 { margin: 0; font-size: var(--text-page); line-height: var(--leading-tight); }
+.page-head p { color: var(--ink-secondary); margin: var(--space-1) 0 0; }
+.filters, .section-head { display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: end; margin-bottom: var(--space-2); }
+label { display: grid; gap: var(--space-1); font-size: var(--text-caption); color: var(--ink-secondary); }
+input, select, textarea, button { font: inherit; min-height: var(--control-height); border: var(--stroke) solid var(--line-strong); border-radius: var(--radius-control); background: var(--surface); color: var(--ink); padding: var(--space-1) var(--space-2); max-width: 100%; box-sizing: border-box; }
+button { cursor: pointer; }
+button.primary { background: var(--button-primary); color: var(--on-action); border-color: var(--button-primary); border-radius: var(--radius-pill); }
+button:disabled, fieldset:disabled { cursor: not-allowed; opacity: .65; }
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, summary:focus-visible { outline: var(--focus-width) solid var(--action); outline-offset: var(--focus-offset); }
+a { color: var(--action); }
+.work-grid { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: var(--space-2); }
+.panel { min-width: 0; background: var(--surface); border-radius: var(--radius-panel); padding: var(--space-2); }
+.wide { grid-column: 1 / -1; }
+h2 { font-size: var(--text-section); margin: 0 0 var(--space-2); }
+h3 { font-size: var(--text-card); }
+p, li { line-height: var(--leading-body); overflow-wrap: anywhere; }
+fieldset { padding: 0; border: 0; margin: 0; min-width: 0; display: grid; gap: var(--space-2); }
+.field-grid, .summary-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-2); }
+.summary-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); margin: var(--space-2) 0; }
+dt, small { font-size: var(--text-caption); color: var(--ink-secondary); }
+dd { font-size: var(--text-section); margin: var(--space-1) 0; }
+.table-scroll { overflow-x: auto; }
+.teacher-insights .table-scroll table { min-width: 720px; }
+.teacher-insights .table-scroll th { white-space: nowrap; }
+table { border-collapse: collapse; width: 100%; font-size: var(--text-caption); text-align: left; font-variant-numeric: tabular-nums; }
+th, td { padding: var(--space-1); border-bottom: var(--stroke) solid var(--line); vertical-align: top; }
+caption { text-align: left; color: var(--ink-secondary); margin-bottom: var(--space-1); }
+.note { color: var(--ink-secondary); font-size: var(--text-caption); }
+.section-links { display: flex; flex-wrap: wrap; gap: var(--space-2); padding: var(--space-2) 0; }
+.metric-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--space-2); }
+.metric-grid div { padding: var(--space-1) 0; }
+.metric-grid dd { font-size: var(--text-card); }
+.growth-sections { display: grid; gap: var(--space-2); }
+[role=alert] { color: var(--negative); }
+@media (max-width: 960px) { .work-grid { grid-template-columns: minmax(0, 1fr); } .metric-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 640px) { .teacher-insights, .teacher-assessment, .teacher-growth { padding: var(--space-1); } .summary-grid, .field-grid { grid-template-columns: minmax(0, 1fr); } .filters > label { width: 100%; } }
