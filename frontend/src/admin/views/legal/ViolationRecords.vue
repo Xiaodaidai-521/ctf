@@ -38,15 +38,15 @@ const form = ref({ title: '', description: '', severity: 'medium' })
 
 const columns = [
   { key: 'title', label: '标题' },
-  { key: 'severity', label: '等级', badge: true },
-  { key: 'status', label: '状态', badge: true },
+  { key: 'severity', label: '等级', labelKey: 'severity', badge: true },
+  { key: 'status', label: '状态', labelKey: 'taskStatus', badge: true },
   { key: 'created_at', label: '创建时间', formatter: formatDate },
 ]
 
 const metrics = computed(() => [
   { label: '记录数', value: records.value.length, hint: '当前页' },
-  { label: '未关闭', value: records.value.filter((item) => item.status !== 'closed').length, hint: 'open' },
-  { label: '高风险', value: records.value.filter((item) => ['high', 'critical'].includes(item.severity)).length, hint: 'high+' },
+  { label: '未关闭', value: records.value.filter((item) => item.status !== 'closed').length, hint: '待处理' },
+  { label: '高风险', value: records.value.filter((item) => ['high', 'critical'].includes(item.severity)).length, hint: '高风险及以上' },
 ])
 
 async function loadData() {

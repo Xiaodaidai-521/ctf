@@ -1,7 +1,7 @@
 <template>
   <div class="announcement-banner" v-if="announcements.length > 0">
     <div class="announcement-container">
-      <div class="announcement-icon">📢</div>
+      <div class="announcement-icon"><AppIcon name="bi-megaphone" /></div>
       <div class="announcement-content">
         <div
           v-for="(announcement, index) in visibleAnnouncements"
@@ -36,8 +36,8 @@
         class="close-btn"
         @click="handleClose"
         v-if="closable"
-      >
-        ✕
+       aria-label="关闭">
+        <AppIcon name="bi-x-lg" />
       </button>
     </div>
   </div>
@@ -136,114 +136,114 @@ defineExpose({
 
 <style scoped>
 .announcement-banner {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  padding: 12px 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  background: var(--surface-muted);
+  color:var(--ink);
+  padding:var(--space-1) var(--space-2);
+  box-shadow: var(--shadow-raised);
 }
 
 .announcement-container {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  max-width: 1200px;
-  margin: 0 auto;
+  display:flex;
+  align-items:center;
+  gap:var(--space-1);
+  max-width:var(--table-width);
+  margin:0 auto;
 }
 
 .announcement-icon {
-  font-size: 20px;
-  flex-shrink: 0;
+  font-size:var(--text-card);
+  flex-shrink:0;
 }
 
 .announcement-content {
-  flex: 1;
-  min-width: 0;
+  flex:1;
+  min-width:0;
 }
 
 .announcement-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
-  padding: 4px 0;
-  transition: opacity 0.2s;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  display:flex;
+  align-items:center;
+  gap:var(--space-1);
+  cursor:pointer;
+  padding:calc(var(--space-1) / 2) 0;
+  transition:opacity var(--motion-normal);
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
 }
 
 .announcement-item:hover {
-  opacity: 0.8;
+  opacity:0.8;
 }
 
 .priority-badge {
-  font-size: 12px;
-  font-weight: bold;
-  padding: 2px 6px;
-  border-radius: 3px;
-  flex-shrink: 0;
+  font-size:var(--text-caption);
+  font-weight:bold;
+  padding:calc(var(--stroke) * 2) calc(var(--space-1) / 2);
+  border-radius:var(--radius-control);
+  flex-shrink:0;
 }
 
 .priority-badge.urgent {
-  background: #ff4757;
-  color: white;
+  background:var(--action);
+  color:var(--on-action);
 }
 
 .priority-badge.important {
-  background: #ffa502;
-  color: white;
+  background:var(--action);
+  color:var(--on-action);
 }
 
 .announcement-title {
-  font-size: 14px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  font-size:var(--text-caption);
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
 }
 
 .announcement-time {
-  font-size: 12px;
-  opacity: 0.8;
-  flex-shrink: 0;
-  margin-left: auto;
+  font-size:var(--text-caption);
+  opacity:0.8;
+  flex-shrink:0;
+  margin-left:auto;
 }
 
 .toggle-btn,
 .close-btn {
-  background: rgba(255, 255, 255, 0.2);
-  border: none;
-  color: white;
-  padding: 6px 12px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 13px;
-  transition: background 0.2s;
-  flex-shrink: 0;
+  background:var(--surface-muted);
+  border:none;
+  color:var(--ink);
+  padding:calc(var(--space-1) / 2) var(--space-1);
+  border-radius:var(--radius-control);
+  cursor:pointer;
+  font-size:var(--text-caption);
+  transition:background var(--motion-normal);
+  flex-shrink:0;
 }
 
 .toggle-btn:hover,
 .close-btn:hover {
-  background: rgba(255, 255, 255, 0.3);
+  background:var(--surface-muted);
 }
 
 .close-btn {
-  padding: 4px 8px;
-  font-size: 16px;
+  padding:calc(var(--space-1) / 2) var(--space-1);
+  font-size:var(--text-body);
 }
 
 @media (max-width: 768px) {
   .announcement-container {
-    gap: 8px;
+    gap:var(--space-1);
   }
 
   .announcement-item {
-    font-size: 13px;
+    font-size:var(--text-caption);
   }
 
   .toggle-btn,
   .close-btn {
-    padding: 4px 8px;
-    font-size: 12px;
+    padding:calc(var(--space-1) / 2) var(--space-1);
+    font-size:var(--text-caption);
   }
 }
 </style>

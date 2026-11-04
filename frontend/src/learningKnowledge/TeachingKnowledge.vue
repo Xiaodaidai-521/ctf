@@ -1,155 +1,97 @@
 <template>
-  <main class="lk-page">
-    <header class="lk-header">
-      <div>
-        <p class="lk-eyebrow">模块三 · 教师审阅</p>
-        <h1>教学材料审阅</h1>
-        <p>检查原文、段落和任务映射，再提交独立审阅与发布。这里只展示服务器返回的可管理材料。</p>
-      </div>
-      <div class="lk-actions">
-        <router-link class="lk-button" :to="user.userInfo?.role === 'admin' ? '/admin/legal/kb' : '/teacher/knowledge'">返回知识资料库</router-link>
+  <main v-if="managing" class="material-page">
+    <header class="material-header">
+      <div><h1>{{ user.userInfo?.role === 'admin' ? names.materialMaintenance : names.materials }}</h1><p>检查原文、段落和适用任务，再提交独立审阅与发布。这里只展示你有权管理的材料。</p></div>
+      <div class="material-actions">
+        <router-link :to="user.userInfo?.role === 'admin' ? '/admin/legal/kb' : '/teacher/knowledge'">返回{{ user.userInfo?.role === 'admin' ? names.foundation : names.knowledge }}</router-link>
         <button type="button" :disabled="busy" @click="resumeAndLoad">重新加载列表</button>
       </div>
     </header>
-
-    <p class="lk-notice">教师路由不等于课程审阅授权。独立审阅人、当前修订、许可与发布范围均由服务器校验，不提供模拟学生预览。</p>
-    <section v-if="paused" class="lk-panel" aria-live="polite">
-      <h2>内容已清除</h2>
-      <p>切换用户、离开页面、窗口失焦或进入后台会清除原文、表单和请求标识；返回后不会自动恢复。</p>
-      <p>中断请求不代表服务器取消了写操作，请先重新加载核对结果。</p>
-      <button v-if="sessionChanged" type="button" @click="privacy.reload">会话已在其他标签页变化，刷新页面</button>
-      <button v-else type="button" @click="resumeAndLoad">重新读取当前会话的材料</button>
+    <ContentAreaNav v-if="user.userInfo?.role === 'teacher'" />
+    <!-- Native pickers may blur the window. Keep only these empty controls mounted;
+         a new selection may resume, but never restores the previous target or form. -->
+    <input ref="registerFileInput" class="material-file-input" type="file" accept=".json,application/json" aria-label="导入登记文件" @change="importFile($event, 'register')" />
+    <input ref="revisionFileInput" class="material-file-input" type="file" accept=".json,application/json" aria-label="导入修订文件" @change="importFile($event, 'revise')" />
+    <p class="material-notice">审阅与发布需要相应课程授权。请核实独立审阅人、当前版本、许可与发布范围；此处不提供学生预览。</p>
+    <section v-if="paused" class="material-section" aria-live="polite">
+      <h2>请重新加载材料</h2><p>为保护材料内容，未提交的表单已清空，请重新填写。</p>
+      <p>操作中断后，请先重新加载核对结果，避免重复提交。</p>
+      <button v-if="sessionChanged" type="button" @click="privacy.reload">登录状态已变化，刷新页面</button>
+      <button v-else type="button" @click="resumeAndLoad">重新加载材料</button>
     </section>
-
-    <p v-if="error" class="lk-error" role="alert">{{ error }}</p>
-    <p v-if="message" class="lk-notice" role="status">{{ message }}</p>
-    <p v-if="busy" role="status">正在请求服务器，请稍候……</p>
-
+    <p v-if="error" class="material-error" role="alert">{{ error }}</p>
+    <p v-if="message" class="material-notice" role="status">{{ message }}</p>
+    <p v-if="busy" role="status">正在加载，请稍候……</p>
+    <p v-if="deletionState.message" class="material-notice" role="status">{{ deletionState.message }} <button v-if="deletionState.uncertain" @click="resumeAndLoad">重新加载</button></p>
+    <MaterialDeleteDialog v-if="deletionState.target && !paused" :state="deletionState" @close="deletion.close" @confirm="deletion.confirm" @reload="resumeAndLoad" />
     <template v-if="!paused">
-      <section class="lk-panel" aria-labelledby="material-list-title">
-        <h2 id="material-list-title">材料列表</h2>
-        <p v-if="!materials.length && !busy">暂无服务器授权的可管理材料。空列表不代表拥有登记或审阅权限。</p>
-        <div v-if="materials.length" class="lk-table-wrap">
-          <table>
-            <thead><tr><th>标题 / 材料 ID</th><th>课程目录</th><th>分类</th><th>最新修订</th><th>状态</th><th>检查</th></tr></thead>
-            <tbody>
-              <tr v-for="row in materials" :key="row.material_id">
-                <td>{{ row.title }}<small class="lk-id">{{ row.material_id }}</small></td>
-                <td>{{ row.catalog_version }}</td><td>{{ classLabel(row.material_class) }}</td>
-                <td>{{ row.revision }}</td><td>{{ statusLabel(row.review_status) }}</td>
-                <td><button type="button" :disabled="busy" @click="inspect(row)">原文与段落</button></td>
-              </tr>
-            </tbody>
-          </table>
+      <section class="material-section" aria-labelledby="material-list-title">
+        <div class="material-list-heading">
+          <h2 id="material-list-title">材料列表</h2>
+          <button type="button" :disabled="busy" :aria-expanded="editorOpen" aria-controls="material-registration" @click="toggleEditor">{{ editorOpen ? '收起登记表单' : '登记材料' }}</button>
         </div>
+        <p v-if="!materials.length && !busy">暂无可管理材料。登记或审阅新材料需要相应课程授权。</p>
+        <ul class="material-list">
+          <li v-for="row in materials" :key="row.material_id">
+            <div><h3>{{ row.title }}</h3><p>{{ catalogName(row.catalog_version) }} · {{ classLabel(row.material_class) }} · 第 {{ row.revision }} 版 · {{ statusLabel(row.review_status) }}</p></div>
+            <div class="material-actions"><button type="button" :disabled="busy || deletionState.busy" @click="inspect(row)">检查原文与段落</button><button type="button" :disabled="busy || deletionState.busy || deletionState.uncertain" @click="deletion.open(row)">删除材料</button></div>
+          </li>
+        </ul>
       </section>
-
-      <section v-if="selectedId" class="lk-panel" aria-labelledby="inspection-title">
+      <section v-if="selectedId" class="material-section" aria-labelledby="inspection-title">
         <h2 id="inspection-title">原文与段落检查</h2>
-        <form class="lk-actions" @submit.prevent="inspectSelected">
-          <label>修订号（留空读取最新）<input v-model="revisionInput" type="number" min="1" step="1" :disabled="busy" /></label>
-          <button type="submit" :disabled="busy">重新 GET 检查</button>
+        <form class="material-actions" @submit.prevent="inspectSelected">
+          <label>材料版本（留空读取最新）<input v-model="revisionInput" type="number" min="1" step="1" :disabled="busy" /></label>
+          <button type="submit" :disabled="busy">重新检查</button>
         </form>
         <template v-if="inspection">
-          <h3>{{ inspection.title }}</h3>
-          <dl class="lk-meta">
-            <dt>材料 ID / 修订</dt><dd>{{ inspection.material_id }} / {{ inspection.revision }}</dd>
-            <dt>课程目录版本</dt><dd>{{ selectedCatalog || '检查接口未返回课程版本，请刷新列表核对' }}</dd>
-            <dt>来源机构 / 版本</dt><dd>{{ inspection.publisher }} / {{ inspection.source_version }}</dd>
-            <dt>来源地址（仅文本）</dt><dd>{{ inspection.source_url || '未提供' }}</dd>
-            <dt>来源日期 / 登记核验日期</dt><dd>{{ inspection.source_date }} / {{ inspection.verified_at }}</dd>
-            <dt>来源快照 SHA-256</dt><dd>{{ inspection.source_hash }}</dd>
-            <dt>解析器 / 复查期限</dt><dd>{{ inspection.parser_version }} / {{ inspection.recheck_due_at || '未设定' }}</dd>
-            <dt>修订作者 / 审阅者</dt><dd>{{ inspection.author_id }} / {{ inspection.reviewer_id || '待审阅' }}</dd>
-            <dt>适用范围 / 变更说明</dt><dd>{{ inspection.applicability }} / {{ inspection.change_note || '未提供' }}</dd>
-            <dt>许可 / 许可地址</dt><dd>{{ inspection.license_id }} / {{ inspection.license_url || '未提供' }}</dd>
-            <dt>署名要求</dt><dd>{{ inspection.attribution_text }}</dd>
-            <dt>复用范围</dt><dd>{{ inspection.reuse_scope }}</dd>
-            <dt>分类 / 提示等级</dt><dd>{{ classLabel(inspection.material_class) }} / {{ inspection.hint_level ?? '不适用' }}</dd>
-            <dt>审阅 / 解析状态</dt><dd>{{ statusLabel(inspection.review_status) }} / {{ inspection.parse_status }}</dd>
-            <dt>发布范围 / ACL 版本</dt><dd>{{ inspection.published_scope }} / {{ inspection.acl_version }}</dd>
-            <dt>影响任务数（跨修订去重）</dt><dd>{{ inspection.affected_task_count }}</dd>
-          </dl>
-          <p class="lk-muted">登记核验日期不代表教师签收或法规现行性认证。请核实来源、许可和适用范围，新修订需提交完整元数据。</p>
-          <p class="lk-notice">{{ inspection.preview_notice }}</p>
-
-          <h3>课程任务映射</h3>
-          <ul class="lk-list">
-            <li v-for="(task, index) in inspection.tasks" :key="index">
-              {{ task.task__task_key }} · 任务版本 {{ task.task__version }}
-              <div>知识点：{{ task.knowledge_point_ids?.join('、') || '未返回' }}</div>
-            </li>
-          </ul>
-          <p v-if="!inspection.tasks?.length" class="lk-warning">当前修订未返回任务映射，请勿推定适用范围。</p>
-
-          <h3>完整原文（纯文本）</h3>
-          <pre class="lk-source">{{ inspection.source_snapshot }}</pre>
-          <h3>解析段落（{{ inspection.chunks?.length || 0 }}）</h3>
-          <p v-if="!inspection.chunks?.length" class="lk-warning">没有可检查段落。服务器会拒绝不完整的审阅流程。</p>
-          <article v-for="chunk in inspection.chunks" :key="chunk.chunk_ref" class="lk-card">
-            <h4>{{ chunk.heading_path?.join(' / ') || '无标题路径' }}</h4>
-            <p>段落引用：{{ chunk.chunk_ref }} · 定位：{{ formatLocator(chunk.locator) }}</p>
-            <p v-if="!Object.keys(chunk.locator || {}).length || chunk.location_notice" class="lk-warning">{{ chunk.location_notice || '定位待人工补齐' }}</p>
-            <pre class="lk-source">{{ chunk.text }}</pre>
-          </article>
-
+          <MaterialInspection :inspection="inspection" :catalog-label="catalogName(selectedCatalog)" :task-names="taskNames" />
           <h3>审阅操作</h3>
-          <p>approve 必须由非所有者、非本修订作者的独立教师完成。按钮不表示拥有操作权限，服务器决定是否接受。</p>
-          <p class="lk-warning">withdraw 将撤回材料访问，影响任务数见上方；操作后必须重新读取状态。</p>
-          <form class="lk-form" @submit.prevent="runAction">
-            <label>操作
-              <select v-model="action" :disabled="busy">
-                <option value="submit">提交审阅（submit）</option><option value="approve">独立批准（approve）</option>
-                <option value="publish">发布（publish）</option><option value="withdraw">撤回（withdraw）</option>
-              </select>
-            </label>
-            <label>expected_revision（当前检查修订）<input :value="inspection.revision" readonly /></label>
-            <label class="lk-full">理由（必填，最多 500 字）<textarea v-model="reason" required maxlength="500" rows="3" :disabled="busy" /></label>
-            <label class="lk-full">幂等标识（发送时生成，最多 64 字；同一操作失败重试沿用）<input :value="pendingAction?.body.idempotency_key || ''" readonly maxlength="64" placeholder="尚未发送" /></label>
-            <button type="submit" :disabled="busy || !reason.trim()">执行所选操作</button>
+          <p>批准必须由非所有者、非本次编写者的独立教师完成，并具备相应课程授权。</p>
+          <p class="material-warning">撤回后将无法访问材料，受影响任务数见上方；操作后请重新加载核对状态。</p>
+          <form class="material-review" @submit.prevent="runAction">
+            <label>操作<select v-model="action" :disabled="busy"><option value="submit">提交审阅</option><option value="approve">独立批准</option><option value="publish">发布</option><option value="withdraw">撤回</option></select></label>
+            <p>当前材料：第 {{ inspection.revision }} 版</p>
+            <label>理由（必填，最多五百字）<textarea v-model="reason" required maxlength="500" rows="3" :disabled="busy" autocomplete="off" /></label>
+            <button class="material-primary" type="submit" :disabled="busy || !reason.trim()">执行所选操作</button>
           </form>
         </template>
       </section>
-
-      <section class="lk-panel" aria-labelledby="material-form-title">
+      <section v-show="editorOpen" id="material-registration" class="material-section" aria-labelledby="material-form-title">
         <h2 id="material-form-title">登记材料 / 新修订</h2>
-        <p>使用严格 JSON，不接受未知字段。任务必须属于同一课程；task_ids 是数据库正整数 ID，不是上方任务键。</p>
-        <p>新修订只接受 task_ids 与完整 metadata，不修改材料分类或课程；检查 API 不返回全部字段，因此不自动复制为新修订。</p>
-        <p class="lk-warning">登记和新修订 API 没有幂等参数。网络中断后先核对列表，避免重复创建。页面失焦也会清空尚未提交的 JSON。</p>
-        <form class="lk-form" @submit.prevent="saveMaterial">
-          <label>表单类型
-            <select v-model="formMode" :disabled="busy" @change="draft = ''">
-              <option value="register">登记新材料</option><option value="revise">所选材料的新修订</option>
-            </select>
-          </label>
-          <p v-if="formMode === 'revise'">目标材料：{{ selectedId || '请先从列表检查一份材料' }}</p>
-          <details class="lk-full">
-            <summary>查看完整 JSON 示例与枚举</summary>
-            <p>以下仅为格式示例，请替换课程、任务 ID、日期、来源和许可，不可当作真实材料直接发布。</p>
-            <p>material_class：lesson / hint / student_analysis / teacher_answer / grading_secret；仅 hint 需要 hint_level（1–4）。分类不授予读写权限。</p>
-            <p>source_type：teacher_authored / article / resource / knowledge_concept / legal_clause；关联现有来源时填真实 source_object_id。</p>
-            <p>source_snapshot 最多 100000 字；空行分段。recheck_due_at 可为 null 或 ISO 日期时间。可选字段仅为示例中的可选源地址、许可地址、变更说明、复查日期、冲突组及登记来源设置。</p>
-            <pre class="lk-source">{{ materialExample(formMode) }}</pre>
-            <button type="button" :disabled="busy" @click="draft = materialExample(formMode)">用示例替换输入（需修改）</button>
-          </details>
-          <label class="lk-full">请求 JSON<textarea v-model="draft" class="lk-json" rows="18" required spellcheck="false" autocomplete="off" :disabled="busy" /></label>
-          <button type="submit" :disabled="busy || (formMode === 'revise' && !selectedId)">{{ formMode === 'register' ? '登记并解析' : '创建并解析新修订' }}</button>
-        </form>
+        <MaterialEditor :draft="draft" :mode="formMode" :busy="busy" :initial-step="editorInitialStep" :target-title="inspection?.title" :target-id="selectedId" :materials="materials" :target-catalog="catalogName(selectedCatalog)"
+          :catalogs="catalogs" v-model:source-query="sourceQuery" :source-options="sourceOptions" :source-page="sourcePage"
+          :source-previous="sourcePrevious" :source-next="sourceNext" :source-document="sourceDocument" :clause-options="clauses"
+          @mode-change="changeMode" @save="saveMaterial" @source-type="changeSourceType" @source-search="loadSources" @source-select="selectSource"
+          @choose-file="chooseFile" @download-template="downloadTemplate" @catalog-change="changeCatalog" @revision-target="chooseRevisionTarget" />
       </section>
     </template>
   </main>
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
+import MaterialDeleteDialog from '@/shared/knowledge/MaterialDeleteDialog.vue'
+import { createMaterialDeletion, initialMaterialDeletion } from '@/shared/knowledge/materialDeletion.js'
+import { names } from '@/shared/navigation/names'
 import { useUserStore } from '@/store/user'
-import { knowledgeApi, errorMessage } from './api.js'
-import { materialExample, parseMaterialForm } from './materialForm.js'
+import { useRoute } from 'vue-router'
+import ContentAreaNav from '@/shared/knowledge/ContentAreaNav.vue'
+import { consumeTeachingTransfer, teachingIdentity } from '@/shared/knowledge/teachingTransfer.js'
+import { staffKnowledgeApi as knowledgeApi } from '@/shared/knowledge/staffApi.js'
 import { requestKey } from './requestGeneration.js'
 import { usePrivatePage } from './usePrivatePage.js'
-import './learningKnowledge.css'
+import { formatLocator } from './libraryController.js'
+import { emptyMaterialDraft, importMaterialDraft, materialTemplate, materialPayload, reviewError, classLabel, statusLabel, sourceChoices, clauseChoices } from './materialEditor.js'
+import { readMaterialCatalog, readMaterialTaskNames } from './materialEditorCatalog.js'
+import MaterialEditor from './MaterialEditor.vue'
+import MaterialInspection from './MaterialInspection.vue'
 
 const user = useUserStore()
+const route = useRoute()
+const registerFileInput = ref(null)
+const revisionFileInput = ref(null)
+const managing = computed(() => ['teacher', 'admin'].includes(user.userInfo?.role))
 const materials = ref([])
 const inspection = ref(null)
 const selectedId = ref('')
@@ -159,62 +101,190 @@ const action = ref('submit')
 const reason = ref('')
 const pendingAction = ref(null)
 const formMode = ref('register')
-const draft = ref('')
+const editorOpen = ref(false)
+const editorInitialStep = ref(1)
+const draft = ref(emptyMaterialDraft())
+const catalogs = ref([])
+const taskNames = ref([])
+const sourceQuery = ref('')
+const sourceOptions = ref([])
+const clauses = ref([])
+const sourceDocument = ref(null)
+const sourcePage = ref(1)
+const sourcePrevious = ref(false)
+const sourceNext = ref(false)
 const busy = ref(false)
 const error = ref('')
 const message = ref('')
+const deletionState = reactive(initialMaterialDeletion())
 
+function clearSources() {
+  sourceOptions.value = []
+  clauses.value = []
+  sourceDocument.value = null
+  sourcePrevious.value = false
+  sourceNext.value = false
+}
+function resetDraft() {
+  editorInitialStep.value = 1
+  draft.value = emptyMaterialDraft()
+  sourceQuery.value = ''
+  sourcePage.value = 1
+  clearSources()
+}
 function clearContent() {
+  Object.assign(deletionState, initialMaterialDeletion())
   materials.value = []
   inspection.value = null
   selectedId.value = ''
   selectedCatalog.value = ''
+  catalogs.value = []
+  taskNames.value = []
   revisionInput.value = ''
   action.value = 'submit'
   reason.value = ''
   pendingAction.value = null
   formMode.value = 'register'
-  draft.value = ''
+  editorOpen.value = false
+  resetDraft()
   busy.value = false
   error.value = ''
   message.value = ''
 }
 const privacy = usePrivatePage(clearContent)
 const { paused, sessionChanged } = privacy
-
-const classLabel = value => ({ lesson: '学习材料', hint: '分级提示', student_analysis: '学生解析', teacher_answer: '教师答案', grading_secret: '评分密钥' }[value] || value)
-const statusLabel = value => ({ draft: '草稿', in_review: '审阅中', approved: '已批准', published: '已发布', withdrawn: '已撤回' }[value] || value)
-const formatLocator = locator => Object.keys(locator || {}).length ? JSON.stringify(locator) : '定位待人工补齐'
+const deletion = createMaterialDeletion({ state: deletionState, privacy, api: knowledgeApi, getRole: () => user.userInfo?.role,
+  reload: async (ticket, id) => {
+    inspection.value = null; selectedId.value = ''; selectedCatalog.value = ''; taskNames.value = []
+    revisionInput.value = ''; pendingAction.value = null; reason.value = ''; resetDraft(); editorOpen.value = false
+    const result = await knowledgeApi.materials(ticket.signal)
+    if (!ticket.isCurrent()) return
+    if (!Array.isArray(result.results) || result.results.some(row => row.material_id === id)) throw new Error('列表尚未更新')
+    materials.value = result.results
+  },
+})
+const catalogName = version => catalogs.value.find(item => item.value === version)?.label || '课程名称暂不可用'
 
 function failure(err) {
   if ([401, 403, 404, 503].includes(err.response?.status)) clearContent()
-  error.value = errorMessage(err)
+  error.value = reviewError(err)
 }
-
+async function loadCatalogs(ticket) {
+  const versions = [...new Set([undefined, ...materials.value.map(row => row.catalog_version)])]
+  for (const version of versions) {
+    if (!ticket.isCurrent()) return
+    try {
+      const option = await readMaterialCatalog(version, ticket.signal)
+      if (ticket.isCurrent() && option && !catalogs.value.some(item => item.value === option.value)) catalogs.value.push(option)
+    } catch (err) {
+      // A readable catalog is not a CourseGrant. Its absence must not be guessed
+      // from an internal version string or prevent review of authorized material.
+      if (err.response?.status === 401) throw err
+    }
+  }
+}
 async function loadList() {
+  if (!managing.value) return
   const ticket = privacy.begin()
   if (!ticket) return
   clearContent()
   busy.value = true
   try {
     const result = await knowledgeApi.materials(ticket.signal)
-    if (ticket.isCurrent()) materials.value = result.results
-  } catch (err) {
-    if (ticket.isCurrent()) failure(err)
-  } finally {
-    if (ticket.isCurrent()) busy.value = false
-    ticket.finish()
-  }
+    if (!ticket.isCurrent()) return
+    materials.value = result.results
+    await loadCatalogs(ticket)
+  } catch (err) { if (ticket.isCurrent()) failure(err) }
+  finally { if (ticket.isCurrent()) busy.value = false; ticket.finish() }
 }
-function resumeAndLoad() {
-  if (privacy.resume()) loadList()
+function resumeAndLoad() { if (managing.value && privacy.resume()) return loadList() }
+function toggleEditor() {
+  if (!managing.value || busy.value || paused.value) return
+  editorOpen.value = !editorOpen.value
+}
+function changeMode(mode) { if (!busy.value) { formMode.value = mode; resetDraft() } }
+function changeCatalog(version) {
+  if (busy.value || version === draft.value.catalog_version) return
+  draft.value.catalog_version = version
+  draft.value.task_ids = []
+  message.value = '课程已更改，请重新导入该课程的适用任务。'
+}
+function chooseFile(mode) {
+  if (!busy.value && !paused.value) (mode === 'revise' ? revisionFileInput.value : registerFileInput.value)?.click()
+}
+async function importFile(event, mode = formMode.value) {
+  const file = event.target.files?.[0]
+  event.target.value = '' // Never retain the local filename after import/clear.
+  if (!file || busy.value || !managing.value) return
+  if (file.size > 2 * 1024 * 1024) { error.value = '材料文件过大，请使用模板准备内容后重试。'; return }
+  if (paused.value && !privacy.resume()) return
+  const ticket = privacy.begin()
+  if (!ticket) return
+  busy.value = true
+  error.value = ''
+  message.value = ''
+  let importedSuccessfully = false
+  try {
+    const text = await file.text()
+    if (!ticket.isCurrent()) return
+    const imported = importMaterialDraft(text, mode)
+    resetDraft()
+    formMode.value = mode
+    draft.value = imported
+    editorOpen.value = true
+    importedSuccessfully = true
+    message.value = '材料文件已导入，请检查完整内容；提交时仍需核验课程与任务权限。'
+    if (mode === 'revise' && !materials.value.length) {
+      const list = await knowledgeApi.materials(ticket.signal)
+      if (!ticket.isCurrent()) return
+      materials.value = list.results
+      await loadCatalogs(ticket)
+    }
+    if (mode === 'register' && !catalogs.value.some(item => item.value === imported.catalog_version)) {
+      try {
+        const option = await readMaterialCatalog(imported.catalog_version, ticket.signal)
+        if (ticket.isCurrent() && option) catalogs.value.push(option)
+      } catch (err) { if (err.response?.status === 401) throw err }
+    }
+  } catch (err) {
+    if (ticket.isCurrent()) {
+      if (err.response) failure(err)
+      else error.value = importedSuccessfully ? '文件已导入，但暂时无法读取课程或材料列表。重新加载后需再次导入。' : '材料文件无法导入，请检查所选表单类型、文件格式和必填内容。原表单未被替换。'
+    }
+  } finally { if (ticket.isCurrent()) busy.value = false; ticket.finish() }
+}
+function downloadTemplate() {
+  if (!managing.value || busy.value) return
+  const url = URL.createObjectURL(new Blob([materialTemplate(formMode.value)], { type: 'application/json' }))
+  const link = document.createElement('a')
+  link.href = url
+  link.download = formMode.value === 'register' ? '材料登记模板.json' : '材料修订模板.json'
+  link.click()
+  URL.revokeObjectURL(url)
+}
+async function loadTaskNames(ticket, version) {
+  taskNames.value = []
+  if (!version) return
+  try {
+    const rows = await readMaterialTaskNames(version, ticket.signal)
+    if (ticket.isCurrent()) taskNames.value = rows
+  } catch (err) { if (err.response?.status === 401) throw err }
 }
 
-async function inspect(row, revision = row.revision) {
+async function chooseRevisionTarget(id) {
+  if (busy.value || formMode.value !== 'revise') return
+  const row = materials.value.find(material => material.material_id === id)
+  if (!row) return
+  if (selectedCatalog.value && selectedCatalog.value !== row.catalog_version) draft.value.task_ids = []
+  await inspect(row, row.revision, true)
+}
+async function inspect(row, revision = row.revision, preserveImportedDraft = false) {
+  if (busy.value || !managing.value) return
   const ticket = privacy.begin()
   if (!ticket) return
   inspection.value = null
-  draft.value = ''
+  taskNames.value = []
+  if (!preserveImportedDraft) resetDraft()
   reason.value = ''
   pendingAction.value = null
   selectedId.value = row.material_id
@@ -225,23 +295,20 @@ async function inspect(row, revision = row.revision) {
   busy.value = true
   try {
     const result = await knowledgeApi.inspect(row.material_id, revision, ticket.signal)
-    if (ticket.isCurrent()) inspection.value = result
-  } catch (err) {
-    if (ticket.isCurrent()) failure(err)
-  } finally {
-    if (ticket.isCurrent()) busy.value = false
-    ticket.finish()
-  }
+    if (!ticket.isCurrent()) return
+    inspection.value = result
+    await loadTaskNames(ticket, selectedCatalog.value)
+  } catch (err) { if (ticket.isCurrent()) failure(err) }
+  finally { if (ticket.isCurrent()) busy.value = false; ticket.finish() }
 }
 function inspectSelected() {
   const number = revisionInput.value === '' ? undefined : Number(revisionInput.value)
   if (number !== undefined && (!Number.isSafeInteger(number) || number < 1)) {
-    error.value = '修订号必须是正整数，或留空读取最新修订。'
+    error.value = '请选择有效的材料版本，或留空读取最新版本。'
     return
   }
   inspect({ material_id: selectedId.value, catalog_version: selectedCatalog.value }, number)
 }
-
 async function refreshAfterWrite(ticket, id, revision) {
   const [list, detail] = await Promise.all([
     knowledgeApi.materials(ticket.signal), knowledgeApi.inspect(id, revision, ticket.signal),
@@ -252,10 +319,10 @@ async function refreshAfterWrite(ticket, id, revision) {
   selectedId.value = id
   selectedCatalog.value = list.results.find(row => row.material_id === id)?.catalog_version || ''
   revisionInput.value = detail.revision
+  await loadTaskNames(ticket, selectedCatalog.value)
 }
-
 async function runAction() {
-  if (busy.value || !inspection.value || !reason.value.trim()) return
+  if (!managing.value || busy.value || !inspection.value || !reason.value.trim()) return
   const ticket = privacy.begin()
   if (!ticket) return
   const id = inspection.value.material_id
@@ -277,28 +344,21 @@ async function runAction() {
     pendingAction.value = null
     reason.value = ''
     inspection.value = null
-    message.value = '服务器已接受操作，正在重新读取状态。'
+    message.value = '操作已接受，正在重新核对状态。'
     await refreshAfterWrite(ticket, id, fields.expected_revision)
-    if (ticket.isCurrent()) message.value = '操作已被服务器接受，列表与修订已重新读取。'
+    if (ticket.isCurrent()) message.value = '操作已完成，材料列表与当前版本已更新。'
   } catch (err) {
     if (ticket.isCurrent()) {
       if (confirmed) inspection.value = null
       failure(err)
-      if (confirmed) message.value = '操作已被服务器接受，但重新读取失败；请重新加载，不要重复执行。'
+      if (confirmed) message.value = '操作已接受，但暂时无法核对最新状态；请重新加载，不要重复执行。'
     }
-  } finally {
-    if (ticket.isCurrent()) busy.value = false
-    ticket.finish()
-  }
+  } finally { if (ticket.isCurrent()) busy.value = false; ticket.finish() }
 }
-
 async function saveMaterial() {
-  if (busy.value || (formMode.value === 'revise' && !selectedId.value)) return
+  if (!managing.value || busy.value || (formMode.value === 'revise' && !selectedId.value)) return
   let body
-  try { body = parseMaterialForm(draft.value, formMode.value) } catch (err) {
-    error.value = err.message
-    return
-  }
+  try { body = materialPayload(draft.value, formMode.value) } catch (err) { error.value = err.message; return }
   const ticket = privacy.begin()
   if (!ticket) return
   busy.value = true
@@ -311,23 +371,121 @@ async function saveMaterial() {
       : await knowledgeApi.revise(selectedId.value, body, ticket.signal)
     if (!ticket.isCurrent()) return
     confirmed = true
-    draft.value = ''
+    resetDraft()
+    editorOpen.value = false
     reason.value = ''
     pendingAction.value = null
     inspection.value = null
-    message.value = `服务器已创建修订 ${result.revision}，正在读取段落。`
+    message.value = '材料已保存，正在读取段落。'
     await refreshAfterWrite(ticket, result.material_id, result.revision)
-    if (ticket.isCurrent()) message.value = '材料已登记 / 修订并解析。请检查原文与段落，再提交审阅。'
+    if (ticket.isCurrent()) message.value = '材料已保存，请检查原文与段落，再提交审阅。'
   } catch (err) {
     if (ticket.isCurrent()) {
       failure(err)
-      if (confirmed) message.value = '修订已创建，但重新读取失败；请刷新列表，不要重复创建。'
+      if (confirmed) message.value = '新版本已创建，但暂时无法读取；请重新加载列表，不要重复创建。'
     }
-  } finally {
-    if (ticket.isCurrent()) busy.value = false
-    ticket.finish()
-  }
+  } finally { if (ticket.isCurrent()) busy.value = false; ticket.finish() }
 }
-
-onMounted(resumeAndLoad)
+function changeSourceType(type) {
+  if (busy.value) return
+  draft.value.source_type = type
+  draft.value.source_object_id = null
+  draft.value.suppliedRegistrationFields = [...new Set([...(draft.value.suppliedRegistrationFields || []), 'source_type', 'source_object_id'])]
+  sourceQuery.value = ''
+  clearSources()
+  if (type !== 'teacher_authored') loadSources(1)
+}
+async function loadSources(page = 1) {
+  if (!managing.value || busy.value || formMode.value !== 'register' || draft.value.source_type === 'teacher_authored') return
+  const ticket = privacy.begin()
+  if (!ticket) return
+  clearSources()
+  sourcePage.value = page
+  busy.value = true
+  error.value = ''
+  const type = draft.value.source_type === 'legal_clause' ? 'legal_document' : draft.value.source_type
+  try {
+    const result = await knowledgeApi.library({ group: type === 'legal_document' ? 'legal' : 'platform', source_type: type, q: sourceQuery.value, page }, ticket.signal)
+    if (!ticket.isCurrent()) return
+    sourceOptions.value = sourceChoices(result, type)
+    sourcePrevious.value = Boolean(result.previous)
+    sourceNext.value = Boolean(result.next)
+  } catch (err) { if (ticket.isCurrent()) failure(err) }
+  finally { if (ticket.isCurrent()) busy.value = false; ticket.finish() }
+}
+async function selectSource(id) {
+  if (!managing.value || busy.value) return
+  draft.value.source_object_id = null
+  draft.value.suppliedRegistrationFields = [...new Set([...(draft.value.suppliedRegistrationFields || []), 'source_object_id'])]
+  clauses.value = []
+  sourceDocument.value = null
+  if (!id || !sourceOptions.value.some(option => option.value === id)) return
+  if (draft.value.source_type !== 'legal_clause') { draft.value.source_object_id = id; return }
+  const ticket = privacy.begin()
+  if (!ticket) return
+  sourceDocument.value = id
+  busy.value = true
+  error.value = ''
+  try {
+    const detail = await knowledgeApi.libraryDetail('legal_document', id, ticket.signal)
+    if (ticket.isCurrent()) clauses.value = clauseChoices(detail, formatLocator)
+  } catch (err) { if (ticket.isCurrent()) failure(err) }
+  finally { if (ticket.isCurrent()) busy.value = false; ticket.finish() }
+}
+onMounted(async () => {
+  await resumeAndLoad()
+  if (paused.value || sessionChanged.value) return
+  const incoming = consumeTeachingTransfer(teachingIdentity(user.userInfo), 'material')
+  if (incoming) {
+    draft.value = emptyMaterialDraft()
+    draft.value.material_class = incoming.materialClass
+    Object.assign(draft.value.metadata, incoming.source, { source_snapshot: incoming.text })
+    formMode.value = 'register'
+    editorInitialStep.value = 2
+    editorOpen.value = true
+    message.value = `${incoming.excerpt ? '已读取段落以摘录形式加入材料草稿，不代表完整原文。' : '资料已加入材料草稿。'}请核对来源与许可，补齐课程、适用任务和教学安排后再提交审阅。`
+    // Let the already queued Vue update reveal the form before scrolling to it.
+    await Promise.resolve()
+    document.getElementById('material-form-title')?.scrollIntoView({ block: 'start' })
+  } else if (route.query.material) {
+    const row = materials.value.find(item => String(item.material_id) === String(route.query.material))
+    if (row) await inspect(row)
+  }
+})
 </script>
+
+<style scoped>
+.material-file-input { display: none; }
+.material-page { max-width: var(--page-width); margin: 0 auto; padding: var(--space-4) var(--page-gutter) var(--space-8); color: var(--ink); line-height: var(--leading-body); overflow-wrap: anywhere; }
+h1 { font-size: var(--text-page); line-height: var(--leading-tight); margin: 0 0 var(--space-2); }
+h2 { font-size: var(--text-section); margin: 0 0 var(--space-2); }
+h3 { font-size: var(--text-card); margin: var(--space-2) 0; }
+p { margin: var(--space-1) 0; }
+.material-header, .material-actions, .material-list-heading { display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: end; }
+.material-list-heading { justify-content: space-between; align-items: center; margin-bottom: var(--space-2); }
+.material-list-heading h2 { margin: 0; }
+.material-header { align-items: start; justify-content: space-between; margin-bottom: var(--space-3); }
+.material-section { padding: var(--space-3) 0; border-top: var(--stroke) solid var(--line); }
+.material-actions { margin: var(--space-2) 0; }
+.material-list { list-style: none; padding: 0; margin: 0; }
+.material-list li { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: var(--space-2); border-bottom: var(--stroke) solid var(--line); padding: var(--space-2) 0; }
+.material-list p { color: var(--ink-secondary); font-size: var(--text-caption); }
+.material-review, label { display: grid; gap: var(--space-1); }
+.material-review { gap: var(--space-2); margin-top: var(--space-2); }
+input, textarea, select, button { font: inherit; color: var(--ink); background: var(--surface); border: var(--stroke) solid var(--line-strong); border-radius: var(--radius-control); padding: var(--space-1) var(--space-2); min-width: 0; max-width: 100%; min-height: var(--control-height); box-sizing: border-box; }
+textarea { resize: vertical; }
+button { cursor: pointer; width: fit-content; transition: background var(--motion-fast) var(--motion-ease); }
+button:hover:not(:disabled) { background: var(--surface-hover); }
+button:active:not(:disabled) { background: var(--action-soft); }
+.material-primary { background: var(--action); color: var(--on-action); border-color: var(--action); }
+.material-primary:hover:not(:disabled) { background: var(--action-hover); }
+.material-primary:active:not(:disabled) { background: var(--action-pressed); }
+:disabled { cursor: not-allowed; background: var(--disabled); color: var(--disabled-ink); }
+a { color: var(--action); }
+a:hover { color: var(--action-hover); }
+:focus-visible { outline: var(--focus-width) solid var(--action); outline-offset: var(--focus-offset); }
+.material-notice, .material-warning, .material-error { padding: var(--space-2); border-radius: var(--radius-control); }
+.material-notice { background: var(--action-soft); }
+.material-warning { background: var(--warning-soft); color: var(--warning); }
+.material-error { background: var(--negative-soft); color: var(--negative); }
+</style>

@@ -2,10 +2,10 @@
   <div class="admin-articles">
     <div class="page-card">
       <div class="page-header">
-        <h3 class="page-title">文章审核</h3>
+        <h3 class="page-title">{{ names.resourceReview }} · 文章</h3>
         <div class="page-actions">
           <button class="action-btn btn-default" @click="fetchArticles">
-            🔄 刷新
+            <AppIcon name="bi-arrow-clockwise" /> 刷新
           </button>
         </div>
       </div>
@@ -30,8 +30,9 @@
         <p>加载中...</p>
       </div>
 
+      <div v-else-if="readError" class="empty-state" role="alert"><p>{{ readError }}</p><button class="action-btn btn-default" @click="fetchArticles">重新读取</button></div>
       <div v-else-if="articles.length === 0" class="empty-state">
-        <div class="empty-icon">📝</div>
+        <div class="empty-icon"><AppIcon name="bi-pencil-square" /></div>
         <p>{{ selectedStatus === 'pending' ? '暂无待审核文章' : '暂无文章' }}</p>
       </div>
 
@@ -43,7 +44,7 @@
         >
           <div class="article-cover">
             <img v-if="article.cover" :src="article.cover" />
-            <div v-else class="cover-placeholder">📄</div>
+            <div v-else class="cover-placeholder"><AppIcon name="bi-file-text" /></div>
           </div>
           <div class="article-info">
             <div class="article-header">
@@ -59,9 +60,9 @@
               </span>
               <span class="meta-item">{{ article.category_name }}</span>
               <span class="meta-item">{{ formatDate(article.created_at) }}</span>
-              <span class="meta-item">👁️ {{ article.view_count }}</span>
-              <span class="meta-item">❤️ {{ article.like_count }}</span>
-              <span class="meta-item">💬 {{ article.comment_count }}</span>
+              <span class="meta-item"><AppIcon name="bi-eye" /> {{ article.view_count }}</span>
+              <span class="meta-item"><AppIcon name="bi-heart-fill" /> {{ article.like_count }}</span>
+              <span class="meta-item"><AppIcon name="bi-chat-dots" /> {{ article.comment_count }}</span>
             </div>
             <div v-if="article.tags_list?.length" class="article-tags">
               <span
@@ -75,19 +76,19 @@
           </div>
           <div class="article-actions">
             <button class="action-btn btn-success" @click="handleReview(article, 'approved')" :disabled="article.status !== 'pending'">
-              ✓ 通过
+              <AppIcon name="bi-check2" /> 通过
             </button>
             <button class="action-btn btn-danger" @click="handleReview(article, 'rejected')" :disabled="article.status !== 'pending'">
-              ✕ 拒绝
+              <AppIcon name="bi-x-lg" /> 拒绝
             </button>
             <button class="action-btn btn-default" @click="handlePreview(article)">
-              👁️ 查看
+              <AppIcon name="bi-eye" /> 查看
             </button>
             <button class="action-btn btn-warning" @click="handleToggleRecommend(article)" :disabled="article.status !== 'approved'">
               {{ article.is_recommend ? '⭐ 取消推荐' : '⭐ 推荐' }}
             </button>
             <button class="action-btn btn-default" @click="handleToggleTop(article)" :disabled="article.status !== 'approved'">
-              {{ article.is_top ? '🔝 取消置顶' : '🔝 置顶' }}
+              <AppIcon name="bi-pin-angle" /> {{ article.is_top ? '取消置顶' : '置顶' }}
             </button>
           </div>
         </div>
@@ -113,7 +114,7 @@
       <div class="modal-content">
         <div class="modal-header">
           <h3>审核备注</h3>
-          <button class="close-btn" @click="showReviewModal = false">✕</button>
+          <button class="close-btn" @click="showReviewModal = false" aria-label="关闭"><AppIcon name="bi-x-lg" /></button>
         </div>
         <div class="modal-body">
           <div class="admin-form">
@@ -144,7 +145,7 @@
       <div class="modal-content modal-large">
         <div class="modal-header">
           <h3>文章预览</h3>
-          <button class="close-btn" @click="showPreviewModal = false">✕</button>
+          <button class="close-btn" @click="showPreviewModal = false" aria-label="关闭"><AppIcon name="bi-x-lg" /></button>
         </div>
         <div class="modal-body">
           <div class="preview-content">
@@ -153,16 +154,16 @@
               <span class="badge" :class="`status-${previewArticle?.status}`">
                 {{ getStatusText(previewArticle?.status) }}
               </span>
-              <span v-if="previewArticle?.is_top" class="badge badge-top">🔝 置顶</span>
-              <span v-if="previewArticle?.is_recommend" class="badge badge-recommend">⭐ 推荐</span>
+              <span v-if="previewArticle?.is_top" class="badge badge-top"><AppIcon name="bi-pin-angle" /> 置顶</span>
+              <span v-if="previewArticle?.is_recommend" class="badge badge-recommend"><AppIcon name="bi-star-fill" /> 推荐</span>
             </div>
             <div class="preview-meta">
               <span>作者: {{ previewArticle?.author?.username }}</span>
               <span>分类: {{ previewArticle?.category_name }}</span>
               <span>创建时间: {{ formatDate(previewArticle?.created_at) }}</span>
-              <span>👁️ {{ previewArticle?.view_count }}</span>
-              <span>❤️ {{ previewArticle?.like_count }}</span>
-              <span>💬 {{ previewArticle?.comment_count }}</span>
+              <span><AppIcon name="bi-eye" /> {{ previewArticle?.view_count }}</span>
+              <span><AppIcon name="bi-heart-fill" /> {{ previewArticle?.like_count }}</span>
+              <span><AppIcon name="bi-chat-dots" /> {{ previewArticle?.comment_count }}</span>
             </div>
             <div v-if="previewArticle?.summary" class="preview-summary">
               <h4>摘要</h4>
@@ -195,11 +196,18 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, onMounted, onBeforeUnmount, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { usePageFilters } from '@/shared/state/usePageFilters.js'
+import { createAccountGuard } from '@/shared/state/accountScope.js'
 import api from '@/api'
+import { names } from '@/shared/navigation/names.js'
 
 const router = useRouter()
+const route = useRoute()
+const guard = createAccountGuard()
+onBeforeUnmount(guard.dispose)
+let request = 0
 
 const articles = ref([])
 const loading = ref(false)
@@ -207,6 +215,12 @@ const total = ref(0)
 const page = ref(1)
 const pageSize = ref(20)
 const selectedStatus = ref('pending')
+usePageFilters('admin-articles', { selectedStatus, page, pageSize })
+const statuses = ['pending', 'approved', 'rejected', 'all']
+if (statuses.includes(route.query.status)) { selectedStatus.value = route.query.status; page.value = 1 }
+watch(() => route.query.status, status => {
+  if (statuses.includes(status)) { selectedStatus.value = status; page.value = 1; fetchArticles() }
+})
 
 const statusFilters = [
   { label: '待审核', value: 'pending' },
@@ -231,8 +245,11 @@ const reviewing = ref(false)
 const showPreviewModal = ref(false)
 const previewArticle = ref(null)
 
+const readError = ref('')
 const fetchArticles = async () => {
+  const current = ++request
   loading.value = true
+  readError.value = ''
   try {
     const params = {
       page: page.value,
@@ -243,12 +260,13 @@ const fetchArticles = async () => {
     }
 
     const response = await api.article.list(params)
+    if (!guard.current() || current !== request) return
     articles.value = response.results || []
     total.value = response.count || 0
   } catch (error) {
-    console.error('获取文章列表失败:', error)
+    if (guard.current() && current === request) readError.value = '暂时无法读取文章，请重试。'
   } finally {
-    loading.value = false
+    if (guard.current() && current === request) loading.value = false
   }
 }
 
@@ -372,338 +390,338 @@ onMounted(() => {
 
 <style scoped>
 .admin-articles {
-  padding: 24px;
+  padding:var(--space-3);
 }
 
 .filter-bar {
-  display: flex;
-  gap: 12px;
-  margin-bottom: 24px;
-  flex-wrap: wrap;
+  display:flex;
+  gap:var(--space-1);
+  margin-bottom:var(--space-3);
+  flex-wrap:wrap;
 }
 
 .filter-btn {
-  padding: 8px 16px;
-  border: 1px solid #d9d9d9;
-  background: white;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: all 0.3s;
-  display: flex;
-  align-items: center;
-  gap: 6px;
+  padding:var(--space-1) var(--space-2);
+  border:var(--stroke) solid var(--line);
+  background:var(--surface);
+  border-radius:var(--radius-control);
+  cursor:pointer;
+  font-size:var(--text-caption);
+  transition:all var(--motion-normal);
+  display:flex;
+  align-items:center;
+  gap:calc(var(--space-1) / 2);
 }
 
 .filter-btn:hover {
-  border-color: var(--primary-color);
-  color: var(--primary-color);
+  border-color:var(--primary-color);
+  color:var(--primary-color);
 }
 
 .filter-btn.active {
-  background: var(--primary-color);
-  color: white;
-  border-color: var(--primary-color);
+  background:var(--primary-color);
+  color:var(--on-action);
+  border-color:var(--primary-color);
 }
 
 .count {
-  font-size: 12px;
-  opacity: 0.8;
+  font-size:var(--text-caption);
+  opacity:0.8;
 }
 
 .article-list {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
+  display:flex;
+  flex-direction:column;
+  gap:var(--space-2);
 }
 
 .article-item {
-  display: flex;
-  gap: 16px;
-  padding: 20px;
-  background: #fafafa;
-  border-radius: 8px;
-  align-items: flex-start;
+  display:flex;
+  gap:var(--space-2);
+  padding:var(--space-2);
+  background:var(--surface);
+  border-radius:var(--radius-control);
+  align-items:flex-start;
 }
 
 .article-cover {
-  width: 120px;
-  height: 90px;
-  border-radius: 6px;
-  overflow: hidden;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  flex-shrink: 0;
+  width:var(--row-label-width);
+  height:var(--thumbnail-short-height);
+  border-radius:var(--radius-control);
+  overflow:hidden;
+  background: var(--surface-muted);
+  flex-shrink:0;
 }
 
 .article-cover img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+  width:100%;
+  height:100%;
+  object-fit:cover;
 }
 
 .cover-placeholder {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 40px;
+  width:100%;
+  height:100%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:var(--text-page);
 }
 
 .article-info {
-  flex: 1;
-  min-width: 0;
+  flex:1;
+  min-width:0;
 }
 
 .article-header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 8px;
+  display:flex;
+  align-items:center;
+  gap:var(--space-1);
+  margin-bottom:var(--space-1);
 }
 
 .article-title {
-  font-size: 16px;
-  font-weight: 600;
-  margin: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  font-size:var(--text-body);
+  font-weight: var(--weight-strong);
+  margin:0;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
 }
 
 .status-badge {
-  padding: 2px 8px;
-  border-radius: 4px;
-  font-size: 12px;
-  font-weight: 600;
-  white-space: nowrap;
+  padding:calc(var(--stroke) * 2) var(--space-1);
+  border-radius:var(--radius-control);
+  font-size:var(--text-caption);
+  font-weight: var(--weight-strong);
+  white-space:nowrap;
 }
 
 .status-pending {
-  background: #fff7e6;
-  color: #fa8c16;
+  background:var(--warning-soft);
+  color:var(--warning);
 }
 
 .status-approved {
-  background: #f6ffed;
-  color: #52c41a;
+  background:var(--positive-soft);
+  color:var(--positive);
 }
 
 .status-rejected {
-  background: #fff1f0;
-  color: #ff4d4f;
+  background:var(--negative-soft);
+  color:var(--negative);
 }
 
 .article-summary {
-  font-size: 14px;
-  color: #666;
-  margin-bottom: 12px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  display: -webkit-box;
+  font-size:var(--text-caption);
+  color:var(--ink-secondary);
+  margin-bottom:var(--space-1);
+  overflow:hidden;
+  text-overflow:ellipsis;
+  display:-webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
 }
 
 .article-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  font-size: 13px;
-  color: #999;
-  margin-bottom: 8px;
+  display:flex;
+  flex-wrap:wrap;
+  gap:var(--space-1);
+  font-size:var(--text-caption);
+  color:var(--ink-muted);
+  margin-bottom:var(--space-1);
 }
 
 .article-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
+  display:flex;
+  flex-wrap:wrap;
+  gap:calc(var(--space-1) / 2);
 }
 
 .tag {
-  padding: 2px 8px;
-  background: #e6f7ff;
-  color: var(--primary-color);
-  border-radius: 12px;
-  font-size: 11px;
+  padding:calc(var(--stroke) * 2) var(--space-1);
+  background:var(--surface);
+  color:var(--primary-color);
+  border-radius:var(--radius-panel);
+  font-size:var(--text-caption);
 }
 
 .article-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  flex-shrink: 0;
+  display:flex;
+  flex-direction:column;
+  gap:var(--space-1);
+  flex-shrink:0;
 }
 
 .preview-content h2 {
-  font-size: 24px;
-  margin-bottom: 16px;
+  font-size:var(--text-section);
+  margin-bottom:var(--space-2);
 }
 
 .preview-badges {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 16px;
+  display:flex;
+  flex-wrap:wrap;
+  gap:var(--space-1);
+  margin-bottom:var(--space-2);
 }
 
 .badge {
-  padding: 4px 12px;
-  border-radius: 12px;
-  font-size: 12px;
-  font-weight: 600;
+  padding:calc(var(--space-1) / 2) var(--space-1);
+  border-radius:var(--radius-panel);
+  font-size:var(--text-caption);
+  font-weight: var(--weight-strong);
 }
 
 .badge-top {
-  background: #fff7e6;
-  color: #fa8c16;
+  background:var(--surface);
+  color:var(--ink-secondary);
 }
 
 .badge-recommend {
-  background: #f6ffed;
-  color: #52c41a;
+  background:var(--surface);
+  color:var(--ink-secondary);
 }
 
 .preview-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16px;
-  font-size: 14px;
-  color: #666;
-  margin-bottom: 20px;
-  padding-bottom: 20px;
-  border-bottom: 1px solid #f0f0f0;
+  display:flex;
+  flex-wrap:wrap;
+  gap:var(--space-2);
+  font-size:var(--text-caption);
+  color:var(--ink-secondary);
+  margin-bottom:var(--space-2);
+  padding-bottom:var(--space-2);
+  border-bottom:var(--stroke) solid var(--line);
 }
 
 .preview-summary h4,
 .preview-body h4 {
-  font-size: 16px;
-  margin-bottom: 8px;
-  margin-top: 20px;
+  font-size:var(--text-body);
+  margin-bottom:var(--space-1);
+  margin-top:var(--space-2);
 }
 
 .preview-summary p {
-  font-size: 14px;
-  color: #333;
-  line-height: 1.6;
-  margin-bottom: 20px;
+  font-size:var(--text-caption);
+  color:var(--ink);
+  line-height:1.6;
+  margin-bottom:var(--space-2);
 }
 
 .preview-text {
-  font-size: 14px;
-  color: #333;
-  line-height: 1.6;
-  background: #fafafa;
-  padding: 16px;
-  border-radius: 6px;
-  white-space: pre-wrap;
+  font-size:var(--text-caption);
+  color:var(--ink);
+  line-height:1.6;
+  background:var(--surface);
+  padding:var(--space-2);
+  border-radius:var(--radius-control);
+  white-space:pre-wrap;
 }
 
 .preview-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 20px;
+  display:flex;
+  flex-wrap:wrap;
+  gap:var(--space-1);
+  margin-top:var(--space-2);
 }
 
 .modal-large {
-  max-width: 900px;
+  max-width:var(--reading-width);
 }
 
 .loading-state,
 .empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 80px 20px;
-  text-align: center;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  padding:var(--space-10) var(--space-2);
+  text-align:center;
 }
 
 .loading-spinner {
-  width: 40px;
-  height: 40px;
-  border: 4px solid #f0f0f0;
-  border-top-color: var(--primary-color);
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-  margin-bottom: 16px;
+  width:var(--space-5);
+  height:var(--space-5);
+  border:calc(var(--space-1) / 2) solid var(--line);
+  border-top-color:var(--primary-color);
+  border-radius:50%;
+  animation:spin var(--motion-loop) linear infinite;
+  margin-bottom:var(--space-2);
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to { transform:rotate(360deg); }
 }
 
 .empty-icon {
-  font-size: 64px;
-  margin-bottom: 16px;
+  font-size:var(--text-page);
+  margin-bottom:var(--space-2);
 }
 
 .pagination {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 24px;
-  padding-top: 20px;
-  border-top: 1px solid #f0f0f0;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-top:var(--space-3);
+  padding-top:var(--space-2);
+  border-top:var(--stroke) solid var(--line);
 }
 
 .pagination-info {
-  font-size: 14px;
-  color: #666;
+  font-size:var(--text-caption);
+  color:var(--ink-secondary);
 }
 
 .pagination-controls {
-  display: flex;
-  align-items: center;
-  gap: 12px;
+  display:flex;
+  align-items:center;
+  gap:var(--space-1);
 }
 
 .action-btn {
-  padding: 6px 16px;
-  border: 1px solid #d9d9d9;
-  background: white;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: all 0.3s;
+  padding:calc(var(--space-1) / 2) var(--space-2);
+  border:var(--stroke) solid var(--line);
+  background:var(--surface);
+  border-radius:var(--radius-control);
+  cursor:pointer;
+  font-size:var(--text-caption);
+  transition:all var(--motion-normal);
 }
 
 .action-btn:hover:not(:disabled) {
-  opacity: 0.85;
+  opacity:0.85;
 }
 
 .action-btn:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
+  opacity:0.4;
+  cursor:not-allowed;
 }
 
 .btn-success {
-  background: #52c41a;
-  color: white;
-  border-color: #52c41a;
+  background:var(--positive);
+  color:var(--on-action);
+  border-color:var(--positive);
 }
 
 .btn-danger {
-  background: #ff4d4f;
-  color: white;
-  border-color: #ff4d4f;
+  background:var(--negative);
+  color:var(--on-action);
+  border-color:var(--negative);
 }
 
 .btn-warning {
-  background: #faad14;
-  color: white;
-  border-color: #faad14;
+  background:var(--warning);
+  color:var(--on-action);
+  border-color:var(--warning);
 }
 
 .btn-primary {
-  background: var(--primary-color);
-  color: white;
-  border-color: var(--primary-color);
+  background:var(--primary-color);
+  color:var(--on-action);
+  border-color:var(--primary-color);
 }
 
 .btn-default {
-  background: white;
-  color: #333;
+  background:var(--surface);
+  color:var(--ink);
 }
 </style>

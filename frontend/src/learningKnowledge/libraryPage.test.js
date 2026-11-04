@@ -1,6 +1,10 @@
+import { initialMaterialDeletion } from '../shared/knowledge/materialDeletion.js'
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
+import { names, renameCopy } from '../shared/navigation/names.js'
+import { guardDestination, pageTitle } from '../shared/navigation/access.js'
+import { teachingDestination, feedbackCandidateDestination } from '../shared/navigation/phase3.js'
 import { runInNewContext } from 'node:vm'
 import { compile, createSSRApp, h } from 'vue'
 import { createMemoryHistory, createRouter } from 'vue-router'
@@ -17,12 +21,14 @@ async function pageFor(role, overrides = {}, view = {}) {
   const app = createSSRApp({
     render,
     setup: () => ({
+      names, renameCopy,
       state: { ...initialLibraryState(), ...overrides }, user: { userInfo: { role } },
       managing: canManageLibrary(role), paused: false, sessionChanged: false,
       resourcePath: '/resources', groupTitle: '资料', groupDescription: '来源与授权',
       emptyNotice: '等待授权检索', internalSourcePath: '', externalSourceUrl: '',
-      controller: {}, privacy: {}, fileInput: null, classLabel, statusLabel, formatLocator, libraryError, sourceText,
-      changeGroup() {}, resume() {}, closeUpload() {}, chooseFile() {}, resetSearch() {}, ...view,
+      deletionState: initialMaterialDeletion(), deletion: {}, controller: {}, privacy: {}, fileInput: null, classLabel, statusLabel, formatLocator, libraryError, sourceText,
+      changeGroup() {}, resume() {}, closeUpload() {}, chooseFile() {}, resetSearch() {},
+      canTransfer: false, transferMessage: '', prepareMaterial() {}, preparePath() {}, ...view,
     }),
   })
   app.component('router-link', routerLink)
@@ -48,7 +54,10 @@ for (const role of ['student', 'guest', undefined]) {
 test('teacher rendered page offers upload and existing material review without staff-only choice', async () => {
   const html = await pageFor('teacher', { uploadOpen: true })
   assert.match(html, /上传文档入库/)
-  assert.match(html, /href="\/teaching-knowledge"/)
+  assert.ok(html.includes(names.knowledge))
+  assert.ok(html.includes(names.materials))
+  assert.ok(html.includes(names.resourceReview))
+  assert.match(html, /href="\/teacher\/materials"/)
   assert.match(html, /学习资料/)
   assert.match(html, /法律库/)
   assert.match(html, /平台资料/)
@@ -58,6 +67,8 @@ test('teacher rendered page offers upload and existing material review without s
 test('admin legal view retains a contextual link to original tools', async () => {
   const html = await pageFor('admin', { group: 'legal', uploadOpen: true })
   assert.match(html, /href="\/admin\/legal\/kb\/tools"/)
+  assert.ok(html.includes(names.foundation))
+  assert.ok(html.includes(names.materials))
   assert.match(html, /仅后台人员/)
   assert.match(html, /上传文档入库/)
 })
@@ -94,7 +105,9 @@ for (const role of ['teacher', 'admin']) {
     for (const expected of ['授权测试讲义', '第 2 版', '课程教研组', '2026 年版', 'CC-BY-4.0', '实训团队', '段落 1']) assert.ok(text.includes(expected))
     assert.match(html, /&lt;script&gt;原文保持纯文本&lt;\/script&gt;/)
     assert.match(html, /href="https:\/\/example.com\/private-id"/)
-    assert.match(html, /href="\/teaching-knowledge"/)
+    assert.ok(html.includes(`href="${role === 'teacher' ? '/teacher/materials' : '/admin/legal/kb/authorization'}"`))
+    if (role === 'admin') assert.match(html, /授权监督/)
+    else assert.ok(html.includes(names.materials))
   })
 
   test(`${role}: all library source types retain chapters and links without implementation metadata`, async () => {
@@ -184,13 +197,13 @@ for (const role of ['student', 'guest', 'teacher', 'admin']) {
     const userStore = { userInfo: { role } }
     const isTeacherOrAdmin = runInNewContext(`(() => {${check}})()`, { userStore })
     const html = await headerFor('../views/Resources.vue', () => ({
-      userStore, isTeacherOrAdmin, hasAISurfacedResources: false, resetTutorHighlights() {}, handleUpload() {},
+      names, renameCopy, userStore, isTeacherOrAdmin, hasAISurfacedResources: false, resetTutorHighlights() {}, handleUpload() {},
     }))
     if (role === 'teacher' || role === 'admin') {
-      assert.match(html, /知识资料库/)
+      assert.ok(html.includes(role === 'teacher' ? names.knowledge : names.foundation))
       assert.ok(html.includes(`href="${role === 'teacher' ? '/teacher/knowledge' : '/admin/legal/kb'}"`))
     } else {
-      assert.doesNotMatch(html, /知识资料库|\/knowledge|\/admin\/legal\/kb/)
+      assert.doesNotMatch(html, /知识资料库|知识基座|基座治理|\/knowledge|\/admin\/legal\/kb/)
     }
   })
 }
@@ -207,7 +220,8 @@ function routerFor(user) {
   return runInNewContext(source.trimStart().replace(/^import .*$/gm, '').replace('export default router', 'router'), {
     createRouter: options => ({ ...options, beforeEach(guard) { this.guard = guard } }),
     createWebHistory: () => ({}), useUserStore: () => user, document: {},
-    TeacherLayout: {}, TeacherDashboard: {}, LearningEffectAnalysis: {},
+    TeacherLayout: {}, TeacherDashboard: {}, LearningEffectAnalysis: {}, guardDestination, pageTitle,
+    teachingDestination, feedbackCandidateDestination,
   })
 }
 function routeFor(router, path) {
@@ -218,12 +232,12 @@ function routeFor(router, path) {
 }
 
 for (const [path, role, expected] of [
-  ['/knowledge', 'guest', '/login'], ['/knowledge', 'student', '/'],
+  ['/knowledge', 'guest', '/login'], ['/knowledge', 'student', '/access-denied'],
   ['/knowledge', 'teacher', '/teacher/knowledge'], ['/knowledge', 'admin', '/admin/legal/kb'],
-  ['/teacher/knowledge', 'guest', '/login'], ['/teacher/knowledge', 'student', '/'],
-  ['/teacher/knowledge', 'teacher', undefined], ['/teacher/knowledge', 'admin', '/admin/dashboard'],
-  ['/admin/legal/kb', 'student', '/'], ['/admin/legal/kb', 'teacher', '/'], ['/admin/legal/kb', 'admin', undefined],
-  ['/admin/legal/kb/tools', 'admin', undefined], ['/admin/legal/kb/tools', 'student', '/'],
+  ['/teacher/knowledge', 'guest', '/login'], ['/teacher/knowledge', 'student', '/access-denied'],
+  ['/teacher/knowledge', 'teacher', undefined], ['/teacher/knowledge', 'admin', '/access-denied'],
+  ['/admin/legal/kb', 'student', '/access-denied'], ['/admin/legal/kb', 'teacher', '/access-denied'], ['/admin/legal/kb', 'admin', undefined],
+  ['/admin/legal/kb/tools', 'admin', undefined], ['/admin/legal/kb/tools', 'student', '/access-denied'],
   ['/learning-knowledge/:attemptId', 'student', undefined], ['/learning-knowledge/:attemptId', 'guest', '/login'],
 ]) {
   test(`knowledge route guard: ${path}, ${role}`, () => {
@@ -248,7 +262,7 @@ for (const role of ['student', 'teacher', 'admin']) {
     for (const target of ['/knowledge', '/knowledge?attempt_id=00000000-0000-4000-8000-000000000001', '/knowledge/', { name: 'KnowledgeLibrary' }]) {
       await router.push('/resources')
       await router.push(target)
-      const expected = role === 'teacher' ? '/teacher/knowledge' : role === 'admin' ? '/admin/legal/kb' : '/'
+      const expected = role === 'teacher' ? '/teacher/knowledge' : role === 'admin' ? '/admin/legal/kb' : '/access-denied'
       assert.equal(router.currentRoute.value.path, expected)
       assert.notEqual(router.currentRoute.value.name, 'KnowledgeLibrary')
     }

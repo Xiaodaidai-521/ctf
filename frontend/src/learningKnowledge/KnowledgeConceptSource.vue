@@ -4,7 +4,7 @@
       <div>
         <h2 id="concept-source-title">知识点原文</h2>
       </div>
-      <router-link :to="user.userInfo?.role === 'teacher' ? '/teacher/knowledge' : user.userInfo?.role === 'admin' ? '/admin/legal/kb' : '/knowledge'">返回知识资料库</router-link>
+      <router-link :to="user.userInfo?.role === 'teacher' ? '/teacher/knowledge' : user.userInfo?.role === 'admin' ? '/admin/legal/kb' : '/knowledge'">返回{{ user.userInfo?.role === 'teacher' ? names.knowledge : names.foundation }}</router-link>
     </div>
     <a-alert v-if="!managing" type="warning">此资料仅供教师和管理员查看。</a-alert>
     <template v-else>
@@ -27,6 +27,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { useUserStore } from '@/store/user'
+import { names } from '@/shared/navigation/names.js'
 import { errorMessage, knowledgeApi } from './api.js'
 import { canManageLibrary, libraryError } from './libraryController.js'
 import { usePrivatePage } from './usePrivatePage.js'
@@ -66,11 +67,11 @@ onMounted(load)
 </script>
 
 <style scoped>
-.concept-source { padding: 24px; margin-bottom: 24px; border: 1px solid var(--border-color, #d9cfbe); border-radius: 8px; background: var(--bg-card, #fffdf8); }
-.concept-source-heading { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 16px; margin-bottom: 18px; }
-.concept-source-heading p { margin: 0 0 6px; color: var(--primary-color, #b42318); font-size: 12px; }
-.concept-source h2 { font-size: 19px; margin: 0; }.concept-source h3 { font-size: 17px; margin: 18px 0 10px; }
-.concept-source-heading a { color: var(--primary-color, #b42318); font-size: 13px; }
-.concept-source-meta { color: var(--text-secondary, #625a4d); font-size: 12px; overflow-wrap: anywhere; line-height: 1.7; }
-.concept-source pre { white-space: pre-wrap; overflow-wrap: anywhere; font: inherit; font-size: 14px; line-height: 1.9; }
+.concept-source { padding:var(--space-3); margin-bottom:var(--space-3); border:var(--stroke) solid var(--border-color, var(--line)); border-radius:var(--radius-control); background:var(--bg-card, var(--surface)); }
+.concept-source-heading { display:flex; justify-content:space-between; flex-wrap:wrap; gap:var(--space-2); margin-bottom:var(--space-2); }
+.concept-source-heading p { margin:0 0 calc(var(--space-1) / 2); color:var(--primary-color, var(--ink-secondary)); font-size:var(--text-caption); }
+.concept-source h2 { font-size:var(--text-card); margin:0; }.concept-source h3 { font-size:var(--text-body); margin:var(--space-2) 0 var(--space-1); }
+.concept-source-heading a { color:var(--primary-color, var(--ink-secondary)); font-size:var(--text-caption); }
+.concept-source-meta { color:var(--text-secondary, var(--ink-secondary)); font-size:var(--text-caption); overflow-wrap:anywhere; line-height:1.7; }
+.concept-source pre { white-space:pre-wrap; overflow-wrap:anywhere; font:inherit; font-size:var(--text-caption); line-height:1.9; }
 </style>

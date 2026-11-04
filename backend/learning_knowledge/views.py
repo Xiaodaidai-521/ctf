@@ -8,7 +8,7 @@ from rest_framework.views import APIView
 from learning_map.models import CatalogVersion, TaskPackage
 from .models import CourseGrant, Material, MaterialRevision
 from .policy import Scope, can_manage, is_admin, unavailable
-from .review import inspection, new_revision, parse_candidate, register, transition
+from .review import inspection, new_revision, parse_candidate, register, soft_delete, transition
 from .serializers import ActionSerializer, GrantSerializer, IssueSerializer, RegisterSerializer, RevisionSerializer, SearchSerializer
 from .services import read_evidence, report_issue, search
 
@@ -66,7 +66,7 @@ class IssueView(PrivateView):
 class MaterialListView(PrivateView):
     def get(self, request):
         rows = []
-        for material in Material.objects.select_related('catalog').order_by('pk'):
+        for material in Material.objects.exclude(published_scope='deleted').select_related('catalog').order_by('pk'):
             if can_manage(request.user, material):
                 revision = material.revisions.order_by('-revision').first()
                 if revision:
@@ -123,7 +123,7 @@ class MaterialSearchView(MaterialListView):
 
 
 def get_revision(material_id, actor, number=None):
-    material = Material.objects.filter(material_id=material_id).first()
+    material = Material.objects.exclude(published_scope='deleted').filter(material_id=material_id).first()
     if not material or not can_manage(actor, material):
         raise unavailable()
     revisions = material.revisions.select_related('material')
@@ -153,6 +153,16 @@ class RevisionView(PrivateView):
         revision = new_revision(actor=request.user, material=current.material, tasks=tasks, metadata=data['metadata'])
         parse_candidate(revision_id=revision.pk, token=revision.ingestion_token)
         return Response({'material_id': str(current.material.material_id), 'revision': revision.revision}, status=201)
+
+
+class MaterialDeleteView(PrivateView):
+    def delete(self, request, material_id):
+        if request.query_params:
+            raise ValidationError('Unsupported fields.')
+        data = validated(ActionSerializer, request.data)
+        revision = soft_delete(actor=request.user, material_id=material_id, **data)
+        return Response({'revision': revision.revision, 'review_status': revision.review_status,
+                         'acl_version': revision.material.acl_version})
 
 
 class ActionView(PrivateView):

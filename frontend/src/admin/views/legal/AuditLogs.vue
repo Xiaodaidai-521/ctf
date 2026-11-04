@@ -83,9 +83,9 @@ onMounted(loadData)
 
 <style scoped>
 .ledger-box {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  color: #334155;
+  display:flex;
+  flex-direction:column;
+  gap:var(--space-1);
+  color:var(--ink);
 }
 </style>

@@ -55,7 +55,8 @@ const service = {
       flag
     }),
     mySolved: () => api.get('/challenges/challenges/my_solved/'),
-    // 棰樼洰绠＄悊锛堢鐞嗗憳锛?    create: (data) => api.post('/challenges/challenges/', data),
+    // 题目管理（管理员）
+    create: (data) => api.post('/challenges/challenges/', data),
     update: (id, data) => api.put(`/challenges/challenges/${id}/`, data),
     delete: (id) => api.delete(`/challenges/challenges/${id}/`),
     // 容器相关
@@ -66,7 +67,7 @@ const service = {
 
   // 提交相关
   submission: {
-    mySubmissions: () => api.get('/submissions/my/'),
+    mySubmissions: (params) => api.get('/submissions/my/', { params }),
     allSubmissions: (params) => api.get('/submissions/all/', { params }),
     stats: () => api.get('/submissions/stats/'),
     adminStats: () => api.get('/submissions/admin/stats/'),
@@ -127,7 +128,8 @@ const service = {
     update: (id, data) => api.put(`/learning-paths/paths/${id}/`, data),
     // 删除学习路径
     delete: (id) => api.delete(`/learning-paths/paths/${id}/`),
-    // 寮€濮嬪涔犺矾寰?    start: (id) => api.post(`/learning-paths/paths/${id}/start/`),
+    // 开始学习路径
+    start: (id) => api.post(`/learning-paths/paths/${id}/start/`),
     // 路径进度
     progress: (id) => api.get(`/learning-paths/paths/${id}/progress/`),
     // 我的路径
@@ -150,10 +152,12 @@ const service = {
     update: (id, data) => api.put(`/learning-paths/modules/${id}/`, data),
     // 删除模块
     delete: (id) => api.delete(`/learning-paths/modules/${id}/`),
-    // 寮€濮嬫ā鍧?    start: (id) => api.post(`/learning-paths/modules/${id}/start/`),
+    // 开始模块
+    start: (id) => api.post(`/learning-paths/modules/${id}/start/`),
     // 完成模块
     complete: (id) => api.post(`/learning-paths/modules/${id}/complete/`),
-    // 妯″潡鐨勫疄楠?    labs: (id) => api.get(`/learning-paths/modules/${id}/labs/`),
+    // 模块的关联实验
+    labs: (id) => api.get(`/learning-paths/modules/${id}/labs/`),
   },
 
   // 学习进度相关
@@ -168,7 +172,8 @@ const service = {
     concepts: (params) => api.get('/learning-paths/knowledge-concepts/', { params }),
     // 概念详情
     conceptDetail: (id) => api.get(`/learning-paths/knowledge-concepts/${id}/`),
-    // 鎴戠殑鐭ヨ瘑鐘舵€?    myState: () => api.get('/learning-paths/knowledge/my-state/'),
+    // 我的知识状态
+    myState: () => api.get('/learning-paths/knowledge/my-state/'),
   },
 
   // 考试相关
@@ -189,12 +194,17 @@ const service = {
     // 成绩趋势
     scoreTrend: () => api.get('/exams/records/score_trend/'),
     // 开始综合考试
-    startComprehensiveExam: () => api.post('/exams/records/start_comprehensive_exam/'),
+    startComprehensiveExam: (data) => api.post('/exams/records/start_comprehensive_exam/', data),
     // 获取考试题目
     getTheoryQuestions: (examId) => api.get(`/exams/theory-exams/${examId}/questions/`),
     getPracticeQuestions: (examId) => api.get(`/exams/practice-exams/${examId}/questions/`),
+    getTheoryExam: (examId) => api.get(`/exams/theory-exams/${examId}/`),
+    getPracticeExam: (examId) => api.get(`/exams/practice-exams/${examId}/`),
     // 提交答案
-    submitAnswer: (recordId, data) => api.post(`/exams/records/${recordId}/answer/`, data),
+    submitAnswer: (recordId, data) => api.post(`/exams/records/${recordId}/answer/`, {
+      ...data,
+      exam_record_id: recordId,
+    }),
     // 提交考试
     submitExam: (recordId) => api.post(`/exams/records/${recordId}/submit/`),
     // 考试结果

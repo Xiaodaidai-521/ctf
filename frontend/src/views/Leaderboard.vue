@@ -2,7 +2,7 @@
   <div class="leaderboard-page">
     <div class="container">
       <div class="page-header">
-        <h1 class="page-title">🏆 排行榜</h1>
+        <h1 class="page-title"><AppIcon name="bi-trophy" /> 排行榜</h1>
         <p class="page-subtitle">实时更新，展示最优秀的选手</p>
       </div>
 
@@ -28,9 +28,9 @@
               :class="{ 'top-three': index < 3 }"
             >
               <div class="cell-rank">
-                <span v-if="index === 0" class="rank-icon rank-1">🥇</span>
-                <span v-else-if="index === 1" class="rank-icon rank-2">🥈</span>
-                <span v-else-if="index === 2" class="rank-icon rank-3">🥉</span>
+                <span v-if="index === 0" class="rank-icon rank-1" role="img" aria-label="第1名"><AppIcon name="bi-trophy" /></span>
+                <span v-else-if="index === 1" class="rank-icon rank-2" role="img" aria-label="第2名"><AppIcon name="bi-trophy" /></span>
+                <span v-else-if="index === 2" class="rank-icon rank-3" role="img" aria-label="第3名"><AppIcon name="bi-trophy" /></span>
                 <span v-else class="rank-number">{{ user.rank }}</span>
               </div>
               <div class="cell-user">
@@ -53,7 +53,7 @@
           </div>
 
           <div v-else class="empty-state">
-            <div class="empty-icon">📭</div>
+            <div class="empty-icon"><AppIcon name="bi-inbox" /></div>
             <p class="empty-text">暂无排名数据</p>
           </div>
         </div>
@@ -61,7 +61,7 @@
         <!-- 统计信息 -->
         <div class="stats-sidebar">
           <div class="stat-card">
-            <div class="stat-icon">👥</div>
+            <div class="stat-icon"><AppIcon name="bi-people" /></div>
             <div class="stat-content">
               <div class="stat-value">{{ totalUsers }}</div>
               <div class="stat-label">参赛选手</div>
@@ -69,7 +69,7 @@
           </div>
 
           <div class="stat-card">
-            <div class="stat-icon">🎯</div>
+            <div class="stat-icon"><AppIcon name="bi-bullseye" /></div>
             <div class="stat-content">
               <div class="stat-value">{{ totalChallenges }}</div>
               <div class="stat-label">题目总数</div>
@@ -77,7 +77,7 @@
           </div>
 
           <div class="stat-card">
-            <div class="stat-icon">🏅</div>
+            <div class="stat-icon"><AppIcon name="bi-trophy" /></div>
             <div class="stat-content">
               <div class="stat-value">{{ topScore }}</div>
               <div class="stat-label">最高分</div>
@@ -85,7 +85,7 @@
           </div>
 
           <div v-if="userStore.isAuthenticated && myRank" class="stat-card highlight">
-            <div class="stat-icon">📍</div>
+            <div class="stat-icon"><AppIcon name="bi-geo-alt" /></div>
             <div class="stat-content">
               <div class="stat-value">#{{ myRank.rank }}</div>
               <div class="stat-label">我的排名</div>
@@ -139,49 +139,49 @@ onMounted(() => {
 
 <style scoped>
 .leaderboard-page {
-  padding: 24px 0;
-  min-height: calc(100vh - 60px);
+  padding:var(--space-3) 0;
+  min-height:calc(100vh - var(--space-7));
 }
 
 .page-header {
-  text-align: center;
-  margin-bottom: 32px;
+  text-align:center;
+  margin-bottom:var(--space-4);
 }
 
 .page-title {
-  font-size: 32px;
-  font-weight: bold;
-  color: var(--text-primary);
-  margin-bottom: 8px;
+  font-size:var(--text-page);
+  font-weight:bold;
+  color:var(--text-primary);
+  margin-bottom:var(--space-1);
 }
 
 .page-subtitle {
-  font-size: 14px;
-  color: var(--text-secondary);
+  font-size:var(--text-caption);
+  color:var(--text-secondary);
 }
 
 .leaderboard-container {
-  display: grid;
-  grid-template-columns: 1fr 280px;
-  gap: 24px;
+  display:grid;
+  grid-template-columns:1fr var(--menu-width);
+  gap:var(--space-3);
 }
 
 .leaderboard-table {
-  background: white;
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-sm);
-  overflow: hidden;
+  background:var(--surface);
+  border-radius:var(--radius-md);
+  box-shadow: var(--shadow-raised);
+  overflow:hidden;
 }
 
 .table-header {
-  display: grid;
-  grid-template-columns: 80px 250px 150px 120px 100px;
-  gap: 16px;
-  padding: 16px 24px;
-  background: linear-gradient(135deg, #f0f0f0 0%, #fafafa 100%);
-  border-bottom: 2px solid #e8e8e8;
-  font-weight: 600;
-  color: var(--text-primary);
+  display:grid;
+  grid-template-columns:var(--space-10) var(--sidebar-width) var(--row-label-width) var(--row-label-width) var(--row-label-width);
+  gap:var(--space-2);
+  padding:var(--space-2) var(--space-3);
+  background: var(--surface-muted);
+  border-bottom:calc(var(--stroke) * 2) solid var(--line);
+  font-weight: var(--weight-strong);
+  color:var(--text-primary);
 }
 
 .header-rank,
@@ -189,250 +189,250 @@ onMounted(() => {
 .header-team,
 .header-score,
 .header-solved {
-  display: flex;
-  align-items: center;
-  font-size: 14px;
+  display:flex;
+  align-items:center;
+  font-size:var(--text-caption);
 }
 
 .table-body {
-  max-height: 600px;
-  overflow-y: auto;
+  max-height:var(--content-height);
+  overflow-y:auto;
 }
 
 .table-row {
-  display: grid;
-  grid-template-columns: 80px 250px 150px 120px 100px;
-  gap: 16px;
-  padding: 20px 24px;
-  border-bottom: 1px solid #f0f0f0;
-  transition: all 0.3s;
-  align-items: center;
+  display:grid;
+  grid-template-columns:var(--space-10) var(--sidebar-width) var(--row-label-width) var(--row-label-width) var(--row-label-width);
+  gap:var(--space-2);
+  padding:var(--space-2) var(--space-3);
+  border-bottom:var(--stroke) solid var(--line);
+  transition:all var(--motion-normal);
+  align-items:center;
 }
 
 .table-row:hover {
-  background: #fafafa;
+  background:var(--surface);
 }
 
 .table-row.top-three {
-  background: linear-gradient(135deg, #fffbe6 0%, #fff7cc 100%);
+  background: var(--surface-muted);
 }
 
 .table-row.top-three:hover {
-  background: linear-gradient(135deg, #fff7cc 0%, #ffe58f 100%);
+  background: var(--surface-muted);
 }
 
 .cell-rank {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display:flex;
+  align-items:center;
+  justify-content:center;
 }
 
 .rank-icon {
-  font-size: 28px;
+  font-size:var(--text-section);
 }
 
 .rank-1 {
-  animation: glow 2s ease-in-out infinite;
+  animation:glow var(--motion-loop) ease-in-out infinite;
 }
 
 @keyframes glow {
   0%, 100% {
-    transform: scale(1);
+    transform:scale(1);
   }
   50% {
-    transform: scale(1.1);
+    transform:scale(1.1);
   }
 }
 
 .rank-number {
-  font-size: 18px;
-  font-weight: bold;
-  color: var(--text-primary);
+  font-size:var(--text-card);
+  font-weight:bold;
+  color:var(--text-primary);
 }
 
 .cell-user {
-  display: flex;
-  align-items: center;
-  gap: 12px;
+  display:flex;
+  align-items:center;
+  gap:var(--space-1);
 }
 
 .user-avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-weight: bold;
-  font-size: 16px;
+  width:var(--space-5);
+  height:var(--space-5);
+  border-radius:50%;
+  background: var(--surface-muted);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:var(--ink);
+  font-weight:bold;
+  font-size:var(--text-body);
 }
 
 .user-info {
-  display: flex;
-  flex-direction: column;
+  display:flex;
+  flex-direction:column;
 }
 
 .user-name {
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--text-primary);
+  font-size:var(--text-caption);
+  font-weight: var(--weight-medium);
+  color:var(--text-primary);
 }
 
 .user-id {
-  font-size: 12px;
-  color: var(--text-secondary);
+  font-size:var(--text-caption);
+  color:var(--text-secondary);
 }
 
 .cell-team {
-  font-size: 14px;
-  color: var(--text-secondary);
+  font-size:var(--text-caption);
+  color:var(--text-secondary);
 }
 
 .cell-score {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
 }
 
 .score-value {
-  font-size: 20px;
-  font-weight: bold;
-  color: var(--primary-color);
+  font-size:var(--text-card);
+  font-weight:bold;
+  color:var(--primary-color);
 }
 
 .score-label {
-  font-size: 12px;
-  color: var(--text-secondary);
+  font-size:var(--text-caption);
+  color:var(--text-secondary);
 }
 
 .cell-solved {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
 }
 
 .solved-value {
-  font-size: 18px;
-  font-weight: bold;
-  color: var(--success-color);
+  font-size:var(--text-card);
+  font-weight:bold;
+  color:var(--success-color);
 }
 
 .solved-label {
-  font-size: 12px;
-  color: var(--text-secondary);
+  font-size:var(--text-caption);
+  color:var(--text-secondary);
 }
 
 .loading,
 .empty-state {
-  padding: 80px 20px;
-  text-align: center;
-  color: var(--text-secondary);
+  padding:var(--space-10) var(--space-2);
+  text-align:center;
+  color:var(--text-secondary);
 }
 
 .empty-icon {
-  font-size: 64px;
-  margin-bottom: 16px;
+  font-size:var(--text-page);
+  margin-bottom:var(--space-2);
 }
 
 .stats-sidebar {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
+  display:flex;
+  flex-direction:column;
+  gap:var(--space-2);
 }
 
 .stat-card {
-  background: white;
-  padding: 24px;
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-sm);
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  transition: all 0.3s;
+  background:var(--surface);
+  padding:var(--space-3);
+  border-radius:var(--radius-md);
+  box-shadow: var(--shadow-raised);
+  display:flex;
+  align-items:center;
+  gap:var(--space-2);
+  transition:all var(--motion-normal);
 }
 
 .stat-card:hover {
-  box-shadow: var(--shadow-md);
-  transform: translateY(-2px);
+  box-shadow: var(--shadow-raised);
+  transform:translateY(calc(calc(var(--stroke) * 2) * -1));
 }
 
 .stat-card.highlight {
-  background: linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%);
-  border: 2px solid var(--primary-color);
+  background: var(--surface-muted);
+  border:calc(var(--stroke) * 2) solid var(--primary-color);
 }
 
 .stat-icon {
-  font-size: 36px;
+  font-size:var(--text-page);
 }
 
 .stat-content {
-  flex: 1;
+  flex:1;
 }
 
 .stat-value {
-  font-size: 28px;
-  font-weight: bold;
-  color: var(--text-primary);
-  margin-bottom: 4px;
+  font-size:var(--text-section);
+  font-weight:bold;
+  color:var(--text-primary);
+  margin-bottom:calc(var(--space-1) / 2);
 }
 
 .stat-label {
-  font-size: 12px;
-  color: var(--text-secondary);
+  font-size:var(--text-caption);
+  color:var(--text-secondary);
 }
 
 /* 滚动条样式 */
 .table-body::-webkit-scrollbar {
-  width: 6px;
+  width:calc(var(--space-1) / 2);
 }
 
 .table-body::-webkit-scrollbar-track {
-  background: transparent;
+  background:transparent;
 }
 
 .table-body::-webkit-scrollbar-thumb {
-  background: #d9d9d9;
-  border-radius: 3px;
+  background:var(--surface);
+  border-radius:var(--radius-control);
 }
 
 .table-body::-webkit-scrollbar-thumb:hover {
-  background: #bfbfbf;
+  background:var(--surface-muted);
 }
 
 /* 响应式设计 */
-@media (max-width: 1024px) {
+@media (max-width: 1120px) {
   .leaderboard-container {
-    grid-template-columns: 1fr;
+    grid-template-columns:1fr;
   }
 
   .stats-sidebar {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(var(--row-value-width), 1fr));
   }
 }
 
 @media (max-width: 768px) {
   .table-header,
   .table-row {
-    grid-template-columns: 60px 1fr 100px;
+    grid-template-columns:var(--space-7) 1fr var(--row-label-width);
   }
 
   .header-team,
   .header-solved,
   .cell-team,
   .cell-solved {
-    display: none;
+    display:none;
   }
 
   .cell-score {
-    flex-direction: row;
-    gap: 4px;
+    flex-direction:row;
+    gap:calc(var(--space-1) / 2);
   }
 
   .score-value {
-    font-size: 16px;
+    font-size:var(--text-body);
   }
 }
 </style>

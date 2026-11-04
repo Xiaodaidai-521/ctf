@@ -2,8 +2,7 @@
   <div class="review-page">
     <div class="page-header">
       <div>
-        <span class="eyebrow">我的学习 · 验收与复盘</span>
-        <h1>结果与复盘</h1>
+        <h1>{{ names.growth }} · 结果与复盘</h1>
         <p class="subtitle">
           程序核验和教师评阅分别显示；提交前实际使用过帮助会记为受助，不会因重交变成独立。
         </p>
@@ -122,6 +121,8 @@
 </template>
 
 <script setup>
+import { names } from '@/shared/navigation/names'
+
 import { onMounted, reactive, ref } from 'vue'
 import service from '@/api'
 
@@ -252,38 +253,38 @@ onMounted(loadAll)
 </script>
 
 <style scoped>
-.review-page { width: min(1100px, calc(100% - 40px)); margin: 0 auto; padding: 40px 0 72px; }
-.page-header { display: flex; justify-content: space-between; align-items: flex-end; gap: 20px; border-bottom: 2px solid var(--text-primary); padding-bottom: 20px; margin-bottom: 20px; }
-.eyebrow { font-size: 12px; letter-spacing: .16em; text-transform: uppercase; color: var(--primary-color); font-weight: 700; }
-h1 { font-family: "Songti SC", serif; font-size: 40px; line-height: 1.1; }
-.subtitle { color: var(--text-secondary); margin-top: 8px; max-width: 720px; }
-.btn { border: 1px solid var(--border-color); background: var(--bg-light); padding: 8px 12px; font-weight: 600; cursor: pointer; color: var(--text-primary); }
-.btn-primary { background: var(--text-primary); color: var(--bg-light); }
-.btn-small { padding: 5px 10px; font-size: 12px; }
-.panel { background: var(--bg-light); border: 1px solid var(--border-color); padding: 18px; margin-bottom: 18px; box-shadow: var(--shadow-md); }
-.panel h2 { font-family: "Songti SC", serif; font-size: 20px; }
-.panel-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; }
-.muted { color: var(--text-muted); font-size: 12px; }
-.small { font-size: 12px; }
-.retest-card { display: flex; justify-content: space-between; gap: 16px; align-items: center; border-top: 1px solid var(--border-color); padding: 12px 0; }
-.submission-card { border-top: 1px solid var(--border-color); padding: 14px 0; }
-.submission-head { display: flex; justify-content: space-between; gap: 12px; align-items: center; }
-.badge { font-size: 11px; padding: 2px 8px; border: 1px solid var(--border-color); }
-.badge.ok { color: var(--success-color); border-color: var(--success-color); }
-.badge.bad { color: var(--error-color); border-color: var(--error-color); }
-.badge.wait { color: var(--warning-color); border-color: var(--warning-color); }
-.status-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 10px 0; }
-.status-grid .label { display: block; font-size: 11px; color: var(--text-muted); }
-.note { font-size: 12px; color: var(--text-secondary); margin-top: 6px; }
-.note.warn { color: var(--warning-color); }
-.items { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; font-size: 12px; }
-.items li { display: grid; grid-template-columns: 1.4fr .8fr 80px 60px; gap: 8px; }
-.danger { color: var(--error-color); }
-.actions { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
-.card-form { margin-top: 12px; border: 1px dashed var(--border-color); padding: 12px; }
-.card-form h3 { font-size: 14px; margin-bottom: 8px; }
-.card-form label { display: flex; flex-direction: column; gap: 4px; font-size: 12px; margin-bottom: 8px; color: var(--text-secondary); }
-.card-form textarea { border: 1px solid var(--border-color); padding: 6px 8px; font: inherit; }
-.state-box { background: var(--bg-light); border: 1px solid var(--border-color); padding: 48px; text-align: center; color: var(--text-muted); }
-@media (max-width: 800px) { .status-grid { grid-template-columns: repeat(2, 1fr); } }
+.review-page { width: min(var(--page-width), calc(100% - var(--page-gutter) * 2)); margin: 0 auto; padding: var(--space-3) 0 var(--space-6); }
+.page-header { display: flex; justify-content: space-between; align-items: start; flex-wrap: wrap; gap: var(--space-2); margin-bottom: var(--space-3); }
+h1 { font-size: var(--text-page); line-height: var(--leading-tight); margin: 0; }
+.subtitle { color: var(--ink-secondary); margin-top: var(--space-1); max-width: var(--reading-width); }
+.btn-small { font-size: var(--text-caption); }
+.panel { background: var(--surface); padding: var(--space-3); margin-bottom: var(--density-gap); border-radius: var(--radius-panel); }
+.panel h2 { font-size: var(--text-section); margin: 0; }
+.panel-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: var(--space-2); margin-bottom: var(--space-2); }
+.muted, .small { font-size: var(--text-caption); }
+.muted { color: var(--ink-secondary); }
+.retest-card { display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--space-2); align-items: center; border-top: var(--stroke) solid var(--line); padding: var(--space-2) 0; }
+.submission-card { border-top: var(--stroke) solid var(--line); padding: var(--space-2) 0; overflow-wrap: anywhere; }
+.submission-head { display: flex; justify-content: space-between; flex-wrap: wrap; gap: var(--space-2); align-items: center; }
+.badge { font-size: var(--text-caption); padding: 0 var(--space-1); border-radius: var(--radius-control); background: var(--surface-muted); }
+.badge.ok { color: var(--positive); background: var(--positive-soft); }
+.badge.bad { color: var(--negative); background: var(--negative-soft); }
+.badge.wait { color: var(--warning); background: var(--warning-soft); }
+.status-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--space-2); margin: var(--space-2) 0; }
+.status-grid .label { display: block; font-size: var(--text-caption); color: var(--ink-secondary); }
+.note { font-size: var(--text-caption); color: var(--ink-secondary); margin-top: var(--space-1); }
+.note.warn { color: var(--warning); }
+.items { display: grid; gap: var(--space-1); margin: var(--space-1) 0; padding: 0; list-style: none; font-size: var(--text-caption); }
+.items li { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, .8fr) auto auto; gap: var(--space-1); }
+.danger { color: var(--negative); }
+.actions { display: flex; gap: var(--space-1); margin-top: var(--space-2); flex-wrap: wrap; }
+.card-form { margin-top: var(--space-2); border-top: var(--stroke) solid var(--line); padding-top: var(--space-2); }
+.card-form h3 { font-size: var(--text-card); margin: 0 0 var(--space-1); }
+.card-form label { display: flex; flex-direction: column; gap: var(--space-1); font-size: var(--text-caption); margin-bottom: var(--space-2); color: var(--ink-secondary); }
+.card-form textarea { width: 100%; border: var(--stroke) solid var(--line-strong); border-radius: var(--radius-control); padding: var(--space-1) var(--space-2); background: var(--surface); color: var(--ink); font: inherit; resize: vertical; }
+.card-form textarea:hover { border-color: var(--action); }
+.state-box { background: var(--surface); border-radius: var(--radius-panel); padding: var(--space-6) var(--space-3); text-align: center; color: var(--ink-secondary); }
+summary { cursor: pointer; min-height: var(--control-height); padding: var(--space-1) 0; }
+.is-compact .status-grid, .is-compact .items li { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.is-compact .panel { padding: var(--space-2); }
 </style>

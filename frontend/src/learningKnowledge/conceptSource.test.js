@@ -8,6 +8,7 @@ import { parse } from 'vue/compiler-sfc'
 import { canManageLibrary, libraryError } from './libraryController.js'
 import { createRequestGeneration } from './requestGeneration.js'
 import { errorMessage } from './api.js'
+import { names } from '../shared/navigation/names.js'
 
 // Execute the component's real setup/load logic with the browser lifecycle boundary injected.
 function sourcePage(role, concept = '3', fetch = async id => ({ id, name: '原始知识点', description: '原始正文' })) {
@@ -40,7 +41,7 @@ for (const role of ['teacher', 'admin']) {
       render: compile(template),
       setup: () => ({
         user: { userInfo: { role } }, managing: true, paused: false, busy: false, error: '',
-        sessionChanged: false, privacy: {}, load() {}, libraryError,
+        sessionChanged: false, privacy: {}, load() {}, libraryError, names,
         source: { id: 987654, concept_type: 'engineering_type', updated_at: 'private-timestamp', name: '授权测试', description: '<script>正文</script>' },
       }),
     })

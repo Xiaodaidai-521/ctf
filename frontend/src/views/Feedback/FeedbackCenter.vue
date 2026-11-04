@@ -2,30 +2,30 @@
   <div class="fb-page">
     <div class="fb-header">
       <div>
-        <span class="fb-eyebrow">模块七 · 学生反馈</span>
+        <span class="fb-eyebrow">学生反馈</span>
         <h1 class="fb-title">反馈中心</h1>
         <p class="fb-sub">
           针对识别、决策或教学问题提交具体争议与证据。反馈工单有独立状态，但不会直接修改学生成绩、学习事实或教学规则。
         </p>
       </div>
       <div class="fb-actions">
-        <router-link to="/capability-map" class="fb-btn">能力地图</router-link>
+        <router-link to="/capability-map" class="fb-btn">{{ names.capability }}</router-link>
         <router-link to="/feedback" class="fb-btn">刷新</router-link>
       </div>
     </div>
 
     <div class="fb-notice">
       <strong>教学演练：只看决策，不执行导出。</strong>
-      首期反馈不触发执行、不预占生产配额、不修改生产策略。
-      执行反馈入口等待独立里程碑 I；处理完成不等于教学效果已验证，也不等于新规则已生效。
+      本页反馈不会执行数据导出或改变现有规则。
+      处理完成不等于教学效果已验证，也不等于新规则已生效。
     </div>
 
     <div v-if="statusInfo" class="fb-panel">
       <div class="fb-meta">
         <span class="fb-badge" :class="statusInfo.execution_feedback_open ? 'fb-badge-warn' : 'fb-badge-muted'">
-          执行反馈：{{ statusInfo.execution_feedback_open ? '开放' : '未开放（里程碑 I）' }}
+          执行反馈：{{ statusInfo.execution_feedback_open ? '开放' : '暂未开放' }}
         </span>
-        <span class="fb-badge fb-badge-info">核心流程不依赖模型</span>
+        <span class="fb-badge fb-badge-info">由教师人工核查</span>
         <span class="fb-badge fb-badge-muted">导出触发：否</span>
         <span class="fb-badge fb-badge-muted">配额预占：否</span>
         <span class="fb-badge fb-badge-muted">策略修改：否</span>
@@ -65,25 +65,48 @@
                   {{ attempt.task.title }} · {{ attempt.task.version }} · {{ attempt.status_label }}
                 </option>
               </select>
-              <input v-else v-model="form.attempt_uuid" class="fb-input" placeholder="尝试 UUID（教师代填，可留空）" />
+              <select v-else v-model="form.attempt_id" class="fb-select">
+                <option value="">不关联尝试（将标为未映射/待补证）</option>
+                <option v-if="form.attempt_id && !teacherAttempts.some(item => item.attempt_id === form.attempt_id)" :value="form.attempt_id">已导入练习关联</option>
+                <option v-for="attempt in teacherAttempts" :key="attempt.attempt_id" :value="attempt.attempt_id">
+                  {{ attempt.task_title }} · {{ attempt.student_name }} · {{ attempt.status_label }}
+                </option>
+              </select>
             </label>
             <template v-if="isTeacher">
               <label>
-                反馈所属学生 ID
-                <input v-model="form.student_id" class="fb-input" placeholder="学生用户 ID" />
+                反馈所属学生
+                <select v-model="form.student_name" class="fb-select">
+                  <option value="">请选择学生</option>
+                  <option v-if="form.student_name && !students.some(item => String(item.id) === String(form.student_name))" :value="form.student_name">已导入学生关联</option>
+                  <option v-for="student in students" :key="student.id" :value="String(student.id)">{{ student.username }}</option>
+                </select>
               </label>
               <label>
                 目录版本
-                <input v-model="form.catalog_version" class="fb-input" placeholder="如 v1-candidate" />
+                <select v-model="form.catalog_version" class="fb-select">
+                  <option value="">未指定</option>
+                  <option v-if="form.catalog_version && !catalogVersions.includes(form.catalog_version)" :value="form.catalog_version">已导入目录版本</option>
+                  <option v-for="version in catalogVersions" :key="version" :value="version">{{ version }}</option>
+                </select>
               </label>
               <label>
-                任务键
-                <input v-model="form.task_key" class="fb-input" placeholder="如 TASK-DS-..." />
+                任务
+                <select v-model="form.task_key" class="fb-select">
+                  <option value="">不指定任务</option>
+                  <option v-if="form.task_key && !catalogTasks.some(item => item.task_key === form.task_key)" :value="form.task_key">已导入任务关联</option>
+                  <option v-for="task in catalogTasks" :key="task.task_key" :value="task.task_key">{{ task.title }}</option>
+                </select>
               </label>
               <label>
                 任务版本
-                <input v-model="form.task_version" class="fb-input" placeholder="如 1.0.0" />
+                <select v-model="form.task_version" class="fb-select">
+                  <option value="">不限版本</option>
+                  <option v-if="form.task_version && !taskVersions.includes(form.task_version)" :value="form.task_version">已导入任务版本</option>
+                  <option v-for="version in taskVersions" :key="version" :value="version">{{ version }}</option>
+                </select>
               </label>
+              <div class="fb-full"><ReferenceImport title="其他任务关联" :fields="teacherFields" :model-value="{ student: form.student_name, task_key: form.task_key, task_version: form.task_version, catalog_version: form.catalog_version, attempt_id: form.attempt_id }" @update:model-value="applyTeacherReferences" /></div>
             </template>
             <label class="fb-full">
               具体争议
@@ -97,10 +120,7 @@
               理由
               <textarea v-model="form.reason" class="fb-textarea" rows="2" placeholder="为什么你认为原判定需要复核"></textarea>
             </label>
-            <label>
-              原始判定引用
-              <input v-model="form.original_decision_ref" class="fb-input" placeholder="如 recognition-profile / decision-id / fact-id" />
-            </label>
+            <div><ReferenceImport title="原始判定关联" :fields="decisionFields" :model-value="{ original_decision_ref: form.original_decision_ref }" @update:model-value="Object.assign(form, $event)" /></div>
             <label>
               原始判定版本
               <input v-model="form.original_decision_version" class="fb-input" placeholder="如 v1" />
@@ -114,10 +134,7 @@
           <div v-for="slot in requiredSlots" :key="slot.slot" class="fb-slot" style="margin-bottom: 10px;">
             <h4>{{ slot.label }}</h4>
             <div class="fb-form-grid">
-              <label>
-                证据引用
-                <input :value="evidenceDraft[slot.slot]?.ref || ''" class="fb-input" @input="updateEvidence(slot.slot, 'ref', $event.target.value)" />
-              </label>
+              <div><ReferenceImport :title="`${slot.label}关联`" :fields="referenceFields" :model-value="{ ref: evidenceDraft[slot.slot]?.ref || '' }" @update:model-value="updateEvidence(slot.slot, 'ref', $event.ref)" /></div>
               <label>
                 版本
                 <input :value="evidenceDraft[slot.slot]?.version || ''" class="fb-input" @input="updateEvidence(slot.slot, 'version', $event.target.value)" />
@@ -132,7 +149,7 @@
           <div class="fb-missing">
             <label class="fb-check">
               <input type="checkbox" disabled />
-              执行反馈（涉及实际导出/配额/交付；里程碑 I 后开放，当前不可提交）
+              执行反馈（涉及实际导出与交付，目前暂未开放）
             </label>
           </div>
 
@@ -144,7 +161,7 @@
 
           <div class="fb-actions">
             <button class="fb-btn fb-btn-primary" type="submit" :disabled="submitting">
-              {{ submitting ? '保存中...' : (savePending ? '使用同一提交标识重试' : '提交反馈') }}
+              {{ submitting ? '保存中...' : (savePending ? '重试保存，不会重复提交' : '提交反馈') }}
             </button>
             <button v-if="savePending" class="fb-btn" type="button" @click="submit">重试保存</button>
           </div>
@@ -178,14 +195,14 @@
               <div>
                 <div class="fb-card-title">
                   <router-link :to="`/feedback/${ticket.feedback_id}`" class="fb-link">
-                    {{ ticket.category_label }} · {{ ticket.issue_type_label }}
+                    {{ feedbackLabel('category', ticket.category) }} · {{ feedbackLabel('issue', ticket.issue_type) }}
                   </router-link>
                 </div>
                 <div class="fb-meta">
-                  <span class="fb-badge" :class="statusTone(ticket.status)">{{ ticket.status_label }}</span>
+                  <span class="fb-badge" :class="statusTone(ticket.status)">{{ feedbackLabel('status', ticket.status) }}</span>
                   <span>{{ ticket.task_title || '未关联任务' }}</span>
                   <span>{{ formatDate(ticket.created_at) }}</span>
-                  <span v-if="ticket.duplicate_of">重复于 {{ ticket.duplicate_of }}</span>
+                  <router-link v-if="ticket.duplicate_of" :to="`/feedback/${ticket.duplicate_of}`" class="fb-link">打开关联的主反馈</router-link>
                 </div>
               </div>
               <span class="fb-badge" :class="ticket.candidate_eligible ? 'fb-badge-ok' : 'fb-badge-muted'">
@@ -196,8 +213,8 @@
               待补证：{{ ticket.missing_evidence_labels.join('、') }}
             </div>
             <div class="fb-meta">
-              <span>处理去向：{{ ticket.handling_destination_label }}</span>
-              <span>教学效果：{{ ticket.effect_status_label }}</span>
+              <span>处理去向：{{ feedbackLabel('destination', ticket.handling_destination) }}</span>
+              <span>教学效果：{{ feedbackLabel('effect', ticket.effect_status) }}</span>
               <span v-if="ticket.owner_name">责任人：{{ ticket.owner_name }}</span>
             </div>
           </article>
@@ -208,9 +225,13 @@
 </template>
 
 <script setup>
+import { names } from '@/shared/navigation/names'
+
 import { computed, onMounted, reactive, ref, watch } from 'vue'
 import service from '@/api'
 import { useUserStore } from '@/store/user'
+import ReferenceImport from '@/shared/forms/ReferenceImport.vue'
+import { feedbackError, feedbackLabel } from '@/shared/feedback/presentation.js'
 
 const userStore = useUserStore()
 const isTeacher = computed(() => ['teacher', 'admin'].includes(userStore.userInfo?.role))
@@ -218,6 +239,10 @@ const isTeacher = computed(() => ['teacher', 'admin'].includes(userStore.userInf
 const statusInfo = ref(null)
 const options = reactive({ categories: [], conditional_slots: [], statuses: [], destinations: [] })
 const attempts = ref([])
+const students = ref([])
+const teacherAttempts = ref([])
+const catalogVersions = ref([])
+const catalogTasks = ref([])
 const tickets = ref([])
 const counts = ref({})
 const statuses = ref([])
@@ -229,12 +254,21 @@ const lastCreatedId = ref('')
 const clientRequestId = ref(newClientRequestId())
 const evidenceDraft = reactive({})
 
+const decisionFields = [{ key: 'original_decision_ref', label: '原始判定关联' }]
+const referenceFields = [{ key: 'ref', label: '证据关联' }]
+const teacherFields = [{ key: 'student', label: '学生', type: 'number' }, { key: 'task_key', label: '任务' }, { key: 'task_version', label: '任务版本' }, { key: 'catalog_version', label: '目录版本' }, { key: 'attempt_id', label: '练习记录' }]
+function applyTeacherReferences(values) {
+  form.student_name = values.student
+  form.task_key = values.task_key
+  form.task_version = values.task_version
+  form.catalog_version = values.catalog_version
+  form.attempt_id = values.attempt_id
+}
 const form = reactive({
   category: 'recognition',
   issue_type: 'false_positive',
   attempt_id: '',
-  attempt_uuid: '',
-  student_id: '',
+  student_name: '',
   catalog_version: '',
   task_key: '',
   task_version: '',
@@ -246,6 +280,13 @@ const form = reactive({
 })
 
 const listFilters = reactive({ status: '', category: '' })
+const taskVersions = computed(() => {
+  const versions = catalogTasks.value
+    .filter(task => !form.task_key || task.task_key === form.task_key)
+    .map(task => task.version)
+    .filter(Boolean)
+  return [...new Set(versions)]
+})
 
 const issueTypes = computed(() => {
   const category = options.categories.find((item) => item.value === form.category)
@@ -310,12 +351,32 @@ async function loadAll() {
     tickets.value = listRes.items || []
     counts.value = listRes.counts || {}
     attempts.value = attemptsRes.items || []
+    if (isTeacher.value) void loadTeacherOptions()
     if (issueTypes.value.length && !issueTypes.value.some((item) => item.value === form.issue_type)) {
       form.issue_type = issueTypes.value[0].value
     }
     ensureEvidenceSlots()
   } catch (err) {
-    error.value = err.response?.data?.detail || '加载反馈中心失败。'
+    error.value = feedbackError(err, '加载反馈中心失败。')
+  }
+}
+
+async function loadTeacherOptions() {
+  try {
+    const [report, catalog] = await Promise.all([
+      service.analytics.teacherStudentReport().catch(() => []),
+      service.learningMap.catalog().catch(() => null),
+    ])
+    students.value = (report || []).map(item => ({ id: item.id, username: item.username || '学生名称暂不可用' }))
+    catalogVersions.value = catalog?.version ? [catalog.version] : []
+    catalogTasks.value = (catalog?.capabilities || [])
+      .flatMap(capability => capability.tasks || [])
+      .filter((task, index, all) => task?.task_key && all.findIndex(item => item.task_key === task.task_key) === index)
+      .map(task => ({ task_key: task.task_key, title: task.title, version: task.version }))
+  } catch {
+    students.value = []
+    catalogVersions.value = []
+    catalogTasks.value = []
   }
 }
 
@@ -328,7 +389,7 @@ async function loadList() {
     tickets.value = res.items || []
     counts.value = res.counts || {}
   } catch (err) {
-    error.value = err.response?.data?.detail || '加载反馈列表失败。'
+    error.value = feedbackError(err, '加载反馈列表失败。')
   }
 }
 
@@ -361,35 +422,27 @@ async function submit() {
       evidence,
     }
     if (form.attempt_id) payload.attempt_id = form.attempt_id
+    if (isTeacher.value && form.student_name) {
+      payload.student = Number(form.student_name)
+    }
     if (isTeacher.value) {
-      if (form.attempt_uuid.trim()) payload.attempt_id = form.attempt_uuid.trim()
-      if (form.student_id.trim()) {
-        const studentId = Number(form.student_id.trim())
-        if (!Number.isInteger(studentId) || studentId <= 0) {
-          error.value = '学生 ID 必须为正整数。'
-          submitting.value = false
-          return
-        }
-        payload.student = studentId
-      }
-      if (form.catalog_version.trim()) payload.catalog_version = form.catalog_version.trim()
-      if (form.task_key.trim()) payload.task_key = form.task_key.trim()
-      if (form.task_version.trim()) payload.task_version = form.task_version.trim()
+      if (form.catalog_version) payload.catalog_version = form.catalog_version
+      if (form.task_key) payload.task_key = form.task_key
+      if (form.task_version) payload.task_version = form.task_version
     }
     const res = await service.feedback.create(payload)
     savePending.value = false
     lastCreatedId.value = res.feedback_id
     message.value = res.idempotent_replay
       ? '该提交已处理，返回原反馈记录。'
-      : `反馈已保存：${res.status_label}。${res.missing_evidence?.length ? '仍有待补证据。' : ''}`
+      : `反馈已保存：${feedbackLabel('status', res.status)}。${res.missing_evidence?.length ? '仍有待补证据。' : ''}`
     form.dispute = ''
     form.expected_result = ''
     form.reason = ''
     form.original_decision_ref = ''
     form.original_decision_version = ''
     form.attempt_id = ''
-    form.attempt_uuid = ''
-    form.student_id = ''
+    form.student_name = ''
     form.catalog_version = ''
     form.task_key = ''
     form.task_version = ''
@@ -401,9 +454,9 @@ async function submit() {
     const data = err.response?.data
     if (err.response?.status === 503 && data?.retryable) {
       savePending.value = true
-      error.value = `${data.detail}（客户端提交标识：${data.client_request_id}）`
+      error.value = '保存尚未完成，请重试；重试不会重复创建反馈。'
     } else {
-      error.value = data?.detail || data?.issue_type?.[0] || '保存失败，请检查输入后重试。'
+      error.value = feedbackError(err, '保存失败，请检查输入后重试。')
     }
   } finally {
     submitting.value = false

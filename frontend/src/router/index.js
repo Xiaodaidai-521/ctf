@@ -3,8 +3,30 @@ import { useUserStore } from '@/store/user'
 import TeacherLayout from '@/teacher/TeacherLayout.vue'
 import TeacherDashboard from '@/teacher/TeacherDashboard.vue'
 import LearningEffectAnalysis from '@/teacher/LearningEffectAnalysis.vue'
+import { guardDestination, pageTitle } from '@/shared/navigation/access.js'
+import { compatDestination } from '@/shared/navigation/phase2.js'
+import { teachingDestination, feedbackCandidateDestination } from '@/shared/navigation/phase3.js'
+import { shadowDestination } from '@/learning/shadowRoutes.js'
+const enterTeaching = to => {
+  const role = useUserStore().userInfo?.role
+  if (role === 'admin' && to.path.replace(/\/+$/, '') === '/teaching-knowledge') return { path: '/admin/legal/kb/materials', query: to.query, hash: to.hash }
+  return teachingDestination(to.path, to.query, role) || true
+}
+const enterShadow = to => shadowDestination(to, useUserStore().userInfo?.role) || true
 
 const routes = [
+  {
+    path: '/guide',
+    name: 'Guide',
+    component: () => import('@/learning/guide/GuideView.vue'),
+    meta: { title: '智航', requiresAuth: true }
+  },
+  {
+    path: '/access-denied',
+    name: 'AccessDenied',
+    component: () => import('@/shared/layout/AccessDenied.vue'),
+    meta: { title: '暂无访问权限' }
+  },
   {
     path: '/knowledge',
     name: 'KnowledgeLibrary',
@@ -15,7 +37,8 @@ const routes = [
     path: '/teaching-knowledge',
     name: 'TeachingKnowledge',
     component: () => import('@/learningKnowledge/TeachingKnowledge.vue'),
-    meta: { title: '教学材料审阅', requiresAuth: true, requiresTeacher: true }
+    meta: { title: '材料工坊', requiresAuth: true, requiresTeacher: true },
+    beforeEnter: enterTeaching
   },
   {
     path: '/learning-knowledge/:attemptId',
@@ -79,10 +102,18 @@ const routes = [
     meta: { title: '测试中心', requiresAuth: true }
   },
   {
-    path: '/exam-history',
+    // 本区记录子视图：完整历史与筛选；记录区保留可分享、可刷新、可返回的 URL。
+    path: '/exam-center/history',
     name: 'ExamHistory',
-    component: () => import('@/views/ExamHistory.vue'),
-    meta: { title: '考试历史', requiresAuth: true }
+    component: () => import('@/learning/exams/components/ExamRecords.vue'),
+    meta: { title: '测评记录', requiresAuth: true }
+  },
+  {
+    // 旧深链保留兼容，查询条件（类型/状态）随跳转保留。
+    path: '/exam-history',
+    name: 'ExamHistoryLegacy',
+    redirect: to => ({ path: '/exam-center/history', query: to.query }),
+    meta: { title: '测评记录', requiresAuth: true }
   },
   {
     path: '/exam-taking/:id',
@@ -91,10 +122,17 @@ const routes = [
     meta: { title: '答题中', requiresAuth: true }
   },
   {
-    path: '/exam-result/:id',
+    // 结果属于记录区子视图，不再占用导航位置。
+    path: '/exam-center/result/:id',
     name: 'ExamResult',
-    component: () => import('@/views/ExamResult.vue'),
-    meta: { title: '考试结果', requiresAuth: true }
+    component: () => import('@/learning/exams/components/ExamRecordDetail.vue'),
+    meta: { title: '测评结果', requiresAuth: true }
+  },
+  {
+    path: '/exam-result/:id',
+    name: 'ExamResultLegacy',
+    redirect: to => ({ path: `/exam-center/result/${to.params.id}`, query: to.query }),
+    meta: { title: '测评结果', requiresAuth: true }
   },
   // 多智能体协作（需要登录）
   {
@@ -116,22 +154,43 @@ const routes = [
     meta: { title: '学习路径', requiresAuth: true }
   },
   {
-    path: '/data-lab',
+    path: '/resources/topics/data-security',
     name: 'DataLab',
     component: () => import('@/views/DataLab/DataLab.vue'),
-    meta: { title: '数据安全案例实验台', requiresAuth: true }
+    meta: { title: '智库 · 数据安全案例', requiresAuth: true, sensitive: true }
+  },
+  {
+    path: '/data-lab',
+    name: 'DataLabLegacy',
+    redirect: enterShadow,
+    meta: { title: '智库 · 数据安全案例', requiresAuth: true }
   },
   {
     path: '/data-lab/teacher',
-    name: 'DataLabTeacher',
+    name: 'DataLabTeacherLegacy',
     component: () => import('@/views/DataLab/DataLabTeacher.vue'),
-    meta: { title: '数据安全案例教学管理', requiresAuth: true, requiresTeacher: true }
+    beforeEnter: enterShadow,
+    meta: { title: '数据安全案例管理', requiresAuth: true, requiresTeacher: true, sensitive: true }
   },
   {
+    path: '/admin/data-cases',
+    component: () => import('@/admin/components/AdminLayout.vue'),
+    meta: { requiresAdmin: true, sensitive: true },
+    children: [
+      { path: '', name: 'AdminDataCases', component: () => import('@/views/DataLab/DataLabTeacher.vue'), meta: { title: '数据安全案例监督', requiresAdmin: true, sensitive: true } }
+    ]
+  },
+  {
+    // 学生旧入口归并到成长总览的“结果与复盘”区；教师/管理员保留原复盘页做教学核对。
     path: '/my-results',
     name: 'MyResults',
     component: () => import('@/views/SkillReview/MyResults.vue'),
-    meta: { title: '结果与复盘', requiresAuth: true }
+    meta: { title: '结果与复盘', requiresAuth: true },
+    beforeEnter: to => {
+      const role = useUserStore().userInfo?.role
+      if (role === 'teacher' || role === 'admin') return true
+      return compatDestination('/my-results', to.query) || true
+    }
   },
   {
     path: '/capability-map',
@@ -142,8 +201,8 @@ const routes = [
   {
     path: '/capability-map/changelog',
     name: 'CapabilityMapChangeLog',
-    component: () => import('@/views/LearningMap/ChangeLog.vue'),
-    meta: { title: '路径变更记录', requiresAuth: true }
+    redirect: enterShadow,
+    meta: { title: '能力图谱 · 学习历史', requiresAuth: true }
   },
   {
     path: '/feedback',
@@ -161,13 +220,15 @@ const routes = [
     path: '/learning-paths/manage',
     name: 'LearningPathsManage',
     component: () => import('@/views/LearningPaths/LearningPathsManageList.vue'),
-    meta: { title: '管理学习路径', requiresAuth: true, requiresTeacher: true }
+    meta: { title: '学习航线管理', requiresAuth: true, requiresTeacher: true },
+    beforeEnter: enterTeaching
   },
   {
     path: '/learning-paths/new',
     name: 'LearningPathsCreate',
     component: () => import('@/views/LearningPaths/LearningPathsManage.vue'),
-    meta: { title: '创建学习路径', requiresAuth: true, requiresTeacher: true }
+    meta: { title: '创建学习航线', requiresAuth: true, requiresTeacher: true },
+    beforeEnter: enterTeaching
   },
   {
     path: '/learning-paths/:id',
@@ -179,7 +240,8 @@ const routes = [
     path: '/learning-paths/:id/edit',
     name: 'LearningPathsEdit',
     component: () => import('@/views/LearningPaths/LearningPathsManage.vue'),
-    meta: { title: '编辑学习路径', requiresAuth: true, requiresTeacher: true }
+    meta: { title: '编辑学习航线', requiresAuth: true, requiresTeacher: true },
+    beforeEnter: enterTeaching
   },
   {
     path: '/learning-paths/:pathId/modules/:moduleId',
@@ -212,17 +274,24 @@ const routes = [
     meta: { requiresTeacherOnly: true },
     children: [
       { path: '', name: 'TeacherHome', component: TeacherDashboard, meta: { title: '教师中心', requiresTeacherOnly: true } },
-      { path: 'learning-paths', name: 'TeacherLearningPaths', component: () => import('@/views/LearningPaths/LearningPathsManageList.vue'), meta: { title: '学习路径', requiresTeacherOnly: true } },
+      { path: 'learning-paths', name: 'TeacherLearningPaths', component: () => import('@/teacher/paths/LearningPathsManageList.vue'), meta: { title: '学习航线管理', requiresTeacherOnly: true } },
+      { path: 'learning-paths/new', name: 'TeacherLearningPathsCreate', component: () => import('@/teacher/paths/LearningPathsManage.vue'), meta: { title: '创建学习航线', requiresTeacherOnly: true } },
+      { path: 'learning-paths/:id/edit', name: 'TeacherLearningPathsEdit', component: () => import('@/teacher/paths/LearningPathsManage.vue'), meta: { title: '编辑学习航线', requiresTeacherOnly: true } },
+      { path: 'materials', name: 'TeacherMaterials', component: () => import('@/learningKnowledge/TeachingKnowledge.vue'), meta: { title: '材料工坊', requiresTeacherOnly: true } },
+      { path: 'students/:studentId/growth', name: 'TeacherStudentGrowth', component: () => import('@/teacher/TeacherLearningEffect.vue'), meta: { title: '成长图谱 · 教师视角', requiresTeacherOnly: true } },
+      { path: 'learning-evidence', name: 'TeacherLearningEvidence', redirect: to => ({ path: '/teacher/learning-effect', query: to.query, hash: '#task-evidence' }), meta: { title: '学情洞察 · 任务核对', requiresTeacherOnly: true } },
+      { path: 'teaching-actions', name: 'TeacherTeachingActions', component: () => import('@/teacher/TeacherOperations.vue'), meta: { title: '教学安排', requiresTeacherOnly: true } },
       { path: 'capability-map', name: 'TeacherCapabilityMap', component: () => import('@/teacher/CapabilityMapAdmin.vue'), meta: { title: '能力地图审核', requiresTeacherOnly: true } },
+      { path: 'data-cases', name: 'DataLabTeacher', component: () => import('@/views/DataLab/DataLabTeacher.vue'), meta: { title: '数据安全案例管理', requiresTeacherOnly: true, sensitive: true } },
       { path: 'skill-review', name: 'TeacherSkillReview', component: () => import('@/teacher/SkillReviewAdmin.vue'), meta: { title: '验收与抽查', requiresTeacherOnly: true } },
-      { path: 'feedback/candidates', name: 'TeacherFeedbackCandidates', component: () => import('@/teacher/FeedbackCandidates.vue'), meta: { title: '问题组与候选', requiresTeacherOnly: true } },
-      { path: 'feedback', name: 'TeacherFeedbackQueue', component: () => import('@/teacher/FeedbackQueue.vue'), meta: { title: '反馈待办', requiresTeacherOnly: true } },
+      { path: 'feedback/candidates', name: 'TeacherFeedbackCandidates', redirect: feedbackCandidateDestination, meta: { title: '问题组与候选', requiresTeacherOnly: true } },
+      { path: 'feedback', name: 'TeacherFeedbackQueue', component: () => import('@/teacher/FeedbackWorkbench.vue'), meta: { title: '反馈处理', requiresTeacherOnly: true } },
       { path: 'feedback/reconciliation', name: 'TeacherFeedbackReconciliation', component: () => import('@/teacher/FeedbackReconciliation.vue'), meta: { title: '反馈事件核对', requiresTeacherOnly: true } },
       { path: 'feedback/:id', name: 'TeacherFeedbackDetail', component: () => import('@/teacher/FeedbackDetail.vue'), meta: { title: '反馈处理', requiresTeacherOnly: true } },
-      { path: 'learning-scores', name: 'TeacherLearningScores', component: () => import('@/admin/views/LearningScores.vue'), meta: { title: '学习评分', requiresTeacherOnly: true } },
-      { path: 'learning-effect', name: 'TeacherLearningEffect', component: LearningEffectAnalysis, meta: { title: '学习成效', requiresTeacherOnly: true } },
-      { path: 'challenges', name: 'TeacherChallenges', component: () => import('@/admin/views/Challenges.vue'), meta: { title: '题目管理', requiresTeacherOnly: true } },
-      { path: 'resources', name: 'TeacherResources', component: () => import('@/admin/views/Resources.vue'), meta: { title: '资源审核', requiresTeacherOnly: true } },
+      { path: 'learning-scores', name: 'TeacherLearningScores', component: () => import('@/teacher/assessment/TeacherAssessment.vue'), meta: { title: '动态评测', requiresTeacherOnly: true } },
+      { path: 'learning-effect', name: 'TeacherLearningEffect', component: LearningEffectAnalysis, meta: { title: '学情洞察', requiresTeacherOnly: true } },
+      { path: 'challenges', name: 'TeacherChallenges', component: () => import('@/teacher/TeacherChallengePanel.vue'), meta: { title: '题目管理', requiresTeacherOnly: true } },
+      { path: 'resources', name: 'TeacherResources', component: () => import('@/teacher/TeacherResourcePanel.vue'), meta: { title: '资源审核', requiresTeacherOnly: true } },
       { path: 'knowledge', name: 'TeacherKnowledgeLibrary', component: () => import('@/learningKnowledge/KnowledgeLibrary.vue'), meta: { title: '知识资料库', requiresTeacherOnly: true } },
     ]
   },
@@ -242,7 +311,7 @@ const routes = [
         path: '',
         name: 'AdminDashboardHome',
         component: () => import('@/admin/views/Dashboard.vue'),
-        meta: { title: '仪表盘', requiresAdmin: true }
+        meta: { title: '治理驾驶舱', requiresAdmin: true }
       }
     ],
     meta: { requiresAdmin: true }
@@ -354,7 +423,7 @@ const routes = [
         path: '',
         name: 'AdminStudentLearningHome',
         component: () => import('@/admin/views/StudentLearning.vue'),
-        meta: { title: '用户学习报表', requiresAdmin: true }
+        meta: { title: '全局洞察', requiresAdmin: true }
       }
     ],
     meta: { requiresAdmin: true }
@@ -368,7 +437,7 @@ const routes = [
         path: '',
         name: 'AdminLearningScoresHome',
         component: () => import('@/admin/views/LearningScores.vue'),
-        meta: { title: '动态评分管理', requiresAdmin: true }
+        meta: { title: '评测监督', requiresAdmin: true }
       }
     ],
     meta: { requiresAdmin: true }
@@ -465,14 +534,32 @@ const routes = [
       {
         path: '',
         name: 'AdminLegalKbHome',
-        component: () => import('@/learningKnowledge/KnowledgeLibrary.vue'),
-        meta: { title: '知识资料库', requiresAdmin: true }
+        component: () => import('@/admin/foundation/FoundationLibrary.vue'),
+        meta: { title: '基座治理', requiresAdmin: true, sensitive: true }
       },
       {
         path: 'tools',
         name: 'AdminLegalKbTools',
-        component: () => import('@/admin/views/legal/KnowledgeBase.vue'),
-        meta: { title: '法律检索与向量化工具', requiresAdmin: true }
+        component: () => import('@/admin/foundation/IndexTools.vue'),
+        meta: { title: '索引工具', requiresAdmin: true, sensitive: true }
+      },
+      {
+        path: 'health',
+        name: 'AdminLegalKbHealth',
+        component: () => import('@/admin/foundation/IndexHealth.vue'),
+        meta: { title: '索引健康', requiresAdmin: true, sensitive: true }
+      },
+      {
+        path: 'authorization',
+        name: 'AdminLegalKbAuthorization',
+        component: () => import('@/admin/foundation/AuthorizationSupervision.vue'),
+        meta: { title: '授权监督', requiresAdmin: true, sensitive: true }
+      },
+      {
+        path: 'materials',
+        name: 'AdminLegalKbMaterials',
+        component: () => import('@/learningKnowledge/TeachingKnowledge.vue'),
+        meta: { title: '受限材料维护', requiresAdmin: true, sensitive: true }
       }
     ],
     meta: { requiresAdmin: true }
@@ -496,7 +583,7 @@ const routes = [
   {
     path: '/dashboard',
     name: 'StudentDashboard',
-    component: () => import('@/teacher/DashboardEntry.vue'),
+    component: () => import('@/shared/navigation/DashboardEntry.vue'),
     meta: { title: '学习仪表盘', requiresAuth: true }
   },
   {
@@ -506,10 +593,16 @@ const routes = [
     meta: { title: '画像设置', requiresAuth: true }
   },
   {
+    // 学生旧入口归并到成长总览的“学习分析”区；教师/管理员仍可打开原分析页核对教学数据。
     path: '/analytics',
     name: 'LearningAnalytics',
     component: () => import('@/views/LearningAnalytics.vue'),
-    meta: { title: '学习分析', requiresAuth: true }
+    meta: { title: '学习分析', requiresAuth: true },
+    beforeEnter: to => {
+      const role = useUserStore().userInfo?.role
+      if (role === 'teacher' || role === 'admin') return true
+      return compatDestination('/analytics', to.query) || true
+    }
   },
   {
     path: '/content/:id',
@@ -532,50 +625,12 @@ const router = createRouter({
   routes
 })
 
-// 路由守卫
+// 入口与拒绝落点统一；后端仍独立校验每个请求的权限。
 router.beforeEach((to, from, next) => {
   const userStore = useUserStore()
-
-  // 设置页面标题
-  document.title = to.meta.title ? `${to.meta.title} - 在线学习平台` : '在线学习平台'
-
-  // 资料库只对教师与管理员开放，始终转到对应角色的现有布局。
-  if (to.name === 'KnowledgeLibrary' && userStore.isAuthenticated && ['teacher', 'admin'].includes(userStore.userInfo?.role)) {
-    next(userStore.userInfo.role === 'teacher' ? '/teacher/knowledge' : '/admin/legal/kb')
-  }
-  // 检查是否需要登录
-  else if (to.meta.requiresTeacherOnly && !userStore.isAuthenticated) {
-    next('/login')
-  }
-  else if (to.meta.requiresTeacherOnly && userStore.userInfo?.role !== 'teacher') {
-    next(userStore.userInfo?.role === 'admin' ? '/admin/dashboard' : '/')
-  }
-  else if (to.path === '/dashboard' && userStore.userInfo?.role === 'admin') {
-    next('/admin/dashboard')
-  }
-  else if (to.meta.requiresAuth && !userStore.isAuthenticated) {
-    next('/login')
-  }
-  // 检查是否需要管理员权限
-  else if (to.meta.requiresAdmin && (!userStore.isAuthenticated || userStore.userInfo?.role !== 'admin')) {
-    if (!userStore.isAuthenticated) {
-      next('/login')
-    } else {
-      next('/')
-    }
-  }
-  // 检查是否需要教师权限（管理员也可以访问）
-  else if (to.meta.requiresTeacher && (!userStore.isAuthenticated ||
-    (userStore.userInfo?.role !== 'teacher' && userStore.userInfo?.role !== 'admin'))) {
-    if (!userStore.isAuthenticated) {
-      next('/login')
-    } else {
-      next('/')
-    }
-  }
-  else {
-    next()
-  }
+  const title = pageTitle(to, userStore.userInfo?.role)
+  document.title = title ? `${title} - 智航` : '智航'
+  next(guardDestination(to, userStore))
 })
 
 export default router
