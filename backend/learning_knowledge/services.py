@@ -1,5 +1,4 @@
 """Static/lexical teaching retrieval. No embedding, reranker or generator calls."""
-import re
 from urllib.parse import urlsplit
 
 from django.core.cache import cache
@@ -9,6 +8,7 @@ from rest_framework.exceptions import NotFound
 
 from .models import Evidence, EvidenceIssue, MaterialChunk, TaskMaterial
 from .policy import POLICY_VERSION, Scope, authorize, digest, live_attempt, unavailable
+from .ranking import RANKING_VERSION, Candidate, rank_candidates
 
 SOURCE_DOMAINS = {'www.npc.gov.cn', 'openstd.samr.gov.cn', 'wstg.owasp.org', 'owasp.org', 'creativecommons.org'}
 
@@ -76,11 +76,9 @@ def read_evidence(evidence_id, user):
     return evidence_payload(evidence, user)
 
 
-def _tokens(query):
-    return set(re.findall(r'[a-z0-9_]+|[一-鿿]{2}', query.lower()))
-
-
 def search(scope, query='', request_id='', knowledge_point_ids=None):
+    if not isinstance(scope, Scope):
+        raise unavailable()
     attempt = live_attempt(scope)
     # This public purpose is deliberately not a hint retrieval bypass.
     if scope.purpose != 'lesson':
@@ -98,21 +96,18 @@ def search(scope, query='', request_id='', knowledge_point_ids=None):
         elif authorize(binding.revision_id, scope, allow_stale=True):
             stale = True
     stamp = '|'.join(f'{r.pk}:{r.material.acl_version}:{r.source_hash}' for r in revisions)
-    key = 'm3-candidates:' + digest(f'{scope.user.pk}:{attempt.attempt_id}:{scope.purpose}:{scope.hint_level}:{POLICY_VERSION}:{stamp}:{query}')
+    key = 'm3-candidates:' + digest(f'{scope.user.pk}:{attempt.attempt_id}:{scope.purpose}:{scope.hint_level}:{POLICY_VERSION}:{RANKING_VERSION}:{stamp}:{query}')
     candidate_ids = cache.get(key)
     if candidate_ids is None:
-        tokens = _tokens(query)
-        ranked = []
+        candidates = []
         for revision in revisions:
             for chunk in revision.chunks.all():
                 try:
                     text = chunk_text(chunk, revision)
                 except NotFound:
                     continue
-                score = sum(token in (revision.title + ' ' + text).lower() for token in tokens)
-                if not query.strip() or score:
-                    ranked.append((score, chunk.pk))
-        candidate_ids = [pk for _, pk in sorted(ranked, key=lambda row: (-row[0], row[1]))[:12]]
+                candidates.append(Candidate(chunk.pk, revision.title, text))
+        candidate_ids = rank_candidates(candidates, query)
         cache.set(key, candidate_ids, 300)  # IDs only; never authority and never source text.
     results, groups = [], set()
     if not isinstance(candidate_ids, list) or any(type(pk) is not int for pk in candidate_ids):

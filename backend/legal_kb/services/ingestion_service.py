@@ -3,9 +3,10 @@
 from typing import Optional
 
 from django.contrib.contenttypes.models import ContentType
-from django.db import connection
 from django.db import transaction
 from django.utils import timezone
+
+from users.permissions import is_staff_or_role
 
 from audit.models import AuditEvent
 from audit.services import AuditLedgerService
@@ -24,6 +25,9 @@ class LegalKbIngestionService:
 
     def ingest_document(self, document: LegalDocument, actor=None) -> KbIngestionJob:
         """Create clauses and embedding rows for a legal document."""
+        # Keep trusted actorless local commands, but never accept a student identity.
+        if actor is not None and (not actor.is_active or not is_staff_or_role(actor, 'teacher', 'admin')):
+            raise ValueError('Indexing requires an authorized staff or teacher actor.')
         job = KbIngestionJob.objects.create(
             job_type='legal_document',
             status='running',
@@ -47,6 +51,22 @@ class LegalKbIngestionService:
 
     @transaction.atomic
     def _ingest_document(self, *, job: KbIngestionJob, document: LegalDocument, actor=None) -> KbIngestionJob:
+        # Lock the live source; stale callers cannot overwrite a newer rebuild.
+        document = LegalDocument.objects.select_for_update().get(pk=document.pk)
+        from learning_knowledge.models import Material
+
+        registered = Material.objects.filter(
+            source_type='legal_clause',
+            source_object_id__in=LegalClause.objects.filter(document=document).values('pk'),
+        ).exists()
+        if registered:
+            # Replacing registered clause IDs would also break task authorization.
+            raise ValueError('Registered course materials require their task-scoped ingestion path.')
+        if getattr(self.embedding_service, 'uses_remote_provider', False):
+            from .visibility import _is_staff_or_admin, _is_teacher
+
+            if not (_is_staff_or_admin(actor) or _is_teacher(actor)):
+                raise ValueError('Remote indexing requires an authorized staff or teacher actor.')
         chunks = ChunkingService.split_legal_text(document.full_text)
         document_ct = ContentType.objects.get_for_model(document)
         clause_ct = ContentType.objects.get_for_model(LegalClause)
@@ -72,8 +92,7 @@ class LegalKbIngestionService:
                 text_hash=sha256_text(chunk.text),
                 order=chunk.order,
             )
-            semantic_embedding = self.embedding_service.embed_text(chunk.text)
-            embedding = self.embedding_service.embed_local_text(chunk.text)
+            embedding = self.embedding_service.embed_text(chunk.text)
             LegalKnowledgeEmbedding.objects.create(
                 source_type='legal_clause',
                 content_type=clause_ct,
@@ -82,23 +101,13 @@ class LegalKbIngestionService:
                 title=clause.title or clause.clause_key,
                 text=clause.text,
                 text_hash=clause.text_hash,
-                embedding=embedding,
-                embedding_vector=(
-                    semantic_embedding
-                    if connection.vendor == 'postgresql' and len(semantic_embedding) == 1024
-                    else None
-                ),
-                embedding_model='local-hash-v1',
-                embedding_dimension=len(embedding),
+                **self.embedding_service.storage_fields(embedding),
                 metadata={
                     'document_id': document.id,
                     'document_title': document.title,
                     'clause_key': clause.clause_key,
-                    'vector_model': (
-                        self.embedding_service.model
-                        if len(semantic_embedding) == 1024
-                        else 'local-hash-v1'
-                    ),
+                    'vector_model': self.embedding_service.model,
+                    'chunking_version': ChunkingService.VERSION,
                 },
             )
 

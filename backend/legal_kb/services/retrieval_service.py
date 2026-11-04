@@ -6,11 +6,11 @@ import time
 from typing import Dict, List, Optional
 
 from django.conf import settings
-from django.db import connection
+from django.db import connection, transaction
 from django.db.models import Q
 
 from ..models import LegalKnowledgeEmbedding, LegalRetrievalLog
-from .embedding_service import EmbeddingService, cosine_similarity
+from .embedding_service import EmbeddingService, EmbeddingUnavailableError, cosine_similarity
 from .visibility import apply_embedding_visibility
 
 
@@ -27,11 +27,6 @@ class LegalRetrievalService:
         """Return top chunks via hybrid (vector + lexical) RRF fusion, and log the query."""
         started = time.perf_counter()
         filters = filters or {}
-        query_embedding = (
-            self.embedding_service.embed_text(query)
-            if connection.vendor == 'postgresql'
-            else self.embedding_service.embed_local_text(query)
-        )
         queryset = LegalKnowledgeEmbedding.objects.all()
         source_type = filters.get('source_type')
         if source_type:
@@ -45,14 +40,27 @@ class LegalRetrievalService:
         # rows are unaffected; anonymous/internal callers fail closed.
         queryset = apply_embedding_visibility(queryset, user)
 
+        query_embedding = []
+        if queryset.exists():
+            try:
+                self.embedding_service.validate_configuration()
+                compatible = self.embedding_service.compatible_queryset(queryset)
+                if compatible.exists():
+                    # Only the query leaves this process, never candidate text.
+                    query_embedding = self.embedding_service.embed_text(query)
+                if queryset.exclude(pk__in=compatible.values('pk')).exists():
+                    logger.warning('Stale or incompatible KB vectors ignored; rebuild_legal_kb is required.')
+            except EmbeddingUnavailableError:
+                logger.warning('Semantic retrieval unavailable; using lexical-only retrieval (no hashing).')
+
         results = None
         if connection.vendor == 'postgresql' and len(query_embedding) == 1024:
             try:
-                results = self._retrieve_with_pgvector(query, query_embedding, queryset, top_k)
-            except Exception as exc:
-                # Keep the portable JSON + lexical path available during a
-                # partial deployment or when pgvector has not been rebuilt yet.
-                logger.warning('pgvector retrieval unavailable; using fallback: %s', exc)
+                with transaction.atomic():
+                    results = self._retrieve_with_pgvector(query, query_embedding, queryset, top_k)
+            except Exception:
+                # Database/SDK exception strings may contain query/vector data.
+                logger.warning('pgvector retrieval unavailable; using canonical JSON/lexical retrieval.')
                 results = None
         if not results:
             results = self._retrieve_portable(query, query_embedding, queryset, top_k)
@@ -72,7 +80,7 @@ class LegalRetrievalService:
 
         pool_size = max(top_k * 4, 40)
         vector_items = list(
-            queryset.exclude(embedding_vector__isnull=True)
+            self.embedding_service.compatible_queryset(queryset).exclude(embedding_vector__isnull=True)
             .annotate(distance=CosineDistance('embedding_vector', query_embedding))
             .order_by('distance')[:pool_size]
         )
@@ -91,19 +99,11 @@ class LegalRetrievalService:
         )
 
     def _retrieve_portable(self, query, query_embedding, queryset, top_k):
-        """Portable JSON + lexical path for SQLite/offline or pgvector fallback.
-
-        The stored JSON ``embedding`` is always the 128-dim local vector, so the
-        query must also be embedded locally here. (On PostgreSQL ``retrieve``
-        builds a 1024-dim remote query vector for ANN; reusing it against the
-        128-dim JSON vectors would mismatch and zero every vector score, silently
-        degrading this fallback to lexical-only.)
-        """
-        local_query_embedding = self.embedding_service.embed_local_text(query)
+        """Use canonical JSON on SQLite or non-1024 spaces; never invent vectors."""
         pool_items = list(queryset[:1000])
         return self._fuse(
             query=query,
-            query_embedding=local_query_embedding,
+            query_embedding=query_embedding,
             items=pool_items,
             top_k=top_k,
             vector_scores=None,
@@ -132,10 +132,12 @@ class LegalRetrievalService:
 
         scored = []
         for item in items:
-            if vector_scores is not None and item.id in vector_scores:
-                vector_score = vector_scores[item.id]
-            else:
-                vector_score = cosine_similarity(query_embedding, item.embedding)
+            vector_score = 0.0
+            if query_embedding and self.embedding_service.matches_index(item):
+                if vector_scores is not None and item.id in vector_scores:
+                    vector_score = vector_scores[item.id]
+                else:
+                    vector_score = cosine_similarity(query_embedding, item.embedding)
             lexical_score = self._lexical_similarity(query, f'{item.title} {item.text}')
             scored.append({'item': item, 'vector': vector_score, 'lexical': lexical_score})
 
@@ -155,7 +157,7 @@ class LegalRetrievalService:
         threshold = float(getattr(settings, 'LEGAL_KB_SCORE_THRESHOLD', 0.35)) if apply_threshold else 0.0
         results = []
         for row in scored:
-            if row['display'] < threshold:
+            if row['fused'] <= 0 or row['display'] < threshold:
                 continue
             item = row['item']
             results.append({

@@ -1,4 +1,4 @@
-"""Admin-only ingestion API. Uploads require staff privileges by design."""
+"""Teacher/admin document ingestion, with staff-only global job browsing."""
 
 import logging
 
@@ -9,9 +9,11 @@ from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from users.permissions import IsTeacherOrAdmin
+
 from .models import DocumentSource
 from .serializers import DocumentSourceSerializer
-from .services import IngestionService
+from .services import UploadIngestionService
 
 logger = logging.getLogger(__name__)
 
@@ -19,12 +21,17 @@ logger = logging.getLogger(__name__)
 class DocumentIngestionView(APIView):
     """POST a document file for ingestion; GET lists ingested documents.
 
-    Restricted to staff/admin users: ingestion writes into the shared knowledge
-    base, so it must never be an unauthenticated endpoint.
+    Uploads write shared knowledge and require a teacher/admin. The global
+    document/job listing retains its existing staff-only permission.
     """
 
     permission_classes = [IsAdminUser]
     parser_classes = [MultiPartParser, FormParser]
+
+    def get_permissions(self):
+        if self.request.method == 'POST':
+            return [IsTeacherOrAdmin()]
+        return super().get_permissions()
 
     def get(self, request):
         documents = DocumentSource.objects.all()[:200]
@@ -54,7 +61,7 @@ class DocumentIngestionView(APIView):
         if visibility not in dict(DocumentSource.VISIBILITY_CHOICES):
             visibility = 'internal'
 
-        document = IngestionService().ingest_bytes(
+        document = UploadIngestionService().ingest_bytes(
             data=upload.read(),
             filename=upload.name,
             mime=upload.content_type or '',

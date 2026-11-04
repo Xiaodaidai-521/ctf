@@ -5,6 +5,7 @@
       <div class="page-header">
         <h3 class="page-title">资源审核</h3>
         <div class="page-actions">
+          <router-link class="action-btn btn-default" :to="$route.path.startsWith('/teacher') ? '/teacher/knowledge' : '/admin/legal/kb'">知识资料库</router-link>
           <button class="action-btn btn-default" @click="fetchResources">
             🔄 刷新
           </button>

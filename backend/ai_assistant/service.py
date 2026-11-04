@@ -1072,57 +1072,6 @@ class MultiAgentChatService:
             'query': question,
         }
 
-    def _legal_embedding_service(self):
-        from legal_kb.services.embedding_service import EmbeddingService
-
-        if not hasattr(self, '_legal_embedding_service_instance'):
-            self._legal_embedding_service_instance = EmbeddingService()
-        return self._legal_embedding_service_instance
-
-    def _rank_legal_embeddings(self, *, query_embedding, queryset, top_k: int) -> List[Dict]:
-        from legal_kb.services.embedding_service import cosine_similarity
-        from django.db import connection
-
-        if connection.vendor == 'postgresql' and len(query_embedding) == 1024:
-            try:
-                from pgvector.django import CosineDistance
-
-                return [
-                    {
-                        'id': item.id,
-                        'source_type': item.source_type,
-                        'object_id': item.object_id,
-                        'title': item.title,
-                        'text': item.text,
-                        'score': round(max(0.0, 1 - float(item.distance)), 6),
-                        'metadata': item.metadata or {},
-                    }
-                    for item in queryset.exclude(embedding_vector__isnull=True)
-                    .annotate(distance=CosineDistance('embedding_vector', query_embedding))
-                    .order_by('distance')[:top_k]
-                ]
-            except Exception as exc:
-                logger.warning('Legal pgvector retrieval unavailable; using fallback: %s', exc)
-
-        scored = []
-        for item in queryset.order_by('-updated_at')[:1000]:
-            score = cosine_similarity(query_embedding, item.embedding)
-            if score > 0:
-                scored.append((score, item))
-        scored.sort(key=lambda pair: pair[0], reverse=True)
-        return [
-            {
-                'id': item.id,
-                'source_type': item.source_type,
-                'object_id': item.object_id,
-                'title': item.title,
-                'text': item.text,
-                'score': round(score, 6),
-                'metadata': item.metadata or {},
-            }
-            for score, item in scored[:top_k]
-        ]
-
     def _build_legal_review_instruction(
         self,
         *,

@@ -19,7 +19,8 @@ class LearningRetrievalService:
         knowledge_service=None,
     ):
         self.tool_registry = tool_registry or LearningToolRegistry()
-        self._knowledge_service = knowledge_service
+        # Keep the legacy constructor keyword for callers, but never use an
+        # injected unscoped service to bypass the ai_assistant Scope gateway.
 
     def retrieve(self, *, user, query: str, task_context=None) -> Dict[str, Any]:
         used_tools = []
@@ -84,16 +85,6 @@ class LearningRetrievalService:
             'title': item['title'], 'excerpt': item['summary'],
             'evidence_id': item['evidence_id'],
         } for item in items]
-
-    def _get_knowledge_service(self):
-        if self._knowledge_service is None:
-            from legal_kb.services.knowledge_retrieval_service import (
-                SafeKnowledgeRetrievalService,
-            )
-
-            self._knowledge_service = SafeKnowledgeRetrievalService()
-        return self._knowledge_service
-
 
     def _documents_from_tool(self, tool_name: str, items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         builders = {

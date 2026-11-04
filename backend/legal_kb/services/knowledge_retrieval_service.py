@@ -1,15 +1,13 @@
-"""Leak-safe semantic knowledge retrieval shared by learning agents.
+"""Task-authorized lexical retrieval shared by learning agents.
 
-This is a thin facade over :class:`LegalRetrievalService`. It keeps a single
-vector store / embedding entry point (no parallel RAG stack) while enforcing a
-teaching-safe source allowlist: challenge solution text is never exposed to the
-learner-facing agents, so only concepts, approved articles/resources and legal
-clauses are returned by default.
+The legacy facade and constructor remain compatible; the learner path never
+uses the generic vector store. A source allowlist can only narrow Scope policy.
 """
 
 from typing import Dict, List, Optional
 
 from django.conf import settings
+from rest_framework.exceptions import NotFound
 
 from .retrieval_service import LegalRetrievalService
 
@@ -25,7 +23,7 @@ DEFAULT_SAFE_SOURCE_TYPES = (
 
 
 class SafeKnowledgeRetrievalService:
-    """Return normalized, teaching-safe knowledge items via semantic retrieval."""
+    """Return normalized teaching-safe items, preserving the historical facade."""
 
     def __init__(
         self,
@@ -62,11 +60,14 @@ class SafeKnowledgeRetrievalService:
             return []
         from learning_knowledge.policy import Scope
         from learning_knowledge.services import search
-        if not isinstance(task_context, Scope) or task_context.user != user:
+        if (not isinstance(task_context, Scope) or task_context.user != user
+                or task_context.purpose != 'lesson'):
             return []
-        # Phase 1 deliberately uses the authorized deterministic path. No unfiltered
-        # candidate text is sent to an embedding provider or reranker.
-        cards = search(task_context, query=text)['results']
+        # Only authorized chunks enter local lexical ranking; no provider calls.
+        try:
+            cards = search(task_context, query=text)['results']
+        except NotFound:
+            return []
         return [{
             'source_type': card['source_kind'], 'title': card['title'],
             'summary': card['excerpt'], 'text': card['excerpt'],
