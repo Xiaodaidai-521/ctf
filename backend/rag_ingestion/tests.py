@@ -4,7 +4,7 @@ from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
-from django.test import TestCase
+from django.test import TestCase, override_settings
 
 from legal_kb.models import LegalKnowledgeEmbedding
 
@@ -39,6 +39,7 @@ class RegistryTests(TestCase):
         self.assertNotIn('bad()', parsed.text)
 
 
+@override_settings(EMBEDDING_PROVIDER='local')
 class IngestionServiceTests(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(username='kb-admin', password='pass12345', is_staff=True)
@@ -195,6 +196,7 @@ class MarkItDownParserTests(TestCase):
         self.assertFalse(os.path.exists(captured['path']))  # temp file cleaned up
 
 
+@override_settings(EMBEDDING_PROVIDER='local')
 class DocxContentTests(TestCase):
     """Preserve mixed paragraphs and nested tables in both parser paths."""
 
@@ -269,6 +271,7 @@ class DocxContentTests(TestCase):
         ).exists())
 
 
+@override_settings(EMBEDDING_PROVIDER='local')
 class IngestionOwnershipTests(TestCase):
     """Deterministic interleavings fence old attempts at both index and state."""
 

@@ -18,6 +18,8 @@
       </div>
     </div>
 
+    <KnowledgeConceptSource v-if="$route.query.concept" />
+
     <div v-if="loading" class="state-box">
       <div class="spinner"></div>
       <p>正在读取能力地图...</p>
@@ -252,6 +254,7 @@
 import { computed, onMounted, ref } from 'vue'
 import service from '@/api'
 import { useUserStore } from '@/store/user'
+import KnowledgeConceptSource from '@/learningKnowledge/KnowledgeConceptSource.vue'
 
 const userStore = useUserStore()
 const loading = ref(true)

@@ -1,7 +1,9 @@
+from types import SimpleNamespace
+
 from django.contrib.auth import get_user_model
-from django.test import TestCase, override_settings
+from django.test import SimpleTestCase, TestCase, override_settings
 from rest_framework.test import APIClient
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 from .gateway import AgentGateway
 from .memory import UserMemoryStore
@@ -459,6 +461,76 @@ class AgentRuntimeApiTests(TestCase):
         self.assertNotIn('other result', str(results))
 
 
+@override_settings(AGENT_RUNTIME_SEMANTIC_RETRIEVAL=True)
+class ControlledRuntimeRetrievalTests(SimpleTestCase):
+    def setUp(self):
+        from learning_knowledge.policy import Scope
+
+        self.user = SimpleNamespace(pk=1, is_authenticated=True, is_active=True)
+        self.scope = Scope(user=self.user, attempt_id='task-attempt')
+        self.legacy_service = Mock()
+        self.registry = Mock()
+        self.registry.available_learning_tools.return_value = []
+        self.service = LearningRetrievalService(
+            tool_registry=self.registry, knowledge_service=self.legacy_service,
+        )
+
+    def test_runtime_forwards_scope_to_existing_gateway_and_preserves_doc_shape(self):
+        item = {
+            'source_type': 'legal_clause', 'source_id': 'evidence-1',
+            'evidence_id': 'evidence-1', 'title': 'Authorized title',
+            'summary': 'Authorized excerpt', 'url': '/evidence/evidence-1/',
+        }
+        with patch('ai_assistant.service.MultiAgentChatService._semantic_knowledge_items',
+                   return_value=[item]) as gateway:
+            result = self.service.retrieve(
+                user=self.user, query='query', task_context=self.scope,
+            )
+        gateway.assert_called_once_with('query', 4, user=self.user, task_context=self.scope)
+        self.assertEqual(result['retrieved_docs'], [{
+            'source_type': 'legal_clause', 'source_id': 'evidence-1',
+            'evidence_id': 'evidence-1', 'title': 'Authorized title',
+            'excerpt': 'Authorized excerpt', 'source_ref': 'S1',
+        }])
+        self.assertIn('[S1] Authorized title (legal_clause): Authorized excerpt',
+                      result['knowledge_context'])
+        self.assertEqual(self.legacy_service.mock_calls, [])
+
+    def test_runtime_rejects_invalid_scopes_without_legacy_fallback(self):
+        from learning_knowledge.policy import Scope
+
+        other_user = SimpleNamespace(pk=2, is_authenticated=True, is_active=True)
+        scopes = [
+            None,
+            {'user': self.user, 'purpose': 'lesson'},
+            Scope(user=other_user, attempt_id='task-attempt'),
+            Scope(user=self.user, attempt_id='task-attempt', purpose='grading'),
+        ]
+        with patch('learning_knowledge.services.search') as search, \
+             patch('legal_kb.services.retrieval_service.LegalRetrievalService.retrieve') as vector:
+            for scope in scopes:
+                with self.subTest(scope=scope):
+                    result = self.service.retrieve(
+                        user=self.user, query='private query', task_context=scope,
+                    )
+                    self.assertEqual(result['retrieved_docs'], [])
+                    self.assertEqual(result['knowledge_context'], '')
+        search.assert_not_called()
+        vector.assert_not_called()
+        self.assertEqual(self.legacy_service.mock_calls, [])
+
+    @override_settings(AGENT_RUNTIME_SEMANTIC_RETRIEVAL=False)
+    def test_disabled_semantic_retrieval_never_calls_gateway(self):
+        with patch('ai_assistant.service.MultiAgentChatService._semantic_knowledge_items') as gateway:
+            result = self.service.retrieve(
+                user=self.user, query='query', task_context=self.scope,
+            )
+        gateway.assert_not_called()
+        self.assertEqual(result['retrieved_docs'], [])
+        self.assertEqual(self.legacy_service.mock_calls, [])
+
+
+@override_settings(EMBEDDING_PROVIDER='local')
 class LearningRetrievalSemanticTests(TestCase):
     """agent_runtime retrieval should blend tool data with semantic recall."""
 

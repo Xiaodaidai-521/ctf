@@ -7,6 +7,7 @@
         <p class="page-subtitle">把文档、视频、报告、压缩包和 AI 学习辅助资料整理成可检索的训练资料索引。</p>
       </div>
       <div class="header-actions">
+        <router-link v-if="isTeacherOrAdmin" class="btn btn-secondary" :to="userStore.userInfo?.role === 'teacher' ? '/teacher/knowledge' : '/admin/legal/kb'">知识资料库</router-link>
         <button class="btn btn-secondary" type="button" @click="resetTutorHighlights" v-if="hasAISurfacedResources">
           清除AI推荐状态
         </button>

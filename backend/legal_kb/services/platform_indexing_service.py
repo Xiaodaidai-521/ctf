@@ -5,7 +5,8 @@ from typing import Iterable, List
 
 from django.contrib.contenttypes.models import ContentType
 from django.db import transaction
-from django.db import connection
+
+from users.permissions import is_staff_or_role
 
 from audit.models import AuditEvent
 from audit.services import AuditLedgerService
@@ -215,6 +216,29 @@ class PlatformContentIndexingService:
             parts.append(f'CWE：{concept.cwe_id}')
         return '\n'.join(parts)
 
+    @staticmethod
+    def _embedding_text(title, chunk, metadata) -> str:
+        """Add known context only to the vector input, never to the chunk body.
+
+        Plain-text chunks have synthetic titles (``Chunk N``), not headings.
+        Use explicit heading metadata / chapter information instead; categories
+        and concept types are not evidence of a document's section hierarchy.
+        """
+        context = []
+        if title:
+            context.append(f'标题：{title}')
+        chapter = metadata.get('chapter') or chunk.chapter
+        if isinstance(chapter, str) and chapter.strip():
+            context.append(f'章节：{chapter.strip()}')
+        heading_path = metadata.get('heading_path')
+        if isinstance(heading_path, str):
+            heading_path = [heading_path]
+        if isinstance(heading_path, (list, tuple)):
+            headings = [part.strip() for part in heading_path if isinstance(part, str) and part.strip()]
+            if headings:
+                context.append(f'章节路径：{" > ".join(headings)}')
+        return '\n'.join(context) + '\n\n' + chunk.text if context else chunk.text
+
     def _index_queryset(
         self,
         *,
@@ -225,11 +249,25 @@ class PlatformContentIndexingService:
         text_getter,
         metadata_getter=None,
     ) -> PlatformIndexingResult:
+        # Local development mode is not permission to index as a student.
+        if actor is not None and (not actor.is_active or not is_staff_or_role(actor, 'teacher', 'admin')):
+            raise ValueError('Indexing requires an authorized staff or teacher actor.')
+        if self.embedding_service.uses_remote_provider:
+            from learning_knowledge.models import Material
+            from .visibility import _is_staff_or_admin, _is_teacher
+
+            if not (_is_staff_or_admin(actor) or _is_teacher(actor)):
+                raise ValueError('Remote indexing requires an authorized staff or teacher actor.')
+            # Authorize/minimize BEFORE rendering source text or calling a provider.
+            registered = Material.objects.filter(source_type=source_type).values('source_object_id')
+            queryset = queryset.exclude(pk__in=registered)
+            if source_type == 'challenge':
+                queryset = queryset.none()
         content_type = ContentType.objects.get_for_model(queryset.model)
         indexed_objects = 0
         embedded_chunks = 0
 
-        for item in queryset.iterator():
+        for item in queryset.select_for_update(of=('self',)).iterator():
             text = (text_getter(item) or '').strip()
             if not text:
                 continue
@@ -238,42 +276,45 @@ class PlatformContentIndexingService:
                 object_id=item.id,
                 source_type=source_type,
             ).delete()
-            chunks = ChunkingService.split_plain_text(text)
+            chunks = ChunkingService.split_plain_text(
+                text,
+                max_chars=ChunkingService.TEACHING_MAX_CHARS,
+                overlap=ChunkingService.TEACHING_OVERLAP,
+            )
             if not chunks:
                 continue
+            title = title_getter(item)
+            # Only explicit source headings are eligible context. Current
+            # articles/resources/concepts have no structured heading metadata;
+            # knowledge packs may supply it through their existing JSON field.
+            source_metadata = getattr(item, 'metadata', None)
+            heading_metadata = {
+                key: source_metadata[key]
+                for key in ('heading_path', 'chapter') if key in source_metadata
+            } if isinstance(source_metadata, dict) else {}
             indexed_objects += 1
             for chunk in chunks:
-                semantic_embedding = self.embedding_service.embed_text(chunk.text)
-                # Keep a stable local vector for SQLite/offline fallback even when
-                # a production semantic vector is also written to pgvector.
-                embedding = self.embedding_service.embed_local_text(chunk.text)
                 metadata = metadata_getter(item, chunk) if metadata_getter else {
                     'source_type': source_type,
                     'chunk_key': chunk.clause_key,
                 }
+                metadata = {**heading_metadata, **metadata}
+                embedding = self.embedding_service.embed_text(
+                    self._embedding_text(title, chunk, metadata),
+                )
                 LegalKnowledgeEmbedding.objects.create(
                     source_type=source_type,
                     content_type=content_type,
                     object_id=item.id,
                     chunk_index=chunk.order - 1,
-                    title=title_getter(item),
+                    title=title,
                     text=chunk.text,
                     text_hash=sha256_text(chunk.text),
-                    embedding=embedding,
-                    embedding_vector=(
-                        semantic_embedding
-                        if connection.vendor == 'postgresql' and len(semantic_embedding) == 1024
-                        else None
-                    ),
-                    embedding_model='local-hash-v1',
-                    embedding_dimension=len(embedding),
+                    **self.embedding_service.storage_fields(embedding),
                     metadata={
                         **metadata,
-                        'vector_model': (
-                            self.embedding_service.model
-                            if len(semantic_embedding) == 1024
-                            else 'local-hash-v1'
-                        ),
+                        'vector_model': self.embedding_service.model,
+                        'chunking_version': ChunkingService.VERSION,
                     },
                 )
                 embedded_chunks += 1

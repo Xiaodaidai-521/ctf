@@ -6,7 +6,9 @@ from typing import Dict, Optional
 from uuid import uuid4
 
 from django.db import transaction
-from rest_framework.exceptions import ValidationError
+from rest_framework.exceptions import PermissionDenied, ValidationError
+
+from users.permissions import is_staff_or_role
 
 from .interfaces import SupersededIngestionError
 from .models import DocumentSource
@@ -33,6 +35,11 @@ class IngestionService:
         metadata: Optional[Dict] = None,
         reingest: bool = False,
     ) -> DocumentSource:
+        # Actorless calls are existing trusted CLI/worker use, never an API identity.
+        if uploaded_by is not None and (
+            not uploaded_by.is_active or not is_staff_or_role(uploaded_by, 'teacher', 'admin')
+        ):
+            raise PermissionDenied('Teacher or administrator permission required.')
         visibility_order = {'staff': 0, 'internal': 1, 'learner': 2}
         if visibility not in visibility_order:
             raise ValidationError('Unknown document visibility.')
@@ -46,6 +53,7 @@ class IngestionService:
             )
             if not created:
                 previous_visibility = document.visibility if document.visibility in visibility_order else 'staff'
+                self.check_existing_source(document, uploaded_by)
                 visibility = min((previous_visibility, visibility), key=visibility_order.get)
             if document.status == 'completed' and not reingest:
                 if document.visibility != visibility:
@@ -104,6 +112,9 @@ class IngestionService:
             self._audit(document, action='ingest_completed', actor=uploaded_by)
         return document
 
+    def check_existing_source(self, document, actor):
+        """Trusted workers retain the legacy reingest contract; HTTP uploads add a gate."""
+
     @staticmethod
     def _finish(document_id, token, **changes):
         """Only the current attempt may publish its state and statistics."""
@@ -136,3 +147,13 @@ class IngestionService:
         except Exception:
             # Auditing is best-effort and must never break ingestion.
             pass
+
+
+class UploadIngestionService(IngestionService):
+    """Interactive uploads must not disclose or claim an unreadable existing source."""
+
+    def check_existing_source(self, document, actor):
+        # Called inside the claim row lock, including hash-deduplicated uploads.
+        if (document.visibility not in {'internal', 'learner'}
+                and not is_staff_or_role(actor, 'admin')):
+            raise PermissionDenied('Document unavailable.')

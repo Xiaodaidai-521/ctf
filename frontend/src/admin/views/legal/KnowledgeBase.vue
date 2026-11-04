@@ -16,6 +16,7 @@
   >
     <template #aside>
       <div class="quick-form">
+        <router-link to="/admin/legal/kb">返回知识资料库</router-link>
         <textarea v-model="query" class="form-textarea" rows="5" placeholder="输入检索问题"></textarea>
         <div v-if="retrievalAnswer" class="rag-answer">
           <div class="rag-answer__header">

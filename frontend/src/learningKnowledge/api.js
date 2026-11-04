@@ -18,6 +18,15 @@ async function post(path, body, signal) {
 }
 
 export const knowledgeApi = {
+  conceptSource: (id, signal) => get(`/learning-paths/knowledge-concepts/${segment(id)}/`, signal),
+  library: (params, signal) => get('/legal-kb/library/', signal, params),
+  libraryDetail: (type, id, signal) => get(`/legal-kb/library/${segment(type)}/${segment(id)}/`, signal),
+  upload: async (body, signal) => {
+    await get('/users/csrf/', signal)
+    // Ingestion is synchronous. A timeout is unknown outcome, never successful indexing.
+    return (await client.post('/rag-ingestion/documents/', body, { signal, timeout: 180000 })).data
+  },
+  materialSearch: (query, signal) => get('/teaching-knowledge/material-search/', signal, { q: query }),
   materials: signal => get('/teaching-knowledge/materials/', signal),
   inspect: (id, revision, signal) => get(`/teaching-knowledge/materials/${segment(id)}/chunks/`, signal,
     revision ? { revision } : undefined),

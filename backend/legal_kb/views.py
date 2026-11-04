@@ -4,6 +4,9 @@ from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.permissions import SAFE_METHODS
+
+from users.permissions import IsTeacherOrAdmin
 
 from .models import (
     KbIngestionJob,
@@ -31,11 +34,11 @@ from .services.retrieval_service import LegalRetrievalService
 
 
 class LegalKbPermissionMixin:
-    """Use admin permissions for writes and reader permissions for reads."""
+    """Teachers/admins write; every unsafe method is gated, including actions."""
 
     def get_permissions(self):
-        if self.action in ['create', 'update', 'partial_update', 'destroy', 'ingest']:
-            return [IsLegalKbAdmin()]
+        if self.request.method not in SAFE_METHODS:
+            return [IsTeacherOrAdmin()]
         return [IsLegalKbReader()]
 
 

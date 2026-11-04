@@ -72,6 +72,7 @@ class FakeProviderManager:
         return self._instances.get(name)
 
 
+@override_settings(EMBEDDING_PROVIDER='local')
 class LegalKbServiceTests(TestCase):
     """Ingestion should create clauses, embeddings, and audit evidence."""
 
@@ -206,6 +207,7 @@ class LegalKbServiceTests(TestCase):
             )
 
 
+@override_settings(EMBEDDING_PROVIDER='local')
 class PlatformContentIndexingTests(TestCase):
     """Platform content should be indexed into the unified embedding table."""
 
@@ -297,6 +299,7 @@ class PlatformContentIndexingTests(TestCase):
         )
 
 
+@override_settings(EMBEDDING_PROVIDER='local')
 class OfficialLawFetchTests(TestCase):
     """Official FLK ingestion should avoid network in tests and still vectorize."""
 
@@ -399,6 +402,7 @@ class OfficialLawFetchTests(TestCase):
         return buffer.getvalue()
 
 
+@override_settings(EMBEDDING_PROVIDER='local')
 class LegalKbApiTests(TestCase):
     """Knowledge-base APIs should enforce role permissions."""
 
@@ -627,6 +631,7 @@ class DocumentVisibilityTests(TestCase):
 
 
 @skipUnless(connection.vendor == 'postgresql', 'pgvector ANN path requires PostgreSQL')
+@override_settings(EMBEDDING_PROVIDER='dashscope', EMBEDDING_API_KEY='test-key')
 class PgvectorAnnRetrievalTests(TestCase):
     """Exercise the real pgvector ANN branch (_retrieve_with_pgvector) + visibility."""
 
@@ -655,8 +660,9 @@ class PgvectorAnnRetrievalTests(TestCase):
             LegalKnowledgeEmbedding.objects.create(
                 source_type='document', content_type=content_type, object_id=doc.id,
                 chunk_index=0, title=doc.title, text=f'doc {doc.title} body',
-                text_hash=f'pgh-{doc.id}', embedding=[0.0] * 4, embedding_vector=self._vec(idx),
+                text_hash=f'pgh-{doc.id}', embedding=self._vec(idx), embedding_vector=self._vec(idx),
                 embedding_model='fake-1024', embedding_dimension=1024,
+                index_version=self._service(0).embedding_service.index_version,
                 metadata={'visibility': vis, 'source_type': 'document'},
             )
 
@@ -665,14 +671,12 @@ class PgvectorAnnRetrievalTests(TestCase):
 
         vec = self._vec
 
-        class Fake1024Embeddings:
-            model = 'fake-1024'
+        class Fake1024Embeddings(EmbeddingService):
+            def __init__(self):
+                super().__init__(dimension=1024, model='fake-1024')
 
             def embed_text(self, text):
                 return vec(query_index)
-
-            def embed_local_text(self, text):
-                return [0.0] * 4
 
         return LegalRetrievalService(embedding_service=Fake1024Embeddings())
 

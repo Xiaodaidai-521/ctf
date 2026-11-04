@@ -2,7 +2,7 @@ import asyncio
 from types import SimpleNamespace
 
 from django.contrib.auth import get_user_model
-from django.test import TestCase, override_settings
+from django.test import SimpleTestCase, TestCase, override_settings
 from rest_framework.test import APIClient
 from unittest.mock import patch
 
@@ -159,6 +159,7 @@ class TeachingContextPromptTests(TestCase):
         self.assertIn('- 知识诊断', user_messages[0].content)
         self.assertIn('- 推荐资源', user_messages[0].content)
 
+@override_settings(EMBEDDING_PROVIDER='local')
 class LegalReviewerAgentTests(TestCase):
     """Legal reviewer should be available and grounded in vector retrieval."""
 
@@ -407,6 +408,94 @@ class LegalReviewerAgentTests(TestCase):
         self.assertIn('streamed answer', body)
 
 
+class ControlledKnowledgeGatewayTests(SimpleTestCase):
+    """Legacy RAG entry points project Scope evidence, never a parallel ranker."""
+
+    def setUp(self):
+        from learning_knowledge.policy import Scope
+
+        self.user = SimpleNamespace(pk=1, is_authenticated=True, is_active=True)
+        self.scope = Scope(user=self.user, attempt_id='task-attempt')
+        self.service = MultiAgentChatService()
+
+    def test_invalid_scope_is_rejected_before_search(self):
+        from learning_knowledge.policy import Scope
+
+        other_user = SimpleNamespace(pk=2, is_authenticated=True, is_active=True)
+        inactive = SimpleNamespace(pk=1, is_authenticated=True, is_active=False)
+        anonymous = SimpleNamespace(pk=None, is_authenticated=False, is_active=True)
+        cases = [
+            (self.user, None),
+            (self.user, {'user': self.user, 'purpose': 'lesson'}),
+            (self.user, Scope(user=other_user, attempt_id='task-attempt')),
+            (self.user, Scope(user=self.user, attempt_id='task-attempt', purpose='grading')),
+            (self.user, Scope(user=inactive, attempt_id='task-attempt')),
+            (inactive, self.scope),
+            (anonymous, self.scope),
+            (None, self.scope),
+        ]
+        with patch('learning_knowledge.services.search') as search, \
+             patch('legal_kb.services.retrieval_service.LegalRetrievalService.retrieve') as vector:
+            for user, scope in cases:
+                with self.subTest(user=user, scope=scope):
+                    package = self.service.build_knowledge_context(
+                        'private query', user=user, task_context=scope,
+                    )
+                    self.assertEqual(package['items'], [])
+                    self.assertEqual(package['context_text'], '')
+                    self.assertEqual(package['semantic_count'], 0)
+                    self.assertEqual(self.service.build_legal_review_context(
+                        'private query', None, user=user, task_context=scope,
+                    )['legal_items'], [])
+        search.assert_not_called()
+        vector.assert_not_called()
+
+    def test_authorized_cards_keep_legacy_projection_without_vector_fallback(self):
+        cards = [{
+            'source_kind': 'legal_clause', 'evidence_id': 'evidence-1',
+            'title': 'Authorized clause', 'excerpt': 'Authorized excerpt',
+            'view_endpoint': '/api/learning-knowledge/evidence/evidence-1/',
+            'metadata': {'private': 'must not propagate'},
+        }, {
+            'source_kind': 'knowledge_concept', 'evidence_id': 'evidence-2',
+            'title': 'Authorized concept', 'excerpt': 'Concept excerpt',
+            'view_endpoint': '/api/learning-knowledge/evidence/evidence-2/',
+        }]
+        with patch('learning_knowledge.services.search', return_value={'results': cards}) as search, \
+             patch('legal_kb.services.retrieval_service.LegalRetrievalService.retrieve') as vector:
+            items = self.service._semantic_knowledge_items(
+                '  clause query  ', 1, user=self.user, task_context=self.scope,
+            )
+            search.assert_called_once_with(self.scope, query='clause query')
+            self.assertEqual(items, [{
+                'source_type': 'legal_clause', 'source_id': 'evidence-1',
+                'evidence_id': 'evidence-1', 'title': 'Authorized clause',
+                'summary': 'Authorized excerpt',
+                'url': '/api/learning-knowledge/evidence/evidence-1/',
+            }])
+            review = self.service.build_legal_review_context(
+                'clause query', {'id': 42}, user=self.user, task_context=self.scope,
+            )
+        vector.assert_not_called()
+        self.assertEqual(review['legal_items'], [dict(items[0], text='Authorized excerpt')])
+        self.assertEqual(review['challenge_items'], [])
+        self.assertEqual(review['query'], 'clause query')
+
+    def test_search_failure_does_not_fall_back_or_log_private_text(self):
+        with patch('learning_knowledge.services.search', side_effect=RuntimeError('private body')), \
+             patch('legal_kb.services.retrieval_service.LegalRetrievalService.retrieve') as vector, \
+             self.assertLogs('ai_assistant.service', level='WARNING') as logs:
+            result = self.service.build_knowledge_context(
+                'private query', user=self.user, task_context=self.scope,
+            )
+        self.assertEqual(result['items'], [])
+        self.assertEqual(result['context_text'], '')
+        vector.assert_not_called()
+        self.assertNotIn('private', ' '.join(logs.output))
+        self.assertEqual(logs.records[0].error_type, 'RuntimeError')
+
+
+@override_settings(EMBEDDING_PROVIDER='local')
 class KnowledgeContextSemanticFusionTests(TestCase):
     """Legacy entry names now project authorized lexical evidence, never old packs."""
 

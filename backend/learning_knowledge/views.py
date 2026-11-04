@@ -89,6 +89,39 @@ class MaterialListView(PrivateView):
         return Response({'material_id': str(revision.material.material_id), 'revision': revision.revision}, status=201)
 
 
+class MaterialSearchView(MaterialListView):
+    """Add management keyword search without changing the legacy list contract."""
+
+    http_method_names = ['get', 'head', 'options']
+
+    def get(self, request):
+        from django.db.models import Q
+        from rest_framework import serializers
+
+        # Match module-three admin semantics; staff alone is not a course manager.
+        if not (is_admin(request.user) or
+                (request.user.is_active and getattr(request.user, 'role', '') == 'teacher')):
+            raise PermissionDenied('Teacher or administrator permission required.')
+        if set(request.query_params) - {'q'}:
+            raise ValidationError('Unsupported fields.')
+        query = serializers.CharField(max_length=500, allow_blank=True).run_validation(
+            request.query_params.get('q', ''),
+        )
+        response = super().get(request)
+        rows = response.data['results']
+        if query and rows:
+            # Only manageable material IDs enter the content query. Match the listed
+            # revision, not an old snapshot that no longer represents the material.
+            matches = MaterialRevision.objects.filter(
+                material__material_id__in=[row['material_id'] for row in rows],
+            ).filter(Q(title__icontains=query) | Q(source_snapshot__icontains=query))
+            identities = {(str(material_id), revision) for material_id, revision in
+                          matches.values_list('material__material_id', 'revision')}
+            response.data['results'] = [row for row in rows
+                                       if (row['material_id'], row['revision']) in identities]
+        return response
+
+
 def get_revision(material_id, actor, number=None):
     material = Material.objects.filter(material_id=material_id).first()
     if not material or not can_manage(actor, material):

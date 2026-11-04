@@ -6,7 +6,10 @@
         <h1>教学材料审阅</h1>
         <p>检查原文、段落和任务映射，再提交独立审阅与发布。这里只展示服务器返回的可管理材料。</p>
       </div>
-      <button type="button" :disabled="busy" @click="resumeAndLoad">重新加载列表</button>
+      <div class="lk-actions">
+        <router-link class="lk-button" :to="user.userInfo?.role === 'admin' ? '/admin/legal/kb' : '/teacher/knowledge'">返回知识资料库</router-link>
+        <button type="button" :disabled="busy" @click="resumeAndLoad">重新加载列表</button>
+      </div>
     </header>
 
     <p class="lk-notice">教师路由不等于课程审阅授权。独立审阅人、当前修订、许可与发布范围均由服务器校验，不提供模拟学生预览。</p>
@@ -139,12 +142,14 @@
 
 <script setup>
 import { onMounted, ref } from 'vue'
+import { useUserStore } from '@/store/user'
 import { knowledgeApi, errorMessage } from './api.js'
 import { materialExample, parseMaterialForm } from './materialForm.js'
 import { requestKey } from './requestGeneration.js'
 import { usePrivatePage } from './usePrivatePage.js'
 import './learningKnowledge.css'
 
+const user = useUserStore()
 const materials = ref([])
 const inspection = ref(null)
 const selectedId = ref('')

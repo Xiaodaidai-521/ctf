@@ -3,6 +3,7 @@
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
+from .browse import LibraryDetailView, LibraryView
 from .views import (
     KbIngestionJobViewSet,
     LegalCaseViewSet,
@@ -24,6 +25,8 @@ router.register(r'ingestion-jobs', KbIngestionJobViewSet, basename='legal-kb-ing
 router.register(r'retrieval-logs', LegalRetrievalLogViewSet, basename='legal-kb-retrieval-log')
 
 urlpatterns = [
+    path('library/', LibraryView.as_view(), name='legal-kb-library'),
+    path('library/<str:source_type>/<int:object_id>/', LibraryDetailView.as_view(), name='legal-kb-library-detail'),
     path('', include(router.urls)),
     path('retrieve/', LegalRetrieveView.as_view(), name='legal-kb-retrieve'),
 ]

@@ -6,6 +6,12 @@ import LearningEffectAnalysis from '@/teacher/LearningEffectAnalysis.vue'
 
 const routes = [
   {
+    path: '/knowledge',
+    name: 'KnowledgeLibrary',
+    component: () => import('@/learningKnowledge/KnowledgeLibrary.vue'),
+    meta: { title: '知识资料库', requiresAuth: true, requiresTeacher: true }
+  },
+  {
     path: '/teaching-knowledge',
     name: 'TeachingKnowledge',
     component: () => import('@/learningKnowledge/TeachingKnowledge.vue'),
@@ -217,6 +223,7 @@ const routes = [
       { path: 'learning-effect', name: 'TeacherLearningEffect', component: LearningEffectAnalysis, meta: { title: '学习成效', requiresTeacherOnly: true } },
       { path: 'challenges', name: 'TeacherChallenges', component: () => import('@/admin/views/Challenges.vue'), meta: { title: '题目管理', requiresTeacherOnly: true } },
       { path: 'resources', name: 'TeacherResources', component: () => import('@/admin/views/Resources.vue'), meta: { title: '资源审核', requiresTeacherOnly: true } },
+      { path: 'knowledge', name: 'TeacherKnowledgeLibrary', component: () => import('@/learningKnowledge/KnowledgeLibrary.vue'), meta: { title: '知识资料库', requiresTeacherOnly: true } },
     ]
   },
 
@@ -458,8 +465,14 @@ const routes = [
       {
         path: '',
         name: 'AdminLegalKbHome',
+        component: () => import('@/learningKnowledge/KnowledgeLibrary.vue'),
+        meta: { title: '知识资料库', requiresAdmin: true }
+      },
+      {
+        path: 'tools',
+        name: 'AdminLegalKbTools',
         component: () => import('@/admin/views/legal/KnowledgeBase.vue'),
-        meta: { title: '法律知识库', requiresAdmin: true }
+        meta: { title: '法律检索与向量化工具', requiresAdmin: true }
       }
     ],
     meta: { requiresAdmin: true }
@@ -526,8 +539,12 @@ router.beforeEach((to, from, next) => {
   // 设置页面标题
   document.title = to.meta.title ? `${to.meta.title} - 在线学习平台` : '在线学习平台'
 
+  // 资料库只对教师与管理员开放，始终转到对应角色的现有布局。
+  if (to.name === 'KnowledgeLibrary' && userStore.isAuthenticated && ['teacher', 'admin'].includes(userStore.userInfo?.role)) {
+    next(userStore.userInfo.role === 'teacher' ? '/teacher/knowledge' : '/admin/legal/kb')
+  }
   // 检查是否需要登录
-  if (to.meta.requiresTeacherOnly && !userStore.isAuthenticated) {
+  else if (to.meta.requiresTeacherOnly && !userStore.isAuthenticated) {
     next('/login')
   }
   else if (to.meta.requiresTeacherOnly && userStore.userInfo?.role !== 'teacher') {
