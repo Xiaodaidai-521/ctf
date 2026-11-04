@@ -162,13 +162,14 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, onMounted, onDeactivated } from 'vue'
 import { useRoute } from 'vue-router'
 import { Message } from '@arco-design/web-vue'
 import MultiAgentChat from '@/components/MultiAgent/MultiAgentChat.vue'
 import api from '@/api'
 
 const route = useRoute()
+const initialLearningMode = route.query.mode === 'learning'
 
 const HIDDEN_AGENT_IDS = new Set(['analyst', 'architect', 'developer', 'security', 'tester'])
 const isVisibleAgentId = (id) => !HIDDEN_AGENT_IDS.has(id)
@@ -212,10 +213,12 @@ const handoffCount = ref(0)
 const flowHistory = ref([])
 const chatRef = ref(null)
 const showHelp = ref(false)
+onDeactivated(() => { showHelp.value = false })
 const briefCollapsed = ref(false)
 const infoCollapsed = ref(false)
 
-const challengeId = computed(() => route.params.challengeId || null)
+// App caches each chat path separately so background replies keep their original context.
+const challengeId = route.params.challengeId || null
 
 const statusText = {
   available: '空闲',
@@ -381,7 +384,7 @@ const resetSession = async () => {
 
 onMounted(async () => {
   await loadPresets()
-  if (route.query.mode === 'learning') {
+  if (initialLearningMode) {
     syncSelectedAgents(['tutor'])
   } else {
     syncSelectedAgents([agents.value[0].id])

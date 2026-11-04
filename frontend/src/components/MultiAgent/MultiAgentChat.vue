@@ -1,5 +1,5 @@
 <template>
-  <div class="multi-agent-chat">
+  <div class="multi-agent-chat" @pointerdown="acknowledgeReply" @keydown="acknowledgeReply">
     <div
       v-if="isTutorSelected || currentTutorStep > 0"
       class="tutor-progress-shell"
@@ -43,7 +43,7 @@
     </div>
 
     <!-- 消息区域 -->
-    <div class="messages-area" ref="messagesRef" :class="{ 'has-messages': messages.length > 0 }">
+    <div class="messages-area" ref="messagesRef" :class="{ 'has-messages': messages.length > 0 }" @scroll.passive="acknowledgeReply">
       <div v-if="messages.length === 0" class="empty-state">
         <div class="empty-icon"><i class="bi bi-cpu"></i></div>
         <p>选择智能体开始协作</p>
@@ -201,7 +201,7 @@
     </div>
 
     <!-- 切换智能体弹窗 -->
-    <a-modal v-model:visible="showSwitchDialog" title="切换智能体" :footer="false">
+    <a-modal v-if="chatActive" v-model:visible="showSwitchDialog" title="切换智能体" :footer="false">
       <div class="agent-select-list">
         <div 
           v-for="agent in availableAgents" 
@@ -221,7 +221,7 @@
       </div>
     </a-modal>
     <!-- 委托弹窗 -->
-    <a-modal v-model:visible="showHandoffDialog_" title="委托任务" @ok="confirmHandoff">
+    <a-modal v-if="chatActive" v-model:visible="showHandoffDialog_" title="委托任务" :on-before-ok="confirmHandoff">
       <a-form :model="handoffForm" layout="vertical">
         <a-form-item label="目标智能体">
           <a-select v-model="handoffForm.targetId">
@@ -242,12 +242,13 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, nextTick, watch } from 'vue'
+import { ref, computed, onMounted, onActivated, onDeactivated, onBeforeUnmount, nextTick, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { Message } from '@arco-design/web-vue'
 import { marked } from 'marked'
 import api, { http } from '@/api'
 import { useUserStore } from '@/store/user'
+import { usePetStore } from '@/store/pet'
 import { sanitizeHtml } from '@/utils/sanitize'
 import {
   clearRememberedTutorResources,
@@ -265,6 +266,14 @@ const props = defineProps({
 const emit = defineEmits(['session-created', 'handoff', 'complete', 'mode-change', 'message-sent', 'agent-switch'])
 const router = useRouter()
 const userStore = useUserStore()
+const pet = usePetStore()
+const chatTarget = router.currentRoute.value.fullPath
+const chatSource = `multi-agent:${router.currentRoute.value.path}`
+const handoffSource = `${chatSource}:handoff`
+const chatActive = ref(true)
+let petToken
+let handoffToken
+let requestController
 
 const HIDDEN_AGENT_IDS = new Set(['analyst', 'architect', 'developer', 'security', 'tester'])
 const isVisibleAgent = (agent) => agent && !HIDDEN_AGENT_IDS.has(agent.id)
@@ -319,6 +328,24 @@ const showSwitchDialog = ref(false)
 const tutorProgressCollapsed = ref(true)
 const showHandoffDialog_ = ref(false)
 const handoffFromAgent = ref(null)
+
+watch(showHandoffDialog_, (visible) => {
+  if (visible) {
+    handoffToken = pet.requestInput(handoffSource, { target: chatTarget, label: '委托任务：等待目标与上下文确认' })
+  } else if (handoffToken !== undefined) {
+    pet.clear(handoffSource, handoffToken)
+    handoffToken = undefined
+  }
+}, { flush: 'sync' })
+
+const acknowledgeReply = () => {
+  if (!chatActive.value || document.hidden || !messagesRef.value?.isConnected) return
+  const area = messagesRef.value
+  const rect = area.getBoundingClientRect()
+  if (rect.bottom <= 0 || rect.top >= window.innerHeight || rect.width === 0 || rect.height === 0) return
+  if (area.scrollHeight - area.scrollTop - area.clientHeight > 24) return
+  pet.acknowledge(chatSource, petToken)
+}
 
 const handoffForm = ref({
   targetId: null,
@@ -494,16 +521,19 @@ const rememberConversation = (id) => {
 
 const restoreConversation = async () => {
   if (!userStore.isAuthenticated) return
+  const restoreVersion = sessionVersion.value
 
   try {
     if (!conversationId.value) {
       const conversationList = await api.conversation.list()
+      if (restoreVersion !== sessionVersion.value) return
       const latest = (conversationList || []).find((item) => item.message_count > 0)
       if (!latest?.id) return
       rememberConversation(latest.id)
     }
 
     const conversation = await api.conversation.detail(conversationId.value)
+    if (restoreVersion !== sessionVersion.value) return
     const restoredMessages = (conversation.messages || [])
       .filter((item) => String(item.content || '').trim())
       .map((item) => {
@@ -545,6 +575,7 @@ const restoreConversation = async () => {
     messages.value = restoredMessages
     if (restoredMessages.length) scrollToBottom()
   } catch (error) {
+    if (restoreVersion !== sessionVersion.value) return
     console.warn('恢复会话失败:', error)
     sessionStorage.removeItem('multiAgentConversationId')
     conversationId.value = null
@@ -586,7 +617,11 @@ const showHandoffDialog = (agentId) => {
 const confirmHandoff = async () => {
   if (!handoffForm.value.targetId) {
     Message.warning('请选择目标智能体')
-    return
+    return false
+  }
+  if (isProcessing.value) {
+    Message.warning('请等待当前回复完成后再委托')
+    return false
   }
   
   const fromAgent = getAgentById(handoffFromAgent.value)
@@ -622,6 +657,7 @@ const confirmHandoff = async () => {
   
   emit('handoff', { from: fromAgent, to: toAgent, reason: handoffForm.value.reason })
   scrollToBottom()
+  return true
 }
 
 // 唯一ID生成器（避免 Date.now() 重复）
@@ -649,24 +685,6 @@ const addSystemMessage = (content) => {
   scrollToBottom()
 }
 
-const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms))
-
-const naturalDelay = (response, startedAt) => {
-  const elapsed = Date.now() - startedAt
-  let minimum = 0
-  if (response?.mode === 'challenge_solution') {
-    minimum = 9000 + Math.floor(Math.random() * 3500)
-  } else if (response?.mode === 'tutoring') {
-    minimum = 8000 + Math.floor(Math.random() * 3000)
-  } else if (response?.mode === 'preset') {
-    minimum = 7500
-  } else {
-    const responseCount = Array.isArray(response?.responses) ? response.responses.length : 1
-    minimum = 7000 + Math.min(responseCount, 4) * 1200 + Math.floor(Math.random() * 3000)
-  }
-  return Math.max(0, minimum - elapsed)
-}
-
 // 发送消息
 const sendMessage = async () => {
   const text = inputText.value.trim()
@@ -687,7 +705,14 @@ const sendMessage = async () => {
   }
 
   const userMsgId = uniqueId()
-  const requestVersion = sessionVersion.value
+  const requestVersion = ++sessionVersion.value
+  const controller = new AbortController()
+  requestController = controller
+  const token = pet.begin(chatSource, {
+    target: chatTarget,
+    label: selectedAgents.value.some(agent => agent.id === 'tutor') ? '教学辅导师' : '多智能体协作'
+  })
+  petToken = token
   messages.value.push({
     id: userMsgId,
     type: 'user',
@@ -720,19 +745,16 @@ const sendMessage = async () => {
   scrollToBottom()
 
   try {
-    const requestStartedAt = Date.now()
     const response = await callAgentAPI(
       selectedAgents.value.map((agent) => agent.id),
       text,
-      activeAgent
+      activeAgent,
+      controller.signal
     )
 
     if (requestVersion !== sessionVersion.value) return
 
     rememberConversation(response.conversation_id)
-
-    const delayMs = naturalDelay(response, requestStartedAt)
-    if (delayMs > 0) await wait(delayMs)
 
     thinkingIds.forEach((thinkingId) => {
       const idx = messages.value.findIndex((message) => message.id === thinkingId)
@@ -745,6 +767,10 @@ const sendMessage = async () => {
         : agentResp?.content
       return String(content || '').trim().length > 0
     })
+
+    if (!agentResponses.length && !String(response.content || '').trim()) {
+      throw new Error('未收到有效响应')
+    }
 
     const chartImageUrl = getChartImageForMessage(text)
     const structuredResources = tutorResourceListFromResponse(response)
@@ -813,9 +839,15 @@ const sendMessage = async () => {
       }
     }
 
+    pet.complete(chatSource, token)
     emit('message-sent')
   } catch (error) {
     if (requestVersion !== sessionVersion.value) return
+    if (controller.signal.aborted) {
+      pet.clear(chatSource, token)
+      return
+    }
+    pet.fail(chatSource, token)
 
     console.error('API 调用失败:', error)
     const errorMessage = error.response?.status === 401
@@ -842,6 +874,7 @@ const sendMessage = async () => {
         agent.status = 'available'
       })
       isProcessing.value = false
+      requestController = null
       scrollToBottom()
     }
   }
@@ -853,29 +886,31 @@ const looksLikeChallengeQuestion = (message) => {
 }
 
 // 调用后端 API（使用多智能体端点，不需要认证）
-const callAgentAPI = async (agentIds, message, activeAgent) => {
+const callAgentAPI = async (agentIds, message, activeAgent, signal) => {
   const shouldUseChallengeWorkflow = props.challengeId || looksLikeChallengeQuestion(message)
+  const requestConversationId = conversationId.value
+  const requestModel = selectedConversationModel.value
 
   if (agentIds.includes('tutor')) {
     let studentLevel = 'beginner'
     try {
-      const profile = await api.studentProfile.get()
+      const profile = await api.studentProfile.get({ signal })
       if (profile?.preference?.difficulty_bias !== undefined) {
         const bias = profile.preference.difficulty_bias
         studentLevel = bias > 0.3 ? 'advanced' : bias < -0.3 ? 'beginner' : 'intermediate'
       }
     } catch {}
+    signal.throwIfAborted()
 
     const res = await api.learningAgent.tutoring({
       concept_name: message,
       question: message,
       student_level: studentLevel,
-      conversation_id: conversationId.value,
-      selected_model: selectedConversationModel.value.id,
-      selected_provider: selectedConversationModel.value.provider
-    })
+      conversation_id: requestConversationId,
+      selected_model: requestModel.id,
+      selected_provider: requestModel.provider
+    }, { signal })
     const structuredResources = tutorResourceListFromResponse(res)
-    rememberTutorResources(structuredResources)
     const noMatchedSignal = res.noMatchedResource ?? res.resourcePreparation?.noMatchedResource
     const noMatchedResource = noMatchedSignal === undefined ? false : Boolean(noMatchedSignal)
 
@@ -907,17 +942,21 @@ const callAgentAPI = async (agentIds, message, activeAgent) => {
     mode: shouldUseChallengeWorkflow ? 'challenge_solution' : collaborationMode.value,
     challenge_id: props.challengeId || null,
     force_ai: forceAI.value,
-    conversation_id: conversationId.value,
-    selected_model: selectedConversationModel.value.id,
-    selected_provider: selectedConversationModel.value.provider,
+    conversation_id: requestConversationId,
+    selected_model: requestModel.id,
+    selected_provider: requestModel.provider,
     knowledge_scope: shouldUseChallengeWorkflow ? 'current' : knowledgeScope.value
-  })
+  }, { signal })
   return res
 }
 
 // 清空会话
 const clearSession = async () => {
   sessionVersion.value += 1
+  requestController?.abort()
+  requestController = null
+  if (petToken !== undefined) pet.clear(chatSource, petToken)
+  showHandoffDialog_.value = false
   const oldConversationId = conversationId.value
   messages.value = []
   inputText.value = ''
@@ -948,7 +987,25 @@ const clearSession = async () => {
 
 defineExpose({ setCurrentAgent, addSystemMessage, clearSession })
 
+onActivated(() => {
+  chatActive.value = true
+  if (pet.activities[chatSource]?.state === 'ready') scrollToBottom()
+  nextTick(acknowledgeReply)
+})
+onDeactivated(() => { chatActive.value = false })
+onBeforeUnmount(() => {
+  chatActive.value = false
+  sessionVersion.value += 1
+  requestController?.abort()
+  if (petToken !== undefined) pet.clear(chatSource, petToken)
+  if (handoffToken !== undefined) pet.clear(handoffSource, handoffToken)
+  document.removeEventListener('visibilitychange', acknowledgeReply)
+  window.removeEventListener('focus', acknowledgeReply)
+})
+
 onMounted(async () => {
+  document.addEventListener('visibilitychange', acknowledgeReply)
+  window.addEventListener('focus', acknowledgeReply)
   if (props.initialAgents?.length) {
     agents.value = props.initialAgents.filter(isVisibleAgent)
   }

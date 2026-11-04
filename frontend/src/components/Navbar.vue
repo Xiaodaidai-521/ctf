@@ -46,7 +46,7 @@
 
     <div class="navbar-right">
       <div v-if="userStore.isAuthenticated" class="user-menu">
-        <div class="user-avatar-container" @click="toggleUserDropdown">
+        <button type="button" class="user-avatar-container" aria-label="用户菜单" :aria-expanded="showUserDropdown" @click="toggleUserDropdown">
           <img
             v-if="userStore.userInfo?.avatar_url"
             :src="userStore.userInfo.avatar_url"
@@ -62,7 +62,7 @@
           <div class="role-badge" :class="'role-' + userStore.userInfo?.role">
             {{ getRoleText(userStore.userInfo?.role) }}
           </div>
-        </div>
+        </button>
 
         <div class="user-dropdown" :class="{ show: showUserDropdown }">
           <div class="dropdown-header">
@@ -88,6 +88,18 @@
           </div>
           <div class="dropdown-divider"></div>
           <div class="dropdown-menu">
+            <button
+              type="button"
+              class="dropdown-item"
+              role="switch"
+              aria-label="显示宠物"
+              :aria-checked="!petStore.preferences.hidden"
+              @click="petStore.setHidden(!petStore.preferences.hidden)"
+            >
+              <span class="dropdown-icon" aria-hidden="true">🐾</span>
+              <span>显示宠物</span>
+              <span class="pet-visibility-status">{{ petStore.preferences.hidden ? '已隐藏' : '已开启' }}</span>
+            </button>
             <router-link v-if="userStore.userInfo?.role !== 'teacher'" to="/dashboard" class="dropdown-item">
               <span class="dropdown-icon">📊</span>
               <span>学习看板</span>
@@ -135,9 +147,11 @@
 <script setup>
 import { ref } from 'vue'
 import { useUserStore } from '@/store/user'
+import { usePetStore } from '@/store/pet'
 import { useRouter } from 'vue-router'
 
 const userStore = useUserStore()
+const petStore = usePetStore()
 const router = useRouter()
 
 const showUserDropdown = ref(false)
@@ -281,6 +295,9 @@ document.addEventListener('click', (e) => {
 }
 
 .user-avatar-container {
+  background: transparent;
+  color: inherit;
+  font: inherit;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -433,6 +450,12 @@ document.addEventListener('click', (e) => {
 
 .dropdown-item:hover {
   background: var(--bg-paper-2);
+}
+
+.pet-visibility-status {
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--text-secondary);
 }
 
 .dropdown-item-danger {

@@ -216,7 +216,7 @@ const service = {
 
   // 用户画像
   studentProfile: {
-    get: () => api.get('/student-profiles/me/'),
+    get: (config) => api.get('/student-profiles/me/', config),
     update: (data) => api.put('/student-profiles/me/', data),
     onboarding: (data) => api.post('/student-profiles/onboarding/', data),
     onboardingInterview: () => api.get('/student-profiles/onboarding/interview/'),
@@ -231,7 +231,7 @@ const service = {
   // 多智能体学习
   learningAgent: {
     agents: () => api.get('/ai/learning/agents/'),
-    tutoring: (data) => api.post('/ai/learning/tutoring/', data),
+    tutoring: (data, config) => api.post('/ai/learning/tutoring/', data, config),
     generate: (data) => api.post('/ai/learning/generate/', data),
     assess: (data) => api.post('/ai/learning/assess/', data),
     recommend: () => api.get('/ai/learning/recommend/'),
