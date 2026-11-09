@@ -60,7 +60,7 @@ class ReportGenerator:
             f'# {task.title} 合规分析报告',
             '',
             '## 分析对象',
-            task.input_text or '(未提供正文)',
+            task.read_protected('input_text') or '(未提供正文)',
             '',
             '## 风险发现',
             json.dumps(finding_payload, ensure_ascii=False, indent=2),

@@ -1,6 +1,7 @@
 """Serializers for audit APIs."""
 
 from rest_framework import serializers
+from data_security.adapters.persistence.fields import protect_stored_value
 
 from .models import AIAuditLog, AuditEvent, AuditLedgerEntry
 
@@ -15,6 +16,9 @@ class AuditUserSerializer(serializers.Serializer):
 
 class AuditEventSerializer(serializers.ModelSerializer):
     """Serializer for generic audit events."""
+
+    def to_representation(self, instance):
+        return protect_stored_value(super().to_representation(instance))
 
     user = AuditUserSerializer(read_only=True)
     username = serializers.CharField(source='user.username', read_only=True)
@@ -38,6 +42,9 @@ class AuditEventSerializer(serializers.ModelSerializer):
 
 class AIAuditLogSerializer(serializers.ModelSerializer):
     """Serializer for AI audit logs."""
+
+    def to_representation(self, instance):
+        return protect_stored_value(super().to_representation(instance))
 
     user = AuditUserSerializer(read_only=True)
     challenge_title = serializers.CharField(source='challenge.title', read_only=True)
@@ -64,6 +71,9 @@ class AIAuditLogSerializer(serializers.ModelSerializer):
 
 class AuditLedgerEntrySerializer(serializers.ModelSerializer):
     """Serializer for hash-chain ledger entries."""
+
+    def to_representation(self, instance):
+        return protect_stored_value(super().to_representation(instance))
 
     actor = AuditUserSerializer(read_only=True)
 

@@ -57,7 +57,9 @@ def _require_admin(actor):
 
 
 def _locked(ticket):
-    return FeedbackTicket.objects.select_for_update().select_related(
+    # Serialize transitions on the ticket without locking nullable outer joins.
+    # Operations needing another ticket's lock acquire it explicitly.
+    return FeedbackTicket.objects.select_for_update(of=('self',)).select_related(
         'catalog', 'task', 'attempt', 'capability', 'knowledge_point',
         'duplicate_of', 'owner', 'handling_owner', 'current_review',
     ).get(pk=ticket.pk)

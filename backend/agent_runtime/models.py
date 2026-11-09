@@ -1,9 +1,13 @@
 from django.conf import settings
 from django.db import models
+from data_security.adapters.persistence.fields import ProtectedModel
 
 
-class AgentRun(models.Model):
+class AgentRun(ProtectedModel):
     """Persist one runtime-managed agent task."""
+
+    redacted_fields = ('current_step', 'plan', 'retrieved_docs', 'used_tools',
+                       'intermediate_result', 'final_result', 'verification_result', 'error_message')
 
     STATUS_PENDING = 'pending'
     STATUS_RUNNING = 'running'
@@ -60,8 +64,10 @@ class AgentRun(models.Model):
         return f'{self.task_type} run {self.id} ({self.status})'
 
 
-class UserMemory(models.Model):
+class UserMemory(ProtectedModel):
     """Persist long-term user memory for runtime agents."""
+
+    encrypted_fields = ('memory_value', 'metadata')
 
     MEMORY_TYPE_PREFERENCE = 'preference'
     MEMORY_TYPE_LEARNING_INSIGHT = 'learning_insight'
@@ -96,6 +102,9 @@ class UserMemory(models.Model):
             models.Index(fields=['user', 'memory_key'], name='agent_runti_user_id_b9679d_idx'),
         ]
         unique_together = [['user', 'memory_type', 'memory_key']]
+        constraints = [models.CheckConstraint(
+            condition=models.Q(security_state='legacy-v0') | models.Q(memory_value={}, metadata={}),
+            name='memory_sealed_fields_no_plaintext')]
 
     def __str__(self):
         return f'{self.user.username} - {self.memory_type}:{self.memory_key}'

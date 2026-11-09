@@ -11,6 +11,7 @@ urlpatterns = [
     path('profile/', views.profile_view, name='profile'),
     path('profile/update/', views.profile_update_view, name='profile_update'),
     path('leaderboard/', views.leaderboard_view, name='leaderboard'),
+    path('search/', views.search_users_view, name='search'),
     path('admin/users/', views.admin_user_list_view, name='admin_user_list'),
     path('admin/users/create/', views.admin_user_create_view, name='admin_user_create'),
     path('admin/users/<int:user_id>/update/', views.admin_user_update_view, name='admin_user_update'),

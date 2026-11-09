@@ -7,6 +7,10 @@ from copy import deepcopy
 
 from django.conf import settings
 
+from data_security.adapters.django.content import (
+    ProtectedText, content_protection_enabled, protect_text,
+)
+
 
 DEFAULT_BUDGETS = {
     "system_safety_chars": 5000,
@@ -34,6 +38,9 @@ def _json(value):
 
 
 def _trim(value, limit):
+    if content_protection_enabled():
+        from agents.context.teaching_context import _safe
+        value = _safe(value)
     text = _json(value)
     return text if len(text) <= limit else text[:limit]
 
@@ -62,7 +69,8 @@ def build_teaching_context_summary(context):
         return ""
     explicit = context.get("context_summary")
     if isinstance(explicit, str) and explicit.strip():
-        return explicit.strip()[:budgets()["teaching_context_chars"]]
+        summary = protect_text(explicit).strip()[:budgets()["teaching_context_chars"]]
+        return ProtectedText(summary) if content_protection_enabled() else summary
     teaching = context if context.get("schemaVersion") else context.get("teaching_context")
     if not isinstance(teaching, dict):
         specialist = context.get("specialist_context") or {}
@@ -95,7 +103,8 @@ def build_teaching_context_summary(context):
             break
         selected.append(rendered[:remaining])
         remaining -= len(selected[-1]) + 2
-    return "\n\n".join(selected)[:maximum]
+    summary = "\n\n".join(selected)[:maximum]
+    return ProtectedText(summary) if content_protection_enabled() else summary
 
 
 def trim_history(history):
@@ -105,7 +114,8 @@ def trim_history(history):
     result = []
     used = 0
     for message in reversed(history[-8:]):
-        content = str((message or {}).get("content") or "")
+        value = (message or {}).get("content") or ""
+        content = protect_text(value if isinstance(value, str) else str(value))
         if used + len(content) > limit:
             content = content[-max(0, limit - used):]
         result.append({"role": (message or {}).get("role"), "content": content})

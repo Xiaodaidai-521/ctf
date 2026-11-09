@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from data_security.adapters.django.content import protect_text
+
 
 class StudyStrategyAgent:
     DEFAULT_RESULT = {
@@ -13,7 +15,7 @@ class StudyStrategyAgent:
         analysis = learning_analysis if isinstance(learning_analysis, dict) else {}
         resource_data = resources if isinstance(resources, dict) else {}
         weak = list(analysis.get("weakKnowledgePoints") or [])[:5]
-        priority = [str(item.get("name") or item)[:100] if isinstance(item, dict) else str(item)[:100] for item in weak]
+        priority = [protect_text(str(item.get("name") or item))[:100] if isinstance(item, dict) else protect_text(str(item))[:100] for item in weak]
         resource_list = list(resource_data.get("resourceList") or resource_data.get("resources") or [])[:8]
         risk = analysis.get("riskLevel")
         daily_minutes = 60 if risk == "high" else 45
@@ -25,7 +27,7 @@ class StudyStrategyAgent:
             {"order": 4, "action": "spaced_review", "intervals": [1, 3, 7]},
         ]
         return {
-            "goal": str(query or "巩固当前学习目标")[:300],
+            "goal": protect_text(str(query or "巩固当前学习目标"))[:300],
             "priorityKnowledgePoints": priority,
             "steps": steps,
             "dailyMinutes": daily_minutes,

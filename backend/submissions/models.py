@@ -1,11 +1,13 @@
 from django.db import models
+from data_security.adapters.persistence.fields import ProtectedModel
 from django.db.models import F
 from users.models import CTFUser
 from challenges.models import Challenge
 
 
-class Submission(models.Model):
+class Submission(ProtectedModel):
     """提交记录模型"""
+    encrypted_fields = ('flag',)
     user = models.ForeignKey(CTFUser, on_delete=models.CASCADE, verbose_name='用户')
     challenge = models.ForeignKey(Challenge, on_delete=models.CASCADE, verbose_name='题目')
     flag = models.CharField(max_length=200, verbose_name='提交的Flag')
@@ -18,6 +20,9 @@ class Submission(models.Model):
         verbose_name = '提交记录'
         verbose_name_plural = '提交记录'
         ordering = ['-created_at']
+        constraints = [models.CheckConstraint(
+            condition=models.Q(security_state='legacy-v0') | models.Q(flag=''),
+            name='submission_sealed_flag_no_plaintext')]
 
     def __str__(self):
         status = '✓' if self.is_correct else '✗'
@@ -38,7 +43,8 @@ class Submission(models.Model):
         ).exclude(pk=self.pk).exists()
 
         # 验证Flag
-        if self.flag.strip() == self.challenge.flag.strip():
+        flag = self.flag if self._state.adding or 'flag' in self._security_dirty else self.read_protected('flag')
+        if flag.strip() == self.challenge.read_protected('flag').strip():
             self.is_correct = True
             if not was_correct and not already_solved:
                 Challenge.objects.filter(pk=self.challenge.pk).update(

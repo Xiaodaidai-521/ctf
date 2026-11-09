@@ -23,6 +23,10 @@ api.interceptors.response.use(
 
 
 const service = {
+  dataSecurity: {
+    policies: () => api.get('/data-security/policies/'),
+    preview: (sampleCase) => api.post('/data-security/preview/', { case: sampleCase }),
+  },
   // 认证相关
   auth: {
     csrf: () => api.get('/users/csrf/'),

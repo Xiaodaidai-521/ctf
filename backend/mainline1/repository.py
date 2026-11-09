@@ -5,14 +5,20 @@ from uuid import uuid4
 
 from django.db import connections, transaction
 
+from data_security.adapters.tabular.parsed_artifacts import govern_parse_result
+from data_security.contracts.enums import ReasonCode
+from data_security.contracts.payloads import BASELINE_LIMITS
+from data_security.contracts.schema import ContractViolation
+
 from .models import ParseAttempt, ParsedArtifact, ParseRun
 from .parsing import InputError, fingerprint
 from .tasks import ParseTasks, dump_run, restore_run
 
 
 class DjangoRunRepository:
-    def __init__(self, using='default'):
+    def __init__(self, using='default', *, artifact_limits=BASELINE_LIMITS):
         self.using = using
+        self.artifact_limits = artifact_limits
         if connections[using].vendor != 'postgresql':
             raise RuntimeError('POSTGRESQL_REQUIRED')
 
@@ -104,6 +110,16 @@ class DjangoRunRepository:
             artifact_id = uuid4()
             final = ParseTasks(self).finish(run_id, token=token, now=now, parsed_ref=f'private:{artifact_id}')
             if final.status == 'succeeded':
+                if snapshot['asset']['byte_size'] > self.artifact_limits.max_bytes:
+                    raise InputError('RESOURCE_LIMIT')
+                try:
+                    payload = govern_parse_result(result, limits=self.artifact_limits).tree.to_value()
+                except ContractViolation as exc:
+                    code = {ReasonCode.LIMIT_EXCEEDED: 'RESOURCE_LIMIT',
+                            ReasonCode.UNKNOWN_SCHEMA: 'CONFIG_UNSUPPORTED',
+                            ReasonCode.INVALID_COORDINATE: 'LOCATION_MISMATCH',
+                            ReasonCode.UNSUPPORTED_FORMAT: 'UNSUPPORTED_FORMAT'}.get(exc.code, 'PARSE_FAILED')
+                    raise InputError(code) from None
                 ParsedArtifact.objects.using(self.using).create(
-                    id=artifact_id, run_id=run_id, attempt_id=final.attempts[-1].attempt_id, payload=asdict(result))
+                    id=artifact_id, run_id=run_id, attempt_id=final.attempts[-1].attempt_id, payload=payload)
             return final  # Artifact creation failure rolls back success, revision and attempt together.

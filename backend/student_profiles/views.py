@@ -2,6 +2,8 @@ from django.db import transaction
 from datetime import timedelta
 
 from django.utils import timezone
+from data_security.adapters.persistence.fields import field_storage_enabled, protect_stored_value
+from users.permissions import authorized_users
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, permissions
@@ -275,7 +277,7 @@ class OnboardingInterviewView(APIView):
         report = StudentProfileReport.objects.filter(profile=interview.profile, report_type='initial').first()
         return Response({
             'questions': ONBOARDING_QUESTIONS,
-            'answers': interview.answers,
+            'answers': interview.display_protected('answers'),
             'current_question': interview.current_question,
             'status': interview.status,
             'report': StudentProfileReportSerializer(report).data if report else None,
@@ -311,7 +313,7 @@ class OnboardingInterviewView(APIView):
                         'report': StudentProfileReportSerializer(report).data,
                     })
 
-            answers = dict(interview.answers or {})
+            answers = dict(interview.read_protected('answers') or {})
             answers[str(question_id)] = answer
             next_question = next(
                 (item for item in ONBOARDING_QUESTIONS if str(item['id']) not in answers),
@@ -426,7 +428,7 @@ class PersonaGrowthView(APIView):
             },
             'dimensions': dimensions,
             'history': history[-8:],
-            'recommendation': _build_growth_recommendation(request.user, dimensions, current_score),
+            'recommendation': protect_stored_value(_build_growth_recommendation(request.user, dimensions, current_score)),
             'meta': {
                 'update_rule': '动态画像取最近90天评分，每两次有效评分间隔不少于7天',
             },
@@ -442,6 +444,12 @@ class StudentProfileReportReviewView(APIView):
         except (TypeError, ValueError):
             return Response({'student_id': ['请提供有效的学生 ID']}, status=status.HTTP_400_BAD_REQUEST)
 
+        if field_storage_enabled():
+            course_id = request.query_params.get('course')
+            if course_id is not None and not course_id.isdecimal():
+                return Response({'course': ['课程编号无效']}, status=status.HTTP_400_BAD_REQUEST)
+            if not authorized_users(request.user, course_id).filter(pk=student_id).exists():
+                return Response({'detail': 'Not found.'}, status=status.HTTP_404_NOT_FOUND)
         reports = StudentProfileReport.objects.select_related('profile__user').filter(
             profile__user_id=student_id,
         )

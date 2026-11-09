@@ -9,6 +9,7 @@ from decimal import Decimal
 from typing import Any, Dict, List, Tuple
 
 from django.utils import timezone
+from data_security.adapters.persistence.fields import protect_stored_value
 
 from learning_analytics.models import AdminLearningScore
 
@@ -325,6 +326,7 @@ def _fallback_persona(snapshot: Dict[str, Any], provider='local_rule') -> Dict[s
 
 
 def _normalize_model_persona(parsed: Dict[str, Any], snapshot: Dict[str, Any], provider: str) -> Dict[str, Any]:
+    parsed = protect_stored_value(parsed)
     fallback = _fallback_persona(snapshot, provider=provider)
     skills = snapshot.get('profile', {}).get('self_assessed_skills') or {}
 
@@ -454,7 +456,7 @@ def ensure_learning_persona(user, force=False) -> Dict[str, Any]:
     except Exception as exc:
         generated = _fallback_persona(snapshot)
         status = 'fallback'
-        generated['persona_traits']['generation_error'] = str(exc)[:240]
+        generated['persona_traits']['generation_error'] = protect_stored_value(str(exc))[:240]
 
     traits = generated['persona_traits']
     traits['_meta'] = {

@@ -73,7 +73,7 @@ class PlatformContentIndexingService:
         solution_text = ''
         hint_map_text = ''
         if solution and solution.is_enabled:
-            solution_text = solution.content or ''
+            solution_text = solution.display_protected('content') or ''
             hint_map_text = solution.hint_map or ''
 
         return '\n'.join([

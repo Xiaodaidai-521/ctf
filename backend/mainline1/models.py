@@ -33,7 +33,7 @@ class ParsedArtifact(models.Model):
     id = models.UUIDField(primary_key=True, editable=False)
     run = models.OneToOneField(ParseRun, on_delete=models.PROTECT)
     attempt = models.OneToOneField(ParseAttempt, on_delete=models.PROTECT)
-    payload = models.JSONField()  # Authorized raw cells: never exposed by admin/HTTP/logs.
+    payload = models.JSONField()  # ds.parsed-artifact.v1: bounded private snapshot + source metadata.
 
 
 class ReviewLedger(models.Model):

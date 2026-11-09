@@ -317,6 +317,20 @@ const routes = [
     meta: { requiresAdmin: true }
   },
   {
+    path: '/admin/data-security',
+    name: 'AdminDataSecurity',
+    component: () => import('@/admin/components/AdminLayout.vue'),
+    children: [
+      {
+        path: '',
+        name: 'AdminDataSecurityHome',
+        component: () => import('@/admin/views/DataSecurity.vue'),
+        meta: { title: '数据保护', requiresAdmin: true }
+      }
+    ],
+    meta: { requiresAdmin: true }
+  },
+  {
     path: '/admin/users',
     name: 'AdminUsers',
     component: () => import('@/admin/components/AdminLayout.vue'),

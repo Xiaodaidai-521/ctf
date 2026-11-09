@@ -2,17 +2,6 @@
 """Django's command-line utility for administrative tasks."""
 import os
 import sys
-from pathlib import Path
-
-# 加载项目根目录 .env（确定性路径，不依赖 CWD）
-try:
-    from dotenv import load_dotenv
-    _root_dotenv = Path(__file__).resolve().parent.parent / '.env'
-    if _root_dotenv.exists():
-        load_dotenv(_root_dotenv)
-except ImportError:
-    pass
-
 
 def main():
     """Run administrative tasks."""

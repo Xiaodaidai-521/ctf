@@ -7,6 +7,9 @@ from typing import Dict, List
 from django.conf import settings
 
 from ai_providers import Message, get_manager
+from data_security.adapters.django.content import (
+    ContentProtectionError, content_protection_enabled, protect_text,
+)
 
 
 class ComplianceAgent:
@@ -17,6 +20,15 @@ class ComplianceAgent:
     def analyze(self, *, task, evidence: List[Dict], assessment) -> Dict:
         """Return normalized agent output for a legal analysis task."""
         started = time.perf_counter()
+        if content_protection_enabled():
+            evidence = [
+                {
+                    'title': protect_text(str(item.get('title') or '')),
+                    'score': item.get('score', 0),
+                    'text': protect_text(str(item.get('text') or '')),
+                }
+                for item in evidence[:8]
+            ]
         prompt = self._build_prompt(task=task, evidence=evidence, assessment=assessment)
         provider = 'fallback'
         model = 'rules-v1'
@@ -30,12 +42,14 @@ class ComplianceAgent:
                 provider = response.provider
                 model = response.model
                 content = response.content
-        except Exception as exc:
+        except ContentProtectionError:
+            raise
+        except Exception:
             success = False
-            error_message = str(exc)
+            error_message = 'MODEL_CALL_FAILED'
 
         if not content:
-            content = self._fallback_content(assessment=assessment, evidence=evidence)
+            content = protect_text(self._fallback_content(assessment=assessment, evidence=evidence))
 
         return {
             'agent_id': self.agent_id,
@@ -43,17 +57,17 @@ class ComplianceAgent:
             'model': model,
             'input_payload': {
                 'task_id': task.id,
-                'title': task.title,
-                'source_type': task.source_type,
                 'evidence_count': len(evidence),
-                'prompt': prompt,
+                **({} if content_protection_enabled() else {
+                    'title': task.title, 'source_type': task.source_type, 'prompt': prompt,
+                }),
             },
             'output_payload': {
                 'content': content,
                 'assessment': {
                     'severity': assessment.severity,
                     'score': assessment.score,
-                    'matched_keywords': assessment.matched_keywords,
+                    'matched_keywords': [protect_text(value) for value in assessment.matched_keywords],
                 },
                 'evidence': evidence,
             },
@@ -84,9 +98,9 @@ class ComplianceAgent:
             for item in evidence[:8]
         ]
         return '\n'.join([
-            f'任务：{task.title}',
-            f'来源类型：{task.source_type}',
-            f'输入内容：{task.input_text}',
+            f'任务：{protect_text(task.title)}',
+            f'来源类型：{protect_text(task.source_type)}',
+            f'输入内容：{protect_text(task.input_text)}',
             f'规则初评：{assessment.severity} / {assessment.score}',
             '证据：',
             '\n'.join(evidence_lines) or '(无检索证据)',

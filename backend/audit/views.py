@@ -13,6 +13,9 @@ from .serializers import (
     AuditLedgerEntrySerializer,
 )
 from .services import AuditLedgerService
+from data_security.adapters.persistence.fields import field_storage_enabled
+from users.permissions import authorized_users
+from django.db.models import Q
 
 
 class IsAuditAdmin(BasePermission):
@@ -22,6 +25,7 @@ class IsAuditAdmin(BasePermission):
         return bool(
             request.user
             and request.user.is_authenticated
+            and request.user.is_active
             and (request.user.is_staff or getattr(request.user, 'role', '') == 'admin')
         )
 
@@ -34,6 +38,10 @@ class AuditEventListView(generics.ListAPIView):
 
     def get_queryset(self):
         queryset = AuditEvent.objects.select_related('user').order_by('-created_at')
+        if field_storage_enabled():
+            course = self.request.query_params.get('course', '')
+            allowed = authorized_users(self.request.user, int(course) if course.isdecimal() else None)
+            queryset = queryset.filter(Q(user__in=allowed) | Q(securityauditrecord__isnull=False))
         category = self.request.query_params.get('category')
         level = self.request.query_params.get('level')
         user_id = self.request.query_params.get('user_id')
@@ -58,6 +66,10 @@ class AIAuditLogListView(generics.ListAPIView):
             .select_related('user', 'challenge')
             .order_by('-created_at')
         )
+        if field_storage_enabled():
+            course = self.request.query_params.get('course', '')
+            queryset = queryset.filter(user__in=authorized_users(
+                self.request.user, int(course) if course.isdecimal() else None))
         provider = self.request.query_params.get('provider')
         success = self.request.query_params.get('success')
         user_id = self.request.query_params.get('user_id')
@@ -78,6 +90,10 @@ class AuditLedgerEntryListView(generics.ListAPIView):
 
     def get_queryset(self):
         queryset = AuditLedgerEntry.objects.select_related('actor').order_by('-id')
+        if field_storage_enabled():
+            course = self.request.query_params.get('course', '')
+            allowed = authorized_users(self.request.user, int(course) if course.isdecimal() else None)
+            queryset = queryset.filter(Q(actor__in=allowed) | Q(securityauditrecord__isnull=False))
         event_category = self.request.query_params.get('event_category')
         object_type = self.request.query_params.get('object_type')
         object_id = self.request.query_params.get('object_id')

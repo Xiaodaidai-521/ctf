@@ -3,20 +3,26 @@
 import re
 
 from django.conf import settings
+from data_security.contracts import ContractViolation
+from data_security.adapters.django.legacy import baseline_confidentiality, protect_legacy
 
 REDACTION_VERSION = 'v1'
-TOKEN_PATTERN = re.compile(
-    r'(?i)(authorization|token|password|secret|cookie)\s*[:=]\s*[^\s,;]+',
-)
 FLAG_PATTERN = re.compile(r'(?i)flag\s*\{[^}]{1,500}\}')
 
 
 def redact_manual_notes(value: str) -> str:
     """Remove common secrets and enforce the configured input bound."""
     limit = int(getattr(settings, 'LEGAL_FACT_MAX_MANUAL_CHARS', 4000))
-    text = (value or '')[:limit]
-    text = TOKEN_PATTERN.sub(r'\1=[REDACTED]', text)
-    return FLAG_PATTERN.sub('flag{[REDACTED]}', text).strip()
+    try:
+        protected = protect_legacy(value or '', 'legal-v1')
+    except ContractViolation:
+        return '[内容暂不可用]'
+    if protected is None:
+        text, _ = baseline_confidentiality((value or '')[:limit], 'legal-v1')
+        return FLAG_PATTERN.sub('flag{[REDACTED]}', text).strip()
+    text, _ = protected
+    text = FLAG_PATTERN.sub('flag{[REDACTED]}', text)
+    return text[:max(0, limit)].strip()
 
 
 def safe_container_event(detail: dict) -> dict:

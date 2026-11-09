@@ -5,6 +5,7 @@ parallel event store.  The dictionary below is the module-1 subset; the same
 event_id and metadata fields are what modules 6/7/8 consume.
 """
 
+import hashlib
 import uuid
 
 from django.utils import timezone
@@ -60,6 +61,10 @@ def emit_event(
     """
 
     event_id = event_id or new_event_id()
+    if len(event_id) > 64:
+        # Keep a readable prefix and a full-ID digest within the 64-character field.
+        digest = hashlib.sha256(event_id.encode('utf-8')).hexdigest()[:24]
+        event_id = f'{event_id[:39]}-{digest}'
     metadata = {
         'source': 'learning_map',
         'task_id': task.id if task else None,

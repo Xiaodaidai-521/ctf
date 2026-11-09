@@ -5,6 +5,8 @@ from rest_framework.decorators import api_view, permission_classes
 from django.db.models import Q
 from .models import Submission
 from .serializers import SubmissionSerializer
+from users.permissions import authorized_users
+from data_security.adapters.persistence.fields import field_storage_enabled
 
 
 class IsAdminUser(BasePermission):
@@ -28,7 +30,11 @@ class SubmissionListView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        if self.request.user.is_staff:
+        if field_storage_enabled():
+            course = self.request.query_params.get('course', '')
+            queryset = Submission.objects.filter(user__in=authorized_users(
+                self.request.user, int(course) if course.isdecimal() else None))
+        elif self.request.user.is_staff:
             queryset = Submission.objects.all()
         else:
             queryset = Submission.objects.filter(user=self.request.user)
@@ -139,14 +145,18 @@ def submission_stats_view(request):
 @permission_classes([IsAdminUser])
 def admin_submission_stats_view(request):
     """管理员提交统计"""
-    total_submissions = Submission.objects.count()
-    correct_submissions = Submission.objects.filter(is_correct=True).count()
+    submissions = Submission.objects.select_related('user')
+    if field_storage_enabled():
+        course = request.query_params.get('course', '')
+        submissions = submissions.filter(user__in=authorized_users(
+            request.user, int(course) if course.isdecimal() else None))
+    total_submissions = submissions.count()
+    correct_submissions = submissions.filter(is_correct=True).count()
     wrong_submissions = total_submissions - correct_submissions
     success_rate = (correct_submissions / total_submissions * 100) if total_submissions > 0 else 0
 
     # 按用户统计
     user_stats = {}
-    submissions = Submission.objects.select_related('user').all()
     for submission in submissions:
         user_id = submission.user.id
         username = submission.user.username

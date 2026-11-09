@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from data_security.adapters.django.content import ContentProtectionError, protect_text
+
 import logging
 from collections.abc import Mapping
 
@@ -25,7 +27,7 @@ class KnowledgeAgent:
                 user=user, task_context=task_context,
             )
             items = [item for item in package.get("items", []) if isinstance(item, Mapping)][:8]
-            point = str(knowledge_point or (challenge_info or {}).get("title") or query)[:120]
+            point = protect_text(str(knowledge_point or (challenge_info or {}).get("title") or query))[:120]
             definition = ""
             key_points = []
             prerequisites = []
@@ -33,8 +35,10 @@ class KnowledgeAgent:
             context = []
             sources = []
             for item in items:
-                text = str(item.get("summary") or item.get("text") or item.get("content") or "")[:800]
-                title = str(item.get("title") or item.get("source") or "")[:160]
+                raw_text = item.get("summary") or item.get("text") or item.get("content") or ""
+                raw_title = item.get("title") or item.get("source") or ""
+                text = protect_text(raw_text if isinstance(raw_text, str) else str(raw_text))[:800]
+                title = protect_text(raw_title if isinstance(raw_title, str) else str(raw_title))[:160]
                 if not definition and text:
                     definition = text[:500]
                 if title:
@@ -57,6 +61,8 @@ class KnowledgeAgent:
                 "retrievalContext": context,
                 "sources": sources,
             }
+        except ContentProtectionError:
+            raise
         except Exception as exc:
             logger.warning(
                 "knowledge_agent_fallback",

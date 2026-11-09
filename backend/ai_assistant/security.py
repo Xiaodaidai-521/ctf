@@ -15,6 +15,8 @@ from enum import IntEnum
 from collections import defaultdict, Counter
 import threading
 from django.conf import settings
+from data_security.contracts import ContractViolation
+from data_security.adapters.django.legacy import baseline_confidentiality, protect_legacy
 
 class SecurityLevel(IntEnum):
     SAFE = 0
@@ -126,21 +128,6 @@ class PromptSecurityChecker:
 class OutputSanitizer:
     """AI 输出内容脱敏器"""
 
-    SECRET_PATTERNS = [
-        (r"AKIA[0-9A-Z]{16}", "AWS Access Key"),
-        (r"sk-[a-zA-Z0-9]{48}", "OpenAI API Key"),
-        (r"ghp_[a-zA-Z0-9]{36}", "GitHub Token"),
-        (r"-----BEGIN\s+(RSA |EC |DSA |OPENSSH )?PRIVATE KEY-----", "私钥文件"),
-        (r"password\s*[:=]\s*[\'\"\w!@#$%^&*()+-]{8,}", "密码明文"),
-    ]
-
-    INTERNAL_IP_PATTERNS = [
-        (r"10\.\d{1,3}\.\d{1,3}\.\d{1,3}", "内网IP段 10.x.x.x"),
-        (r"172\.(1[6-9]|2\d|3[01])\.\d{1,3}\.\d{1,3}", "内网IP段 172.16-31.x.x"),
-        (r"192\.168\.\d{1,3}\.\d{1,3}", "内网IP段 192.168.x.x"),
-        (r"127\.\d{1,3}\.\d{1,3}\.\d{1,3}", "本地回环地址"),
-    ]
-
     PROMPT_LEAK_PATTERNS = [
         (
             r"(?is)(system|developer|hidden|internal)\s+(prompt|instruction|message|rules?)\s*[:：].{0,2000}",
@@ -161,22 +148,16 @@ class OutputSanitizer:
     ]
 
     def __init__(self):
-        self._secrets = [(re.compile(p), n) for p, n in self.SECRET_PATTERNS]
-        self._internal = [(re.compile(p), n) for p, n in self.INTERNAL_IP_PATTERNS]
         self._prompt_leaks = [(re.compile(p), n) for p, n in self.PROMPT_LEAK_PATTERNS]
 
     def sanitize(self, text: str) -> Tuple[str, List[str]]:
         """脱敏并返回告警列表"""
-        warnings = []
-        result = text
-        for pattern, name in self._secrets:
-            if pattern.search(result):
-                result = pattern.sub("[" + name + " 已过滤]", result)
-                warnings.append("检测到真实" + name + "，已过滤")
-        for pattern, name in self._internal:
-            if pattern.search(result):
-                result = pattern.sub("[内网地址 已过滤]", result)
-                warnings.append("检测到" + name + "，已过滤")
+        try:
+            protected = protect_legacy(text, 'output-v1')
+        except ContractViolation:
+            return '[内容暂不可用]', ['内容保护未就绪，已阻断输出']
+        result, alerts = baseline_confidentiality(text, 'output-v1') if protected is None else protected
+        warnings = list(alerts)
         for pattern, name in self._prompt_leaks:
             if pattern.search(result):
                 result = pattern.sub(
@@ -389,7 +370,7 @@ class RequestSigner:
     """
 
     def __init__(self, secret_key: Optional[str] = None):
-        self.secret_key = secret_key or os.getenv('AI_API_SECRET') or settings.SECRET_KEY
+        raise RuntimeError('LEGACY_REQUEST_SIGNATURE_DISABLED')
 
     def sign(self, body: str, timestamp: int) -> str:
         message = body + str(timestamp) + self.secret_key

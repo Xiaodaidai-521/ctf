@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from data_security.adapters.persistence.fields import field_storage_enabled, protect_stored_value
 from .models import (
     LearningDirection,
     StudentProfile,
@@ -16,7 +17,12 @@ class LearningDirectionSerializer(serializers.ModelSerializer):
         ]
 
 
-class LearningPreferenceSerializer(serializers.ModelSerializer):
+class ProtectedProfileSerializer(serializers.ModelSerializer):
+    def to_representation(self, instance):
+        return protect_stored_value(super().to_representation(instance))
+
+
+class LearningPreferenceSerializer(ProtectedProfileSerializer):
     class Meta:
         model = LearningPreference
         fields = [
@@ -26,7 +32,7 @@ class LearningPreferenceSerializer(serializers.ModelSerializer):
         ]
 
 
-class LearningPersonaSerializer(serializers.ModelSerializer):
+class LearningPersonaSerializer(ProtectedProfileSerializer):
     persona_traits = serializers.SerializerMethodField()
     generation_status = serializers.SerializerMethodField()
     generation_provider = serializers.SerializerMethodField()
@@ -60,7 +66,7 @@ class LearningPersonaSerializer(serializers.ModelSerializer):
         return self._meta(obj).get('input_signature', '')
 
 
-class StudentProfileSerializer(serializers.ModelSerializer):
+class StudentProfileSerializer(ProtectedProfileSerializer):
     preference = LearningPreferenceSerializer(read_only=True)
     persona = LearningPersonaSerializer(read_only=True)
 
@@ -89,7 +95,15 @@ class OnboardingSerializer(serializers.Serializer):
     difficulty_bias = serializers.FloatField(default=0)
 
 
-class StudentProfileReportSerializer(serializers.ModelSerializer):
+class StudentProfileReportSerializer(ProtectedProfileSerializer):
+    raw_interview = serializers.SerializerMethodField()
+
+    def get_raw_interview(self, obj):
+        # Reports expose the safe analysis, not a raw-interview viewing capability.
+        if field_storage_enabled() or obj.security_state != 'legacy-v0':
+            return []
+        return obj.raw_interview
+
     user_id = serializers.IntegerField(source='profile.user_id', read_only=True)
     username = serializers.CharField(source='profile.user.username', read_only=True)
 

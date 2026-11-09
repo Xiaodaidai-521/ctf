@@ -1,0 +1,4 @@
+# Existing mainline1 JSON-schema test dependency; not a runtime M0 dependency.
+jsonschema==4.25.1
+# Exercise both existing DOCX paths instead of skipping the optional-library test.
+python-docx==1.2.0

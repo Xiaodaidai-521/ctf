@@ -4,6 +4,7 @@ Reuses ``learning_analytics.LearningEvent``; no second event store.  Answer
 text is never written to an event: only identifiers, hashes and status.
 """
 
+import hashlib
 import uuid
 
 from django.utils import timezone
@@ -38,6 +39,10 @@ def emit_event(
     if task and task.validator.get('type') == 'data_lab' and len(event_id) > 64:
         from data_lab.common import short_id
         event_id = short_id('module6_event', event_id)
+    if len(event_id) > 64:
+        # Keep a readable prefix and a full-ID digest within the 64-character field.
+        digest = hashlib.sha256(event_id.encode('utf-8')).hexdigest()[:24]
+        event_id = f'{event_id[:39]}-{digest}'
     existing = LearningEvent.objects.filter(event_id=event_id).first()
     if existing:
         return existing, False

@@ -36,6 +36,7 @@ urlpatterns = [
     path('media/feedback_evidence/<path:path>', feedback_evidence_media_disabled, name='feedback-evidence-media-disabled'),
     path('admin/', admin.site.urls),
     path('api/users/', include('users.urls')),
+    path('api/data-security/', include('data_security.adapters.django.policy_api')),
     path('api/challenges/', include('challenges.urls')),
     path('api/practical-training/', include('practical_training.urls')),
     path('api/submissions/', include('submissions.urls')),

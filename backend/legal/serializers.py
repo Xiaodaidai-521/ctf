@@ -3,6 +3,7 @@
 from rest_framework import serializers
 
 from audit.models import AuditLedgerEntry
+from data_security.adapters.persistence.fields import field_storage_enabled, protect_stored_value
 
 from .models import (
     ComplianceAgentRun,
@@ -18,6 +19,30 @@ from .models import (
     ViolationRecord,
 )
 from .services.consent_service import compute_content_hash
+from .services.data_access import authorized_legal_objects
+
+
+class ProtectedLegalSerializer(serializers.ModelSerializer):
+    def get_fields(self):
+        fields = super().get_fields()
+        if field_storage_enabled():
+            request = self.context.get('request')
+            for name in ('task', 'risk_finding'):
+                if name in fields and fields[name].queryset is not None:
+                    fields[name].queryset = authorized_legal_objects(fields[name].queryset,
+                        getattr(request, 'user', None), self.context.get('course_id'))
+        return fields
+
+    def to_representation(self, instance):
+        result = super().to_representation(instance)
+        if field_storage_enabled() or getattr(instance, 'security_state', 'legacy-v0') != 'legacy-v0':
+            for name in getattr(instance, 'encrypted_fields', ()):
+                if name in result:
+                    result[name] = '[REDACTED]'
+            for name in getattr(instance, 'redacted_fields', ()):
+                if name in result:
+                    result[name] = protect_stored_value(result[name])
+        return result
 
 
 class ContainerAuditSerializer(serializers.Serializer):
@@ -37,6 +62,9 @@ class ContainerAuditSerializer(serializers.Serializer):
     error_message = serializers.SerializerMethodField()
     ledger_hash = serializers.SerializerMethodField()
     created_at = serializers.DateTimeField(read_only=True)
+
+    def to_representation(self, instance):
+        return protect_stored_value(super().to_representation(instance))
 
     def _detail(self, obj):
         return obj.detail or {}
@@ -200,7 +228,7 @@ class DataProcessingActivitySerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'created_by', 'ledger_entry', 'created_at', 'updated_at']
 
 
-class LegalEvidenceSerializer(serializers.ModelSerializer):
+class LegalEvidenceSerializer(ProtectedLegalSerializer):
     """Serializer for legal evidence."""
 
     class Meta:
@@ -222,7 +250,7 @@ class LegalEvidenceSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'created_at']
 
 
-class LegalRiskFindingSerializer(serializers.ModelSerializer):
+class LegalRiskFindingSerializer(ProtectedLegalSerializer):
     """Serializer for risk findings."""
 
     evidence_items = LegalEvidenceSerializer(many=True, read_only=True)
@@ -247,7 +275,7 @@ class LegalRiskFindingSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'created_at', 'updated_at']
 
 
-class LegalAnalysisTaskSerializer(serializers.ModelSerializer):
+class LegalAnalysisTaskSerializer(ProtectedLegalSerializer):
     """Serializer for compliance analysis tasks."""
 
     risk_findings = LegalRiskFindingSerializer(many=True, read_only=True)
@@ -308,7 +336,7 @@ class ViolationRecordSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'created_by', 'ledger_entry', 'created_at', 'updated_at']
 
 
-class LegalReportSerializer(serializers.ModelSerializer):
+class LegalReportSerializer(ProtectedLegalSerializer):
     """Serializer for legal reports."""
 
     class Meta:
@@ -330,7 +358,7 @@ class LegalReportSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'generated_by', 'ledger_entry', 'generated_at', 'updated_at']
 
 
-class ComplianceAgentRunSerializer(serializers.ModelSerializer):
+class ComplianceAgentRunSerializer(ProtectedLegalSerializer):
     """Serializer for compliance agent runs."""
 
     class Meta:
@@ -353,6 +381,7 @@ class ComplianceAgentRunSerializer(serializers.ModelSerializer):
 
 class ExerciseFactPreviewRequestSerializer(serializers.Serializer):
     container_id = serializers.IntegerField(min_value=1)
+    course_id = serializers.IntegerField(min_value=1, required=False)
     started_at = serializers.DateTimeField(required=False)
     ended_at = serializers.DateTimeField(required=False)
 
@@ -371,7 +400,7 @@ class ExerciseFactConfirmSerializer(ExerciseFactPreviewRequestSerializer):
     run_analysis = serializers.BooleanField(required=False, default=True)
 
 
-class LegalFactSnapshotSerializer(serializers.ModelSerializer):
+class LegalFactSnapshotSerializer(ProtectedLegalSerializer):
     class Meta:
         model = LegalFactSnapshot
         fields = [

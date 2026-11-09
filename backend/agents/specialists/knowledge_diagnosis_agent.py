@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from data_security.adapters.django.content import ContentProtectionError, protect_text
+
 import logging
 from typing import Dict, Optional
 
@@ -39,6 +41,8 @@ class KnowledgeDiagnosisAgent:
             }
             safe_cache_set(key, result, diagnosis_ttl())
             return result
+        except ContentProtectionError:
+            raise
         except Exception as exc:
             logger.warning("knowledge_diagnosis_agent_fallback", extra={
                 "event": "knowledge_diagnosis_agent_fallback", "error_type": type(exc).__name__,
@@ -87,8 +91,10 @@ class KnowledgeDiagnosisAgent:
             for item in package.get("items", [])[:limit]:
                 title = item.get("title") or item.get("source") or ""
                 if title:
-                    hints.append({"id": item.get("id") or "", "name": str(title)[:80], "mastery": 0})
+                    hints.append({"id": item.get("id") or "", "name": protect_text(str(title))[:80], "mastery": 0})
             return hints
+        except ContentProtectionError:
+            raise
         except Exception as exc:
             logger.warning("knowledge_diagnosis_agent_fallback", extra={
                 "event": "knowledge_diagnosis_agent_fallback", "error_type": type(exc).__name__,

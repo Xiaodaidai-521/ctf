@@ -12,6 +12,8 @@ from audit.models import AuditEvent, AuditLedgerEntry
 from audit.services import canonical_json, sha256_hex
 from challenges.models import ChallengeContainer
 from submissions.models import Submission
+from data_security.adapters.persistence.fields import field_storage_enabled
+from users.permissions import authorized_users
 
 from .fact_redactor import REDACTION_VERSION, safe_container_event
 
@@ -24,6 +26,7 @@ class ExerciseFactScope:
     container_id: int
     started_at: Optional[object] = None
     ended_at: Optional[object] = None
+    course_id: Optional[int] = None
 
 
 @dataclass(frozen=True)
@@ -79,10 +82,13 @@ class ExerciseFactBuilder:
             raise PermissionDenied('Authentication is required.')
         if not (actor.is_staff or getattr(actor, 'role', '') == 'admin'):
             raise PermissionDenied('Only administrators can extract exercise facts.')
+        containers = ChallengeContainer.objects.select_related('challenge', 'user')
+        if field_storage_enabled():
+            containers = containers.filter(user__in=authorized_users(actor, scope.course_id))
         try:
-            return ChallengeContainer.objects.select_related('challenge', 'user').get(pk=scope.container_id)
+            return containers.get(pk=scope.container_id)
         except ChallengeContainer.DoesNotExist as exc:
-            raise ValidationError('The selected container does not exist.') from exc
+            raise ValidationError('The selected container does not exist or is not authorized.') from exc
 
     def _resolve_window(self, container, scope):
         start = scope.started_at or container.started_at or container.created_at

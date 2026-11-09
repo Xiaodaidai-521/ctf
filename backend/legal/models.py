@@ -3,6 +3,8 @@
 from django.conf import settings
 from django.db import models
 
+from data_security.adapters.persistence.fields import ProtectedModel
+
 
 class LegalProtocol(models.Model):
     """A protocol, privacy notice, terms document, or compliance policy."""
@@ -197,8 +199,11 @@ class DataProcessingActivity(models.Model):
         return self.name
 
 
-class LegalAnalysisTask(models.Model):
+class LegalAnalysisTask(ProtectedModel):
     """Compliance analysis task submitted by an admin or teacher."""
+
+    encrypted_fields = ('input_text',)
+    redacted_fields = ('title', 'result_summary', 'metadata')
 
     STATUS_CHOICES = [
         ('pending', 'Pending'),
@@ -242,6 +247,9 @@ class LegalAnalysisTask(models.Model):
         verbose_name = 'Legal analysis task'
         verbose_name_plural = 'Legal analysis tasks'
         ordering = ['-created_at']
+        constraints = [models.CheckConstraint(
+            condition=models.Q(security_state='legacy-v0') | models.Q(input_text=''),
+            name='legal_task_sealed_no_plaintext')]
 
     def __str__(self):
         return self.title
@@ -290,8 +298,10 @@ class LegalRiskFinding(models.Model):
         return self.title
 
 
-class LegalEvidence(models.Model):
+class LegalEvidence(ProtectedModel):
     """Evidence supporting a legal analysis, risk finding, violation, or report."""
+
+    redacted_fields = ('title', 'excerpt', 'metadata')
 
     EVIDENCE_TYPE_CHOICES = [
         ('legal_clause', 'Legal clause'),
@@ -392,8 +402,11 @@ class ViolationRecord(models.Model):
         return self.title
 
 
-class LegalReport(models.Model):
+class LegalReport(ProtectedModel):
     """Generated legal compliance report."""
+
+    encrypted_fields = ('content',)
+    redacted_fields = ('title', 'summary', 'metadata')
 
     STATUS_CHOICES = [
         ('draft', 'Draft'),
@@ -446,13 +459,18 @@ class LegalReport(models.Model):
         verbose_name = 'Legal report'
         verbose_name_plural = 'Legal reports'
         ordering = ['-generated_at']
+        constraints = [models.CheckConstraint(
+            condition=models.Q(security_state='legacy-v0') | models.Q(content=''),
+            name='legal_report_sealed_no_plaintext')]
 
     def __str__(self):
         return self.title
 
 
-class ComplianceAgentRun(models.Model):
+class ComplianceAgentRun(ProtectedModel):
     """Execution trace for compliance AI or rule-based analysis."""
+
+    redacted_fields = ('input_payload', 'output_payload')
 
     task = models.ForeignKey(
         LegalAnalysisTask,
@@ -479,8 +497,11 @@ class ComplianceAgentRun(models.Model):
         return f'{self.agent_id} for task {self.task_id}'
 
 
-class LegalFactSnapshot(models.Model):
+class LegalFactSnapshot(ProtectedModel):
     """Confirmed input facts for a legal analysis task."""
+
+    encrypted_fields = ('manual_notes',)
+    redacted_fields = ('automated_facts', 'warnings')
 
     SOURCE_KIND_CHOICES = [
         ('automated', 'Automated'),
@@ -512,6 +533,9 @@ class LegalFactSnapshot(models.Model):
 
     class Meta:
         ordering = ['-confirmed_at']
+        constraints = [models.CheckConstraint(
+            condition=models.Q(security_state='legacy-v0') | models.Q(manual_notes=''),
+            name='legal_fact_sealed_no_plaintext')]
 
     def __str__(self):
         return f'Fact snapshot {self.id} ({self.source_kind})'

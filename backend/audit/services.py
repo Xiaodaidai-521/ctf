@@ -81,8 +81,25 @@ class AuditLedgerService:
     """Write and verify audit ledger entries."""
 
     @staticmethod
-    @transaction.atomic
     def append_entry(
+        *, event_category: str, payload: Dict[str, Any], object_type: str = '',
+        object_id: Any = '', actor=None, chain_version: Optional[str] = None,
+    ) -> AuditLedgerEntry:
+        """Compatibility facade; formal assembly requires a confirmed receipt."""
+        from data_security.contracts import Durability, ReasonCode
+        from data_security.contracts.schema import require
+        from . import bridge
+        if bridge.is_bound():
+            require(chain_version in (None, 'v1'), ReasonCode.UNSUPPORTED_FORMAT)
+            receipt = bridge.record(category=event_category, actor_id=getattr(actor, 'pk', None),
+                                    object_id=object_id, durability=Durability.LEDGER_CONFIRMED)
+            return AuditLedgerEntry.objects.get(pk=receipt.sequence)
+        return AuditLedgerService._append_entry(event_category=event_category, payload=payload,
+            object_type=object_type, object_id=object_id, actor=actor, chain_version=chain_version)
+
+    @staticmethod
+    @transaction.atomic
+    def _append_entry(
         *,
         event_category: str,
         payload: Dict[str, Any],
@@ -91,7 +108,7 @@ class AuditLedgerService:
         actor=None,
         chain_version: Optional[str] = None,
     ) -> AuditLedgerEntry:
-        """Append a new ledger entry to the hash chain."""
+        """Internal v1 writer; Sink never calls the public compatibility facade."""
         chain_version = chain_version or getattr(settings, 'LEGAL_AUDIT_CHAIN_VERSION', 'v1')
         AuditLedgerLock.objects.get_or_create(key='default')
         AuditLedgerLock.objects.select_for_update().get(key='default')

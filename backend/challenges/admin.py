@@ -1,4 +1,5 @@
 from django.contrib import admin
+from data_security.adapters.persistence.fields import field_storage_enabled
 from .models import (
     Category,
     Challenge,
@@ -19,9 +20,17 @@ class CategoryAdmin(admin.ModelAdmin):
 @admin.register(Challenge)
 class ChallengeAdmin(admin.ModelAdmin):
     """CTF 题目管理"""
+    def get_queryset(self, request):
+        rows = super().get_queryset(request)
+        return rows.filter(security_state='sealed-v1') if field_storage_enabled() else rows
+
     list_display = ['title', 'category', 'difficulty', 'score', 'solve_count', 'is_active', 'created_at']
     list_filter = ['category', 'difficulty', 'is_active', 'created_at']
-    search_fields = ['title', 'description', 'flag']
+    search_fields = ['title', 'description']
+
+    def get_readonly_fields(self, request, obj=None):
+        fields = list(super().get_readonly_fields(request, obj))
+        return fields + ['flag'] if obj and obj.security_state != 'legacy-v0' else fields
     ordering = ['category', 'score']
 
     fieldsets = (
@@ -44,9 +53,17 @@ class ChallengeAdmin(admin.ModelAdmin):
 @admin.register(ChallengeSolution)
 class ChallengeSolutionAdmin(admin.ModelAdmin):
     """题目预设解答管理"""
+    def get_queryset(self, request):
+        rows = super().get_queryset(request)
+        return rows.filter(security_state='sealed-v1') if field_storage_enabled() else rows
+
     list_display = ['challenge', 'answer_type', 'is_enabled', 'created_at']
     list_filter = ['answer_type', 'is_enabled']
-    search_fields = ['challenge__title', 'content']
+    search_fields = ['challenge__title']
+
+    def get_readonly_fields(self, request, obj=None):
+        fields = list(super().get_readonly_fields(request, obj))
+        return fields + ['content'] if obj and obj.security_state != 'legacy-v0' else fields
     
     fieldsets = (
         ('题目', {

@@ -1,4 +1,6 @@
 from django.contrib import admin
+from users.permissions import authorized_users
+from data_security.adapters.persistence.fields import field_storage_enabled
 from .models import (
     ExamLevelRule,
     TheoryQuestion, PracticeExam, PracticeExamQuestion,
@@ -16,6 +18,14 @@ class ExamLevelRuleAdmin(admin.ModelAdmin):
 
 @admin.register(TheoryQuestion)
 class TheoryQuestionAdmin(admin.ModelAdmin):
+    def get_queryset(self, request):
+        rows = super().get_queryset(request)
+        return rows.filter(security_state='sealed-v1') if field_storage_enabled() else rows
+
+    def get_readonly_fields(self, request, obj=None):
+        fields = list(super().get_readonly_fields(request, obj))
+        return fields + ['correct_answer'] if obj and obj.security_state != 'legacy-v0' else fields
+
     list_display = ['id', 'question_type', 'category', 'difficulty', 'points', 'is_active', 'created_at']
     list_filter = ['question_type', 'category', 'difficulty', 'is_active']
     search_fields = ['question_text']
@@ -110,6 +120,13 @@ class ExamAnswerInline(admin.TabularInline):
 
 @admin.register(ExamRecord)
 class ExamRecordAdmin(admin.ModelAdmin):
+    def get_queryset(self, request):
+        rows = super().get_queryset(request)
+        if field_storage_enabled():
+            course = request.GET.get('course', '')
+            rows = rows.filter(user__in=authorized_users(request.user, int(course) if course.isdecimal() else None))
+        return rows
+
     list_display = ['id', 'user', 'exam_type', 'theory_exam', 'practice_exam', 'status', 'score', 'is_passed', 'start_time']
     list_filter = ['exam_type', 'status', 'is_passed', 'created_at']
     search_fields = ['user__username']
@@ -131,7 +148,19 @@ class ExamRecordAdmin(admin.ModelAdmin):
 
 @admin.register(ExamAnswer)
 class ExamAnswerAdmin(admin.ModelAdmin):
+    def get_queryset(self, request):
+        rows = super().get_queryset(request)
+        if field_storage_enabled():
+            course = request.GET.get('course', '')
+            rows = rows.filter(exam_record__user__in=authorized_users(request.user, int(course) if course.isdecimal() else None),
+                               security_state='sealed-v1')
+        return rows
+
     list_display = ['id', 'exam_record', 'theory_question', 'practice_question', 'user_answer', 'is_correct', 'points_earned']
     list_filter = ['is_correct']
-    search_fields = ['user_answer']
+    search_fields = ['exam_record__user__username']
+
+    def get_readonly_fields(self, request, obj=None):
+        fields = list(super().get_readonly_fields(request, obj))
+        return fields + ['user_answer'] if obj and obj.security_state != 'legacy-v0' else fields
     readonly_fields = ['created_at', 'updated_at']

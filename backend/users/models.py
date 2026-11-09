@@ -1,10 +1,19 @@
 from django.db import models
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractUser, UserManager
+from data_security.adapters.persistence.fields import ProtectedModel, ProtectedQuerySet
 from django.db.models import Sum
 
 
-class CTFUser(AbstractUser):
+class CTFUserManager(UserManager.from_queryset(ProtectedQuerySet)):
+    pass
+
+
+class CTFUser(ProtectedModel, AbstractUser):
     """教育平台用户模型"""
+    encrypted_fields = ('email',)
+    objects = CTFUserManager()
+    email_index = models.CharField(max_length=100, blank=True, default='', db_index=True, editable=False)
+    email_index_previous = models.CharField(max_length=100, blank=True, default='', db_index=True, editable=False)
     ROLE_CHOICES = [
         ('student', '用户'),
         ('teacher', '教师'),
@@ -33,6 +42,9 @@ class CTFUser(AbstractUser):
         verbose_name = '用户'
         verbose_name_plural = '用户'
         ordering = ['-created_at']
+        constraints = [models.CheckConstraint(
+            condition=models.Q(security_state='legacy-v0') | models.Q(email=''),
+            name='user_sealed_email_no_plaintext')]
 
     def __str__(self):
         return f"{self.username} ({self.get_role_display()})"
@@ -71,5 +83,18 @@ class CTFUser(AbstractUser):
     def is_student(self):
         """是否为用户"""
         return self.role == 'student'
+
+
+class CourseDataGrant(models.Model):
+    """Explicit course-scoped data access, independent of roles and learning progress."""
+    actor = models.ForeignKey(CTFUser, on_delete=models.CASCADE, related_name='course_data_grants')
+    student = models.ForeignKey(CTFUser, on_delete=models.CASCADE, related_name='data_access_grants')
+    course = models.ForeignKey('learning_paths.LearningPath', on_delete=models.CASCADE)
+    granted_by = models.ForeignKey(CTFUser, on_delete=models.PROTECT, related_name='issued_data_grants')
+    expires_at = models.DateTimeField()
+    active = models.BooleanField(default=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=('actor', 'student', 'course'), name='unique_course_data_grant')]
 
 

@@ -3,6 +3,9 @@ import hmac
 import secrets
 import uuid
 from datetime import timedelta
+from dataclasses import replace
+
+from data_security.contracts import BASELINE_LIMITS
 
 from django.conf import settings
 from django.db import IntegrityError, transaction
@@ -242,7 +245,10 @@ def execute_authorized_export(*, authorization, signature, plan, filename, conte
     storage = PrivateStorage()
     finalized_reference = None
     try:
-        result = transform(content, filename, plan, payload["effective_action"])
+        limits = replace(BASELINE_LIMITS, max_bytes=settings.CONTROLLED_EXPORT_MAX_INPUT_BYTES,
+                         max_rows=settings.CONTROLLED_EXPORT_MAX_ROWS,
+                         max_columns=settings.CONTROLLED_EXPORT_MAX_COLUMNS)
+        result = transform(content, filename, plan, payload["effective_action"], limits=limits)
         if not hmac.compare_digest(result.scope_hash, payload["scope_hash"]):
             raise AuthorizationRejected("Plan scope does not match the authorization", code="SCOPE_HASH_MISMATCH")
         candidate = storage.write_candidate(
@@ -375,7 +381,7 @@ def create_share_grant(
     )
     token, digest = _new_token()
     with transaction.atomic():
-        execution = ExportExecution.objects.select_for_update().select_related("artifact").get(pk=execution_id)
+        execution = ExportExecution.objects.select_for_update(of=("self",)).select_related("artifact").get(pk=execution_id)
         now = timezone.now()
         if execution.state != "succeeded":
             raise ExecutionConflict("Only a succeeded execution can be shared")
