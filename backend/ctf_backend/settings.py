@@ -18,34 +18,20 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 ROOT_DIR = BASE_DIR.parent
 
-# 加载项目根目录 .env（确定性加载，覆盖所有入口：manage.py / gunicorn / shell）
-_root_dotenv = ROOT_DIR / '.env'
-if _root_dotenv.exists():
-    try:
-        from dotenv import load_dotenv
-        load_dotenv(_root_dotenv)
-    except ImportError:
-        for raw_line in _root_dotenv.read_text(encoding='utf-8-sig').splitlines():
-            line = raw_line.strip()
-            if not line or line.startswith('#') or '=' not in line:
-                continue
-            key, value = line.split('=', 1)
-            key = key.strip()
-            value = value.strip().strip('"').strip("'")
-            if key and os.environ.get(key, '') == '':
-                os.environ[key] = value
+# Secrets enter only through the explicit startup boundary; no dotenv discovery.
+from .security_bootstrap import framework_startup, startup_database_url, startup_secret
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-development-only')
+SECRET_KEY = framework_startup()
 
 # SECURITY WARNING: don't run with debug turned on in production!
 # 未设环境变量时自动为开发模式（DEBUG=True），
 # 设了 DATABASE_URL（PostgreSQL）时默认为生产模式（DEBUG=False）
-_db_url = os.environ.get('DATABASE_URL', '')
+_db_url = startup_database_url()
 _env_debug = os.environ.get('DEBUG', '').lower()
 if _env_debug:
     DEBUG = _env_debug in ('true', '1', 'yes')
@@ -53,7 +39,7 @@ else:
     DEBUG = not bool(_db_url)  # 有数据库URL → 生产模式，没有 → 开发模式
 
 _allowed_hosts = [host.strip() for host in os.environ.get('ALLOWED_HOSTS', '').split(',') if host.strip()]
-if not DEBUG and (not os.environ.get('SECRET_KEY') or not _allowed_hosts):
+if not DEBUG and (not SECRET_KEY or not _allowed_hosts):
     raise RuntimeError('SECRET_KEY and ALLOWED_HOSTS must be set when DEBUG is disabled.')
 ALLOWED_HOSTS = _allowed_hosts or ['localhost', '127.0.0.1']
 
@@ -61,6 +47,8 @@ ALLOWED_HOSTS = _allowed_hosts or ['localhost', '127.0.0.1']
 # Application definition
 
 INSTALLED_APPS = [
+    'ctf_backend.apps.SecurityConfig',
+    'data_security.adapters.persistence.apps.PolicyPersistenceConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -153,7 +141,7 @@ WSGI_APPLICATION = 'ctf_backend.wsgi.application'
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 # 支持 PostgreSQL（通过 DATABASE_URL 环境变量）或 SQLite（开发环境回退）
 
-DATABASE_URL = os.environ.get('DATABASE_URL', '')
+DATABASE_URL = startup_database_url()
 DATABASE_BACKEND = os.environ.get('DATABASE_BACKEND', 'postgres').lower()
 SQLITE_DATABASE_PATH = os.environ.get(
     'SQLITE_DATABASE_PATH',
@@ -194,11 +182,30 @@ else:
             'ENGINE': 'django.db.backends.postgresql',
             'NAME': os.environ.get('DB_NAME', 'ctf_platform'),
             'USER': os.environ.get('DB_USER', 'ctf_user'),
-            'PASSWORD': os.environ.get('DB_PASSWORD', ''),
+            'PASSWORD': startup_secret('DB_PASSWORD'),
             'HOST': os.environ.get('DB_HOST', 'postgres'),
             'PORT': os.environ.get('DB_PORT', '5432'),
         }
     }
+
+
+# PostgreSQL transport is explicit. Same-host isolated deployments can select
+# local/disable; cross-host connections require full server certificate validation.
+if DATABASES['default']['ENGINE'] == 'django.db.backends.postgresql':
+    _db_query = {}
+    if DATABASE_URL:
+        from urllib.parse import parse_qsl, urlparse
+        _db_query = dict(parse_qsl(urlparse(DATABASE_URL).query))
+    DB_TRANSPORT = os.environ.get('DB_TRANSPORT', 'local' if DEBUG else 'tls')
+    _sslmode = _db_query.get('sslmode', os.environ.get(
+        'DB_SSLMODE', 'disable' if DB_TRANSPORT == 'local' else 'verify-full'))
+    if DB_TRANSPORT not in ('local', 'tls') or _sslmode != (
+            'disable' if DB_TRANSPORT == 'local' else 'verify-full'):
+        raise RuntimeError('DATABASE_TRANSPORT_CONFIGURATION_INVALID')
+    DATABASES['default']['OPTIONS'] = {'sslmode': _sslmode}
+    _rootcert = _db_query.get('sslrootcert', os.environ.get('DB_SSLROOTCERT', ''))
+    if _rootcert:
+        DATABASES['default']['OPTIONS']['sslrootcert'] = _rootcert
 
 
 # Password validation
@@ -272,7 +279,8 @@ REST_FRAMEWORK = {
     # SessionAuthentication requires CSRF protection
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.SessionAuthentication',
-        'rest_framework.authentication.TokenAuthentication',
+        ('data_security.adapters.django.authentication.DisabledTokenAuthentication'
+         if os.environ.get('DATA_SECURITY_CONFIG') else 'rest_framework.authentication.TokenAuthentication'),
     ],
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticatedOrReadOnly',
@@ -322,7 +330,7 @@ AUTH_USER_MODEL = 'users.CTFUser'
 LEARNING_MAP_AI_ENABLED = os.environ.get('LEARNING_MAP_AI_ENABLED', 'false').lower() in ('true', '1', 'yes')
 LEARNING_MAP_RETEST_INTERVAL_DAYS = int(os.environ.get('LEARNING_MAP_RETEST_INTERVAL_DAYS', '3'))
 LEARNING_MAP_PREVIEW_CANDIDATE = os.environ.get('LEARNING_MAP_PREVIEW_CANDIDATE', 'false').lower() in ('true', '1', 'yes')
-LEARNING_MAP_SERVICE_TOKEN = os.environ.get('LEARNING_MAP_SERVICE_TOKEN', '')
+LEARNING_MAP_SERVICE_TOKEN = startup_secret('LEARNING_MAP_SERVICE_TOKEN')
 LEARNING_MAP_BASE_URI = os.environ.get('LEARNING_MAP_BASE_URI', 'https://ctf.local/learning-map')
 
 # Module 6: skill verification, review cards and delayed retests.
@@ -330,7 +338,7 @@ LEARNING_MAP_BASE_URI = os.environ.get('LEARNING_MAP_BASE_URI', 'https://ctf.loc
 # adjust individual due dates and record the reason.
 MODULE6_RETEST_INTERVAL_DAYS = int(os.environ.get('MODULE6_RETEST_INTERVAL_DAYS', '3'))
 MODULE6_RETEST_GRACE_DAYS = int(os.environ.get('MODULE6_RETEST_GRACE_DAYS', '7'))
-MODULE6_SERVICE_TOKEN = os.environ.get('MODULE6_SERVICE_TOKEN', '')
+MODULE6_SERVICE_TOKEN = startup_secret('MODULE6_SERVICE_TOKEN')
 MODULE6_RUBRIC_VERSION = os.environ.get('MODULE6_RUBRIC_VERSION', 'm6-rubric-v1')
 
 # Module 7 phase 3 (issue groups, candidates, approval, activation, rollback).
@@ -344,7 +352,7 @@ FEEDBACK_PHASE3_RELEASE_ENABLED = os.environ.get('FEEDBACK_PHASE3_RELEASE_ENABLE
 FRP_API_URL = os.environ.get('FRP_API_URL', 'http://localhost:7500')
 FRP_HTTP_DOMAIN = os.environ.get('FRP_HTTP_DOMAIN', 'localhost:8000')
 FRP_HTTP_PORT = int(os.environ.get('FRP_HTTP_PORT', '9123'))
-FRP_TOKEN = os.environ.get('FRP_TOKEN', '')
+FRP_TOKEN = ''  # Legacy sidecar delivery remains disabled.
 
 # Docker Configuration (用于题目容器管理)
 DOCKER_NETWORK = os.environ.get('DOCKER_NETWORK', 'ctf-challenge')
@@ -387,7 +395,7 @@ CONTAINER_IMAGE_RUNTIME_OVERRIDES = {
 
 COZE_SDK_ENABLED = os.environ.get('COZE_SDK_ENABLED', 'false').lower() == 'true'
 COZE_BOT_ID = os.environ.get('COZE_BOT_ID', '')
-COZE_TOKEN = os.environ.get('COZE_TOKEN', '')  # 强制从环境变量读取，不再有默认值
+COZE_TOKEN = ''  # Browser credential injection is permanently disabled.
 COZE_WIDGET_TITLE = os.environ.get('COZE_WIDGET_TITLE', 'CTF 助手')
 
 # Coze Bot 系统提示（用于避免 Bot 返回内部路径）
@@ -401,17 +409,17 @@ COZE_BOT_SYSTEM_PROMPT = os.environ.get(
 )
 
 # ========== 安全增强 ==========
-# 题库加密密钥（Fernet AES-128）
-# 生产环境必须设置！开发环境自动从 SECRET_KEY 派生
-FERNET_KEY = os.environ.get('FERNET_KEY', '')
+# Field crypto is explicitly bound by B; legacy Fernet fallback is disabled.
+FERNET_KEY = ''
 
-# HTTPS / reverse proxy settings
+# HTTPS terminates at the local proxy. Gunicorn validates the proxy peer against
+# forwarded_allow_ips; Django must not independently trust a client-supplied header.
 SECURE_SSL_REDIRECT = os.environ.get(
     'SECURE_SSL_REDIRECT',
-    'false',
+    'false' if DEBUG else 'true',
 ).lower() in ('true', '1', 'yes')
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-USE_X_FORWARDED_HOST = True
+SECURE_PROXY_SSL_HEADER = None
+USE_X_FORWARDED_HOST = False
 SESSION_COOKIE_SECURE = os.environ.get(
     'SESSION_COOKIE_SECURE',
     'true' if SECURE_SSL_REDIRECT else 'false',
@@ -422,9 +430,10 @@ CSRF_COOKIE_SECURE = os.environ.get(
 ).lower() in ('true', '1', 'yes')
 SECURE_HSTS_SECONDS = int(os.environ.get(
     'SECURE_HSTS_SECONDS',
-    '31536000' if SECURE_SSL_REDIRECT else '0',
+    '300' if SECURE_SSL_REDIRECT else '0',
 ))
-SECURE_HSTS_INCLUDE_SUBDOMAINS = SECURE_HSTS_SECONDS > 0
+SECURE_HSTS_INCLUDE_SUBDOMAINS = False
+SECURE_HSTS_PRELOAD = False
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_REFERRER_POLICY = 'same-origin'
 X_FRAME_OPTIONS = 'DENY'
@@ -436,7 +445,7 @@ CONTENT_GENERATOR_MAX_CONCURRENT = 5
 ENABLE_LEGAL_COMPLIANCE = os.environ.get('ENABLE_LEGAL_COMPLIANCE', 'true').lower() in ('true', '1', 'yes')
 LEGAL_AUDIT_CHAIN_VERSION = os.environ.get('LEGAL_AUDIT_CHAIN_VERSION', 'v1')
 EMBEDDING_PROVIDER = os.environ.get('EMBEDDING_PROVIDER', '')
-EMBEDDING_API_KEY = os.environ.get('EMBEDDING_API_KEY', '')
+EMBEDDING_API_KEY = ''  # OfficialAIPort owns authentication, not business settings.
 EMBEDDING_BASE_URL = os.environ.get('EMBEDDING_BASE_URL', '')
 EMBEDDING_MODEL = os.environ.get('EMBEDDING_MODEL', 'local-hash-v1')
 EMBEDDING_DIMENSION = int(os.environ.get('EMBEDDING_DIMENSION', '128'))

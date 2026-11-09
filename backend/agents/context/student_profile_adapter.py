@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from data_security.adapters.django.content import ContentProtectionError, protect_text
+
 import logging
 
 from ai_assistant.cache_services import profile_cache_key, profile_ttl, safe_cache_get, safe_cache_set
@@ -32,7 +34,7 @@ class StudentProfileContextAdapter:
                 safe_cache_set(key, {}, profile_ttl())
                 return {}
             result = {
-                "learningGoals": str(profile.learning_goals or "")[:1000],
+                "learningGoals": protect_text(str(profile.learning_goals or ""))[:1000],
                 "selfAssessedSkills": profile.self_assessed_skills if isinstance(profile.self_assessed_skills, dict) else {},
                 "onboardingCompleted": bool(profile.onboarding_completed),
             }
@@ -50,6 +52,8 @@ class StudentProfileContextAdapter:
             # their labels/traits as trusted model context; keep live user inputs only.
             safe_cache_set(key, result, profile_ttl())
             return result
+        except ContentProtectionError:
+            raise
         except Exception as exc:
             logger.warning("student_profile_context_fallback", extra={
                 "event": "student_profile_context_fallback", "user_id": str(user_id),

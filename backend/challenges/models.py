@@ -1,4 +1,5 @@
 from django.db import models
+from data_security.adapters.persistence.fields import ProtectedModel
 from django.conf import settings
 import json
 
@@ -17,8 +18,9 @@ class Category(models.Model):
         return self.name
 
 
-class Challenge(models.Model):
+class Challenge(ProtectedModel):
     """CTF 题目"""
+    encrypted_fields = ('flag',)
     CATEGORY_CHOICES = [
         ('web', 'Web'),
         ('crypto', 'Crypto'),
@@ -67,6 +69,9 @@ class Challenge(models.Model):
         verbose_name = 'CTF 题目'
         verbose_name_plural = 'CTF 题目'
         ordering = ['category', 'score']
+        constraints = [models.CheckConstraint(
+            condition=models.Q(security_state='legacy-v0') | models.Q(flag=''),
+            name='challenge_sealed_flag_no_plaintext')]
 
     def __str__(self):
         return f"{self.title} ({self.get_difficulty_display()}) - {self.score}分"
@@ -305,8 +310,10 @@ class ChallengeContainer(models.Model):
         return self.status == 'running' and not self.is_expired
 
 
-class ChallengeSolution(models.Model):
+class ChallengeSolution(ProtectedModel):
     """题目解答预设"""
+    encrypted_fields = ('content',)
+    redacted_fields = ('hint_map',)
     ANSWER_TYPE_CHOICES = [
         ('hint', '提示词模式'),
         ('step', '步骤模式'),
@@ -338,6 +345,9 @@ class ChallengeSolution(models.Model):
     class Meta:
         verbose_name = '题目预设解答'
         verbose_name_plural = '题目预设解答'
+        constraints = [models.CheckConstraint(
+            condition=models.Q(security_state='legacy-v0') | models.Q(content=''),
+            name='solution_sealed_content_no_plaintext')]
 
     def __str__(self):
         return f"{self.challenge.title} - {self.get_answer_type_display()}"
@@ -362,4 +372,4 @@ class ChallengeSolution(models.Model):
                 return value
         
         # 返回默认提示
-        return hint_map.get('default', self.content)
+        return hint_map['default'] if 'default' in hint_map else self.display_protected('content')

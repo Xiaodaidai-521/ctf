@@ -2,6 +2,11 @@
 
 from django.contrib import admin
 
+from data_security.adapters.persistence.fields import field_storage_enabled
+from users.permissions import authorized_users
+
+from .services.data_access import authorized_legal_objects
+
 from .models import (
     ComplianceAgentRun,
     DataProcessingActivity,
@@ -14,6 +19,28 @@ from .models import (
     UserConsentRecord,
     ViolationRecord,
 )
+
+
+class ProtectedLegalAdmin(admin.ModelAdmin):
+    def get_queryset(self, request):
+        queryset = authorized_legal_objects(super().get_queryset(request), request.user)
+        if field_storage_enabled() and hasattr(self.model, 'encrypted_fields'):
+            queryset = queryset.filter(security_state='sealed-v1')
+        return queryset
+
+    def get_readonly_fields(self, request, obj=None):
+        fields = super().get_readonly_fields(request, obj)
+        if obj is not None and getattr(obj, 'security_state', 'legacy-v0') != 'legacy-v0':
+            return (*fields, *obj.encrypted_fields)
+        return fields
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if field_storage_enabled():
+            if db_field.name in ('task', 'risk_finding'):
+                kwargs['queryset'] = authorized_legal_objects(db_field.remote_field.model.objects.all(), request.user)
+            elif db_field.name in ('created_by', 'generated_by'):
+                kwargs['queryset'] = authorized_users(request.user)
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 
 @admin.register(LegalProtocol)
@@ -48,22 +75,22 @@ class DataProcessingActivityAdmin(admin.ModelAdmin):
 
 
 @admin.register(LegalAnalysisTask)
-class LegalAnalysisTaskAdmin(admin.ModelAdmin):
+class LegalAnalysisTaskAdmin(ProtectedLegalAdmin):
     list_display = ['title', 'source_type', 'status', 'created_by', 'created_at', 'completed_at']
     list_filter = ['source_type', 'status', 'created_at']
-    search_fields = ['title', 'input_text', 'result_summary']
+    search_fields = ['title', 'result_summary']
     readonly_fields = ['started_at', 'completed_at', 'created_at', 'updated_at']
 
 
 @admin.register(LegalRiskFinding)
-class LegalRiskFindingAdmin(admin.ModelAdmin):
+class LegalRiskFindingAdmin(ProtectedLegalAdmin):
     list_display = ['title', 'task', 'severity', 'status', 'score', 'created_at']
     list_filter = ['severity', 'status', 'created_at']
     search_fields = ['title', 'description', 'recommendation']
 
 
 @admin.register(LegalEvidence)
-class LegalEvidenceAdmin(admin.ModelAdmin):
+class LegalEvidenceAdmin(ProtectedLegalAdmin):
     list_display = ['title', 'evidence_type', 'object_type', 'object_id', 'relevance_score']
     list_filter = ['evidence_type']
     search_fields = ['title', 'excerpt', 'object_type', 'object_id']
@@ -78,15 +105,15 @@ class ViolationRecordAdmin(admin.ModelAdmin):
 
 
 @admin.register(LegalReport)
-class LegalReportAdmin(admin.ModelAdmin):
+class LegalReportAdmin(ProtectedLegalAdmin):
     list_display = ['title', 'report_type', 'status', 'generated_by', 'generated_at']
     list_filter = ['report_type', 'status', 'generated_at']
-    search_fields = ['title', 'summary', 'content']
+    search_fields = ['title', 'summary']
     readonly_fields = ['ledger_entry', 'generated_at', 'updated_at']
 
 
 @admin.register(ComplianceAgentRun)
-class ComplianceAgentRunAdmin(admin.ModelAdmin):
+class ComplianceAgentRunAdmin(ProtectedLegalAdmin):
     list_display = ['task', 'agent_id', 'provider', 'model', 'success', 'duration_ms', 'created_at']
     list_filter = ['agent_id', 'provider', 'success', 'created_at']
     search_fields = ['task__title', 'agent_id', 'provider', 'model']

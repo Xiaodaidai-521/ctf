@@ -15,6 +15,8 @@ import json
 import re
 from typing import Any, Dict, Mapping, Optional
 
+from data_security.adapters.django.content import ProtectedText, content_protection_enabled, protect_text
+
 
 SCHEMA_VERSION = "1.1"
 EXTENSION_SECTIONS = (
@@ -246,10 +248,29 @@ SENSITIVE_KEYS = {
 }
 
 
+# Only fields consumed by the teaching chain; arbitrary metadata and profile
+# dictionaries are not model inputs. This projection activates with formal B.
+TEACHING_FIELDS = {
+    'learningGoals', 'onboardingCompleted', 'learningPreference', 'learningPersona', 'preferredPace',
+    'preferredModality', 'prefersDiagrams', 'prefersCodeExamples', 'dailyStudyHours',
+    'difficultyBias', 'persona', 'label', 'confidence', 'recommendedAgentRoster',
+    'learningTime', 'studyDays', 'completionRate', 'accuracyRate', 'trend', 'riskLevel',
+    'weakKnowledgePoints', 'masteryScore', 'errorPattern', 'knowledgePoint',
+    'definition', 'prerequisites', 'keyPoints', 'commonMistakes', 'retrievalContext',
+    'sources', 'resourceList', 'resources', 'items', 'goal', 'priorityKnowledgePoints',
+    'steps', 'dailyMinutes', 'estimatedDays', 'reviewIntervals', 'successCriteria',
+    'id', 'title', 'text', 'score', 'type', 'name', 'mastery', 'count', 'entry',
+    'url', 'summary', 'difficulty', 'category', 'knowledgePoints', 'resourceIds',
+    'order', 'action', 'intervals', *EXTENSION_SECTIONS,
+}
+
+
 def _safe(value, depth=0):
     if depth > 8:
         return ""
-    if value is None or isinstance(value, (str, bool, int)):
+    if isinstance(value, str):
+        return protect_text(value)
+    if value is None or isinstance(value, (bool, int)):
         return value
     if isinstance(value, float):
         return value if math.isfinite(value) else 0
@@ -260,10 +281,12 @@ def _safe(value, depth=0):
             str(key): _safe(item, depth + 1)
             for key, item in value.items()
             if str(key).lower() not in SENSITIVE_KEYS
+            and (not content_protection_enabled() or key in TEACHING_FIELDS)
         }
     if isinstance(value, (list, tuple, set)):
-        return [_safe(item, depth + 1) for item in value]
-    return str(value)
+        items = list(value)[:MAX_RESOURCES] if content_protection_enabled() else value
+        return [_safe(item, depth + 1) for item in items]
+    return '' if content_protection_enabled() else str(value)
 
 
 def _mapping(value):
@@ -272,7 +295,9 @@ def _mapping(value):
 
 
 def _clip_text(value, limit):
-    return re.sub(r"\s+", " ", str(value or "")).strip()[:limit]
+    text = value if isinstance(value, str) else str(value or "")
+    clipped = re.sub(r"\s+", " ", protect_text(text)).strip()[:limit]
+    return ProtectedText(clipped) if content_protection_enabled() else clipped
 
 
 def _history(value):
@@ -300,7 +325,7 @@ def _clip_knowledge(value):
         clipped = []
         remaining = MAX_RAG_CHARS
         for item in data["retrievalContext"]:
-            safe_item = _safe(item)
+            safe_item = item
             raw = json.dumps(safe_item, ensure_ascii=False)
             if remaining <= 0:
                 break
@@ -320,9 +345,9 @@ class SharedTeachingContextBuilder:
     ):
         payload = {
             "schemaVersion": SCHEMA_VERSION,
-            "studentId": str(student_id or ""),
+            "studentId": protect_text(str(student_id or "")),
             "question": _clip_text(question, 4000),
-            "taskType": str(task_type or ""),
+            "taskType": protect_text(str(task_type or "")),
             "studentProfile": _mapping(student_profile),
             "learningAnalysis": _mapping(learning_analysis),
             "knowledgeDiagnosis": _clip_diagnosis(knowledge_diagnosis),
@@ -333,5 +358,5 @@ class SharedTeachingContextBuilder:
             "extensions": _mapping(extensions),
             "timestamp": datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z"),
         }
-        return _safe(payload)
+        return payload if content_protection_enabled() else _safe(payload)
 

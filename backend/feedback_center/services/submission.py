@@ -256,7 +256,9 @@ def _validate_category_issue(category, issue_type):
 
 
 def _existing_submission(actor, client_request_id, fingerprint):
-    existing = FeedbackTicket.objects.select_for_update().select_related(
+    # Serialize replays on the ticket, not its read-only nullable relations:
+    # PostgreSQL cannot lock the nullable side of an outer join.
+    existing = FeedbackTicket.objects.select_for_update(of=('self',)).select_related(
         'catalog', 'task', 'attempt', 'capability', 'knowledge_point', 'duplicate_of',
     ).filter(submitter=actor, client_request_id=client_request_id).first()
     if not existing:

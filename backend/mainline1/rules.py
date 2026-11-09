@@ -3,10 +3,12 @@
 Public-shaped findings/profiles remain Proposed; snapshot and outcome are internal.
 No semantic call, external authorization, profile-head mutation or policy activation.
 """
-import ipaddress
 import json
 import re
 import time
+
+from data_security.contracts import ContractViolation, ReasonCode
+from data_security.adapters.tabular.legacy import candidates as core_candidates
 from collections import Counter, OrderedDict
 from dataclasses import asdict, dataclass, field
 from uuid import UUID, uuid5
@@ -15,44 +17,24 @@ from .classification import BusinessContext, RuleConfiguration, canonical, ident
 from .parsing import InputError, fingerprint
 
 ENGINE_VERSION = 'format-rule-engine-v1'
-EMAIL = re.compile(r"(?<![A-Za-z0-9.!#$%&'*+/=?^_`{|}~-])[A-Za-z0-9.!#$%&'*+/=?^_`{|}~-]+@[A-Za-z0-9.-]+")
-IPV4 = re.compile(r'(?<![0-9A-Za-z_.])(?:[0-9]{1,3}\.){3}[0-9]{1,3}(?![0-9A-Za-z_.])')
-CARD = re.compile(r'(?<![0-9A-Za-z])[0-9]{13,19}(?![0-9A-Za-z])')
 
 
 def candidates(implementation, text):
-    if implementation == 'email_ascii_v1':
-        for match in EMAIL.finditer(text):
-            value = match.group().rstrip('.')
-            local, domain = value.split('@')
-            labels = domain.split('.')
-            if (len(local) <= 64 and not local.startswith('.') and not local.endswith('.') and '..' not in local
-                    and len(domain) <= 253 and len(labels) >= 2 and labels[-1].isalpha()
-                    and all(label and len(label) <= 63 and label[0].isalnum() and label[-1].isalnum() for label in labels)):
-                yield match.start(), match.start() + len(value), 'ASCII_EMAIL_SYNTAX'
-    elif implementation == 'ipv4_v1':
-        for match in IPV4.finditer(text):
-            try:
-                ipaddress.IPv4Address(match.group())
-            except ipaddress.AddressValueError:
-                continue
-            yield match.start(), match.end(), 'IPV4_OCTETS_VALID'
-    elif implementation == 'luhn_candidate_v1':
-        for match in CARD.finditer(text):
-            digits = [int(char) for char in match.group()]
-            total = sum((2 * digit - 9 if digit >= 5 else 2 * digit) if i % 2 else digit
-                        for i, digit in enumerate(reversed(digits)))
-            if len(set(digits)) > 1 and total % 10 == 0:
-                yield match.start(), match.end(), 'LUHN_VALID_NOT_ACCOUNT_PROOF'
-    elif implementation in ('demo_person_ref_v1', 'demo_contact_v1'):
+    if implementation in ('demo_person_ref_v1', 'demo_contact_v1'):
         # Fixed synthetic teaching patterns, not general PII or legal classification.
+        # The data-security core intentionally does not cover them; keep them local.
         expression = (r'(?<![A-Z0-9-])DEMO-U-[0-9]{4}(?![A-Z0-9-])'
                       if implementation == 'demo_person_ref_v1' else
                       r'[a-z][a-z0-9._+-]{0,20}@example\.invalid(?![A-Za-z0-9.-])')
         for match in re.finditer(expression, text):
             yield match.start(), match.end(), 'SYNTHETIC_PATTERN_REQUIRES_FACTS'
-    else:
-        raise InputError('RULE_IMPLEMENTATION_UNSUPPORTED')
+        return
+    try:
+        yield from core_candidates(implementation, text)
+    except ContractViolation as exc:
+        code = ('RULE_IMPLEMENTATION_UNSUPPORTED' if exc.code is ReasonCode.UNSUPPORTED_FORMAT else
+                'RESOURCE_LIMIT' if exc.code is ReasonCode.LIMIT_EXCEEDED else 'RULE_DETECTION_FAILED')
+        raise InputError(code) from None
 
 
 @dataclass(frozen=True)

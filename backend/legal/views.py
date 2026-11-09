@@ -3,7 +3,8 @@
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db import transaction
 from django.utils import timezone
-from rest_framework import status, viewsets
+from django.utils.functional import cached_property
+from rest_framework import serializers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -11,6 +12,8 @@ from rest_framework.views import APIView
 
 from audit.models import AuditEvent
 from audit.services import AuditLedgerService, canonical_json, sha256_hex
+from data_security.adapters.persistence.fields import field_storage_enabled
+from users.permissions import authorized_users
 
 from .models import (
     ComplianceAgentRun,
@@ -48,6 +51,22 @@ from .services.exercise_fact_builder import ExerciseFactBuilder, ExerciseFactSco
 from .services.fact_redactor import redact_manual_notes
 from .services.fact_renderer import render_for_analysis
 from .services.ledger_service import LegalLedgerService
+from .services.data_access import authorized_legal_objects
+
+
+class LegalScopeMixin:
+    @cached_property
+    def course_id(self):
+        if not field_storage_enabled():
+            return None
+        return serializers.IntegerField(min_value=1, allow_null=True).run_validation(
+            self.request.query_params.get('course'))
+
+    def get_queryset(self):
+        return authorized_legal_objects(super().get_queryset(), self.request.user, self.course_id)
+
+    def get_serializer_context(self):
+        return {**super().get_serializer_context(), 'course_id': self.course_id}
 
 
 class LegalProtocolViewSet(viewsets.ModelViewSet):
@@ -165,7 +184,7 @@ class DataProcessingActivityViewSet(viewsets.ModelViewSet):
         LegalLedgerService.attach_data_processing_ledger(activity, actor=self.request.user)
 
 
-class LegalAnalysisTaskViewSet(viewsets.ModelViewSet):
+class LegalAnalysisTaskViewSet(LegalScopeMixin, viewsets.ModelViewSet):
     """Create and inspect compliance analysis tasks."""
 
     queryset = LegalAnalysisTask.objects.select_related('created_by').prefetch_related(
@@ -229,7 +248,7 @@ class LegalAnalysisTaskViewSet(viewsets.ModelViewSet):
         })
 
 
-class LegalRiskFindingViewSet(viewsets.ModelViewSet):
+class LegalRiskFindingViewSet(LegalScopeMixin, viewsets.ModelViewSet):
     """Manage risk findings."""
 
     queryset = LegalRiskFinding.objects.select_related('task').prefetch_related('evidence_items')
@@ -237,7 +256,7 @@ class LegalRiskFindingViewSet(viewsets.ModelViewSet):
     permission_classes = [IsLegalReviewer]
 
 
-class LegalEvidenceViewSet(viewsets.ModelViewSet):
+class LegalEvidenceViewSet(LegalScopeMixin, viewsets.ModelViewSet):
     """Manage legal evidence."""
 
     queryset = LegalEvidence.objects.select_related('task', 'risk_finding')
@@ -257,7 +276,7 @@ class ViolationRecordViewSet(viewsets.ModelViewSet):
         LegalLedgerService.attach_violation_ledger(record, actor=self.request.user)
 
 
-class LegalReportViewSet(viewsets.ModelViewSet):
+class LegalReportViewSet(LegalScopeMixin, viewsets.ModelViewSet):
     """Manage compliance reports."""
 
     queryset = LegalReport.objects.select_related('task', 'generated_by', 'ledger_entry')
@@ -300,7 +319,7 @@ class LegalReportViewSet(viewsets.ModelViewSet):
         return Response(self.get_serializer(report).data)
 
 
-class ComplianceAgentRunViewSet(viewsets.ReadOnlyModelViewSet):
+class ComplianceAgentRunViewSet(LegalScopeMixin, viewsets.ReadOnlyModelViewSet):
     """Read compliance agent execution traces."""
 
     queryset = ComplianceAgentRun.objects.select_related('task')
@@ -321,7 +340,7 @@ class ComplianceAgentRunViewSet(viewsets.ReadOnlyModelViewSet):
         return queryset.order_by('-created_at')
 
 
-class ContainerAuditViewSet(viewsets.ReadOnlyModelViewSet):
+class ContainerAuditViewSet(LegalScopeMixin, viewsets.ReadOnlyModelViewSet):
     """Read Docker lifecycle audit evidence for compliance review."""
 
     serializer_class = ContainerAuditSerializer
@@ -329,6 +348,8 @@ class ContainerAuditViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         queryset = AuditEvent.objects.filter(category='container').select_related('user')
+        if field_storage_enabled():
+            queryset = queryset.filter(user__in=authorized_users(self.request.user, self.course_id))
         user = self.request.query_params.get('user')
         challenge = self.request.query_params.get('challenge')
         action_name = self.request.query_params.get('action')
@@ -347,6 +368,7 @@ class ContainerAuditViewSet(viewsets.ReadOnlyModelViewSet):
 def _fact_scope(validated_data):
     return ExerciseFactScope(
         container_id=validated_data['container_id'],
+        course_id=validated_data.get('course_id'),
         started_at=validated_data.get('started_at'),
         ended_at=validated_data.get('ended_at'),
     )
@@ -395,7 +417,9 @@ class ExerciseFactConfirmView(APIView):
                 {'code': 'FACT_PREVIEW_CHANGED', 'preview': current.to_dict()},
                 status=status.HTTP_409_CONFLICT,
             )
-        notes = redact_manual_notes(data.get('manual_notes', ''))
+        notes = data.get('manual_notes', '')
+        if not field_storage_enabled():
+            notes = redact_manual_notes(notes)
         source_kind = 'hybrid' if notes else 'automated'
         snapshot_payload = {
             'scope': current.scope,

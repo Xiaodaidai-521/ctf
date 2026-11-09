@@ -5,12 +5,15 @@ from rest_framework.response import Response
 from rest_framework.throttling import AnonRateThrottle
 from rest_framework.exceptions import PermissionDenied
 from django.conf import settings
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
 from django.middleware.csrf import CsrfViewMiddleware
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.db import transaction
 from django.db.models import Q
 from .models import CTFUser
+from .permissions import authorized_users
+from data_security.adapters.persistence.fields import field_storage_enabled
+from data_security.contracts import ContractViolation
 from .serializers import (
     UserSerializer, UserRegisterSerializer, UserLoginSerializer, LeaderboardSerializer,
     AdminUserCreateSerializer, AdminUserUpdateSerializer
@@ -73,7 +76,7 @@ class RegisterView(generics.CreateAPIView):
         LearningPersona.objects.get_or_create(profile=profile)
         DynamicGrowthProfile.objects.get_or_create(profile=profile)
         OnboardingInterview.objects.get_or_create(profile=profile)
-        # 创建token
+        # 仅建立会话，不签发长期 token。
         login(request, user)
         request.session.set_expiry(settings.SESSION_COOKIE_AGE)
         return Response({
@@ -138,7 +141,10 @@ def profile_update_view(request):
     """更新用户信息"""
     serializer = UserSerializer(request.user, data=request.data, partial=True)
     serializer.is_valid(raise_exception=True)
-    serializer.save()
+    password_changed = 'password' in serializer.validated_data
+    user = serializer.save()
+    if password_changed:
+        update_session_auth_hash(request, user)
     return Response({
         'user': serializer.data,
         'message': '更新成功'
@@ -174,19 +180,47 @@ def leaderboard_view(request):
 
 
 @api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def search_users_view(request):
+    course = request.query_params.get('course')
+    if course is not None and not course.isdecimal():
+        return Response({'code': 'INVALID_VALUE'}, status=400)
+    users = authorized_users(request.user, course)
+    if 'email' in request.query_params:
+        try:
+            users = users.exact_email(request.query_params['email'])
+        except (ContractViolation, RuntimeError):
+            return Response({'code': 'EMAIL_QUERY_UNAVAILABLE'}, status=503)
+    elif request.query_params.get('username'):
+        users = users.filter(username__icontains=request.query_params['username'])
+    else:
+        return Response({'code': 'INVALID_VALUE'}, status=400)
+    return Response({'users': UserSerializer(users[:50], many=True, context={'request': request}).data})
+
+
+@api_view(['GET'])
 @permission_classes([IsAdminUser])
 def admin_user_list_view(request):
     """管理员 - 用户列表"""
-    users = CTFUser.objects.all().order_by('-created_at')
+    if field_storage_enabled():
+        course = request.query_params.get('course')
+        if course is not None and not course.isdecimal():
+            return Response({'code': 'INVALID_VALUE'}, status=400)
+        users = authorized_users(request.user, course)
+    else:
+        users = CTFUser.objects.all()
+    users = users.order_by('-created_at')
 
-    # 搜索
+    # 邮箱只走授权范围内的盲索引精确查询，不再提供明文模糊搜索。
     search = request.GET.get('search', '')
     if search:
-        users = users.filter(
-            Q(username__icontains=search) |
-            Q(nickname__icontains=search) |
-            Q(email__icontains=search)
-        )
+        users = users.filter(Q(username__icontains=search) | Q(nickname__icontains=search))
+    email = request.query_params.get('email')
+    if email is not None:
+        try:
+            users = users.exact_email(email)
+        except (ContractViolation, RuntimeError):
+            return Response({'code': 'EMAIL_QUERY_UNAVAILABLE'}, status=503)
 
     # 角色筛选
     role = request.GET.get('role', '')

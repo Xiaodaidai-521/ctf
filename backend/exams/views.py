@@ -370,16 +370,17 @@ class ExamRecordViewSet(viewsets.ModelViewSet):
                 return Response({'error': 'Question does not belong to this exam'}, status=400)
             question = exam_question.question
             user_answer = data['user_answer'].strip()
+            correct_answer = question.read_protected('correct_answer')
 
             if question.question_type == 'single_choice':
-                is_correct = user_answer == question.correct_answer
+                is_correct = user_answer == correct_answer
             elif question.question_type == 'multiple_choice':
                 # 澶氶€夌瓟妗堢敤閫楀彿鍒嗛殧锛岄渶瑕佹帓搴忓悗姣旇緝
                 user_answers = sorted([a.strip() for a in user_answer.split(',')])
-                correct_answers = sorted([a.strip() for a in question.correct_answer.split(',')])
+                correct_answers = sorted([a.strip() for a in correct_answer.split(',')])
                 is_correct = user_answers == correct_answers
             elif question.question_type == 'true_false':
-                is_correct = user_answer.lower() == question.correct_answer.lower()
+                is_correct = user_answer.lower() == correct_answer.lower()
 
             points_earned = exam_question.points if is_correct else 0
 
@@ -395,7 +396,7 @@ class ExamRecordViewSet(viewsets.ModelViewSet):
             from challenges.utils import check_flag
 
             flag = data['user_answer'].strip()
-            is_correct = check_flag(flag, practice_q.challenge.flag)
+            is_correct = check_flag(flag, practice_q.challenge.read_protected('flag'))
 
             if is_correct:
                 points_earned = practice_q.challenge.score

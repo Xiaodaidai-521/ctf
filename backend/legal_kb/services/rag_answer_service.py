@@ -7,6 +7,9 @@ from typing import Dict, List, Optional
 from django.conf import settings
 
 from ai_providers import Message, get_manager
+from data_security.adapters.django.content import (
+    ContentProtectionError, content_protection_enabled, protect_text,
+)
 
 from .retrieval_service import LegalRetrievalService
 
@@ -34,6 +37,7 @@ class RagAnswerService:
             filters=filters or {},
             user=user,
         )
+        query = protect_text(query)
         citations = self._build_citations(results)
         provider = 'local'
         model = 'rag-template-v1'
@@ -47,13 +51,15 @@ class RagAnswerService:
                     answer_text = response.content
                     provider = response.provider
                     model = response.model
-            except Exception as exc:
-                provider_error = str(exc)
+            except ContentProtectionError:
+                raise
+            except Exception:
+                provider_error = 'MODEL_CALL_FAILED'
                 answer_text = ''
 
         sections = self._build_sections(query=query, citations=citations)
         if not answer_text:
-            answer_text = self._render_sections(sections)
+            answer_text = protect_text(self._render_sections(sections))
 
         payload = {
             'answer': answer_text,
@@ -65,7 +71,7 @@ class RagAnswerService:
         }
         if provider_error:
             payload['provider_error'] = provider_error
-        if include_raw:
+        if include_raw and not content_protection_enabled():
             payload['results'] = results
         return payload
 
@@ -99,8 +105,10 @@ class RagAnswerService:
                 if response and response.content:
                     return response
                 errors.append(f'{provider.name}: empty response')
-            except Exception as exc:
-                errors.append(f'{provider.name}: {exc}')
+            except ContentProtectionError:
+                raise
+            except Exception:
+                errors.append('MODEL_CALL_FAILED')
         raise RuntimeError('; '.join(errors) or 'no provider returned a response')
 
     def _provider_candidates(self, *, manager, agent_id: str) -> List:
@@ -138,15 +146,21 @@ class RagAnswerService:
     def _build_citations(self, results: List[Dict]) -> List[Dict]:
         citations = []
         for index, item in enumerate(results, start=1):
+            metadata = item.get('metadata') or {}
+            if content_protection_enabled():
+                audit_id = metadata.get('audit_event_id')
+                metadata = {
+                    'audit_event_id': protect_text(audit_id) if isinstance(audit_id, str) else audit_id,
+                } if isinstance(audit_id, (str, int)) else {}
             citations.append({
                 'index': index,
                 'id': item.get('id'),
-                'source_type': item.get('source_type', ''),
+                'source_type': protect_text(item.get('source_type', '')),
                 'object_id': item.get('object_id'),
-                'title': item.get('title') or 'Knowledge chunk',
+                'title': protect_text(item.get('title') or 'Knowledge chunk'),
                 'score': item.get('score') or 0,
                 'excerpt': self._truncate(item.get('text', ''), 600),
-                'metadata': item.get('metadata') or {},
+                'metadata': metadata,
             })
         return citations
 
@@ -325,7 +339,7 @@ class RagAnswerService:
 
     @staticmethod
     def _truncate(text: str, limit: int) -> str:
-        value = ' '.join((text or '').split())
+        value = ' '.join(protect_text(text or '').split())
         if len(value) <= limit:
             return value
         return value[:limit - 3].rstrip() + '...'

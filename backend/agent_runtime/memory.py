@@ -40,8 +40,8 @@ class UserMemoryStore:
         return {
             'memory_type': memory.memory_type,
             'memory_key': memory.memory_key,
-            'memory_value': memory.memory_value,
-            'metadata': memory.metadata,
+            'memory_value': memory.read_protected('memory_value'),
+            'metadata': memory.read_protected('metadata'),
             'updated_at': memory.updated_at.isoformat(),
         }
 
@@ -60,8 +60,8 @@ class UserMemoryStore:
             items.append({
                 'memory_type': memory.memory_type,
                 'memory_key': memory.memory_key,
-                'memory_value': memory.memory_value,
-                'metadata': memory.metadata,
+                'memory_value': memory.read_protected('memory_value'),
+                'metadata': memory.read_protected('metadata'),
                 'updated_at': memory.updated_at.isoformat(),
             })
         return items

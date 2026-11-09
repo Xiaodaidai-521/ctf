@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
+from data_security.adapters.persistence.fields import field_storage_enabled
 from .models import (
     ExamLevelRule, TheoryQuestion, PracticeExam, PracticeExamQuestion,
     TheoryExam, TheoryExamQuestion, ExamRecord, ExamAnswer
@@ -32,6 +33,12 @@ class TheoryQuestionSerializer(serializers.ModelSerializer):
 
 
 class TheoryQuestionCreateSerializer(serializers.ModelSerializer):
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        if field_storage_enabled() or instance.security_state != 'legacy-v0':
+            data['correct_answer'] = '[REDACTED]'
+        return data
+
     class Meta:
         model = TheoryQuestion
         fields = [
@@ -136,6 +143,12 @@ class TheoryExamCreateSerializer(serializers.ModelSerializer):
 
 
 class ExamAnswerSerializer(serializers.ModelSerializer):
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        if field_storage_enabled() or instance.security_state != 'legacy-v0':
+            data['user_answer'] = '[REDACTED]'
+        return data
+
     question_text = serializers.SerializerMethodField()
 
     class Meta:

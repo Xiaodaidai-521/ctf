@@ -28,6 +28,6 @@ class LegalRetriever:
         parts = [
             task.title,
             task.source_type,
-            task.input_text,
+            task.display_protected('input_text'),
         ]
         return '\n'.join([part for part in parts if part]).strip() or task.title

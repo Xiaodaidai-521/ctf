@@ -4,11 +4,14 @@
 
 from django.conf import settings
 from django.db import models
+from data_security.adapters.persistence.fields import ProtectedModel
 from django.utils import timezone
 
 
-class AuditEvent(models.Model):
+class AuditEvent(ProtectedModel):
     """Generic audit event for important platform actions."""
+
+    redacted_fields = ('detail',)
 
     CATEGORY_CHOICES = [
         ('ai_call', 'AI 调用'),
@@ -74,7 +77,13 @@ class AuditEvent(models.Model):
 
     @classmethod
     def log(cls, category, summary, level='INFO', user=None, detail=None, request=None):
-        """Create an audit event with optional request metadata."""
+        """Use the bound gateway; unassembled applications keep legacy behavior."""
+        from . import bridge
+        if bridge.is_bound():
+            receipt = bridge.record(category=category, actor_id=getattr(user, 'pk', None),
+                                    failed=level in ('ERROR', 'CRITICAL'))
+            return SecurityAuditRecord.objects.select_related('audit_event').get(
+                event_id=receipt.event_id).audit_event
         kwargs = {
             'category': category,
             'summary': summary,
@@ -160,8 +169,24 @@ class AuditLedgerLock(models.Model):
         return self.key
 
 
-class AIAuditLog(models.Model):
+class SecurityAuditRecord(models.Model):
+    """Durable M0 event and its optional, separately confirmed legacy-chain entry."""
+
+    event_id = models.CharField(max_length=64, unique=True)
+    event = models.JSONField()
+    stored_at = models.DateTimeField()
+    audit_event = models.OneToOneField(AuditEvent, on_delete=models.PROTECT)
+    ledger_entry = models.OneToOneField(
+        AuditLedgerEntry, on_delete=models.PROTECT, null=True, blank=True)
+
+
+class AIAuditLog(ProtectedModel):
     """Specialized audit log for AI provider calls."""
+
+    minimized_fields = {
+        'provider': 'withheld', 'model': 'withheld', 'user_message': '', 'ai_response': '',
+        'mode': '', 'error_message': '', 'duration_ms': 0, 'token_estimate': 0, 'ip_address': None,
+    }
 
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -193,6 +218,11 @@ class AIAuditLog(models.Model):
         verbose_name = 'AI 调用日志'
         verbose_name_plural = 'AI 调用日志'
         ordering = ['-created_at']
+        constraints = [models.CheckConstraint(
+            condition=models.Q(security_state='legacy-v0') | models.Q(
+                provider='withheld', model='withheld', user_message='', ai_response='', mode='',
+                error_message='', duration_ms=0, token_estimate=0, ip_address__isnull=True),
+            name='ai_audit_sealed_minimal')]
         indexes = [
             models.Index(fields=['user', 'created_at']),
             models.Index(fields=['challenge', 'created_at']),
@@ -206,7 +236,18 @@ class AIAuditLog(models.Model):
     def log_ai_call(cls, user, provider, model, user_message, ai_response='',
                     mode='', success=True, error_message='', duration_ms=0,
                     token_estimate=0, challenge=None, request=None):
-        """Create an AI audit log entry."""
+        """Create a minimal read model only after the bound gateway persists it."""
+        from . import bridge
+        if bridge.is_bound():
+            bridge.record(category='ai_call', actor_id=getattr(user, 'pk', None),
+                          failed=success is not True)
+            # Provider/model/mode and error strings are caller supplied, too.
+            # This compatibility read model intentionally retains no prompt/answer.
+            return cls.objects.create(
+                user=user, challenge=challenge, provider='withheld', model='withheld',
+                user_message='', ai_response='', mode='', success=success is True,
+                error_message='' if success is True else 'PROVIDER_UNAVAILABLE',
+                duration_ms=0, token_estimate=0)
         kwargs = {
             'user': user,
             'provider': provider,

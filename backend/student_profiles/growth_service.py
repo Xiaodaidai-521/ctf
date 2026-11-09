@@ -3,6 +3,7 @@ from hashlib import sha256
 import json
 
 from django.db.models import Count, Q, Sum
+from data_security.adapters.persistence.fields import protect_stored_value
 
 from learning_analytics.models import LearningBehaviorEvent, LearningEvent
 from submissions.models import Submission
@@ -179,6 +180,7 @@ def refresh_dynamic_growth(user, allow_ai=True):
         'risk_level': 'pending' if not eligible else ('at_risk' if correct_rate < 50 else 'normal'),
         'recommendation_preferences': {},
     }
+    payload = protect_stored_value(payload)
     signature = sha256(json.dumps(payload, sort_keys=True).encode()).hexdigest()
     if not eligible:
         payload.update({

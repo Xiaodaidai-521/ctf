@@ -23,17 +23,12 @@ class AuditMiddleware(MiddlewareMixin):
                 from .models import AuditEvent
                 AuditEvent.log(
                     category='exception',
-                    summary=f'服务端错误 {response.status_code}: {request.method} {request.path}',
+                    summary='HTTP_SERVER_ERROR',
                     level='ERROR',
-                    request=request,
-                    detail={
-                        'status_code': response.status_code,
-                        'method': request.method,
-                        'path': request.path,
-                    }
+                    detail={'status_code': response.status_code},
                 )
-            except Exception as e:
-                logger.error(f"审计中间件记录失败: {e}")
+            except Exception:
+                logger.error('AUDIT_UNAVAILABLE', extra={'reason_code': 'AUDIT_UNAVAILABLE'})
         return response
 
     def process_exception(self, request, exception):
@@ -43,18 +38,11 @@ class AuditMiddleware(MiddlewareMixin):
                 from .models import AuditEvent
                 AuditEvent.log(
                     category='exception',
-                    summary=f'未处理异常: {type(exception).__name__}: {str(exception)[:100]}',
+                    summary='REQUEST_EXCEPTION',
                     level='CRITICAL',
-                    request=request,
-                    detail={
-                        'exception_type': type(exception).__name__,
-                        'exception_msg': str(exception)[:500],
-                        'method': request.method,
-                        'path': request.path,
-                    }
                 )
-            except Exception as e:
-                logger.error(f"审计中间件异常记录失败: {e}")
+            except Exception:
+                logger.error('AUDIT_UNAVAILABLE', extra={'reason_code': 'AUDIT_UNAVAILABLE'})
         return None  # 不拦截异常，让 Django 正常处理
 
     @staticmethod

@@ -7,6 +7,7 @@ import re
 
 from django.db import transaction
 from django.utils import timezone
+from data_security.adapters.persistence.fields import protect_stored_value
 
 from .models import LearningPersona, LearningPreference, StudentProfileReport
 
@@ -69,6 +70,7 @@ def _clamp_score(value, default=30):
 
 
 def _fallback_analysis(rows, provider='local_rule'):
+    rows = protect_stored_value(rows)
     text = ' '.join(row['answer'].lower() for row in rows)
     keyword_map = {
         'web': ['http', 'sql', 'xss', 'burp', '网站', '浏览器', '请求', '注入'],
@@ -113,6 +115,7 @@ def _fallback_analysis(rows, provider='local_rule'):
 
 
 def _normalize_analysis(value, rows, provider):
+    value = protect_stored_value(value)
     fallback = _fallback_analysis(rows, provider)
     raw_scores = value.get('ability_scores') if isinstance(value.get('ability_scores'), dict) else {}
     scores = {key: _clamp_score(raw_scores.get(key), fallback['ability_scores'][key]) for key in DIRECTION_KEYS}
@@ -168,7 +171,7 @@ def analyze_answers(answers):
         analysis = asyncio.run(_analyze_with_ai(rows))
     except Exception as exc:
         analysis = _fallback_analysis(rows)
-        analysis['generation_error'] = str(exc)[:240]
+        analysis['generation_error'] = protect_stored_value(str(exc))[:240]
     return rows, analysis
 
 
@@ -188,15 +191,16 @@ def complete_interview(interview):
     if existing_report:
         return existing_report
 
+    answers = interview.read_protected('answers')
     missing_question_ids = [
         item['id'] for item in ONBOARDING_QUESTIONS
-        if not str(interview.answers.get(str(item['id']), '')).strip()
+        if not str(answers.get(str(item['id']), '')).strip()
     ]
     if missing_question_ids:
         raise ValueError(f'访谈尚未完成，缺少问题：{missing_question_ids}')
 
-    rows, analysis = analyze_answers(interview.answers)
-    analysis = dict(analysis)
+    rows, analysis = analyze_answers(answers)
+    analysis = protect_stored_value(dict(analysis))
     input_signature = _build_input_signature(rows)
     generation_status = 'fallback' if analysis.get('generation_error') else 'completed'
     generated_at = timezone.now()

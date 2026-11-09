@@ -27,7 +27,7 @@ def render_for_analysis(snapshot) -> str:
         '【证据完整性提示】',
         '；'.join(warnings) if warnings else '未发现明显证据缺口。',
         '【人工补充事实】',
-        snapshot.manual_notes or '无。',
+        snapshot.display_protected('manual_notes') or '无。',
     ]
     limit = int(getattr(settings, 'LEGAL_FACT_MAX_MODEL_CHARS', 12000))
     return '\n'.join(lines)[:limit]

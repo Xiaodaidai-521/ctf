@@ -1,4 +1,5 @@
 from django.db import models
+from data_security.adapters.persistence.fields import ProtectedModel
 from django.contrib.auth import get_user_model
 import json
 
@@ -26,8 +27,9 @@ class ExamLevelRule(models.Model):
         return f'{self.grade} - {self.title}'
 
 
-class TheoryQuestion(models.Model):
+class TheoryQuestion(ProtectedModel):
     """理论题目模型"""
+    encrypted_fields = ('correct_answer',)
     QUESTION_TYPES = [
         ('single_choice', '单选题'),
         ('multiple_choice', '多选题'),
@@ -67,6 +69,9 @@ class TheoryQuestion(models.Model):
         db_table = 'theory_questions'
         verbose_name = '理论题目'
         verbose_name_plural = '理论题目'
+        constraints = [models.CheckConstraint(
+            condition=models.Q(security_state='legacy-v0') | models.Q(correct_answer=''),
+            name='theory_sealed_answer_no_plaintext')]
         ordering = ['-created_at']
 
     def __str__(self):
@@ -212,8 +217,9 @@ class ExamRecord(models.Model):
         return f"{self.user.username} - {self.get_exam_type_display()} - {self.score}"
 
 
-class ExamAnswer(models.Model):
+class ExamAnswer(ProtectedModel):
     """考试作答记录"""
+    encrypted_fields = ('user_answer',)
     id = models.AutoField(primary_key=True)
     exam_record = models.ForeignKey(ExamRecord, on_delete=models.CASCADE, related_name='answers')
     theory_question = models.ForeignKey(TheoryQuestion, on_delete=models.CASCADE, null=True, blank=True, related_name='answers')
@@ -229,7 +235,10 @@ class ExamAnswer(models.Model):
         db_table = 'exam_answers'
         verbose_name = '考试作答'
         verbose_name_plural = '考试作答'
+        constraints = [models.CheckConstraint(
+            condition=models.Q(security_state='legacy-v0') | models.Q(user_answer=''),
+            name='exam_sealed_answer_no_plaintext')]
         ordering = ['id']
 
     def __str__(self):
-        return f"{self.exam_record.user.username} - {self.user_answer}"
+        return f"{self.exam_record.user.username} - answer {self.pk}"

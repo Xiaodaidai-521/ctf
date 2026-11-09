@@ -2,4 +2,7 @@
 Django==6.0.3
 djangorestframework==3.16.1
 openpyxl==3.1.5
+defusedxml==0.7.1
+python-magic==0.4.27
+# Install the repository-root ctf-data-security wheel alongside this service.
 psycopg2-binary==2.9.10

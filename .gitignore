@@ -18,6 +18,8 @@ backend/data/migration_backups/
 __pycache__/
 *.pyc
 *.pyo
+*.egg-info/
+build/
 venv/
 .venv/
 .venv-local/
@@ -47,3 +49,6 @@ backend/media/
 
 database/
 *.bak-*
+
+# Isolated data-security test resources (never production data)
+.state/

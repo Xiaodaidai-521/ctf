@@ -1,0 +1,199 @@
+{
+  "schema_version": "ds.policy-snapshot.v1",
+  "version": "phase3-isolated-20261105.v1",
+  "status": "approved",
+  "content_hash": "dea5acb0212fcf04760bba8c1c3817ff053a3d193cdbc04c7486cfcc25fdf2be",
+  "rules": [
+    {
+      "schema_version": "ds.policy-rule.v1",
+      "category": "email_address",
+      "outlet": "model",
+      "role": "service",
+      "purpose": "analysis",
+      "action": {
+        "schema_version": "ds.algorithm-spec.v1",
+        "algorithm": "replace",
+        "version": "v1",
+        "replacement": "[REDACTED]",
+        "keep_prefix": null,
+        "keep_suffix": null,
+        "mask_symbol": null,
+        "max_length": null,
+        "ipv4_prefix": null,
+        "pseudonym_bits": null,
+        "key_ref": null
+      }
+    },
+    {
+      "schema_version": "ds.policy-rule.v1",
+      "category": "email_address",
+      "outlet": "embedding",
+      "role": "service",
+      "purpose": "analysis",
+      "action": {
+        "schema_version": "ds.algorithm-spec.v1",
+        "algorithm": "replace",
+        "version": "v1",
+        "replacement": "[REDACTED]",
+        "keep_prefix": null,
+        "keep_suffix": null,
+        "mask_symbol": null,
+        "max_length": null,
+        "ipv4_prefix": null,
+        "pseudonym_bits": null,
+        "key_ref": null
+      }
+    },
+    {
+      "schema_version": "ds.policy-rule.v1",
+      "category": "email_address",
+      "outlet": "api",
+      "role": "service",
+      "purpose": "analysis",
+      "action": {
+        "schema_version": "ds.algorithm-spec.v1",
+        "algorithm": "replace",
+        "version": "v1",
+        "replacement": "[REDACTED]",
+        "keep_prefix": null,
+        "keep_suffix": null,
+        "mask_symbol": null,
+        "max_length": null,
+        "ipv4_prefix": null,
+        "pseudonym_bits": null,
+        "key_ref": null
+      }
+    },
+    {
+      "schema_version": "ds.policy-rule.v1",
+      "category": "ip_address",
+      "outlet": "model",
+      "role": "service",
+      "purpose": "analysis",
+      "action": {
+        "schema_version": "ds.algorithm-spec.v1",
+        "algorithm": "replace",
+        "version": "v1",
+        "replacement": "[REDACTED]",
+        "keep_prefix": null,
+        "keep_suffix": null,
+        "mask_symbol": null,
+        "max_length": null,
+        "ipv4_prefix": null,
+        "pseudonym_bits": null,
+        "key_ref": null
+      }
+    },
+    {
+      "schema_version": "ds.policy-rule.v1",
+      "category": "ip_address",
+      "outlet": "embedding",
+      "role": "service",
+      "purpose": "analysis",
+      "action": {
+        "schema_version": "ds.algorithm-spec.v1",
+        "algorithm": "replace",
+        "version": "v1",
+        "replacement": "[REDACTED]",
+        "keep_prefix": null,
+        "keep_suffix": null,
+        "mask_symbol": null,
+        "max_length": null,
+        "ipv4_prefix": null,
+        "pseudonym_bits": null,
+        "key_ref": null
+      }
+    },
+    {
+      "schema_version": "ds.policy-rule.v1",
+      "category": "ip_address",
+      "outlet": "api",
+      "role": "service",
+      "purpose": "analysis",
+      "action": {
+        "schema_version": "ds.algorithm-spec.v1",
+        "algorithm": "replace",
+        "version": "v1",
+        "replacement": "[REDACTED]",
+        "keep_prefix": null,
+        "keep_suffix": null,
+        "mask_symbol": null,
+        "max_length": null,
+        "ipv4_prefix": null,
+        "pseudonym_bits": null,
+        "key_ref": null
+      }
+    },
+    {
+      "schema_version": "ds.policy-rule.v1",
+      "category": "payment_card_candidate",
+      "outlet": "model",
+      "role": "service",
+      "purpose": "analysis",
+      "action": {
+        "schema_version": "ds.algorithm-spec.v1",
+        "algorithm": "replace",
+        "version": "v1",
+        "replacement": "[REDACTED]",
+        "keep_prefix": null,
+        "keep_suffix": null,
+        "mask_symbol": null,
+        "max_length": null,
+        "ipv4_prefix": null,
+        "pseudonym_bits": null,
+        "key_ref": null
+      }
+    },
+    {
+      "schema_version": "ds.policy-rule.v1",
+      "category": "payment_card_candidate",
+      "outlet": "embedding",
+      "role": "service",
+      "purpose": "analysis",
+      "action": {
+        "schema_version": "ds.algorithm-spec.v1",
+        "algorithm": "replace",
+        "version": "v1",
+        "replacement": "[REDACTED]",
+        "keep_prefix": null,
+        "keep_suffix": null,
+        "mask_symbol": null,
+        "max_length": null,
+        "ipv4_prefix": null,
+        "pseudonym_bits": null,
+        "key_ref": null
+      }
+    },
+    {
+      "schema_version": "ds.policy-rule.v1",
+      "category": "payment_card_candidate",
+      "outlet": "api",
+      "role": "service",
+      "purpose": "analysis",
+      "action": {
+        "schema_version": "ds.algorithm-spec.v1",
+        "algorithm": "replace",
+        "version": "v1",
+        "replacement": "[REDACTED]",
+        "keep_prefix": null,
+        "keep_suffix": null,
+        "mask_symbol": null,
+        "max_length": null,
+        "ipv4_prefix": null,
+        "pseudonym_bits": null,
+        "key_ref": null
+      }
+    }
+  ],
+  "teaching_exceptions": [],
+  "effective_at": "2026-11-05T05:29:00.000000Z",
+  "expires_at": "2027-05-04T05:29:00.000000Z",
+  "approval": {
+    "schema_version": "ds.approval.v1",
+    "approval_ref": "approval/phase3-20261105-1329",
+    "requested_by": "executor/phase3",
+    "approved_by": "owner/user",
+    "approved_at": "2026-11-05T05:29:00.000000Z",
+    "content_hash": "dea5acb0212fcf04760bba8c1c3817ff053a3d193cdbc04c7486cfcc25fdf2be"
+  }
+}

@@ -106,8 +106,12 @@ class PostgresTasks(TransactionTestCase):
         self.assertEqual(saved.detection_status, 'not_run')
         artifact = ParsedArtifact.objects.get(run_id=run.run_id)
         self.assertEqual(saved.parsed_ref, f'private:{artifact.pk}')
-        self.assertEqual(artifact.payload['cells'][0]['source_text'], 'synthetic')
-        self.assertEqual(json.loads(artifact.payload['coverage_json'])['semantic']['status'], 'not_run')
+        self.assertEqual(artifact.payload['schema_version'], 'ds.parsed-artifact.v1')
+        self.assertEqual(artifact.payload['snapshot']['cells'][0]['original_text'], 'synthetic')
+        self.assertEqual(artifact.payload['source']['coverage']['semantic']['status'], 'not_run')
+        self.assertEqual(set(artifact.payload), {'schema_version', 'adapter_version', 'snapshot', 'source'})
+        self.assertNotIn('cells', artifact.payload['source'])
+        self.assertNotIn('source_text', json.dumps(artifact.payload))
 
     def test_artifact_failure_rolls_back_success_and_attempt(self):
         run = self.tasks.create(**self.args)

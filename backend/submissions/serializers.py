@@ -1,9 +1,16 @@
 from rest_framework import serializers
 from .models import Submission
+from data_security.adapters.persistence.fields import field_storage_enabled
 
 
 class SubmissionSerializer(serializers.ModelSerializer):
     """提交记录序列化器"""
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        if field_storage_enabled() or instance.security_state != 'legacy-v0':
+            data['flag'] = '[REDACTED]'
+        return data
+
     username = serializers.CharField(source='user.username', read_only=True)
     user_nickname = serializers.CharField(source='user.nickname', read_only=True)
     user_id = serializers.IntegerField(source='user.id', read_only=True)

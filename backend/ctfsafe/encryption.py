@@ -1,86 +1,71 @@
-# ctfsafe/encryption.py
-# -*- coding: utf-8 -*-
-"""
-题库加密存储工具
-使用 Fernet (AES-128-CBC + HMAC) 对 flag 和答案进行加密存储
-"""
-import os
-import base64
-import hashlib
-import logging
+"""Explicit field-crypto boundary; historical Fernet migration is not enabled.
 
-from cryptography.fernet import Fernet, InvalidToken
-from django.conf import settings
-
-logger = logging.getLogger(__name__)
+No environment or framework signing key is read here. B must inject CryptoPort,
+an independent data key reference and limits; callers supply trusted object
+context. Existing Fernet values remain untouched until an approved migration.
+"""
+from data_security.contracts import (
+    BoundedPayload, CipherEnvelope, ContractViolation, CryptoPort, KeyPurpose,
+    KeyReference, Limits, MediaType, ObjectContext, PayloadKind, ProtectionError,
+)
+from data_security.contracts.schema import canonical_bytes
 
 
 class EncryptionError(Exception):
-    """加密/解密失败"""
-    pass
+    """Fixed, non-sensitive failure code; never contains plaintext or key material."""
 
 
-def _get_fernet():
-    """
-    获取 Fernet 实例。
-    密钥优先级：
-    1. FERNET_KEY 环境变量（推荐生产使用）
-    2. 从 SECRET_KEY 派生（开发环境回退）
-    """
-    fernet_key = os.environ.get('FERNET_KEY', '')
-    if fernet_key:
-        try:
-            return Fernet(fernet_key.encode())
-        except Exception as e:
-            logger.error(f"FERNET_KEY 无效: {e}")
-            raise EncryptionError("FERNET_KEY 配置错误")
-
-    # 开发环境：从 SECRET_KEY 派生一个 32-byte base64 key
-    secret = settings.SECRET_KEY.encode()
-    derived = hashlib.sha256(secret).digest()
-    fernet_key = base64.urlsafe_b64encode(derived)
-    return Fernet(fernet_key)
+_binding: tuple[CryptoPort, KeyReference, Limits] | None = None
+_FORMAT = 'ds-field.v1:'
 
 
-def encrypt_field(plaintext: str) -> str:
-    """
-    加密字段值（用于存储到数据库）
-    返回 base64 字符串
-    """
-    if not plaintext:
-        return ''
+def bind_field_crypto(crypto: CryptoPort | None, *, key_ref: KeyReference | None = None,
+                      limits: Limits | None = None):
+    """Called only by explicit composition; None closes the unused legacy facade."""
+    global _binding
+    if crypto is None:
+        _binding = None
+        return
+    if not isinstance(key_ref, KeyReference) or key_ref.purpose is not KeyPurpose.DATA:
+        raise EncryptionError('FIELD_DATA_KEY_REQUIRED')
+    if not isinstance(limits, Limits):
+        raise EncryptionError('FIELD_LIMITS_REQUIRED')
+    _binding = (crypto, key_ref, limits)
+
+
+def encrypt_field(plaintext: str, *, object_context: ObjectContext | None = None) -> str:
+    if _binding is None:
+        raise EncryptionError('FIELD_CRYPTO_NOT_BOUND')
+    if object_context is None:
+        raise EncryptionError('FIELD_OBJECT_CONTEXT_REQUIRED')
+    crypto, key_ref, limits = _binding
     try:
-        fernet = _get_fernet()
-        encrypted = fernet.encrypt(plaintext.encode('utf-8'))
-        return encrypted.decode('utf-8')
-    except EncryptionError:
-        raise
-    except Exception as e:
-        logger.error(f"加密失败: {e}")
-        raise EncryptionError(f"加密失败: {e}")
+        payload = BoundedPayload(schema_version=BoundedPayload.SCHEMA,
+            kind=PayloadKind.TEXT, media_type=MediaType.TEXT, text=plaintext,
+            tree=None, binary=None, limits=limits)
+    except ContractViolation as error:
+        raise EncryptionError(error.code.value) from None
+    envelope = crypto.seal(payload, object_context, key_ref)
+    if isinstance(envelope, ProtectionError):
+        raise EncryptionError(envelope.code.value)
+    return _FORMAT + canonical_bytes(envelope).decode('utf-8')
 
 
-def decrypt_field(ciphertext: str) -> str:
-    """
-    解密字段值（从数据库读取后）
-    返回原文
-    """
-    if not ciphertext:
-        return ''
+def decrypt_field(ciphertext: str, *, object_context: ObjectContext | None = None) -> str:
+    if _binding is None:
+        raise EncryptionError('FIELD_CRYPTO_NOT_BOUND')
+    if object_context is None:
+        raise EncryptionError('FIELD_OBJECT_CONTEXT_REQUIRED')
+    if not ciphertext.startswith(_FORMAT):
+        raise EncryptionError('FIELD_FORMAT_MIGRATION_REQUIRED')
+    crypto, key_ref, _ = _binding
     try:
-        fernet = _get_fernet()
-        decrypted = fernet.decrypt(ciphertext.encode('utf-8'))
-        return decrypted.decode('utf-8')
-    except InvalidToken:
-        logger.error("解密失败：密钥不匹配或数据已损坏")
-        raise EncryptionError("解密失败：密钥不匹配或数据已损坏")
-    except EncryptionError:
-        raise
-    except Exception as e:
-        logger.error(f"解密失败: {e}")
-        raise EncryptionError(f"解密失败: {e}")
-
-
-def generate_fernet_key():
-    """生成一个新的 Fernet 密钥（供部署时使用）"""
-    return Fernet.generate_key().decode('utf-8')
+        envelope = CipherEnvelope.from_json(ciphertext[len(_FORMAT):].encode('utf-8'))
+    except (ContractViolation, UnicodeError):
+        raise EncryptionError('FIELD_CIPHERTEXT_INVALID') from None
+    payload = crypto.open(envelope, object_context, key_ref)
+    if isinstance(payload, ProtectionError):
+        raise EncryptionError(payload.code.value)
+    if payload.kind is not PayloadKind.TEXT:
+        raise EncryptionError('FIELD_PAYLOAD_TYPE_INVALID')
+    return payload.text

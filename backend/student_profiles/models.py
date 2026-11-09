@@ -1,5 +1,6 @@
 from django.db import models
 from django.conf import settings
+from data_security.adapters.persistence.fields import ProtectedModel
 
 
 class LearningDirection(models.Model):
@@ -21,8 +22,9 @@ class LearningDirection(models.Model):
         return self.label
 
 
-class StudentProfile(models.Model):
+class StudentProfile(ProtectedModel):
     """用户画像"""
+    redacted_fields = ('self_assessed_skills', 'initial_self_assessed_skills')
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -48,8 +50,10 @@ class StudentProfile(models.Model):
 
 
 
-class DynamicGrowthProfile(models.Model):
+class DynamicGrowthProfile(ProtectedModel):
     """Persisted, server-derived learning-growth profile."""
+    redacted_fields = ('knowledge_mastery', 'initial_scores', 'dynamic_scores', 'growth_deltas',
+                       'growth_evidence', 'recommendation_preferences', 'analysis')
     ANALYSIS_STATUS_CHOICES = [
         ('insufficient_data', 'Insufficient data'),
         ('ready', 'Ready for analysis'),
@@ -89,8 +93,9 @@ class DynamicGrowthProfile(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
 
-class LearningPreference(models.Model):
+class LearningPreference(ProtectedModel):
     """学习偏好"""
+    redacted_fields = ('preferred_modality',)
     PACE_CHOICES = [
         ('self_paced', '自主学习'),
         ('scheduled', '计划学习'),
@@ -123,8 +128,9 @@ class LearningPreference(models.Model):
         return f'{self.profile.user.username} 的学习偏好'
 
 
-class LearningPersona(models.Model):
+class LearningPersona(ProtectedModel):
     """学习人格"""
+    redacted_fields = ('persona_traits', 'recommended_agent_roster')
     profile = models.OneToOneField(
         StudentProfile,
         on_delete=models.CASCADE,
@@ -154,8 +160,10 @@ class LearningPersona(models.Model):
         return f'{self.profile.user.username} 的学习人格 - {label}'
 
 
-class OnboardingInterview(models.Model):
+class OnboardingInterview(ProtectedModel):
     """注册后的自然问答原始记录。"""
+    encrypted_fields = ('answers',)
+    redacted_fields = ('ai_analysis',)
     STATUS_CHOICES = [
         ('in_progress', '进行中'),
         ('completed', '已完成'),
@@ -180,13 +188,19 @@ class OnboardingInterview(models.Model):
     class Meta:
         verbose_name = '入学画像问答'
         verbose_name_plural = verbose_name
+        constraints = [
+            models.CheckConstraint(condition=models.Q(security_state='legacy-v0') | models.Q(answers={}),
+                                   name='interview_sealed_answers_no_plaintext'),
+        ]
 
     def __str__(self):
         return f'{self.profile.user.username} 的入学画像问答'
 
 
-class StudentProfileReport(models.Model):
+class StudentProfileReport(ProtectedModel):
     """可供学生端和管理端读取的版本化画像报表。"""
+    encrypted_fields = ('raw_interview',)
+    redacted_fields = ('report_data', 'summary')
     GENERATION_STATUS_CHOICES = [
         ('completed', '生成完成'),
         ('fallback', '规则兜底'),
@@ -227,6 +241,8 @@ class StudentProfileReport(models.Model):
         ordering = ['-created_at']
         constraints = [
             models.UniqueConstraint(fields=['profile', 'report_type', 'version'], name='unique_profile_report_version'),
+            models.CheckConstraint(condition=models.Q(security_state='legacy-v0') | models.Q(raw_interview={}),
+                                   name='profile_report_sealed_raw_no_plaintext'),
         ]
 
     def __str__(self):

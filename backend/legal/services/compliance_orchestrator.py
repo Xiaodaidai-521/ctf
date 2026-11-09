@@ -1,5 +1,6 @@
 """Compliance analysis orchestration service."""
 
+from types import SimpleNamespace
 from typing import Dict, List
 
 from django.db import transaction
@@ -7,6 +8,7 @@ from django.utils import timezone
 
 from audit.models import AuditEvent
 from audit.services import AuditLedgerService
+from data_security.adapters.persistence.fields import protect_stored_value
 
 from ..models import ComplianceAgentRun, LegalEvidence, LegalRiskFinding
 from .compliance_agent import ComplianceAgent
@@ -37,8 +39,11 @@ class ComplianceOrchestrator:
 
         try:
             retrieved = self.retriever.retrieve_for_task(task, actor=actor)
-            assessment = self.evaluator.evaluate(text=task.input_text or task.title, evidence=retrieved)
-            agent_output = self.agent.analyze(task=task, evidence=retrieved, assessment=assessment)
+            input_text = task.read_protected('input_text')
+            assessment = self.evaluator.evaluate(text=input_text or task.title, evidence=retrieved)
+            agent_task = SimpleNamespace(id=task.id, title=task.title,
+                                         source_type=task.source_type, input_text=input_text)
+            agent_output = self.agent.analyze(task=agent_task, evidence=retrieved, assessment=assessment)
             return self._persist_success(
                 task=task,
                 actor=actor,
@@ -79,7 +84,7 @@ class ComplianceOrchestrator:
         )
         task.status = 'completed'
         task.completed_at = timezone.now()
-        task.result_summary = agent_output['output_payload']['content'][:1000]
+        task.result_summary = run.output_payload['content'][:1000]
         task.metadata = {
             **(task.metadata or {}),
             'last_run_id': run.id,
@@ -147,7 +152,7 @@ class ComplianceOrchestrator:
                 object_type=item.get('source_type', ''),
                 object_id=str(item.get('object_id') or item.get('id') or ''),
                 title=item.get('title') or 'Legal evidence',
-                excerpt=item.get('text', '')[:2000],
+                excerpt=protect_stored_value(item.get('text', ''))[:2000],
                 relevance_score=item.get('score') or 0,
                 metadata=item.get('metadata') or {},
             )
