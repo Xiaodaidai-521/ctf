@@ -2,7 +2,7 @@ from typing import Any, Dict, List
 
 
 class LearningToolRegistry:
-    """Read-only data tools available to runtime-managed learning agents."""
+    """Read-only batch tools, with explicitly selected user-memory tools."""
 
     def read_student_profile(self, *, user, query: str = '') -> Dict[str, Any]:
         from student_profiles.models import StudentProfile
@@ -84,23 +84,41 @@ class LearningToolRegistry:
                 break
         return {'status': 'success' if items else 'empty', 'items': items}
 
-    def run(self, name: str, *, user, query: str = '', task_context=None) -> Dict[str, Any]:
-        available = self.available_learning_tools()
-        if name not in available:
+    def recall_memories(self, *, user, query: str = '', memory_type=None, memory_key=None) -> Dict[str, Any]:
+        from agent_memory.long_term import run_memory_tool
+
+        return run_memory_tool('recall_memories', user=user, memory_type=memory_type, memory_key=memory_key)
+
+    def forget_memory(self, *, user, query: str = '', memory_type=None, memory_key=None) -> Dict[str, Any]:
+        from agent_memory.long_term import run_memory_tool
+
+        return run_memory_tool('forget_memory', user=user, memory_type=memory_type, memory_key=memory_key)
+
+    def run(self, name: str, *, user, query: str = '', memory_type=None, memory_key=None, task_context=None) -> Dict[str, Any]:
+        if name not in self.available_learning_tools(include_memory=True):
             return {'status': 'error', 'items': [], 'error': f'Unknown tool: {name}'}
         if task_context is not None:
             from teaching_agent.permissions import require_tool_permission
 
             require_tool_permission(task_context, name)
         tool = getattr(self, name)
-        return tool(user=user, query=query)
+        if name in {'recall_memories', 'forget_memory'}:
+            result = tool(user=user, memory_type=memory_type, memory_key=memory_key)
+        else:
+            result = tool(user=user, query=query)
+        return result
 
-    def available_learning_tools(self) -> List[str]:
-        return [
+    def available_learning_tools(self, *, include_memory: bool = False) -> List[str]:
+        tools = [
             'read_student_profile',
             'read_user_knowledge_state',
             'read_learning_path_modules',
         ]
+        # LearningRetrievalService runs this default batch automatically. Never add
+        # forget (or change existing retrieval/prompt behavior) to that batch.
+        if include_memory:
+            tools.extend(['recall_memories', 'forget_memory'])
+        return tools
 
     def _query_tokens(self, value: str) -> List[str]:
         import re
