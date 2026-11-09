@@ -84,6 +84,7 @@ INSTALLED_APPS = [
     'learning_knowledge',
     'data_lab',
     'feedback_center',
+    'agent_memory',
     'evaluation_center',
 ]
 

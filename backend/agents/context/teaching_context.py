@@ -342,7 +342,11 @@ class SharedTeachingContextBuilder:
         self, *, student_id="", question="", task_type="", student_profile=None,
         learning_analysis=None, knowledge_diagnosis=None, knowledge_context=None,
         resources=None, study_strategy=None, conversation_history=None, extensions=None,
+        user_memories=None, conversation_summary="", conversation_scope=None,
     ):
+        from agent_memory.ledger import MAX_SUMMARY_CHARS
+        from agent_memory.long_term import bounded_memories
+
         payload = {
             "schemaVersion": SCHEMA_VERSION,
             "studentId": protect_text(str(student_id or "")),
@@ -358,5 +362,12 @@ class SharedTeachingContextBuilder:
             "extensions": _mapping(extensions),
             "timestamp": datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z"),
         }
+        memories = bounded_memories(user_memories)
+        if memories:
+            payload["userMemories"] = memories
+        if isinstance(conversation_summary, str) and conversation_summary:
+            payload["conversationHistory"]["summary"] = conversation_summary[:MAX_SUMMARY_CHARS]
+        if conversation_scope:
+            payload["conversationHistory"]["scope"] = str(conversation_scope)[:120]
         return payload if content_protection_enabled() else _safe(payload)
 

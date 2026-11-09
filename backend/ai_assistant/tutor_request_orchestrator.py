@@ -12,6 +12,8 @@ from agents.context.student_profile_adapter import StudentProfileContextAdapter
 from agents.router.tutor_router import TutorAgentRouter
 from agents.specialists.tutor_executor import TutorSpecialistExecutor
 from agents.task_plan import QUESTION_ANSWER, execution_plan_for
+from agent_memory.ledger import resolve_scope, record_turn
+from agent_memory.long_term import update_learning_memory, recall_memories
 from .performance import TutorPerformanceMetrics, activate_metrics, log_metrics
 from .response_adapter import build_compatible_chat_response
 from .history import preparation_origin, track_origin
@@ -55,6 +57,11 @@ class TutorRequestOrchestrator:
         route = TutorAgentRouter.fallback_result()
         specialists = {key: dict(value) for key, value in TutorSpecialistExecutor.EMPTY_RESULT.items()}
         fallback_reasons = []
+        scope = resolve_scope(
+            user=user, conversation=conversation, request_data=request_data,
+            challenge_info=challenge_info, history=conversation_history, message=message,
+            fallback_reasons=fallback_reasons,
+        )
 
         router_started = time.monotonic()
         if self._enabled("TUTOR_AGENT_ROUTER_ENABLED", True):
@@ -100,6 +107,18 @@ class TutorRequestOrchestrator:
                     "task_type": task_type, "error_type": type(exc).__name__,
                 })
 
+        diagnosis = specialists.get("knowledgeDiagnosis") or {}
+        # L1 contains this turn's output, before L2 observations are merged.
+        conversation_summary = record_turn(
+            user=user, scope=scope, message=message, task_type=task_type,
+            diagnosis=diagnosis, request_id=metrics.request_id,
+            fallback_reasons=fallback_reasons,
+        )
+        if diagnosis and "knowledge_diagnosis_agent" in route["requiredAgents"]:
+            specialists["knowledgeDiagnosis"] = update_learning_memory(
+                user=user, diagnosis=diagnosis, fallback_reasons=fallback_reasons,
+            )
+        user_memories = recall_memories(user=user, fallback_reasons=fallback_reasons)
         resources = specialists.get("resources") or {}
         metrics.resource_cache_hit = bool(resources.get("cacheHit", False))
         teaching_context = None
@@ -112,11 +131,16 @@ class TutorRequestOrchestrator:
                     knowledge_diagnosis=specialists.get("knowledgeDiagnosis"),
                     knowledge_context=specialists.get("knowledgeContext"),
                     resources=resources, study_strategy=specialists.get("studyStrategy"),
-                    conversation_history=conversation_history,
+                    conversation_history=scope.history,
                     extensions={
                         "challenge": challenge_info or {},
                         "trustedTaskContext": trusted_model_context or {},
                     },
+                    user_memories=user_memories, conversation_summary=conversation_summary,
+                    conversation_scope=(
+                        f"{user.pk}:{getattr(scope.conversation, 'pk', 'new')}:{scope.challenge_key}"
+                        if scope.scoped and (scope.history or conversation_summary or conversation_history) else None
+                    ),
                 )
                 if trusted_model_context and isinstance(teaching_context, dict):
                     teaching_context['trustedTaskContext'] = trusted_model_context
