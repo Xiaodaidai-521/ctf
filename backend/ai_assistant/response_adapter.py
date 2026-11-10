@@ -8,6 +8,7 @@ from collections.abc import Mapping
 from datetime import date, datetime
 
 from django.utils import timezone
+from data_security.adapters.django.rag import protect_rag_response
 
 INTERNAL_KEYS = {
     "workflowId", "workflow_id", "agentContext", "agent_context", "system_prompt",
@@ -76,26 +77,30 @@ def _resource_location(resource_type, label, title):
 def _public_resource_item(item):
     if not isinstance(item, Mapping):
         return None
-    title = str(item.get("title") or "").strip()[:120]
-    entry = _safe_entry(item.get("entry") or item.get("url") or "")
-    if not title or not entry:
-        return None
+    title = str(item.get("title") or "").strip()
+    entry = str(item.get("entry") or item.get("url") or "").strip()
     resource_type = str(
         item.get("type") or item.get("resource_type") or item.get("source_type") or "resource"
     ).strip().lower() or "resource"
     label = str(item.get("ai_generated_label") or "").strip()
     if not label and resource_type in RESOURCE_CENTER_TYPES and entry.startswith("/resources"):
         label = "AI多模态生成"
-    location = str(item.get("location") or "").strip() or _resource_location(resource_type, label, title)
-    return {
+    location = str(item.get("location") or "").strip()
+    result = protect_rag_response({
         "id": str(item.get("id") or item.get("object_id") or item.get("resource_id") or ""),
         "title": title,
         "type": resource_type,
         "entry": entry,
-        "summary": str(item.get("summary") or item.get("description") or item.get("text") or "")[:260],
+        "summary": str(item.get("summary") or item.get("description") or item.get("text") or ""),
         "ai_generated_label": label,
         "location": location,
-    }
+    }, object_ref='rag/response/resource')
+    result["title"] = result["title"][:120]
+    result["entry"] = _safe_entry(result["entry"])
+    result["summary"] = result["summary"][:260]
+    result["location"] = result["location"] or _resource_location(
+        result["type"], result["ai_generated_label"], result["title"])
+    return result if result["title"] and result["entry"] else None
 
 
 def _public_resource_list(resources):
@@ -204,4 +209,4 @@ def build_compatible_chat_response(
             for key, value in result.items()
             if key not in optional or value not in ({}, [], False)
         }
-    return result
+    return protect_rag_response(result)

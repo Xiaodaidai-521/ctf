@@ -62,8 +62,33 @@ for probe in (lambda: os.getenv('UNAVAILABLE'), lambda: open('unavailable-media'
         raise AssertionError('GUARD_NOT_ACTIVE')
 sys.path.insert(0, backend)
 import data_security.contracts as contracts
-assert len(contracts.CONTRACT_TYPES) == 39
-assert len(contracts.PORT_TYPES) == 19
+assert len(contracts.CONTRACT_TYPES) == 49
+assert contracts.RevealRequestRecord in contracts.CONTRACT_TYPES
+assert contracts.RevealRequestRecord.SCHEMA == 'ds.reveal-request-record.v1'
+assert contracts.RevealRequestRecord.SERVER_ONLY and contracts.RevealRequestRecord.SENSITIVE
+assert contracts.RevealSource in contracts.CONTRACT_TYPES
+assert contracts.RevealSource.SCHEMA == 'ds.reveal-source.v1'
+assert contracts.RevealSource.SERVER_ONLY and contracts.RevealSource.SENSITIVE
+assert contracts.BackupRetentionRecord in contracts.CONTRACT_TYPES
+assert contracts.BackupRetentionRecord.SCHEMA == 'ds.backup-retention-record.v1'
+assert contracts.BackupRetentionRecord.SERVER_ONLY
+assert contracts.CanarySeed in contracts.CONTRACT_TYPES
+assert contracts.CanarySeed.SCHEMA == 'ds.canary-seed.v1'
+assert contracts.QuotaRecoveryEvent in contracts.CONTRACT_TYPES
+assert contracts.QuotaRecoveryEvent.SCHEMA == 'ds.quota-recovery-event.v1'
+assert contracts.AuditCheckpoint in contracts.CONTRACT_TYPES
+assert contracts.AuditCheckpoint.SCHEMA == 'ds.audit-checkpoint.v1'
+assert contracts.SecurityEventV2 in contracts.CONTRACT_TYPES
+assert contracts.SecurityEventV2.SCHEMA == 'ds.security-event.v2'
+assert contracts.ReportRecord in contracts.CONTRACT_TYPES
+assert contracts.ReportRecord.SCHEMA == 'ds.report-record.v1'
+assert contracts.ReportRepository in contracts.PORT_TYPES
+assert contracts.ReportProof in contracts.CONTRACT_TYPES
+assert contracts.ReportProof.SCHEMA == 'ds.report-proof.v1'
+assert len(contracts.PORT_TYPES) == 23
+assert contracts.RevealRequestRepository in contracts.PORT_TYPES
+assert contracts.CanaryCheckPort in contracts.PORT_TYPES
+assert contracts.RevealSourcePort in contracts.PORT_TYPES
 limits = contracts.BASELINE_LIMITS
 assert type(limits).from_wire(limits.to_wire()) == limits
 assert not forbidden.intersection(sys.modules)
@@ -76,9 +101,9 @@ print(json.dumps({'imported_contracts': len(contracts.CONTRACT_TYPES),
 
 class ImportIsolationTests(unittest.TestCase):
     def test_m0_imports_and_validates_without_site_packages_env_network_database_or_media(self):
-        with tempfile.TemporaryDirectory(dir=ROOT / '.state', prefix='import-fixture-') as directory:
+        with tempfile.TemporaryDirectory(prefix='import-fixture-') as directory:
             result = subprocess.run([sys.executable, '-I', '-B', '-S', '-c', PROBE, str(ROOT / 'backend')],
                                     cwd=directory, env={}, capture_output=True, text=True, timeout=30)
             self.assertEqual(result.returncode, 0, result.stderr)
-            self.assertIn('"imported_contracts": 39', result.stdout)
+            self.assertIn('"imported_contracts": 49', result.stdout)
             self.assertEqual(list(Path(directory).iterdir()), [])

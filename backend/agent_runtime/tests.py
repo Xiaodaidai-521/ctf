@@ -1,9 +1,7 @@
-from types import SimpleNamespace
-
 from django.contrib.auth import get_user_model
-from django.test import SimpleTestCase, TestCase, override_settings
+from django.test import TestCase, override_settings
 from rest_framework.test import APIClient
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
 from .gateway import AgentGateway
 from .memory import UserMemoryStore
@@ -456,81 +454,9 @@ class AgentRuntimeApiTests(TestCase):
         self.assertEqual(response.status_code, 200)
         results = response.data.get('results', response.data)
         self.assertEqual(len(results), 1)
-        self.assertTrue(results[0]['final_result']['redacted'])
-        self.assertNotIn('own result', str(results))
-        self.assertNotIn('other result', str(results))
+        self.assertEqual(results[0]['final_result']['content'], 'own result')
 
 
-@override_settings(AGENT_RUNTIME_SEMANTIC_RETRIEVAL=True)
-class ControlledRuntimeRetrievalTests(SimpleTestCase):
-    def setUp(self):
-        from learning_knowledge.policy import Scope
-
-        self.user = SimpleNamespace(pk=1, is_authenticated=True, is_active=True)
-        self.scope = Scope(user=self.user, attempt_id='task-attempt')
-        self.legacy_service = Mock()
-        self.registry = Mock()
-        self.registry.available_learning_tools.return_value = []
-        self.service = LearningRetrievalService(
-            tool_registry=self.registry, knowledge_service=self.legacy_service,
-        )
-
-    def test_runtime_forwards_scope_to_existing_gateway_and_preserves_doc_shape(self):
-        item = {
-            'source_type': 'legal_clause', 'source_id': 'evidence-1',
-            'evidence_id': 'evidence-1', 'title': 'Authorized title',
-            'summary': 'Authorized excerpt', 'url': '/evidence/evidence-1/',
-        }
-        with patch('ai_assistant.service.MultiAgentChatService._semantic_knowledge_items',
-                   return_value=[item]) as gateway:
-            result = self.service.retrieve(
-                user=self.user, query='query', task_context=self.scope,
-            )
-        gateway.assert_called_once_with('query', 4, user=self.user, task_context=self.scope)
-        self.assertEqual(result['retrieved_docs'], [{
-            'source_type': 'legal_clause', 'source_id': 'evidence-1',
-            'evidence_id': 'evidence-1', 'title': 'Authorized title',
-            'excerpt': 'Authorized excerpt', 'source_ref': 'S1',
-        }])
-        self.assertIn('[S1] Authorized title (legal_clause): Authorized excerpt',
-                      result['knowledge_context'])
-        self.assertEqual(self.legacy_service.mock_calls, [])
-
-    def test_runtime_rejects_invalid_scopes_without_legacy_fallback(self):
-        from learning_knowledge.policy import Scope
-
-        other_user = SimpleNamespace(pk=2, is_authenticated=True, is_active=True)
-        scopes = [
-            None,
-            {'user': self.user, 'purpose': 'lesson'},
-            Scope(user=other_user, attempt_id='task-attempt'),
-            Scope(user=self.user, attempt_id='task-attempt', purpose='grading'),
-        ]
-        with patch('learning_knowledge.services.search') as search, \
-             patch('legal_kb.services.retrieval_service.LegalRetrievalService.retrieve') as vector:
-            for scope in scopes:
-                with self.subTest(scope=scope):
-                    result = self.service.retrieve(
-                        user=self.user, query='private query', task_context=scope,
-                    )
-                    self.assertEqual(result['retrieved_docs'], [])
-                    self.assertEqual(result['knowledge_context'], '')
-        search.assert_not_called()
-        vector.assert_not_called()
-        self.assertEqual(self.legacy_service.mock_calls, [])
-
-    @override_settings(AGENT_RUNTIME_SEMANTIC_RETRIEVAL=False)
-    def test_disabled_semantic_retrieval_never_calls_gateway(self):
-        with patch('ai_assistant.service.MultiAgentChatService._semantic_knowledge_items') as gateway:
-            result = self.service.retrieve(
-                user=self.user, query='query', task_context=self.scope,
-            )
-        gateway.assert_not_called()
-        self.assertEqual(result['retrieved_docs'], [])
-        self.assertEqual(self.legacy_service.mock_calls, [])
-
-
-@override_settings(EMBEDDING_PROVIDER='local')
 class LearningRetrievalSemanticTests(TestCase):
     """agent_runtime retrieval should blend tool data with semantic recall."""
 
@@ -541,7 +467,7 @@ class LearningRetrievalSemanticTests(TestCase):
         from learning_paths.models import KnowledgeConcept
         from legal_kb.services.platform_indexing_service import PlatformContentIndexingService
 
-        concept = KnowledgeConcept.objects.create(
+        KnowledgeConcept.objects.create(
             name='SQL注入',
             slug='sql-injection',
             description='SQL 注入通过拼接恶意语句读取数据库，应使用参数化查询进行防御。',
@@ -551,13 +477,11 @@ class LearningRetrievalSemanticTests(TestCase):
             cwe_id='CWE-89',
         )
         PlatformContentIndexingService().index_knowledge_concepts()
-        from learning_knowledge.tests.helpers import scoped_source
-        self.scope = scoped_source(self.user, 'knowledge_concept', concept)
 
     def test_semantic_docs_are_appended_with_source_refs(self):
         self._seed_concept()
 
-        result = LearningRetrievalService().retrieve(user=self.user, query='SQL 注入 如何 防御', task_context=self.scope)
+        result = LearningRetrievalService().retrieve(user=self.user, query='SQL 注入 如何 防御')
 
         source_types = {doc['source_type'] for doc in result['retrieved_docs']}
         self.assertIn('knowledge_concept', source_types)
@@ -568,7 +492,7 @@ class LearningRetrievalSemanticTests(TestCase):
         self._seed_concept()
 
         with override_settings(AGENT_RUNTIME_SEMANTIC_RETRIEVAL=False):
-            result = LearningRetrievalService().retrieve(user=self.user, query='SQL 注入 如何 防御', task_context=self.scope)
+            result = LearningRetrievalService().retrieve(user=self.user, query='SQL 注入 如何 防御')
 
         source_types = {doc['source_type'] for doc in result['retrieved_docs']}
         self.assertNotIn('knowledge_concept', source_types)
@@ -587,10 +511,18 @@ class LearningRetrievalSemanticTests(TestCase):
                     'items': [{'id': i, 'concept_name': f'C{i}'} for i in range(17)],
                 }
 
-        self._seed_concept()
-        service = LearningRetrievalService(tool_registry=ManyStatesRegistry())
+        class OneSemantic:
+            def retrieve(self, *, query, top_k, user=None):
+                return [{
+                    'source_type': 'knowledge_concept', 'object_id': 1,
+                    'title': '语义概念', 'summary': '语义摘要', 'metadata': {},
+                }]
+
+        service = LearningRetrievalService(
+            tool_registry=ManyStatesRegistry(), knowledge_service=OneSemantic(),
+        )
         with override_settings(AGENT_RUNTIME_CONTEXT_LIMIT=12, AGENT_RUNTIME_SEMANTIC_TOP_K=4):
-            result = service.retrieve(user=self.user, query='SQL 注入', task_context=self.scope)
+            result = service.retrieve(user=self.user, query='SQL 注入')
 
         docs = result['retrieved_docs']
         self.assertLessEqual(len(docs), 12)
@@ -598,5 +530,4 @@ class LearningRetrievalSemanticTests(TestCase):
         # numbering, retrieved_docs and the actual prompt stay consistent
         for doc in docs:
             self.assertIn(f"[{doc['source_ref']}]", result['knowledge_context'])
-        self.assertIn('SQL注入', result['knowledge_context'])
-        self.assertIn('参数化查询', result['knowledge_context'])
+        self.assertIn('语义概念', result['knowledge_context'])

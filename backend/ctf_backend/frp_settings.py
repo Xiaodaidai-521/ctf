@@ -1,7 +1,7 @@
 # FRP 服务器配置
 FRP_SERVER = 'frps-server'
 FRP_SERVER_PORT = 7000
-FRP_TOKEN = 'ctf_platform_secret'
+FRP_TOKEN = ""  # Legacy sidecar is disabled; deployment rotation is handled separately.
 FRP_HTTP_PORT = 9123
 FRP_SUBDOMAIN_HOST = 'ctf.local'
 

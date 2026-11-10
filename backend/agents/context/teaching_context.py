@@ -71,8 +71,18 @@ def _dict_or_empty(value: Any) -> Dict[str, Any]:
 
 
 def _conversation_history(value: Any) -> Dict[str, Any]:
-    # Legacy summaries and messages have no source-complete provenance.
-    return _default_conversation_history()
+    if not isinstance(value, Mapping):
+        return _default_conversation_history()
+
+    recent_messages = value.get("recentMessages", [])
+    if not isinstance(recent_messages, (list, tuple)):
+        recent_messages = []
+
+    summary = value.get("summary", "")
+    return {
+        "recentMessages": _json_safe(list(recent_messages)),
+        "summary": str(summary or ""),
+    }
 
 
 def _extensions(value: Any) -> Dict[str, Any]:
@@ -301,7 +311,17 @@ def _clip_text(value, limit):
 
 
 def _history(value):
-    return _default_conversation_history()
+    if not isinstance(value, (list, tuple)):
+        return {"recentMessages": [], "summary": ""}
+    recent = []
+    for item in value[-MAX_RECENT_MESSAGES:]:
+        if not isinstance(item, Mapping):
+            continue
+        role = str(item.get("role") or "")
+        if role not in {"user", "assistant", "system"}:
+            role = "assistant"
+        recent.append({"role": role, "content": _clip_text(item.get("content"), MAX_MESSAGE_CHARS)})
+    return {"recentMessages": recent, "summary": ""}
 
 
 def _clip_resources(value):
@@ -342,11 +362,7 @@ class SharedTeachingContextBuilder:
         self, *, student_id="", question="", task_type="", student_profile=None,
         learning_analysis=None, knowledge_diagnosis=None, knowledge_context=None,
         resources=None, study_strategy=None, conversation_history=None, extensions=None,
-        user_memories=None, conversation_summary="", conversation_scope=None,
     ):
-        from agent_memory.ledger import MAX_SUMMARY_CHARS
-        from agent_memory.long_term import bounded_memories
-
         payload = {
             "schemaVersion": SCHEMA_VERSION,
             "studentId": protect_text(str(student_id or "")),
@@ -362,12 +378,5 @@ class SharedTeachingContextBuilder:
             "extensions": _mapping(extensions),
             "timestamp": datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z"),
         }
-        memories = bounded_memories(user_memories)
-        if memories:
-            payload["userMemories"] = memories
-        if isinstance(conversation_summary, str) and conversation_summary:
-            payload["conversationHistory"]["summary"] = conversation_summary[:MAX_SUMMARY_CHARS]
-        if conversation_scope:
-            payload["conversationHistory"]["scope"] = str(conversation_scope)[:120]
         return payload if content_protection_enabled() else _safe(payload)
 

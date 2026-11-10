@@ -3,7 +3,6 @@
 
 import os
 import asyncio
-from contextvars import copy_context
 import re
 import json
 from datetime import datetime
@@ -28,10 +27,12 @@ def _run_async(coro):
     except RuntimeError:
         return asyncio.run(coro)
     with concurrent.futures.ThreadPoolExecutor() as pool:
-        return pool.submit(copy_context().run, asyncio.run, coro).result(timeout=300)
+        return pool.submit(asyncio.run, coro).result(timeout=300)
 
 from .models import AgentPreset, AIConversation, AIMessage
-from .history import Origin, create_message, history_message, track_origin
+from data_security.adapters.persistence.fields import protect_stored_value
+from data_security.adapters.django.content import ContentProtectionError
+from data_security.adapters.django.rag import RagProtectionError, protect_rag, protect_rag_response
 from .service import (
     get_ai_assistant_service,
     solve_challenge_hybrid_async,
@@ -53,7 +54,6 @@ from .response_contracts import (
     RecommendationPayload,
 )
 from challenges.models import Challenge
-from agents.context import TeachingContextBuilder
 from agents.router import AgentRouter
 from agents.specialists import SpecialistAgentExecutor
 from .response_adapter import build_compatible_chat_response
@@ -322,26 +322,11 @@ def _run_specialist_agents(
         return SpecialistAgentExecutor.DEFAULT_RESULT.copy()
 
 
-def _build_teaching_context(agent_route, request, message, specialist_context=None):
-    try:
-        student_id = request.user.id if request.user.is_authenticated else ''
-        task_type = (agent_route or {}).get('taskType') or ''
-        return (
-            TeachingContextBuilder()
-            .with_student(student_id)
-            .with_question(message)
-            .with_task_type(task_type)
-            .with_specialist_results(specialist_context or {})
-            .build_dict()
-        )
-    except Exception as exc:
-        logger.warning('Teaching context build failed, using empty context: %s', exc)
-        return TeachingContextBuilder().build_dict()
-
-
 async def _persist_stream_message(**kwargs):
     try:
-        await sync_to_async(create_message, thread_sensitive=True)(**kwargs)
+        await sync_to_async(AIMessage.objects.create, thread_sensitive=True)(**kwargs)
+    except ContentProtectionError:
+        raise
     except Exception as exc:
         logger.warning('Unable to persist streamed AI message: %s', exc)
 
@@ -355,6 +340,7 @@ def _normalize_ai_content(content):
 
 
 def _sse_event(event_name, payload):
+    payload = protect_rag_response(payload, object_ref=f'rag/sse/{event_name}')
     data = json.dumps(payload, ensure_ascii=False)
     return f'event: {event_name}\ndata: {data}\n\n'
 
@@ -367,8 +353,14 @@ def _sync_from_async_stream(async_stream):
                 yield loop.run_until_complete(async_stream.__anext__())
             except StopAsyncIteration:
                 break
+            except ContentProtectionError:
+                yield 'event: error\ndata: {"error":"RAG_PROTECTION_FAILED"}\n\n'
+                break
     finally:
-        loop.close()
+        try:
+            loop.run_until_complete(async_stream.aclose())
+        finally:
+            loop.close()
 
 
 def _format_agent_response(resp, service, fallback_agent_id=None, fallback_agent_name=None):
@@ -447,7 +439,16 @@ class AIConversationViewSet(viewsets.ModelViewSet):
 
             def get_messages(self, obj):
                 return [
-                    history_message(msg, self.context['request'].user)
+                    {
+                        'id': msg.id,
+                        'role': msg.role,
+                        'content': msg.display_protected('content'),
+                        'agent_id': msg.agent_id,
+                        'agent_name': msg.agent_name,
+                        'provider': msg.provider,
+                        'metadata': msg.display_protected('metadata') or {},
+                        'created_at': msg.created_at.isoformat(),
+                    }
                     for msg in obj.messages.all().order_by('created_at')
                 ]
 
@@ -485,19 +486,22 @@ class AIConversationViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        create_message(
+        AIMessage.objects.create(
             conversation=conversation,
-            role='user', origin=Origin(request.user),
+            role='user',
             content=user_message
         )
 
-        # Legacy history has no verifiable provenance; do not resend it to models.
-        conversation_history = []
+        # Build conversation history.
+        messages = list(conversation.messages.all().order_by('created_at'))
+        conversation_history = [
+            {'role': msg.role, 'content': msg.read_protected('content')}
+            for msg in messages[:-1]
+        ]
 
         challenge_info = None
         if conversation.challenge:
             challenge_info = {
-                'id': conversation.challenge.id,
                 'title': conversation.challenge.title,
                 'category': conversation.challenge.category.name if conversation.challenge.category else None,
                 'category_name': conversation.challenge.category.name if conversation.challenge.category else 'unknown',
@@ -523,18 +527,17 @@ class AIConversationViewSet(viewsets.ModelViewSet):
             conversation_history=conversation_history,
             existing_request_data=dict(request.data),
         )
-        with track_origin(preparation.get('_history_origin')):
-            ai_response = _TUTOR_REQUEST_ORCHESTRATOR.call_legacy_answer(
-                message=user_message,
-                conversation_history=conversation_history,
-                challenge_info=challenge_info,
-                teaching_context=preparation.get('teachingContext'),
-            )
+        ai_response = _TUTOR_REQUEST_ORCHESTRATOR.call_legacy_answer(
+            message=user_message,
+            conversation_history=conversation_history,
+            challenge_info=challenge_info,
+            teaching_context=preparation.get('teachingContext'),
+        )
 
         # æ·æ¿ç¨AIé¥ç²
-        assistant_message = create_message(
+        assistant_message = AIMessage.objects.create(
             conversation=conversation,
-            role='assistant', origin=preparation.get('_history_origin'),
+            role='assistant',
             content=ai_response,
             metadata=_assistant_metadata_from_preparation(preparation, include_resources=True),
         )
@@ -730,9 +733,9 @@ def multi_agent_chat(request):
         student_level = student_level or 'beginner'
 
         conversation = _get_or_create_ai_conversation(request, challenge_info)
-        create_message(
+        AIMessage.objects.create(
             conversation=conversation,
-            role='user', origin=Origin(request.user),
+            role='user',
             content=message,
             agent_id='tutor',
             agent_name='\u6559\u5b66\u667a\u80fd\u4f53',
@@ -793,9 +796,9 @@ def multi_agent_chat(request):
                 'rag_sources': step.get('rag_sources', []),
             })
             if content.strip() and provider != 'error':
-                create_message(
+                AIMessage.objects.create(
                     conversation=conversation,
-                    role='assistant', origin=preparation.get('_history_origin'),
+                    role='assistant',
                     content=content,
                     agent_id='tutor',
                     agent_name=tutor_config.get('name', '\u6559\u5b66\u667a\u80fd\u4f53'),
@@ -850,9 +853,9 @@ def multi_agent_chat(request):
         agent_ids = ['xiaohei']
 
     conversation = _get_or_create_ai_conversation(request, challenge_info)
-    create_message(
+    AIMessage.objects.create(
         conversation=conversation,
-        role='user', origin=Origin(request.user),
+        role='user',
         content=message,
         metadata={
                 **_TUTOR_REQUEST_ORCHESTRATOR.metadata_summary(preparation),
@@ -891,7 +894,6 @@ def multi_agent_chat(request):
                 mode=mode,
                 force_ai=force_ai,
                 context=current_context,
-                user=request.user, task_context=None,
             )
 
         result = _TUTOR_REQUEST_ORCHESTRATOR.call_existing_answer_chain(
@@ -911,7 +913,8 @@ def multi_agent_chat(request):
                 event_type='ai_chat',
                 user_id=user_id,
                 ip_address=ip_addr,
-                input_preview=message[:200],
+                input_preview=protect_rag(message, object_ref='rag/request-preview',
+                                          object_version='v1', outlet='audit')[:200],
                 result=SecurityLevel.SAFE,
                 detail=json.dumps({
                     'challenge_id': challenge_info.get('id') if challenge_info else None,
@@ -927,6 +930,8 @@ def multi_agent_chat(request):
                 }, ensure_ascii=False),
             )
             audit_event(audit_record)
+        except ContentProtectionError:
+            raise
         except Exception as audit_error:
             logger.warning('multi_agent_chat_audit_failure', extra={
                 'event': 'multi_agent_chat_audit_failure',
@@ -956,9 +961,9 @@ def multi_agent_chat(request):
             })
 
             if content.strip():
-                create_message(
+                AIMessage.objects.create(
                     conversation=conversation,
-                    role='assistant', origin=preparation.get('_history_origin'),
+                    role='assistant',
                     content=content,
                     agent_id=agent_id,
                     agent_name=agent_name,
@@ -1012,6 +1017,8 @@ def multi_agent_chat(request):
             recommendations_source=result,
         ))
         
+    except ContentProtectionError:
+        raise RagProtectionError() from None
     except Exception as e:
         logger.exception("multi_agent_chat_error", extra={
             "event": "multi_agent_chat_error",
@@ -1029,18 +1036,21 @@ def multi_agent_chat(request):
                 event_type='ai_chat_error',
                 user_id=user_id,
                 ip_address=ip_addr,
-                input_preview=message[:200],
+                input_preview=protect_rag(message, object_ref='rag/request-preview',
+                                          object_version='v1', outlet='audit')[:200],
                 result=SecurityLevel.SUSPICIOUS,
-                detail=json.dumps({'error': str(e)}, ensure_ascii=False),
+                detail=json.dumps({'error': 'MODEL_CALL_FAILED'}, ensure_ascii=False),
             )
             audit_event(audit_record)
+        except ContentProtectionError:
+            raise
         except Exception as audit_error:
             logger.warning("multi_agent_chat_audit_failure", extra={
                 "event": "multi_agent_chat_audit_failure",
                 "error_type": type(audit_error).__name__,
             })
         return Response(
-            {'error': f'æ¾¶å­ææ¾¶è¾«è§¦: {str(e)}'},
+            {'error': 'MODEL_CALL_FAILED'},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
 
@@ -1125,9 +1135,9 @@ def multi_agent_chat_stream(request):
         agent_ids = ['xiaohei']
 
     conversation = _get_or_create_ai_conversation(request, challenge_info)
-    create_message(
+    AIMessage.objects.create(
         conversation=conversation,
-        role='user', origin=Origin(request.user),
+        role='user',
         content=message,
         agent_id='tutor' if tutor_only else None,
         agent_name='\u6559\u5b66\u667a\u80fd\u4f53' if tutor_only else None,
@@ -1211,7 +1221,7 @@ def multi_agent_chat_stream(request):
                 if formatted['content'].strip() and formatted['provider'] != 'error':
                     await _persist_stream_message(
                         conversation=conversation,
-                        role='assistant', origin=preparation.get('_history_origin'),
+                        role='assistant',
                         content=formatted['content'],
                         agent_id='tutor',
                         agent_name=formatted['agent_name'],
@@ -1265,23 +1275,22 @@ def multi_agent_chat_stream(request):
             runtime_context['challenge_info'] = challenge_info
 
         try:
-            with track_origin(preparation.get('_history_origin')):
-                if settings.DATABASES['default']['ENGINE'].endswith('sqlite3'):
-                    knowledge_package = service.build_knowledge_context(
-                        message,
-                        challenge_info,
-                        knowledge_scope,
-                        5,
-                        user=request.user, task_context=None,
-                    )
-                else:
-                    knowledge_package = await sync_to_async(service.build_knowledge_context)(
-                        message,
-                        challenge_info,
-                        knowledge_scope,
-                        5,
-                        user=request.user, task_context=None,
-                    )
+            if settings.DATABASES['default']['ENGINE'].endswith('sqlite3'):
+                knowledge_package = service.build_knowledge_context(
+                    message,
+                    challenge_info,
+                    knowledge_scope,
+                    5,
+                )
+            else:
+                knowledge_package = await sync_to_async(service.build_knowledge_context)(
+                    message,
+                    challenge_info,
+                    knowledge_scope,
+                    5,
+                )
+        except ContentProtectionError:
+            raise
         except Exception as exc:
             logger.warning(
                 'ai_assistant_knowledge_package_build_failed',
@@ -1337,7 +1346,7 @@ def multi_agent_chat_stream(request):
             if formatted['content'].strip():
                 await _persist_stream_message(
                     conversation=conversation,
-                    role='assistant', origin=preparation.get('_history_origin'),
+                    role='assistant',
                     content=formatted['content'],
                     agent_id=formatted['agent_id'],
                     agent_name=formatted['agent_name'],
@@ -1367,14 +1376,22 @@ def multi_agent_chat_stream(request):
                 responses.append(formatted)
         else:
             tasks = [asyncio.create_task(run_agent(agent_id)) for agent_id in agent_ids_for_run]
-            for task in asyncio.as_completed(tasks):
-                try:
-                    events, formatted = await task
-                    for event in events:
-                        yield event
-                    responses.append(formatted)
-                except Exception as exc:
-                    yield _sse_event('error', {'error': str(exc)})
+            try:
+                for task in asyncio.as_completed(tasks):
+                    try:
+                        events, formatted = await task
+                        for event in events:
+                            yield event
+                        responses.append(formatted)
+                    except ContentProtectionError:
+                        raise
+                    except Exception:
+                        yield _sse_event('error', {'error': 'MODEL_CALL_FAILED'})
+            finally:
+                for task in tasks:
+                    if not task.done():
+                        task.cancel()
+                await asyncio.gather(*tasks, return_exceptions=True)
 
         done_payload = _TUTOR_REQUEST_ORCHESTRATOR.adapt_response(
             preparation,
@@ -1402,7 +1419,7 @@ def multi_agent_chat_stream(request):
         _sync_from_async_stream(stream_response()),
         content_type='text/event-stream; charset=utf-8',
     )
-    response['Cache-Control'] = 'no-cache'
+    response['Cache-Control'] = 'no-store, no-cache'
     response['X-Accel-Buffering'] = 'no'
     return response
 
@@ -1425,21 +1442,19 @@ def solve_challenge(request):
     if not message:
         return Response({'error': 'message is required'}, status=status.HTTP_400_BAD_REQUEST)
 
-    from teaching_agent.context import resolve_task_context
+    challenge = get_object_or_404(Challenge, id=challenge_id)
 
-    resolve_task_context(
-        user=request.user,
-        request_data=request.data,
-        require_attempt=True,
-        challenge_id=challenge_id,
-    )
-    return Response(
-        {
-            'error': 'Direct task solutions are not available to students.',
-            'detail': 'Use the task tutoring endpoint and unlocked hint levels.',
-        },
-        status=status.HTTP_403_FORBIDDEN,
-    )
+    async def _async_solve():
+        return await solve_challenge_hybrid_async(
+            question=message,
+            challenge_id=challenge_id,
+            agent_ids=['analyst'],
+            mode='single'
+        )
+    
+    result = async_to_sync(_async_solve)()
+    
+    return Response(result)
 
 
 # ==================== ç¼åãé¨?APIéå £Ëéåç´?====================
@@ -1457,8 +1472,8 @@ def list_conversations(request):
         result.append({
             'id': conv.id,
             'challenge_id': conv.challenge_id,
-            'challenge_title': conv.challenge.title if conv.challenge else None,
-            'category': conv.challenge.category.name if conv.challenge and conv.challenge.category else None,
+            'challenge_title': protect_stored_value(conv.challenge.title) if conv.challenge else None,
+            'category': protect_stored_value(conv.challenge.category.name) if conv.challenge and conv.challenge.category else None,
             'created_at': conv.created_at.isoformat(),
             'updated_at': conv.updated_at.isoformat(),
             'message_count': conv.messages.count()
@@ -1578,11 +1593,6 @@ class TutoringSessionView(APIView):
         specialist_context = preparation['specialists']
         resource_preparation = _resource_preparation_from_context(specialist_context)
         teaching_context = preparation.get('teachingContext')
-        trusted = preparation.get('trustedTaskContext') or {}
-        if trusted:
-            concept_name = trusted['task']['title']
-            student_level = 'task_bound'
-            context_summary = ''
 
         async def _run(current_teaching_context):
             from .learning_orchestrator import LearningOrchestrator
@@ -1598,9 +1608,9 @@ class TutoringSessionView(APIView):
             )
 
         conversation = _get_or_create_ai_conversation(request)
-        create_message(
+        AIMessage.objects.create(
             conversation=conversation,
-            role='user', origin=Origin(request.user),
+            role='user',
             content=question,
             agent_id='tutor',
             agent_name='\u6559\u5b66\u667a\u80fd\u4f53',
@@ -1629,9 +1639,9 @@ class TutoringSessionView(APIView):
             content = _normalize_ai_content(step.get('content', ''))
             provider = step.get('provider', 'unknown')
             if content.strip() and provider != 'error':
-                create_message(
+                AIMessage.objects.create(
                     conversation=conversation,
-                    role='assistant', origin=preparation.get('_history_origin'),
+                    role='assistant',
                     content=content,
                     agent_id='tutor',
                     agent_name='\u6559\u5b66\u667a\u80fd\u4f53',
@@ -1703,10 +1713,10 @@ class GenerateContentView(APIView):
                 'agent': result.get('agent_id', 'content_gen'),
                 'provider': result.get('provider', ''),
             })
-        except Exception as e:
+        except Exception:
             return Response({
                 'status': 'error',
-                'message': f'Generation failed: {str(e)}',
+                'message': 'MODEL_CALL_FAILED',
             }, status=500)
 
 

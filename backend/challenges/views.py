@@ -1,7 +1,7 @@
 from rest_framework import generics, status, viewsets
 from rest_framework.decorators import api_view, permission_classes, authentication_classes, action
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from rest_framework.authentication import TokenAuthentication
+from rest_framework.authentication import SessionAuthentication, TokenAuthentication
 from rest_framework.response import Response
 from django.conf import settings
 from django.db.models import Min
@@ -12,7 +12,6 @@ from .container_manager import get_container_manager
 from .container_audit import record_container_audit, record_flag_submission_audit
 from .access import (
     COOKIE_NAME,
-    ChallengeProxySessionAuthentication,
     access_cookie_max_age,
     build_access_cookie_value,
     build_access_url,
@@ -26,7 +25,7 @@ from rest_framework.exceptions import APIException
 # 使用端口池直接访问，不通过FRP
 FRP_SERVER = 'http://localhost:8000'
 logger = logging.getLogger(__name__)
-SENSITIVE_PROXY_HEADERS = {'authorization', 'cookie', 'referer'}
+SENSITIVE_PROXY_HEADERS = {'authorization', 'proxy-authorization', 'cookie', 'referer'}
 
 
 class DockerUnavailable(APIException):
@@ -359,8 +358,17 @@ def challenge_detail_view(request, pk):
 
 # ==================== CTF代理视图 ====================
 
+class ProxySessionAuthentication(SessionAuthentication):
+    def enforce_csrf(self, request):
+        # Preserve the raw proxy body before CSRF reads multipart form data.
+        # Use Django's request so DRF does not reject opaque upstream media types.
+        request.body
+        super().enforce_csrf(request._request)
+
+
+# Session auth must run first so a token/capability cannot bypass session CSRF.
 @api_view(['GET', 'POST', 'PUT', 'DELETE', 'HEAD', 'OPTIONS'])
-@authentication_classes([TokenAuthentication, ChallengeProxySessionAuthentication])
+@authentication_classes([ProxySessionAuthentication, TokenAuthentication])
 @permission_classes([AllowAny])
 def proxy_challenge_view(request, path):
     """
@@ -384,9 +392,9 @@ def proxy_challenge_view(request, path):
     cookie_is_valid = validate_access_token(access_cookie, user_id, container_uuid)
 
     proxy_user = request.user
-    if proxy_user.is_authenticated and proxy_user.id != user_id:
+    if proxy_user and proxy_user.is_authenticated and proxy_user.id != user_id:
         return HttpResponse("Container owner mismatch", status=403)
-    if not proxy_user.is_authenticated and not cookie_is_valid:
+    if (not proxy_user or not proxy_user.is_authenticated) and not cookie_is_valid:
         return HttpResponse("Authentication required", status=401)
 
     container_filter = ChallengeContainer.objects.filter(
@@ -394,7 +402,7 @@ def proxy_challenge_view(request, path):
         user_id=user_id,
         status='running',
     )
-    if proxy_user.is_authenticated:
+    if proxy_user and proxy_user.is_authenticated:
         container_filter = container_filter.filter(user=proxy_user)
     container = container_filter.first()
     if not container or container.is_expired:
@@ -403,7 +411,6 @@ def proxy_challenge_view(request, path):
     # 查找容器记录
     try:
         from .port_pool import get_port_pool
-        from .coze_injector import is_html_response, inject_coze_sdk
         from django.conf import settings
 
         proxy_mode = getattr(settings, 'CONTAINER_PROXY_MODE', 'host_port')
@@ -426,7 +433,7 @@ def proxy_challenge_view(request, path):
         # 准备请求头
         headers = {}
         for key, value in request.META.items():
-            if key.startswith('HTTP_'):
+            if key.startswith('HTTP_') and key != settings.CSRF_HEADER_NAME:
                 header_name = key[5:].replace('_', '-')
                 if header_name.lower() not in SENSITIVE_PROXY_HEADERS | {'host'}:
                     headers[header_name] = value
@@ -443,31 +450,11 @@ def proxy_challenge_view(request, path):
                 cookies={},
                 allow_redirects=False,
                 timeout=30,
-                stream=False  # 不使用流式，以便注入 Coze SDK
+                stream=False
             )
 
-            # 检查是否为 HTML 响应且启用了 Coze SDK
-            content_type = resp.headers.get('content-type', '')
-            is_html = is_html_response(content_type)
-            coze_enabled = getattr(settings, 'COZE_SDK_ENABLED', False)
-
-            if is_html and coze_enabled:
-                # 读取内容并注入 Coze SDK
-                content = resp.content
-                encoding = resp.encoding or 'utf-8'
-
-                try:
-                    # 解码内容
-                    text_content = content.decode(encoding)
-                    # 注入 Coze SDK
-                    modified_content = inject_coze_sdk(text_content)
-                    # 重新编码
-                    final_content = modified_content.encode(encoding)
-                except UnicodeDecodeError:
-                    # 如果解码失败，直接返回原始内容
-                    final_content = content
-            else:
-                final_content = resp.content
+            # 浏览器 Coze SDK 永久关闭，不读取或注入厂商认证材料。
+            final_content = resp.content
 
             # 构建响应头
             excluded_headers = ['content-encoding', 'content-length', 'transfer-encoding', 'connection']

@@ -8,12 +8,13 @@ from dataclasses import replace
 import hashlib
 import hmac
 import json
+import re
 from urllib.parse import urlencode
 
 import requests
 from websockets.sync.client import connect
 
-from data_security.contracts import (AIRequest, AIResponse, BoundedPayload, ContractViolation,
+from data_security.contracts import (AIRequest, AIResponse, BoundedPayload, CanaryCheckPort, ContractViolation,
     EmbeddingResult, FrozenJSON, KeyPurpose, KeyStatus, MediaType, Outlet, PayloadKind,
     ProtectedResult, ProtectionError, ReasonCode)
 from data_security.contracts.schema import require
@@ -28,11 +29,12 @@ ENDPOINTS = {
 }
 WENXIN_MODELS = {'ernie-bot-4': 'completions_pro', 'ernie-bot': 'completions'}
 MAX_RESPONSE_BYTES = 1024 * 1024
+VISION_MODEL = 'doubao-embedding-vision-251215'
 
 
 class OfficialAI:
     def __init__(self, *, endpoint_ref, base_url, models, key_ref, keys,
-                 protection, confidentiality, limits, service_identity, clock):
+                 protection, confidentiality, limits, service_identity, clock, canary: CanaryCheckPort | None = None):
         require(endpoint_ref in ENDPOINTS and base_url == ENDPOINTS[endpoint_ref],
                 ReasonCode.AUTHORIZATION_DENIED)
         require(type(models) is tuple and 0 < len(models) <= 16, ReasonCode.INVALID_VALUE)
@@ -42,6 +44,7 @@ class OfficialAI:
         self.key_ref, self.keys, self.protection = key_ref, keys, protection
         self.confidentiality, self.limits = confidentiality, limits
         self.service_identity, self.clock = service_identity, clock
+        self.canary = canary
 
     def _json(self, value):
         return BoundedPayload(schema_version=BoundedPayload.SCHEMA, kind=PayloadKind.JSON,
@@ -67,6 +70,40 @@ class OfficialAI:
                     chunks.append(chunk)
                 return b''.join(chunks)
 
+    def _protocol_json(self, raw):
+        def object_fields(pairs):
+            value = {}
+            for key, item in pairs:
+                require(key not in value, ReasonCode.INVALID_VALUE)
+                value[key] = item
+            return value
+        return json.loads(raw, object_pairs_hook=object_fields)
+
+    def _tool_calls(self, calls, definitions, *, decode):
+        """Validate a whole call batch before any call can reach an owner."""
+        require(type(calls) is list and 0 < len(calls) <= 8, ReasonCode.LIMIT_EXCEEDED)
+        normalized, ids = [], set()
+        for call in calls:
+            require(type(call) is dict and set(call) == {'id', 'type', 'function'} and
+                    call['type'] == 'function', ReasonCode.INVALID_VALUE)
+            call_id, function = call['id'], call['function']
+            require(type(call_id) is str and re.fullmatch(r'[A-Za-z0-9_-]{1,128}', call_id) is not None
+                    and call_id not in ids, ReasonCode.INVALID_VALUE)
+            ids.add(call_id)
+            require(type(function) is dict and set(function) == {'name', 'arguments'} and
+                    type(function['name']) is str and function['name'] in definitions,
+                    ReasonCode.UNSUPPORTED_SCOPE)
+            arguments = function['arguments']
+            if decode:
+                require(type(arguments) is str, ReasonCode.INVALID_TYPE)
+                arguments = self._protocol_json(arguments)
+            parameters = definitions[function['name']]['parameters']
+            require(type(arguments) is dict and set(arguments) == set(parameters['required']) and
+                    all(type(value) is str for value in arguments.values()), ReasonCode.INVALID_VALUE)
+            normalized.append({'id': call_id, 'type': 'function', 'function': {
+                'name': function['name'], 'arguments': arguments}})
+        return normalized
+
     def _run(self, request, context, binding, *, embedding=False, streaming=False):
         stage = ReasonCode.PROVIDER_UNAVAILABLE
         try:
@@ -75,22 +112,95 @@ class OfficialAI:
             require(context.actor_ref == self.service_identity and context.outlet is
                     (Outlet.EMBEDDING if embedding else Outlet.MODEL), ReasonCode.AUTHORIZATION_DENIED)
             neutral = request.content.tree.to_value() if request.content.kind is PayloadKind.JSON else None
-            require(type(neutral) is dict and set(neutral) == ({'input'} if embedding else {'messages'}),
-                    ReasonCode.INVALID_VALUE)
+            vision = embedding and request.model_ref == VISION_MODEL
+            tools_mode = not embedding and type(neutral) is dict and 'tools' in neutral
+            require(type(neutral) is dict and set(neutral) ==
+                    ({'input', 'dimensions'} if vision else {'input'} if embedding else
+                     {'messages', 'tools'} if tools_mode else {'messages'}), ReasonCode.INVALID_VALUE)
+            if tools_mode:
+                require(not streaming and self.endpoint_ref in ('volcano', 'deepseek', 'moonshot', 'qwen'),
+                        ReasonCode.UNSUPPORTED_SCOPE)
+                tools = neutral['tools']
+                require(type(tools) is list and 0 < len(tools) <= 8, ReasonCode.LIMIT_EXCEEDED)
+                definitions = {}
+                for tool in tools:
+                    require(type(tool) is dict and set(tool) == {'type', 'function'} and
+                            tool['type'] == 'function', ReasonCode.INVALID_VALUE)
+                    function = tool['function']
+                    require(type(function) is dict and set(function) == {'name', 'description', 'parameters'},
+                            ReasonCode.INVALID_VALUE)
+                    name, parameters = function['name'], function['parameters']
+                    require(type(name) is str and re.fullmatch(r'[A-Za-z0-9_-]{1,64}', name) is not None and
+                            name not in definitions and type(function['description']) is str,
+                            ReasonCode.INVALID_VALUE)
+                    require(type(parameters) is dict and set(parameters) ==
+                            {'type', 'additionalProperties', 'properties', 'required'} and
+                            parameters['type'] == 'object' and parameters['additionalProperties'] is False and
+                            type(parameters['properties']) is dict and type(parameters['required']) is list and
+                            0 < len(parameters['required']) == len(parameters['properties']) and
+                            all(type(field) is str for field in parameters['required']) and
+                            set(parameters['required']) == set(parameters['properties']) and
+                            all(type(schema) is dict and schema.get('type') == 'string'
+                                for schema in parameters['properties'].values()), ReasonCode.INVALID_VALUE)
+                    definitions[name] = function
             if embedding:
                 require(self.endpoint_ref in ('volcano', 'qwen'), ReasonCode.UNSUPPORTED_SCOPE)
-                require(type(neutral['input']) is list and 0 < len(neutral['input']) <= 1024 and
-                        all(type(value) is str for value in neutral['input']), ReasonCode.INVALID_VALUE)
-                prepared = {'model': request.model_ref, 'input': neutral['input'], 'encoding_format': 'float'}
+                if vision:
+                    require(self.endpoint_ref == 'volcano' and type(neutral['dimensions']) is int and
+                            neutral['dimensions'] == 1024, ReasonCode.UNSUPPORTED_SCOPE)
+                    parts = neutral['input']
+                    # One multimodal input yields one vector, not a batch of text vectors.
+                    # Images need a separate authorized binary boundary, never arbitrary URLs.
+                    require(type(parts) is list and len(parts) == 1 and type(parts[0]) is dict and
+                            set(parts[0]) == {'type', 'text'} and parts[0]['type'] == 'text' and
+                            type(parts[0]['text']) is str, ReasonCode.UNSUPPORTED_SCOPE)
+                    prepared = {'model': request.model_ref, 'input': parts, 'dimensions': 1024,
+                                'encoding_format': 'float'}
+                else:
+                    require(type(neutral['input']) is list and 0 < len(neutral['input']) <= 1024 and
+                            all(type(value) is str for value in neutral['input']), ReasonCode.INVALID_VALUE)
+                    prepared = {'model': request.model_ref, 'input': neutral['input'], 'encoding_format': 'float'}
             else:
                 messages = neutral['messages']
                 require(type(messages) is list and 0 < len(messages) <= 64, ReasonCode.LIMIT_EXCEEDED)
-                require(all(type(m) is dict and set(m) == {'role', 'content'} and
-                            m['role'] in ('system', 'user', 'assistant') and type(m['content']) is str
-                            for m in messages), ReasonCode.INVALID_VALUE)
+                if tools_mode:
+                    wire_messages, pending, seen = [], set(), set()
+                    for message in messages:
+                        require(type(message) is dict, ReasonCode.INVALID_TYPE)
+                        role = message.get('role')
+                        if role == 'tool':
+                            require(set(message) == {'role', 'content', 'tool_call_id'} and
+                                    type(message['content']) is str and type(message['tool_call_id']) is str and
+                                    message['tool_call_id'] in pending, ReasonCode.INVALID_VALUE)
+                            pending.remove(message['tool_call_id'])
+                            wire_messages.append(message)
+                        elif role == 'assistant' and 'tool_calls' in message:
+                            require(not pending and set(message) == {'role', 'content', 'tool_calls'} and
+                                    (message['content'] is None or type(message['content']) is str),
+                                    ReasonCode.INVALID_VALUE)
+                            calls = self._tool_calls(message['tool_calls'], definitions, decode=False)
+                            pending = {call['id'] for call in calls}
+                            require(not pending & seen, ReasonCode.INVALID_VALUE)
+                            seen.update(pending)
+                            wire_messages.append(dict(message, tool_calls=[dict(call, function={
+                                'name': call['function']['name'], 'arguments': json.dumps(
+                                    call['function']['arguments'], ensure_ascii=False)}) for call in calls]))
+                        else:
+                            require(not pending and set(message) == {'role', 'content'} and
+                                    role in ('system', 'user', 'assistant') and type(message['content']) is str,
+                                    ReasonCode.INVALID_VALUE)
+                            wire_messages.append(message)
+                    require(not pending, ReasonCode.INVALID_VALUE)
+                    messages = wire_messages
+                else:
+                    require(all(type(m) is dict and set(m) == {'role', 'content'} and
+                                m['role'] in ('system', 'user', 'assistant') and type(m['content']) is str
+                                for m in messages), ReasonCode.INVALID_VALUE)
                 prepared = {'model': request.model_ref, 'messages': messages,
                     'temperature': request.temperature, 'max_tokens': request.output_token_limit,
                     'stream': streaming}
+                if tools_mode:
+                    prepared.update(tools=tools, tool_choice='auto', parallel_tool_calls=False)
                 if self.endpoint_ref == 'wenxin':
                     require(request.model_ref in WENXIN_MODELS, ReasonCode.AUTHORIZATION_DENIED)
                     prepared = {'messages': [m for m in messages if m['role'] != 'system'],
@@ -105,7 +215,15 @@ class OfficialAI:
             # Legacy credential confidentiality is injected, not a fourth Detect category.
             prepared = self.confidentiality(prepared)
             stage = ReasonCode.SCOPE_INCOMPLETE
-            prepared = self._protect(self._json(prepared), context, binding).tree.to_value()
+            protected = self._protect(self._json(prepared), context, binding)
+            if self.canary is not None:
+                stage = ReasonCode.AUDIT_UNAVAILABLE
+                alerts = self.canary.check(payload=protected, context=context)
+                if type(alerts) is ProtectionError:
+                    raise ContractViolation(alerts.code)
+                require(type(alerts) is tuple, ReasonCode.AUDIT_UNAVAILABLE)
+                require(not alerts, ReasonCode.SCOPE_INCOMPLETE)
+            prepared = protected.tree.to_value()
             stage = ReasonCode.KEY_UNAVAILABLE
             material = self.keys.resolve(self.key_ref, KeyPurpose.PROVIDER, self.service_identity)
             if type(material) is ProtectionError:
@@ -159,7 +277,8 @@ class OfficialAI:
                     url = self.base_url + '/' + WENXIN_MODELS[request.model_ref]
                     parts.append(access_token)
                 else:
-                    url = self.base_url + ('/embeddings' if embedding else '/chat/completions')
+                    url = self.base_url + ('/embeddings/multimodal' if vision else
+                                           '/embeddings' if embedding else '/chat/completions')
                     headers = {'Authorization': 'Bearer ' + credential}
                 raw = self._http(url, body=prepared, headers=headers, params=params)
                 if streaming:
@@ -183,14 +302,66 @@ class OfficialAI:
                     require(finished, ReasonCode.PROVIDER_UNAVAILABLE)
                     content = ''.join(chunks)
                 else:
-                    result = json.loads(raw)
-                    require('error' not in result and 'error_code' not in result, ReasonCode.PROVIDER_UNAVAILABLE)
+                    result = self._protocol_json(raw) if tools_mode else json.loads(raw)
+                    require(type(result) is dict and 'error' not in result and 'error_code' not in result,
+                            ReasonCode.PROVIDER_UNAVAILABLE)
                     if embedding:
-                        vectors = tuple(tuple(float(value) for value in item['embedding'])
-                                        for item in sorted(result['data'], key=lambda item: item['index']))
-                        require(len(vectors) == len(prepared['input']), ReasonCode.PROVIDER_UNAVAILABLE)
+                        if vision:
+                            data = result.get('data')
+                            require(type(data) is dict and type(data.get('embedding')) is list and
+                                    len(data['embedding']) == 1024 and
+                                    all(type(value) in (int, float) for value in data['embedding']),
+                                    ReasonCode.PROVIDER_UNAVAILABLE)
+                            vectors = (tuple(float(value) for value in data['embedding']),)
+                        else:
+                            vectors = tuple(tuple(float(value) for value in item['embedding'])
+                                            for item in sorted(result['data'], key=lambda item: item['index']))
+                            require(len(vectors) == len(prepared['input']), ReasonCode.PROVIDER_UNAVAILABLE)
                         return EmbeddingResult(schema_version=EmbeddingResult.SCHEMA, vectors=vectors,
                             endpoint_ref=self.endpoint_ref, model_ref=request.model_ref, trace_id=context.trace_id)
+                    if tools_mode:
+                        # Validate the original envelope before decoding argument strings or
+                        # discarding fields, so neither transformation can hide an over-limit reply.
+                        result = self._json(result).tree.to_value()
+                        require(type(result.get('choices')) is list and len(result['choices']) == 1,
+                                ReasonCode.PROVIDER_UNAVAILABLE)
+                        choice = result['choices'][0]
+                        require(type(choice) is dict and type(choice.get('message')) is dict,
+                                ReasonCode.PROVIDER_UNAVAILABLE)
+                        message = choice['message']
+                        require(message.get('role') == 'assistant' and
+                                (message.get('content') is None or type(message['content']) is str) and
+                                'function_call' not in message, ReasonCode.INVALID_VALUE)
+                        raw_calls = message.get('tool_calls')
+                        require(raw_calls is None or type(raw_calls) is list, ReasonCode.INVALID_TYPE)
+                        calls = self._tool_calls(raw_calls, definitions, decode=True) if raw_calls else []
+                        require(calls or type(message.get('content')) is str, ReasonCode.INVALID_VALUE)
+                        require(choice.get('finish_reason') == ('tool_calls' if calls else 'stop'),
+                                ReasonCode.PROVIDER_UNAVAILABLE)
+                        message['tool_calls'] = calls
+                        # Bound and protect the complete response, including decoded arguments and
+                        # ancillary provider fields. Only the canonical message crosses the port.
+                        def redact(value):
+                            if type(value) is dict:
+                                return {key: redact(item) for key, item in value.items()}
+                            if type(value) is list:
+                                return [redact(item) for item in value]
+                            if type(value) is str:
+                                for part in parts:
+                                    value = value.replace(part, '[REDACTED]')
+                            return value
+                        payload = self._json(result)
+                        payload = self._json(self.confidentiality(redact(payload.tree.to_value())))
+                        protected = self._protect(payload, replace(context, outlet=Outlet.API), binding)
+                        safe = protected.tree.to_value()
+                        message = safe['choices'][0]['message']
+                        usage = safe.get('usage') or {}
+                        return AIResponse(schema_version=AIResponse.SCHEMA,
+                            content=self._json({'role': 'assistant', 'content': message.get('content'),
+                                'tool_calls': message['tool_calls']}),
+                            endpoint_ref=self.endpoint_ref, model_ref=request.model_ref,
+                            input_tokens=usage.get('prompt_tokens', 0),
+                            output_tokens=usage.get('completion_tokens', 0), trace_id=context.trace_id)
                     content = result['result'] if self.endpoint_ref == 'wenxin' else result['choices'][0]['message']['content']
                     usage = result.get('usage') or {}
             require(type(content) is str, ReasonCode.PROVIDER_UNAVAILABLE)

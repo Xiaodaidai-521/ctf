@@ -1,17 +1,15 @@
 """Services for writing and verifying tamper-evident audit ledger entries."""
 
-import hashlib
-import json
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 
 from django.conf import settings
 from django.db import transaction
 
+from .legacy_hashes import (
+    GENESIS_HASH, canonical_json, sha256_hex, compute_payload_hash, compute_entry_hash,
+)
 from .models import AuditLedgerEntry, AuditLedgerLock
-
-
-GENESIS_HASH = '0' * 64
 
 
 @dataclass(frozen=True)
@@ -31,50 +29,6 @@ class LedgerVerificationResult:
     is_valid: bool
     checked_count: int
     errors: List[LedgerVerificationError]
-
-
-def canonical_json(value: Dict[str, Any]) -> str:
-    """Return deterministic JSON used for hashing audit payloads."""
-    return json.dumps(
-        value or {},
-        ensure_ascii=False,
-        sort_keys=True,
-        separators=(',', ':'),
-        default=str,
-    )
-
-
-def sha256_hex(value: str) -> str:
-    """Return a SHA-256 hex digest for text input."""
-    return hashlib.sha256(value.encode('utf-8')).hexdigest()
-
-
-def compute_payload_hash(payload: Dict[str, Any]) -> str:
-    """Compute the deterministic hash of an audit payload."""
-    return sha256_hex(canonical_json(payload))
-
-
-def compute_entry_hash(
-    *,
-    previous_hash: str,
-    payload_hash: str,
-    event_category: str,
-    object_type: str,
-    object_id: str,
-    actor_id: Optional[int],
-    chain_version: str,
-) -> str:
-    """Compute the current hash for a ledger entry."""
-    material = canonical_json({
-        'previous_hash': previous_hash or GENESIS_HASH,
-        'payload_hash': payload_hash,
-        'event_category': event_category,
-        'object_type': object_type or '',
-        'object_id': str(object_id or ''),
-        'actor_id': actor_id,
-        'chain_version': chain_version,
-    })
-    return sha256_hex(material)
 
 
 class AuditLedgerService:
@@ -109,9 +63,12 @@ class AuditLedgerService:
         chain_version: Optional[str] = None,
     ) -> AuditLedgerEntry:
         """Internal v1 writer; Sink never calls the public compatibility facade."""
+        from data_security.contracts import ReasonCode
+        from data_security.contracts.schema import require
         chain_version = chain_version or getattr(settings, 'LEGAL_AUDIT_CHAIN_VERSION', 'v1')
         AuditLedgerLock.objects.get_or_create(key='default')
-        AuditLedgerLock.objects.select_for_update().get(key='default')
+        lock = AuditLedgerLock.objects.select_for_update().get(key='default')
+        require(lock.legacy_archive == {}, ReasonCode.AUDIT_UNAVAILABLE)
         previous = (
             AuditLedgerEntry.objects.select_for_update()
             .order_by('-id')
@@ -141,11 +98,21 @@ class AuditLedgerService:
         )
 
     @staticmethod
-    def verify_chain() -> LedgerVerificationResult:
-        """Verify all ledger entries in insertion order."""
+    def verify_chain(*, entries=None) -> LedgerVerificationResult:
+        """Verify ordered entries; archive callers supply their bounded snapshot iterator."""
         errors: List[LedgerVerificationError] = []
         previous_hash = GENESIS_HASH
-        entries = AuditLedgerEntry.objects.order_by('id').select_related('actor')
+        if entries is None:
+            row = AuditLedgerLock.objects.filter(key='default').values('legacy_archive').first()
+            if row is not None and row['legacy_archive'] != {}:
+                state = row['legacy_archive']
+                actual = state.get('state') if type(state) is dict else None
+                if actual not in ('quarantined', 'deleted'):
+                    actual = 'unknown'
+                # Hiding or removing the online source never creates a new genesis.
+                return LedgerVerificationResult(is_valid=False, checked_count=0, errors=[
+                    LedgerVerificationError(entry_id=0, field='source_state', expected='online-v1', actual=actual)])
+            entries = AuditLedgerEntry.objects.order_by('id').select_related('actor')
 
         checked_count = 0
         for entry in entries:

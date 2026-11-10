@@ -14,6 +14,8 @@ from typing import ClassVar, Union, get_args, get_origin
 from .enums import ReasonCode
 
 MAX_BYTES = 20 * 1024 * 1024
+# Binary ciphertext frames carry at most 4 KiB of authenticated type/limits metadata.
+MAX_CRYPTO_FRAME_BYTES = MAX_BYTES + 4096
 MAX_WIRE_BYTES = 32 * 1024 * 1024
 MAX_ITEMS = 100_000
 MAX_JSON_DEPTH = 16
@@ -221,7 +223,7 @@ def _check(annotation, value):
     if annotation is str:
         _string(value)
     elif annotation is bytes:
-        require(len(value) <= MAX_BYTES + 16, ReasonCode.LIMIT_EXCEEDED)
+        require(len(value) <= MAX_CRYPTO_FRAME_BYTES + 16, ReasonCode.LIMIT_EXCEEDED)
     elif annotation is datetime:
         utc(value)
     elif annotation is float:

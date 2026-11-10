@@ -194,6 +194,16 @@ class ProtectionServiceTests(unittest.TestCase):
         self.assertIsInstance(result, ProtectionError)
         self.assertEqual(result.code, ReasonCode.AUTHORIZATION_EXPIRED)
 
+    def test_unverified_memory_audit_never_returns_authenticated_events(self):
+        event = examples()[SecurityEvent]
+        for sink in (MemoryAudit(), MemoryAudit(reject=True)):
+            sink.append(event, Durability.DURABLE)
+            for event_id in (event.event_id, 'event/missing'):
+                result = sink.read_authenticated(event_id)
+                self.assertIsInstance(result, ProtectionError)
+                self.assertEqual(result.code, ReasonCode.AUDIT_UNAVAILABLE)
+            self.assertEqual(sink.events, [event])
+
     def test_memory_repository_and_refusing_sink_same_port_semantics(self):
         snapshot, binding = policy()
         repo = MemoryPolicy(snapshot)

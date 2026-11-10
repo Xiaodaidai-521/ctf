@@ -6,17 +6,15 @@ import logging
 import time
 
 from django.conf import settings
+from data_security.adapters.django.content import ContentProtectionError
 
 from agents.context.teaching_context import SharedTeachingContextBuilder
 from agents.context.student_profile_adapter import StudentProfileContextAdapter
 from agents.router.tutor_router import TutorAgentRouter
 from agents.specialists.tutor_executor import TutorSpecialistExecutor
 from agents.task_plan import QUESTION_ANSWER, execution_plan_for
-from agent_memory.ledger import resolve_scope, record_turn
-from agent_memory.long_term import update_learning_memory, recall_memories
 from .performance import TutorPerformanceMetrics, activate_metrics, log_metrics
 from .response_adapter import build_compatible_chat_response
-from .history import preparation_origin, track_origin
 
 logger = logging.getLogger(__name__)
 
@@ -36,37 +34,22 @@ class TutorRequestOrchestrator:
         return bool(getattr(settings, name, default))
 
     def prepare(self, *, user, message, conversation=None, challenge_info=None, conversation_history=None, existing_request_data=None):
-        from teaching_agent.context import TaskBoundLegacyEndpoint, resolve_task_context
-
         started = time.monotonic()
         metrics = TutorPerformanceMetrics.create(
             user_id=getattr(user, "id", None), conversation_id=getattr(conversation, "id", None),
         )
         activate_metrics(metrics)
         request_data = existing_request_data if isinstance(existing_request_data, dict) else {}
-        trusted_context = resolve_task_context(
-            user=user,
-            request_data=request_data,
-            challenge_id=(challenge_info or {}).get('id'),
-        )
-        trusted_model_context = trusted_context.model_context() if trusted_context else None
-        if trusted_context:
-            raise TaskBoundLegacyEndpoint()
-        # Neither supplied histories nor their derived summaries are authorized.
-        conversation_history = []
         route = TutorAgentRouter.fallback_result()
         specialists = {key: dict(value) for key, value in TutorSpecialistExecutor.EMPTY_RESULT.items()}
         fallback_reasons = []
-        scope = resolve_scope(
-            user=user, conversation=conversation, request_data=request_data,
-            challenge_info=challenge_info, history=conversation_history, message=message,
-            fallback_reasons=fallback_reasons,
-        )
 
         router_started = time.monotonic()
         if self._enabled("TUTOR_AGENT_ROUTER_ENABLED", True):
             try:
                 route = self.router.route(message)
+            except ContentProtectionError:
+                raise
             except Exception as exc:
                 fallback_reasons.append("router")
                 logger.warning("tutor_orchestrator_router_fallback", extra={
@@ -84,22 +67,16 @@ class TutorRequestOrchestrator:
                 specialists = self.executor.execute(
                     task_type=task_type, student_id=getattr(user, "id", None), query=message,
                     challenge_info=challenge_info,
-                    student_level=(
-                        'task_bound'
-                        if trusted_context
-                        else request_data.get("student_level") or request_data.get("studentLevel")
-                    ),
-                    knowledge_point=(
-                        trusted_context.task.title
-                        if trusted_context
-                        else request_data.get("knowledge_point") or request_data.get("knowledgePoint") or request_data.get("concept_name")
-                    ),
-                    existing_rag_context=None if trusted_context else request_data.get("existing_rag_context"),
+                    student_level=request_data.get("student_level") or request_data.get("studentLevel"),
+                    knowledge_point=request_data.get("knowledge_point") or request_data.get("knowledgePoint") or request_data.get("concept_name"),
+                    existing_rag_context=request_data.get("existing_rag_context"),
                 )
                 metrics.agent_metrics = specialists.get("agentStatus") or {}
                 required_statuses = [metrics.agent_metrics.get(name, {}).get("status") for name in route["requiredAgents"]]
                 if required_statuses and all(status != "success" for status in required_statuses):
                     fallback_reasons.append("all_specialists")
+            except ContentProtectionError:
+                raise
             except Exception as exc:
                 fallback_reasons.append("specialists")
                 logger.warning("tutor_orchestrator_specialists_fallback", extra={
@@ -107,18 +84,6 @@ class TutorRequestOrchestrator:
                     "task_type": task_type, "error_type": type(exc).__name__,
                 })
 
-        diagnosis = specialists.get("knowledgeDiagnosis") or {}
-        # L1 contains this turn's output, before L2 observations are merged.
-        conversation_summary = record_turn(
-            user=user, scope=scope, message=message, task_type=task_type,
-            diagnosis=diagnosis, request_id=metrics.request_id,
-            fallback_reasons=fallback_reasons,
-        )
-        if diagnosis and "knowledge_diagnosis_agent" in route["requiredAgents"]:
-            specialists["knowledgeDiagnosis"] = update_learning_memory(
-                user=user, diagnosis=diagnosis, fallback_reasons=fallback_reasons,
-            )
-        user_memories = recall_memories(user=user, fallback_reasons=fallback_reasons)
         resources = specialists.get("resources") or {}
         metrics.resource_cache_hit = bool(resources.get("cacheHit", False))
         teaching_context = None
@@ -131,19 +96,10 @@ class TutorRequestOrchestrator:
                     knowledge_diagnosis=specialists.get("knowledgeDiagnosis"),
                     knowledge_context=specialists.get("knowledgeContext"),
                     resources=resources, study_strategy=specialists.get("studyStrategy"),
-                    conversation_history=scope.history,
-                    extensions={
-                        "challenge": challenge_info or {},
-                        "trustedTaskContext": trusted_model_context or {},
-                    },
-                    user_memories=user_memories, conversation_summary=conversation_summary,
-                    conversation_scope=(
-                        f"{user.pk}:{getattr(scope.conversation, 'pk', 'new')}:{scope.challenge_key}"
-                        if scope.scoped and (scope.history or conversation_summary or conversation_history) else None
-                    ),
+                    conversation_history=conversation_history, extensions={"challenge": challenge_info or {}},
                 )
-                if trusted_model_context and isinstance(teaching_context, dict):
-                    teaching_context['trustedTaskContext'] = trusted_model_context
+            except ContentProtectionError:
+                raise
             except Exception as exc:
                 fallback_reasons.append("context")
                 logger.warning("tutor_orchestrator_context_fallback", extra={
@@ -155,17 +111,14 @@ class TutorRequestOrchestrator:
         )
         return {
             "route": route, "specialists": specialists, "teachingContext": teaching_context,
-            "trustedTaskContext": trusted_model_context,
             "fallbackReasons": fallback_reasons,
             "durationMs": round((time.monotonic() - started) * 1000, 2),
             "conversation": conversation, "performanceMetrics": metrics,
-            "_history_origin": preparation_origin(user, specialists, challenge_info, request_data),
         }
 
     def call_legacy_answer(self, *, message, conversation_history=None, challenge_info=None, teaching_context=None):
         from .service import get_ai_assistant_service
         service = self.answer_service or get_ai_assistant_service()
-        conversation_history = []
         try:
             return service.chat(user_message=message, conversation_history=conversation_history, challenge_info=challenge_info, teaching_context=teaching_context)
         except TypeError as exc:
@@ -177,30 +130,30 @@ class TutorRequestOrchestrator:
     def call_existing_answer_chain(self, preparation, answer_chain):
         teaching_context = preparation.get("teachingContext")
         try:
-            with track_origin(preparation.get('_history_origin')):
-                return answer_chain(teaching_context)
+            return answer_chain(teaching_context)
+        except ContentProtectionError:
+            raise
         except Exception as exc:
             if teaching_context is None:
                 raise
             preparation.setdefault("fallbackReasons", []).append("answer_chain_context")
             preparation["performanceMetrics"].fallback_used = True
             logger.warning("tutor_answer_chain_context_fallback", extra={"event": "tutor_answer_chain_context_fallback", "error_type": type(exc).__name__})
-            with track_origin(preparation.get('_history_origin')):
-                return answer_chain(None)
+            return answer_chain(None)
 
     async def call_existing_answer_chain_async(self, preparation, answer_chain):
         teaching_context = preparation.get("teachingContext")
         try:
-            with track_origin(preparation.get('_history_origin')):
-                return await answer_chain(teaching_context)
+            return await answer_chain(teaching_context)
+        except ContentProtectionError:
+            raise
         except Exception as exc:
             if teaching_context is None:
                 raise
             preparation.setdefault("fallbackReasons", []).append("answer_chain_context")
             preparation["performanceMetrics"].fallback_used = True
             logger.warning("tutor_answer_chain_context_fallback", extra={"event": "tutor_answer_chain_context_fallback", "error_type": type(exc).__name__})
-            with track_origin(preparation.get('_history_origin')):
-                return await answer_chain(None)
+            return await answer_chain(None)
 
     def adapt_response(self, preparation, payload=None, *, responses=None, conversation_id=None, challenge_info=None, metadata=None):
         metrics = preparation.get("performanceMetrics")
@@ -220,23 +173,8 @@ class TutorRequestOrchestrator:
         resources = specialists.get("resources") or {}
         context = preparation.get("teachingContext") or {}
         metrics = preparation.get("performanceMetrics")
-        trusted = preparation.get("trustedTaskContext") or {}
-        runtime = trusted.get("runtime") or {}
-        task = trusted.get("task") or {}
-        attempt = trusted.get("attempt") or {}
         return {
             "taskType": route.get("taskType", QUESTION_ANSWER),
-            "taskBinding": {
-                "attemptId": attempt.get("attempt_id"),
-                "taskKey": task.get("task_key"),
-                "taskVersion": task.get("task_version"),
-                "catalogVersion": task.get("catalog_version"),
-                "runId": runtime.get("run_id"),
-                "state": runtime.get("state"),
-                "stateVersion": runtime.get("state_version"),
-                "hintLevel": runtime.get("hint_level"),
-                "permissionVersion": runtime.get("permission_version"),
-            } if trusted else {},
             "requiredAgents": list(route.get("requiredAgents") or []),
             "agentStatus": specialists.get("agentStatus") or {},
             "cacheHit": bool(resources.get("cacheHit", False)),

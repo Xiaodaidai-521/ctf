@@ -1,5 +1,6 @@
 import asyncio
 import concurrent.futures
+import json
 from typing import Any, Dict, List, Optional
 
 from .models import AgentRun
@@ -28,11 +29,77 @@ class AgentGateway:
         retrieval_service: Optional[LearningRetrievalService] = None,
         verifier: Optional[AgentRuntimeVerifier] = None,
         service=None,
+        security_tools=None,
+        security_provider=None,
     ):
+        self.security_tools, self.security_provider = security_tools, security_provider
         self.state_store = state_store or AgentRunStateStore()
         self.retrieval_service = retrieval_service or LearningRetrievalService()
         self.verifier = verifier or AgentRuntimeVerifier()
         self.service = service
+
+    def available_security_tools(self):
+        return self.security_tools.definitions() if self.security_tools is not None else []
+
+    def run_security_tool(self, name, *, arguments, user):
+        """Explicit dispatch, never part of automatic read-only learning retrieval."""
+        if self.security_tools is None:
+            return {'status': 'error', 'code': 'CANARY_TOOLS_DISABLED'}
+        return self.security_tools.run(name, arguments=arguments, user=user)
+
+    def run_security_task(self, *, user, message: str, max_rounds: int = 4):
+        """Opt-in model-selected canary calls, without AgentRun persistence or prose output.
+
+        The injected ProviderHandle protects every model request/response; the original
+        registry re-resolves current owner authority for each serial operation.
+        """
+        if self.security_tools is None:
+            return {'status': 'error', 'code': 'CANARY_TOOLS_DISABLED'}
+        if self.security_provider is None:
+            return {'status': 'error', 'code': 'SECURITY_PROVIDER_DISABLED'}
+        if user is None or not user.is_authenticated or not user.is_active:
+            return {'status': 'error', 'code': 'AUTHORIZATION_DENIED'}
+        if type(message) is not str:
+            return {'status': 'error', 'code': 'INVALID_TYPE'}
+        if type(max_rounds) is not int or not 1 <= max_rounds <= 8:
+            return {'status': 'error', 'code': 'LIMIT_EXCEEDED'}
+
+        try:
+            messages = [
+                {'role': 'system', 'content': 'Perform only explicitly authorized synthetic canary testing. '
+                    'Choose canary_plant or canary_check only when needed. Arguments are references, '
+                    'never authority or output bodies. Do not reproduce seed values or output bodies.'},
+                {'role': 'user', 'content': message},
+            ]
+            tools = self.security_tools.model_definitions()
+            results, seen = [], set()
+            for turn in range(max_rounds):
+                response = _run_coroutine(self.security_provider.chat_tools(messages, tools=tools))
+                reply = response.content.tree.to_value()
+                calls = reply['tool_calls']
+                if not calls:
+                    return {'status': 'completed', 'results': results}
+                # Do not perform a side effect when there is no remaining model round
+                # to consume its result. Reused call IDs are a protocol error, not a retry.
+                ids = {call['id'] for call in calls}
+                if ids & seen:
+                    return {'status': 'error', 'code': 'INVALID_VALUE'}
+                if turn == max_rounds - 1:
+                    return {'status': 'error', 'code': 'LIMIT_EXCEEDED'}
+                seen.update(ids)
+                messages.append(reply)
+                for call in calls:
+                    result = self.security_tools.run_model_tool(call['function']['name'],
+                        arguments=call['function']['arguments'], user=user)
+                    if result['status'] == 'error':
+                        return result
+                    results.append(result)
+                    messages.append({'role': 'tool', 'tool_call_id': call['id'],
+                        'content': json.dumps(result, ensure_ascii=False)})
+        except Exception:
+            # Provider/owner exceptions can contain request bodies. Never record them
+            # in AgentRun, logs, or a caller-visible error, and never retry the task.
+            return {'status': 'error', 'code': 'SECURITY_TASK_FAILED'}
 
     def run_learning_task(
         self,
@@ -43,10 +110,6 @@ class AgentGateway:
         context: Optional[Dict[str, Any]] = None,
         conversation_history: Optional[List[Dict[str, Any]]] = None,
     ) -> AgentRun:
-        # Historical bodies and caller-supplied context snapshots lack provenance.
-        # They are not replayed, even if they contain a self-declared permission flag.
-        conversation_history = []
-        context = {}
         plan = [
             {'name': 'prepare_context', 'status': 'pending'},
             {'name': 'call_learning_agent', 'status': 'pending'},

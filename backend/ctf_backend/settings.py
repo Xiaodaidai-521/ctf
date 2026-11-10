@@ -60,7 +60,6 @@ INSTALLED_APPS = [
     'corsheaders',
     'users',
     'challenges',
-    'practical_training',
     'submissions',
     'resources',
     'articles',
@@ -80,12 +79,7 @@ INSTALLED_APPS = [
     'export_quota',
     'learning_map',
     'skill_review',
-    'teaching_agent',
-    'learning_knowledge',
-    'data_lab',
     'feedback_center',
-    'agent_memory',
-    'evaluation_center',
 ]
 
 
@@ -288,7 +282,7 @@ REST_FRAMEWORK = {
     ],
     # Pagination settings
     'PAGE_SIZE': 20,
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'DEFAULT_PAGINATION_CLASS': 'ctf_backend.pagination.StandardPageNumberPagination',
     'DEFAULT_THROTTLE_CLASSES': [
         'rest_framework.throttling.AnonRateThrottle',
         'rest_framework.throttling.UserRateThrottle',
@@ -392,6 +386,14 @@ CONTAINER_IMAGE_RUNTIME_OVERRIDES = {
         'user': None,
         'read_only': False,
     },
+    'ctf-platform/sql-union:latest': {
+        'user': None,
+        'read_only': False,
+    },
+    'ctf-platform/sql-bypass:latest': {
+        'user': None,
+        'read_only': False,
+    },
 }
 
 COZE_SDK_ENABLED = os.environ.get('COZE_SDK_ENABLED', 'false').lower() == 'true'
@@ -472,8 +474,8 @@ AGENT_RUNTIME_SEMANTIC_RETRIEVAL = os.environ.get(
 AGENT_RUNTIME_SEMANTIC_TOP_K = int(os.environ.get('AGENT_RUNTIME_SEMANTIC_TOP_K', '4'))
 AGENT_RUNTIME_CONTEXT_LIMIT = int(os.environ.get('AGENT_RUNTIME_CONTEXT_LIMIT', '12'))
 # Document ingestion pipeline (rag_ingestion app).
-RAG_INGESTION_CHUNK_SIZE = int(os.environ.get('RAG_INGESTION_CHUNK_SIZE', '800'))
-RAG_INGESTION_CHUNK_OVERLAP = int(os.environ.get('RAG_INGESTION_CHUNK_OVERLAP', '100'))
+RAG_INGESTION_CHUNK_SIZE = int(os.environ.get('RAG_INGESTION_CHUNK_SIZE', '1000'))
+RAG_INGESTION_CHUNK_OVERLAP = int(os.environ.get('RAG_INGESTION_CHUNK_OVERLAP', '120'))
 RAG_INGESTION_USE_LANGCHAIN_SPLITTER = os.environ.get(
     'RAG_INGESTION_USE_LANGCHAIN_SPLITTER', 'true'
 ).lower() in ('true', '1', 'yes')
@@ -504,12 +506,3 @@ TUTOR_SPECIALISTS_ENABLED = os.environ.get('TUTOR_SPECIALISTS_ENABLED', 'true').
 TUTOR_CONTEXT_ENABLED = os.environ.get('TUTOR_CONTEXT_ENABLED', 'true').lower() in ('true', '1', 'yes')
 TUTOR_RESOURCE_CACHE_ENABLED = os.environ.get('TUTOR_RESOURCE_CACHE_ENABLED', 'true').lower() in ('true', '1', 'yes')
 TUTOR_METRICS_ENABLED = os.environ.get('TUTOR_METRICS_ENABLED', 'true').lower() in ('true', '1', 'yes')
-
-# Module-2 task tutoring has a page-level budget independent of the legacy
-# 180-second internal teaching-step ceiling. Operational circuit values remain
-# explicitly versioned as unapproved defaults until the first-phase config review.
-TUTORING_TOTAL_WAIT_SECONDS = min(10.0, float(os.environ.get('TUTORING_TOTAL_WAIT_SECONDS', '10')))
-TUTORING_CIRCUIT_FAILURE_THRESHOLD = int(os.environ.get('TUTORING_CIRCUIT_FAILURE_THRESHOLD', '3'))
-TUTORING_CIRCUIT_PROBE_SECONDS = int(os.environ.get('TUTORING_CIRCUIT_PROBE_SECONDS', '60'))
-TUTORING_CACHE_TTL_SECONDS = int(os.environ.get('TUTORING_CACHE_TTL_SECONDS', '300'))
-TEACHING_AGENT_PROVIDER = os.environ.get('TEACHING_AGENT_PROVIDER', 'default')

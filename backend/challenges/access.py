@@ -1,18 +1,10 @@
 from django.conf import settings
 from django.core import signing
 from django.utils import timezone
-from rest_framework.authentication import SessionAuthentication
 
 
 ACCESS_SALT = 'challenge-container-access'
 COOKIE_NAME = 'challenge_access'
-
-
-class ChallengeProxySessionAuthentication(SessionAuthentication):
-    def enforce_csrf(self, request):
-        # Avoid DRF body parsers and preserve raw multipart data for forwarding.
-        _ = request._request.body
-        super().enforce_csrf(request._request)
 
 
 def build_access_url(container):
