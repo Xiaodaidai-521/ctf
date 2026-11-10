@@ -1,6 +1,6 @@
 """Business-facing handles for injected OfficialAIPort instances, never raw SDKs."""
 import asyncio
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 from data_security.contracts import (AIRequest, BoundedPayload, FrozenJSON, MediaType, Outlet,
     PayloadKind, ProtectionError)
@@ -49,6 +49,19 @@ class ProviderHandle:
         result = await self._run_sync(self._port.chat, request, self._context(Outlet.MODEL), self._binding)
         return self._response(result)
 
+    async def chat_tools(self, messages, *, tools, **kwargs):
+        """Explicit non-streaming JSON message protocol; the result remains an AIResponse."""
+        request = self._request({'messages': messages, 'tools': tools}, **kwargs)
+        result = await self._run_sync(self._port.chat, request, self._context(Outlet.MODEL), self._binding)
+        if type(result) is ProtectionError:
+            raise RuntimeError(result.code.value)
+        if result.content.kind is not PayloadKind.JSON:
+            raise RuntimeError('INVALID_VALUE')
+        message = result.content.tree.to_value()
+        if message['content'] is not None:
+            message['content'] = self._sanitize_response(message['content'])
+        return replace(result, content=replace(result.content, tree=FrozenJSON(message)))
+
     async def chat_stream(self, messages, **kwargs):
         request = self._request({'messages': [{'role': m.role, 'content': str(m.content)} for m in messages]}, **kwargs)
         results = await self._run_sync(lambda: list(self._port.stream(
@@ -61,8 +74,11 @@ class ProviderHandle:
         for start in range(0, len(content), 512):
             yield content[start:start + 512]
 
-    def embed(self, texts, *, model):
-        request = self._request({'input': list(texts)}, model=model)
+    def embed(self, texts, *, model, dimensions=None):
+        content = {'input': list(texts)}
+        if dimensions is not None:
+            content['dimensions'] = dimensions
+        request = self._request(content, model=model)
         result = self._port.embed(request, self._context(Outlet.EMBEDDING), self._binding)
         if type(result) is ProtectionError:
             raise RuntimeError(result.code.value)

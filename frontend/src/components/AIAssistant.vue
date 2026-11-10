@@ -2,7 +2,7 @@
   <div class="ai-assistant-container">
     <div class="ai-header">
       <div class="ai-title">
-        <span class="ai-icon"><AppIcon name="bi-cpu" /></span>
+        <span class="ai-icon">🤖</span>
         <span>AI助手</span>
       </div>
       <button
@@ -15,7 +15,6 @@
     </div>
 
     <div v-show="isOpen" class="ai-body">
-      <p v-if="conversationError" role="alert">{{ conversationError }}</p>
       <div v-if="hasReadingGuidance" class="guidance-banner">
         <div class="guidance-banner-title">阅读导引</div>
         <div class="guidance-banner-text">
@@ -25,7 +24,7 @@
 
       <div class="messages-container" ref="messagesContainer">
         <div v-if="messages.length === 0" class="empty-state">
-          <div class="empty-icon"><AppIcon name="bi-chat-dots" /></div>
+          <div class="empty-icon">💬</div>
           <p>我是你的 AI 解题助手</p>
           <p>遇到困难时可以问我</p>
         </div>
@@ -37,7 +36,7 @@
           :class="msg.role"
         >
           <div class="message-avatar">
-            <AppIcon :name="msg.role === 'user' ? 'bi-person' : 'bi-cpu'" />
+            {{ msg.role === 'user' ? '🧑' : '🤖' }}
           </div>
           <div class="message-content">
             <div class="message-text" v-html="formatMessage(msg.content)"></div>
@@ -46,7 +45,7 @@
         </div>
 
         <div v-if="isTyping" class="message-item assistant">
-          <div class="message-avatar"><AppIcon name="bi-cpu" /></div>
+          <div class="message-avatar">🤖</div>
           <div class="message-content">
             <div class="typing-indicator">
               <span></span>
@@ -72,12 +71,12 @@
           class="input-area"
           placeholder="输入你的问题..."
           rows="1"
-          :disabled="isTyping || conversationLoading"
+          :disabled="isTyping"
           @keydown.enter.prevent="handleEnter"
         ></textarea>
         <button
           class="send-btn"
-          :disabled="!inputMessage.trim() || isTyping || conversationLoading || !!conversationError"
+          :disabled="!inputMessage.trim() || isTyping"
           @click="sendMessage"
         >
           <span v-if="isTyping">...</span>
@@ -111,8 +110,6 @@ const inputMessage = ref('')
 const messages = ref([])
 const isTyping = ref(false)
 const conversationId = ref(null)
-const conversationLoading = ref(false)
-const conversationError = ref('')
 const messagesContainer = ref(null)
 const inputArea = ref(null)
 const chatMode = ref('single')
@@ -124,13 +121,7 @@ const hasReadingGuidance = computed(() => {
 })
 
 const formatMessage = (content) => {
-  const unavailable = new Set([
-    '[WARNING] AI service is not configured. Please set API Key.',
-    'AI service is not configured.',
-  ])
-  const safeContent = unavailable.has(content)
-    ? '当前解题助手暂不可用，请稍后重试。'
-    : String(content || '')
+  const safeContent = String(content || '')
   return sanitizeHtml(safeContent
     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
     .replace(/`(.*?)`/g, '<code>$1</code>')
@@ -156,68 +147,59 @@ const toggleAssistant = () => {
   }
 }
 
-let conversationLoad = 0
 const loadConversation = async () => {
-  const load = ++conversationLoad
-  const challengeId = props.challengeId
-  conversationLoading.value = true
-  conversationError.value = ''
   try {
-    let page = 1
-    for (;;) {
-      const data = await http.get('/ai/conversations/', { params: { page } })
-      if (load !== conversationLoad || challengeId !== props.challengeId) return
-      const conversations = Array.isArray(data) ? data : data.results
-      const relevantConversation = conversations.find((item) => String(item.challenge_id) === String(challengeId))
-      if (relevantConversation) {
-        const detail = await http.get(`/ai/conversations/${relevantConversation.id}/`)
-        if (load !== conversationLoad || challengeId !== props.challengeId) return
-        conversationId.value = relevantConversation.id
-        messages.value = detail.messages.map((message) => ({ ...message, timestamp: message.created_at }))
-        scrollToBottom()
-        return
-      }
-      if (Array.isArray(data) || !data.next) return
-      page += 1
+    const conversations = await http.get('/ai/conversations/')
+    const relevantConversation = conversations.find((item) => item.challenge_id == props.challengeId)
+    if (relevantConversation) {
+      conversationId.value = relevantConversation.id
+      await loadMessages(relevantConversation.id)
     }
   } catch (error) {
-    if (load === conversationLoad && challengeId === props.challengeId) {
-      conversationError.value = '暂时无法读取已有对话，请收起后重新展开再试。'
-    }
     console.error('加载对话失败:', error)
-  } finally {
-    if (load === conversationLoad) conversationLoading.value = false
+  }
+}
+
+const loadMessages = async (convId) => {
+  try {
+    messages.value = await http.get(`/ai/conversations/${convId}/messages/`)
+    scrollToBottom()
+  } catch (error) {
+    console.error('加载消息失败:', error)
   }
 }
 
 const createConversation = async () => {
-  const data = await http.post('/ai/conversations/', { challenge_id: props.challengeId })
-  return data.id
+  try {
+    const data = await http.post('/ai/conversations/', { challenge_id: props.challengeId })
+    conversationId.value = data.id
+  } catch (error) {
+    console.error('创建对话失败:', error)
+  }
 }
 
 const sendMessage = async () => {
   const content = inputMessage.value.trim()
-  if (!content || isTyping.value || conversationLoading.value || conversationError.value) return
+  if (!content || isTyping.value) return
+
+  if (!conversationId.value) {
+    await createConversation()
+  }
+
+  inputMessage.value = ''
+
+  messages.value.push({
+    id: Date.now(),
+    role: 'user',
+    content,
+    timestamp: new Date().toISOString(),
+  })
+  scrollToBottom()
 
   isTyping.value = true
-  const challengeId = props.challengeId
+
   try {
-    if (!conversationId.value) {
-      const id = await createConversation()
-      if (challengeId !== props.challengeId) return
-      conversationId.value = id
-    }
-    if (challengeId !== props.challengeId) return
-    inputMessage.value = ''
-    messages.value.push({
-      id: Date.now(),
-      role: 'user',
-      content,
-      timestamp: new Date().toISOString(),
-    })
-    scrollToBottom()
     const data = await http.post(`/ai/conversations/${conversationId.value}/chat/`, { message: content })
-    if (challengeId !== props.challengeId) return
 
     if (!data) {
       throw new Error('发送失败')
@@ -232,7 +214,6 @@ const sendMessage = async () => {
     scrollToBottom()
   } catch (error) {
     console.error('发送消息失败:', error)
-    if (challengeId !== props.challengeId) return
     messages.value.push({
       id: Date.now() + 1,
       role: 'assistant',
@@ -269,7 +250,6 @@ watch(
   () => {
     conversationId.value = null
     messages.value = []
-    loadConversation()
   },
 )
 
@@ -279,299 +259,296 @@ watch(chatMode, (value) => {
 
 onMounted(() => {
   isOpen.value = true
-  loadConversation()
 })
 </script>
 
 <style scoped>
 .ai-assistant-container {
-  border:var(--stroke) solid var(--line);
-  border-radius:var(--radius-panel);
-  margin-top:var(--space-4);
-  background:var(--surface);
-  overflow:hidden;
-  box-shadow:none;
+  border: 3px solid #1890ff;
+  border-radius: 12px;
+  margin-top: 30px;
+  background: white;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.3);
 }
 
 .ai-header {
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  padding:var(--space-2) var(--space-2);
-  background: var(--surface-muted);
-  border-bottom:calc(var(--stroke) * 2) solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  background: linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%);
+  border-bottom: 2px solid #1890ff;
 }
 
 .ai-title {
-  display:flex;
-  align-items:center;
-  gap:var(--space-1);
-  font-size:var(--text-card);
-  font-weight: var(--weight-strong);
-  color:var(--action);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 18px;
+  font-weight: 700;
+  color: #1890ff;
 }
 
 .ai-icon {
-  font-size:var(--text-section);
+  font-size: 24px;
 }
 
 .ai-toggle-btn {
-  padding:calc(var(--space-1) / 2) var(--space-2);
-  border:var(--stroke) solid var(--line);
-  background:var(--surface);
-  border-radius:var(--radius-control);
-  font-size:var(--text-caption);
-  color:var(--text-primary);
-  cursor:pointer;
-  transition:all var(--motion-normal);
+  padding: 6px 16px;
+  border: 1px solid #d9d9d9;
+  background: white;
+  border-radius: 6px;
+  font-size: 13px;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.3s;
 }
 
 .ai-toggle-btn:hover {
-  border-color:var(--primary-color);
-  color:var(--primary-color);
+  border-color: var(--primary-color);
+  color: var(--primary-color);
 }
 
 .ai-toggle-btn.active {
-  background:var(--primary-color);
-  border-color:var(--primary-color);
-  color:var(--on-action);
+  background: var(--primary-color);
+  border-color: var(--primary-color);
+  color: white;
 }
 
 .ai-body {
-  display:flex;
-  flex-direction:column;
-  height:var(--chart-height);
+  display: flex;
+  flex-direction: column;
+  height: 400px;
 }
 
 .guidance-banner {
-  padding:var(--space-1) var(--space-2);
-  background: var(--surface-muted);
-  border-bottom:var(--stroke) solid var(--line);
+  padding: 12px 16px;
+  background: linear-gradient(135deg, #fff9e6 0%, #fff1b8 100%);
+  border-bottom: 1px solid #ffe58f;
 }
 
 .guidance-banner-title {
-  font-size:var(--text-caption);
-  font-weight: var(--weight-strong);
-  color:var(--ink-secondary);
+  font-size: 12px;
+  font-weight: 700;
+  color: #ad6800;
 }
 
 .guidance-banner-text {
-  margin-top:calc(var(--space-1) / 2);
-  font-size:var(--text-caption);
-  line-height:1.5;
-  color:var(--ink-secondary);
+  margin-top: 4px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #8c6d1f;
 }
 
 .messages-container {
-  flex:1;
-  overflow-y:auto;
-  padding:var(--space-2);
-  display:flex;
-  flex-direction:column;
-  gap:var(--space-1);
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .empty-state {
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  height:100%;
-  color:var(--text-secondary);
-  text-align:center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--text-secondary);
+  text-align: center;
 }
 
 .empty-icon {
-  font-size:var(--text-page);
-  margin-bottom:var(--space-1);
-  opacity:0.6;
+  font-size: 48px;
+  margin-bottom: 12px;
+  opacity: 0.6;
 }
 
 .empty-state p {
-  margin:calc(var(--space-1) / 2) 0;
-  font-size:var(--text-caption);
+  margin: 4px 0;
+  font-size: 14px;
 }
 
 .message-item {
-  display:flex;
-  gap:var(--space-1);
-  animation:slideIn var(--motion-normal) ease;
+  display: flex;
+  gap: 12px;
+  animation: slideIn 0.3s ease;
 }
 
 @keyframes slideIn {
   from {
-    opacity:0;
-    transform:translateY(var(--space-1));
+    opacity: 0;
+    transform: translateY(10px);
   }
 
   to {
-    opacity:1;
-    transform:translateY(0);
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
 .message-item.user {
-  flex-direction:row-reverse;
+  flex-direction: row-reverse;
 }
 
 .message-avatar {
-  width:var(--space-4);
-  height:var(--space-4);
-  border-radius:50%;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:var(--text-card);
-  flex-shrink:0;
-  background:var(--surface);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+  background: #f0f0f0;
 }
 
 .message-item.user .message-avatar {
-  background:var(--primary-color);
+  background: var(--primary-color);
 }
 
 .message-content {
-  max-width:70%;
-  display:flex;
-  flex-direction:column;
-  gap:calc(var(--space-1) / 2);
+  max-width: 70%;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .message-text {
-  padding:var(--space-1) var(--space-2);
-  border-radius:var(--radius-panel);
-  font-size:var(--text-caption);
-  line-height:1.5;
-  word-break:break-word;
-  background:var(--surface);
-  color:var(--text-primary);
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-size: 14px;
+  line-height: 1.5;
+  word-break: break-word;
+  background: #f5f5f5;
+  color: var(--text-primary);
 }
 
 .message-item.user .message-text {
-  background:var(--primary-color);
-  color:var(--on-action);
+  background: var(--primary-color);
+  color: white;
 }
 
 .message-time {
-  font-size:var(--text-caption);
-  color:var(--text-secondary);
+  font-size: 11px;
+  color: var(--text-secondary);
 }
 
 .message-item.user .message-time {
-  text-align:right;
+  text-align: right;
 }
 
 .typing-indicator {
-  display:flex;
-  gap:calc(var(--space-1) / 2);
-  padding:var(--space-1) var(--space-2);
-  background:var(--surface);
-  border-radius:var(--radius-panel);
+  display: flex;
+  gap: 4px;
+  padding: 12px 16px;
+  background: #f5f5f5;
+  border-radius: 12px;
 }
 
 .typing-indicator span {
-  width:var(--space-1);
-  height:var(--space-1);
-  border-radius:50%;
-  background:var(--surface-muted);
-  animation:typing var(--motion-loop) infinite ease-in-out;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ccc;
+  animation: typing 1.4s infinite ease-in-out;
 }
 
 .typing-indicator span:nth-child(2) {
-  animation-delay:var(--motion-normal);
+  animation-delay: 0.2s;
 }
 
 .typing-indicator span:nth-child(3) {
-  animation-delay:var(--motion-normal);
+  animation-delay: 0.4s;
 }
 
 @keyframes typing {
   0%,
   60%,
   100% {
-    transform:translateY(0);
+    transform: translateY(0);
   }
 
   30% {
-    transform:translateY(calc(var(--space-1) * -1));
+    transform: translateY(-10px);
   }
 }
 
 .mode-selector {
-  display:flex;
-  justify-content:center;
-  padding:var(--space-1) var(--space-2) 0;
-  border-top:var(--stroke) solid var(--line);
+  display: flex;
+  justify-content: center;
+  padding: 10px 16px 0;
+  border-top: 1px solid #f0f0f0;
 }
 
 .input-container {
-  display:flex;
-  gap:var(--space-1);
-  padding:var(--space-2);
-  border-top:var(--stroke) solid var(--line);
-  background:var(--surface);
+  display: flex;
+  gap: 8px;
+  padding: 16px;
+  border-top: 1px solid #f0f0f0;
+  background: #fafafa;
 }
 
 .input-area {
-  flex:1;
-  padding:var(--space-1) var(--space-2);
-  border:var(--stroke) solid var(--line);
-  border-radius:var(--radius-control);
-  font-size:var(--text-caption);
-  resize:none;
-  outline-offset:var(--focus-offset);
-  transition:border-color var(--motion-normal);
-  font-family: var(--font-family);
-  min-height:var(--space-5);
-  max-height:var(--tile-height);
+  flex: 1;
+  padding: 10px 14px;
+  border: 1px solid #d9d9d9;
+  border-radius: 8px;
+  font-size: 14px;
+  resize: none;
+  outline: none;
+  transition: border-color 0.3s;
+  font-family: inherit;
+  min-height: 40px;
+  max-height: 120px;
 }
 
 .input-area:focus {
-  border-color:var(--primary-color);
+  border-color: var(--primary-color);
 }
 
 .input-area:disabled {
-  background:var(--surface);
-  cursor:not-allowed;
+  background: #f5f5f5;
+  cursor: not-allowed;
 }
 
 .send-btn {
-  padding:var(--space-1) var(--space-2);
-  background:var(--primary-color);
-  color:var(--on-action);
-  border:none;
-  border-radius:var(--radius-control);
-  font-size:var(--text-caption);
-  font-weight: var(--weight-medium);
-  cursor:pointer;
-  transition:all var(--motion-normal);
-  white-space:nowrap;
+  padding: 10px 20px;
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s;
+  white-space: nowrap;
 }
 
 .send-btn:hover:not(:disabled) {
-  background:var(--action-hover);
+  background: var(--primary-hover);
 }
 
 .send-btn:disabled {
-  color:var(--disabled-ink);
-  background:var(--disabled);
-  cursor:not-allowed;
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
-.message-text:deep(code) {
-  padding:calc(var(--stroke) * 2) calc(var(--space-1) / 2);
-  background:var(--surface-muted);
-  border-radius:var(--radius-control);
-  font-family:'Courier New', monospace;
-  font-size:var(--text-caption);
+.message-text :deep(code) {
+  padding: 2px 6px;
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 4px;
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
 }
 
-.message-item.user .message-text:deep(code) {
-  color:var(--ink);
-  background:var(--surface-muted);
+.message-item.user .message-text :deep(code) {
+  background: rgba(255, 255, 255, 0.2);
 }
 
-.message-text:deep(strong) {
-  font-weight: var(--weight-strong);
+.message-text :deep(strong) {
+  font-weight: 600;
 }
 </style>

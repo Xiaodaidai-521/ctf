@@ -34,13 +34,15 @@ class Chunk:
 
 @dataclass
 class EmbeddedChunk:
-    """A chunk plus its semantic vector and the portable local vector."""
+    """A chunk plus its configured vector and the portable local vector."""
 
     chunk: Chunk
     vector: List[float]
     local_vector: List[float]
     model: str
     dimension: int
+    vector_space: str = ''
+    retrieval_mode: str = 'unknown'
 
 
 @runtime_checkable

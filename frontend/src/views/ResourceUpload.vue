@@ -90,12 +90,12 @@
               type="file"
               @change="handleFileChange"
               accept=".pdf,.doc,.docx,.ppt,.pptx,.txt,.zip,.rar,.7z,.mp4,.avi,.mkv"
-              style="display:none"
+              style="display: none"
               required
             />
             
             <div v-if="!selectedFile" class="upload-prompt">
-              <div class="upload-icon"><AppIcon name="bi-folder2" /></div>
+              <div class="upload-icon">📁</div>
               <p class="upload-text">点击或拖拽文件到此处上传</p>
               <p class="upload-hint">支持 PDF、Word、PPT、ZIP、视频等格式，最大 500MB</p>
               <button type="button" class="btn btn-primary" @click="selectFile">
@@ -104,13 +104,13 @@
             </div>
 
             <div v-else class="file-preview">
-              <div class="file-icon"><AppIcon name="bi-file-text" /></div>
+              <div class="file-icon">📄</div>
               <div class="file-info">
                 <p class="file-name">{{ selectedFile.name }}</p>
                 <p class="file-size">{{ formatFileSize(selectedFile.size) }}</p>
               </div>
-              <button type="button" class="remove-btn" @click="removeFile" aria-label="移除文件">
-                <AppIcon name="bi-x-lg" />
+              <button type="button" class="remove-btn" @click="removeFile">
+                ✕
               </button>
             </div>
           </div>
@@ -124,11 +124,11 @@
               type="file"
               @change="handleCoverChange"
               accept="image/*"
-              style="display:none"
+              style="display: none"
             />
             
             <div v-if="!selectedCover" class="upload-prompt">
-              <div class="upload-icon"><AppIcon name="bi-image" /></div>
+              <div class="upload-icon">🖼️</div>
               <p class="upload-text">点击或拖拽封面图片到此处上传</p>
               <p class="upload-hint">支持 JPG、PNG、GIF 格式，建议尺寸 16:9</p>
               <button type="button" class="btn btn-secondary" @click="selectCover">
@@ -138,8 +138,8 @@
 
             <div v-else class="cover-preview">
               <img :src="coverPreview" alt="封面预览" class="cover-image" />
-              <button type="button" class="remove-btn" @click="removeCover" aria-label="移除封面">
-                <AppIcon name="bi-x-lg" />
+              <button type="button" class="remove-btn" @click="removeCover">
+                ✕
               </button>
             </div>
           </div>
@@ -157,7 +157,7 @@
     </div>
 
     <div v-if="showToast" class="toast" :class="toastType">
-      <span class="toast-icon"><AppIcon :name="toastType === 'success' ? 'bi-check2' : 'bi-x-lg'" /></span>
+      <span class="toast-icon">{{ toastType === 'success' ? '✓' : '✗' }}</span>
       {{ toastMessage }}
     </div>
   </div>
@@ -302,271 +302,271 @@ const goBack = () => router.back()
 
 <style scoped>
 .upload-page {
-  max-width:var(--reading-width);
-  margin:0 auto;
-  padding:var(--space-4) var(--space-3);
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 32px 24px;
 }
 
 .page-header {
-  display:grid;
-  grid-template-columns:auto 1fr auto;
-  align-items:center;
-  gap:var(--space-3);
-  margin-bottom:var(--space-4);
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 24px;
+  margin-bottom: 32px;
 }
 
 .page-title {
-  font-size:var(--text-section);
-  font-weight: var(--weight-strong);
-  text-align:center;
+  font-size: 28px;
+  font-weight: 700;
+  text-align: center;
 }
 
 .upload-container {
-  background:var(--surface);
-  border-radius:var(--radius-md);
-  box-shadow: var(--shadow-raised);
-  overflow:hidden;
+  background: white;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
 }
 
 .upload-form {
-  padding:var(--space-5);
+  padding: 40px;
 }
 
 .form-section {
-  margin-bottom:var(--space-5);
-  padding-bottom:var(--space-5);
-  border-bottom:calc(var(--stroke) * 2) solid var(--line);
+  margin-bottom: 40px;
+  padding-bottom: 40px;
+  border-bottom: 2px solid #f0f0f0;
 }
 
 .form-section:last-of-type {
-  border-bottom:none;
+  border-bottom: none;
 }
 
 .section-title {
-  font-size:var(--text-card);
-  font-weight: var(--weight-strong);
-  margin-bottom:var(--space-3);
-  color:var(--text-primary);
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 24px;
+  color: var(--text-primary);
 }
 
 .form-group {
-  margin-bottom:var(--space-3);
+  margin-bottom: 24px;
 }
 
 .form-label {
-  display:block;
-  font-size:var(--text-caption);
-  font-weight: var(--weight-strong);
-  color:var(--text-primary);
-  margin-bottom:var(--space-1);
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 8px;
 }
 
 .required {
-  color:var(--error-color);
+  color: var(--error-color);
 }
 
 .form-input,
 .form-select,
 .form-textarea {
-  width:100%;
-  padding:var(--space-1) var(--space-2);
-  border:calc(var(--stroke) * 2) solid var(--line);
-  border-radius:var(--radius-sm);
-  font-size:var(--text-caption);
-  transition:all var(--motion-normal);
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid #e8e8e8;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  transition: all 0.3s;
 }
 
 .form-input:focus,
 .form-select:focus,
 .form-textarea:focus {
-  outline-offset:var(--focus-offset);
-  border-color:var(--primary-color);
+  outline: none;
+  border-color: var(--primary-color);
 }
 
 .form-textarea {
-  resize:vertical;
-  min-height:var(--tile-height);
+  resize: vertical;
+  min-height: 120px;
 }
 
 .form-row {
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:var(--space-3);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
 }
 
 .form-hint {
-  margin-top:calc(var(--space-1) / 2);
-  font-size:var(--text-caption);
-  color:var(--text-secondary);
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--text-secondary);
 }
 
 .upload-dropzone {
-  border:calc(var(--stroke) * 2) dashed var(--line);
-  border-radius:var(--radius-md);
-  padding:var(--space-6);
-  text-align:center;
-  transition:all var(--motion-normal);
-  cursor:pointer;
+  border: 2px dashed #d9d9d9;
+  border-radius: var(--radius-md);
+  padding: 48px;
+  text-align: center;
+  transition: all 0.3s;
+  cursor: pointer;
 }
 
 .upload-dropzone:hover,
 .upload-dropzone.dragover {
-  border-color:var(--primary-color);
-  background:var(--action-soft);
+  border-color: var(--primary-color);
+  background: rgba(24, 144, 255, 0.05);
 }
 
 .upload-prompt {
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  gap:var(--space-1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
 }
 
 .upload-icon {
-  font-size:var(--text-page);
+  font-size: 48px;
 }
 
 .upload-text {
-  font-size:var(--text-body);
-  font-weight: var(--weight-strong);
-  color:var(--text-primary);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
 }
 
 .upload-hint {
-  font-size:var(--text-caption);
-  color:var(--text-secondary);
+  font-size: 13px;
+  color: var(--text-secondary);
 }
 
 .file-preview {
-  display:flex;
-  align-items:center;
-  gap:var(--space-2);
-  padding:var(--space-2);
-  background:var(--surface);
-  border-radius:var(--radius-sm);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  background: #fafafa;
+  border-radius: var(--radius-sm);
 }
 
 .file-icon {
-  font-size:var(--text-page);
+  font-size: 32px;
 }
 
 .file-info {
-  flex:1;
-  text-align:left;
+  flex: 1;
+  text-align: left;
 }
 
 .file-name {
-  font-weight: var(--weight-strong);
-  margin-bottom:calc(var(--space-1) / 2);
+  font-weight: 600;
+  margin-bottom: 4px;
 }
 
 .file-size {
-  font-size:var(--text-caption);
-  color:var(--text-secondary);
+  font-size: 12px;
+  color: var(--text-secondary);
 }
 
 .remove-btn {
-  width:var(--space-4);
-  height:var(--space-4);
-  border:none;
-  background:var(--action);
-  color:var(--on-action);
-  border-radius:50%;
-  cursor:pointer;
-  font-size:var(--text-card);
-  display:flex;
-  align-items:center;
-  justify-content:center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: #ff4d4f;
+  color: white;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .remove-btn:hover {
-  background:var(--action);
+  background: #ff7875;
 }
 
 .cover-preview {
-  position:relative;
-  display:inline-block;
-  max-width:100%;
+  position: relative;
+  display: inline-block;
+  max-width: 100%;
 }
 
 .cover-image {
-  max-width:100%;
-  max-height:var(--chart-height);
-  border-radius:var(--radius-sm);
+  max-width: 100%;
+  max-height: 300px;
+  border-radius: var(--radius-sm);
 }
 
 .form-actions {
-  display:flex;
-  gap:var(--space-2);
-  justify-content:flex-end;
+  display: flex;
+  gap: 16px;
+  justify-content: flex-end;
 }
 
 .toast {
-  position:fixed;
-  top:var(--space-3);
-  right:var(--space-3);
-  padding:var(--space-2) var(--space-3);
-  border-radius:var(--radius-sm);
-  box-shadow: var(--shadow-raised);
-  display:flex;
-  align-items:center;
-  gap:var(--space-1);
-  z-index:var(--z-overlay);
-  animation:slideIn var(--motion-normal) ease;
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  padding: 16px 24px;
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-md);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  z-index: 1000;
+  animation: slideIn 0.3s ease;
 }
 
 @keyframes slideIn {
   from {
-    transform:translateX(100%);
-    opacity:0;
+    transform: translateX(100%);
+    opacity: 0;
   }
   to {
-    transform:translateX(0);
-    opacity:1;
+    transform: translateX(0);
+    opacity: 1;
   }
 }
 
 .toast.success {
-  background:var(--positive-soft);
-  color:var(--positive);
-  border:var(--stroke) solid var(--positive);
+  background: #f6ffed;
+  color: #52c41a;
+  border: 1px solid #b7eb8f;
 }
 
 .toast.error {
-  background:var(--negative-soft);
-  color:var(--negative);
-  border:var(--stroke) solid var(--negative);
+  background: #fff1f0;
+  color: #ff4d4f;
+  border: 1px solid #ffccc7;
 }
 
 .toast-icon {
-  font-weight:bold;
-  font-size:var(--text-card);
+  font-weight: bold;
+  font-size: 18px;
 }
 
 @media (max-width: 768px) {
   .page-header {
-    grid-template-columns:1fr;
-    gap:var(--space-2);
+    grid-template-columns: 1fr;
+    gap: 16px;
   }
 
   .page-title {
-    text-align:left;
+    text-align: left;
   }
 
   .upload-form {
-    padding:var(--space-3);
+    padding: 24px;
   }
 
   .form-row {
-    grid-template-columns:1fr;
+    grid-template-columns: 1fr;
   }
 
   .form-actions {
-    flex-direction:column-reverse;
+    flex-direction: column-reverse;
   }
 
   .form-actions .btn {
-    width:100%;
+    width: 100%;
   }
 }
 </style>

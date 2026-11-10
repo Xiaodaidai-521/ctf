@@ -1,7 +1,9 @@
 """Metadata-only log boundary. Attach to output handlers, not just the root logger."""
 import logging
 
-from data_security.contracts import EventKind, ReasonCode
+from data_security.contracts import (BoundedPayload, CanaryCheckPort, EventKind, Limits, MediaType,
+    Outlet, PayloadKind, ProtectionContext, ProtectionError, ReasonCode)
+from data_security.contracts.schema import require
 
 
 class SafeLogFilter(logging.Filter):
@@ -36,12 +38,34 @@ class SafeLogFilter(logging.Filter):
 
 class SafeLogFormatter(logging.Formatter):
     """Also sanitize at formatting time so cached exception text cannot escape."""
+    def __init__(self, *args, canary: CanaryCheckPort | None = None, canary_context=None, limits=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if canary is not None:
+            require(type(canary_context) is ProtectionContext and canary_context.outlet is Outlet.LOG,
+                    ReasonCode.AUTHORIZATION_DENIED)
+            require(type(limits) is Limits, ReasonCode.INVALID_TYPE)
+        self.canary, self.canary_context, self.limits = canary, canary_context, limits
+
     def format(self, record):
         SafeLogFilter().filter(record)
-        return super().format(record)
+        output = super().format(record)
+        if self.canary is not None:
+            # Inspect only the final safe text, never render the discarded record.
+            try:
+                payload = BoundedPayload(schema_version=BoundedPayload.SCHEMA, kind=PayloadKind.TEXT,
+                    media_type=MediaType.TEXT, text=output, tree=None, binary=None, limits=self.limits)
+                alerts = self.canary.check(payload=payload, context=self.canary_context)
+                if type(alerts) is ProtectionError or type(alerts) is not tuple:
+                    return 'LOG_CANARY_CHECK_FAILED'
+                if alerts:
+                    return 'LOG_CANARY_BLOCKED'
+            except Exception:
+                # Do not pass a body-bearing exception to logging.handleError or log recursively.
+                return 'LOG_CANARY_CHECK_FAILED'
+        return output
 
 
-def install_safe_logging():
+def install_safe_logging(*, canary=None, canary_context=None, limits=None):
     handlers = set(logging.getLogger().handlers)
     for logger in logging.Logger.manager.loggerDict.values():
         if isinstance(logger, logging.Logger):
@@ -52,4 +76,5 @@ def install_safe_logging():
         handlers.add(handler)
     for handler in handlers:
         handler.addFilter(SafeLogFilter())
-        handler.setFormatter(SafeLogFormatter('%(levelname)s %(message)s'))
+        handler.setFormatter(SafeLogFormatter('%(levelname)s %(message)s', canary=canary,
+            canary_context=canary_context, limits=limits))

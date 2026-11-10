@@ -15,11 +15,11 @@ export default defineConfig({
     strictPort: true,
     proxy: {
       '/api': {
-        target: process.env.VITE_BACKEND_URL || 'http://127.0.0.1:8000',
+        target: 'http://127.0.0.1:8000',
         changeOrigin: true,
       },
       '/media': {
-        target: process.env.VITE_BACKEND_URL || 'http://127.0.0.1:8000',
+        target: 'http://127.0.0.1:8000',
         changeOrigin: true,
       },
     },

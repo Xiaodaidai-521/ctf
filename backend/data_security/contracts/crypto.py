@@ -3,7 +3,10 @@ from typing import ClassVar
 from uuid import UUID
 
 from .enums import Environment, KeyPurpose, KeyStatus, ReasonCode
-from .schema import DTO, MAX_BYTES, reference, require
+from .schema import DTO, MAX_BYTES, MAX_CRYPTO_FRAME_BYTES, reference, require
+
+
+BINARY_CIPHER_FORMAT = 'aes-256-gcm-hkdf-sha256.binary.v1'
 
 
 @dataclass(frozen=True, slots=True, kw_only=True, repr=False)
@@ -86,7 +89,9 @@ class CipherEnvelope(DTO):
 
     def __post_init__(self):
         DTO.__post_init__(self)
-        require(self.format_version == 'aes-256-gcm-hkdf-sha256.v1', ReasonCode.UNKNOWN_SCHEMA)
+        require(self.format_version in ('aes-256-gcm-hkdf-sha256.v1', BINARY_CIPHER_FORMAT),
+                ReasonCode.UNKNOWN_SCHEMA)
         require(self.key.purpose is KeyPurpose.DATA)
         require(len(self.kdf_salt) == 16 and len(self.nonce) == 12, ReasonCode.CIPHERTEXT_INVALID)
-        require(16 <= len(self.ciphertext_and_tag) <= MAX_BYTES + 16, ReasonCode.CIPHERTEXT_INVALID)
+        maximum = MAX_CRYPTO_FRAME_BYTES if self.format_version == BINARY_CIPHER_FORMAT else MAX_BYTES
+        require(16 <= len(self.ciphertext_and_tag) <= maximum + 16, ReasonCode.CIPHERTEXT_INVALID)

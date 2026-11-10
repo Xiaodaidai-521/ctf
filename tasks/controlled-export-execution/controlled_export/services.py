@@ -5,10 +5,13 @@ import uuid
 from datetime import timedelta
 from dataclasses import replace
 
-from data_security.contracts import BASELINE_LIMITS
+from data_security.contracts import (
+    BASELINE_LIMITS, BoundedPayload, ContractViolation, Environment, Limits, MediaType,
+    ObjectContext, PayloadKind, ProtectionError, StoredObject,
+)
 
 from django.conf import settings
-from django.db import IntegrityError, transaction
+from django.db import IntegrityError, connection, transaction
 from django.utils import timezone
 
 from .authorization import (
@@ -148,27 +151,27 @@ def _claim_execution(execution):
     return attempt
 
 
-def _fail_execution(execution_id, attempt_id, fencing_token, error_code):
+def _fail_execution(execution_id, attempt_id, fencing_token, error_code, *, uncertain=False):
     with transaction.atomic():
         execution = ExportExecution.objects.select_for_update().get(pk=execution_id)
         if execution.active_attempt_id != attempt_id or execution.fencing_token != fencing_token:
             return
         if execution.state not in {"running", "queued"}:
             return
-        now = timezone.now()
+        now = None if uncertain else timezone.now()
         attempt = ExecutionAttempt.objects.select_for_update().get(pk=attempt_id)
-        attempt.status = "failed"
+        attempt.status = "unknown" if uncertain else "failed"
         attempt.error_code = error_code
         attempt.completed_at = now
         attempt.save(update_fields=["status", "error_code", "completed_at"])
-        execution.state = "failed"
+        execution.state = "repair_required" if uncertain else "failed"
         execution.error_code = error_code
         execution.completed_at = now
         execution.save(update_fields=["state", "error_code", "completed_at", "updated_at"])
         _outbox(
             "execution",
             execution.execution_id,
-            "execution.failed",
+            "execution.preparation_unknown" if uncertain else "execution.failed",
             {
                 "execution_id": str(execution.execution_id),
                 "attempt_id": str(attempt.attempt_id),
@@ -178,9 +181,28 @@ def _fail_execution(execution_id, attempt_id, fencing_token, error_code):
         )
 
 
-def execute_authorized_export(*, authorization, signature, plan, filename, content, idempotency_key, caller_id):
+def execute_authorized_export(
+    *, authorization, signature, plan, filename, content, idempotency_key, caller_id,
+    prepare_private=None, private_project_ref=None, private_limits: Limits | None = None,
+):
+    if prepare_private is None and (
+        settings.CONTROLLED_EXPORT_PRIVATE_MODE or settings.CONTROLLED_EXPORT_PRIVATE_PREPARATION is not None
+    ):
+        raise AuthorizationRejected("Private preparation is required", code="PRIVATE_PREPARATION_REQUIRED")
     validated = validate_authorization(authorization, signature)
     payload = validated.payload
+    if prepare_private is not None:
+        if payload["environment"] != "evaluation":
+            raise AuthorizationRejected("Private preparation is not enabled for this environment",
+                                        code="PRIVATE_PREPARATION_ENVIRONMENT")
+        if connection.in_atomic_block or not connection.get_autocommit():
+            raise ExecutionConflict("Private preparation requires an outer autocommit boundary")
+        if not isinstance(private_limits, Limits):
+            raise ContractError("Private preparation requires explicit limits", code="PRIVATE_LIMITS_REQUIRED")
+        if (private_limits.max_bytes > settings.CONTROLLED_EXPORT_MAX_INPUT_BYTES
+                or private_limits.max_rows > settings.CONTROLLED_EXPORT_MAX_ROWS
+                or private_limits.max_columns > settings.CONTROLLED_EXPORT_MAX_COLUMNS):
+            raise ContractError("Private limits exceed the executor limits", code="PRIVATE_LIMITS_EXCEEDED")
     actual_input_hash = sha256_bytes(content)
     if not hmac.compare_digest(actual_input_hash, payload["input_content_hash"]):
         raise AuthorizationRejected("Input bytes do not match the authorization", code="INPUT_HASH_MISMATCH")
@@ -202,9 +224,11 @@ def execute_authorized_export(*, authorization, signature, plan, filename, conte
             environment=payload["environment"],
             data_domain=payload["data_domain"],
             caller_id=caller_id,
-            operation="execute_authorized_export",
+            operation="prepare_private_export" if prepare_private is not None else "execute_authorized_export",
             key=idempotency_key,
-            fingerprint=request_fingerprint,
+            fingerprint=digest_json({"request": request_fingerprint, "project_ref": private_project_ref,
+                                     "limits": private_limits.to_wire()})
+                if prepare_private is not None else request_fingerprint,
         )
         if not created:
             if not idem.result_id:
@@ -241,16 +265,61 @@ def execute_authorized_export(*, authorization, signature, plan, filename, conte
         idem.result_id = str(execution.execution_id)
         idem.save(update_fields=["result_type", "result_id"])
         attempt = _claim_execution(execution)
+        if prepare_private is not None:
+            if timezone.now() >= execution.valid_until:
+                raise AuthorizationRejected("Execution authorization expired while claiming", code="AUTHORIZATION_EXPIRED")
+            context = ObjectContext(schema_version=ObjectContext.SCHEMA,
+                project_ref=private_project_ref, environment=Environment.EVALUATION,
+                object_uuid=str(attempt.attempt_id), object_version="1", field_ref="controlled-export/output",
+                authorization_ref="execution/" + str(execution.execution_id))
+            # Commit a stable object identity before any encrypted file can be written.
+            attempt.private_candidate = {"schema_version": "controlled-export.private-candidate.v1",
+                                         "context": context.to_wire()}
+            attempt.save(update_fields=["private_candidate"])
 
-    storage = PrivateStorage()
+    storage = PrivateStorage() if prepare_private is None else None
     finalized_reference = None
     try:
-        limits = replace(BASELINE_LIMITS, max_bytes=settings.CONTROLLED_EXPORT_MAX_INPUT_BYTES,
-                         max_rows=settings.CONTROLLED_EXPORT_MAX_ROWS,
-                         max_columns=settings.CONTROLLED_EXPORT_MAX_COLUMNS)
+        limits = private_limits if prepare_private is not None else replace(
+            BASELINE_LIMITS, max_bytes=settings.CONTROLLED_EXPORT_MAX_INPUT_BYTES,
+            max_rows=settings.CONTROLLED_EXPORT_MAX_ROWS, max_columns=settings.CONTROLLED_EXPORT_MAX_COLUMNS)
         result = transform(content, filename, plan, payload["effective_action"], limits=limits)
         if not hmac.compare_digest(result.scope_hash, payload["scope_hash"]):
             raise AuthorizationRejected("Plan scope does not match the authorization", code="SCOPE_HASH_MISMATCH")
+        if prepare_private is not None:
+            bounded = BoundedPayload(schema_version=BoundedPayload.SCHEMA, kind=PayloadKind.BINARY,
+                media_type=MediaType.BINARY, text=None, tree=None, binary=result.content, limits=limits)
+            stored = prepare_private(bounded, context)
+            if isinstance(stored, ProtectionError):
+                raise ControlledExportError("Private preparation did not confirm a candidate", code=stored.code.value)
+            if stored.state != "verified" or stored.version != context.object_version:
+                raise ArtifactIntegrityError("Private preparation did not return a verified candidate")
+            with transaction.atomic():
+                current = ExportExecution.objects.select_for_update().get(pk=execution.pk)
+                current_attempt = ExecutionAttempt.objects.select_for_update().get(pk=attempt.pk)
+                now = timezone.now()
+                if (
+                    current.state != "running"
+                    or current.active_attempt_id != attempt.attempt_id
+                    or current.fencing_token != attempt.fencing_token
+                    or current_attempt.status != "running"
+                    or now >= current.valid_until
+                    or now >= current_attempt.lease_expires_at
+                ):
+                    raise ExecutionConflict("An expired or stale worker cannot register private preparation")
+                current_attempt.private_candidate = {
+                    **attempt.private_candidate, "stored": stored.to_wire(),
+                    "output_content_hash": result.output_hash, "output_format": result.output_format,
+                    "scope_hash": result.scope_hash, "plan_hash": result.plan_hash,
+                    "processed_record_count": result.processed_records, "output_record_count": result.output_records,
+                }
+                current_attempt.status = "prepared"
+                current_attempt.completed_at = now
+                current_attempt.save(update_fields=["private_candidate", "status", "completed_at"])
+                current.state = "prepared"
+                current.save(update_fields=["state", "updated_at"])
+            # No artifact, success receipt, publication, quota settlement or share is created here.
+            return execution_receipt(current), False
         candidate = storage.write_candidate(
             str(execution.execution_id), str(attempt.attempt_id), result.suffix, result.content
         )
@@ -322,9 +391,61 @@ def execute_authorized_export(*, authorization, signature, plan, filename, conte
         current.refresh_from_db()
         return execution_receipt(current), False
     except Exception as exc:
-        error_code = getattr(exc, "code", "EXECUTION_FAILED")
-        _fail_execution(execution.execution_id, attempt.attempt_id, attempt.fencing_token, error_code)
+        error_code = exc.code.value if isinstance(exc, ContractViolation) else getattr(
+            exc, "code", "PREPARATION_UNKNOWN" if prepare_private is not None else "EXECUTION_FAILED")
+        _fail_execution(execution.execution_id, attempt.attempt_id, attempt.fencing_token, error_code,
+                        uncertain=prepare_private is not None)
         raise
+
+
+def inspect_private_preparation(*, execution, attempt, private_project_ref):
+    """Original retained intent only; no current caller grant, reconciliation or state change."""
+    if attempt.execution_id != execution.execution_id or execution.environment != "evaluation":
+        raise ArtifactIntegrityError("Private preparation belongs to another execution")
+    intent = attempt.private_candidate
+    if intent.get("schema_version") != "controlled-export.private-candidate.v1":
+        raise ArtifactIntegrityError("Private preparation intent is unavailable")
+    context = ObjectContext(schema_version=ObjectContext.SCHEMA,
+        project_ref=private_project_ref, environment=Environment.EVALUATION,
+        object_uuid=str(attempt.attempt_id), object_version="1", field_ref="controlled-export/output",
+        authorization_ref="execution/" + str(execution.execution_id))
+    if intent.get("context") != context.to_wire():
+        raise ArtifactIntegrityError("Private preparation intent does not match its execution")
+    return context
+
+
+def observe_private_preparation(*, execution_id, caller_id, private_project_ref, read_prepared=None):
+    """Observe the original caller's preparation; never turn it into delivery authority."""
+    if settings.CONTROLLED_EXPORT_ENVIRONMENT != "evaluation":
+        raise AuthorizationRejected("Private preparation is not enabled for this environment",
+                                    code="PRIVATE_PREPARATION_ENVIRONMENT")
+    if connection.in_atomic_block or not connection.get_autocommit():
+        raise ExecutionConflict("Preparation observation requires an outer autocommit boundary")
+    with transaction.atomic():
+        execution = ExportExecution.objects.get(pk=execution_id, environment="evaluation")
+        if not IdempotencyRecord.objects.filter(
+            environment=execution.environment, data_domain=execution.data_domain, caller_id=caller_id,
+            operation="prepare_private_export", result_type="ExportExecution", result_id=str(execution.execution_id),
+        ).exists():
+            raise ExportExecution.DoesNotExist
+        attempt = execution.attempts.get(pk=execution.active_attempt_id)
+        intent = attempt.private_candidate
+        context = inspect_private_preparation(execution=execution, attempt=attempt, private_project_ref=private_project_ref)
+        receipt = execution_receipt(execution)
+        receipt["preparation_status"] = attempt.status
+        receipt["candidate_verified"] = False
+    if read_prepared is not None:
+        # A missing/ambiguous object is unknown, not proof of zero effects. M6 fully authenticates it.
+        stored = read_prepared(context)
+        if isinstance(stored, ProtectionError):
+            raise ControlledExportError("Private preparation could not be confirmed", code=stored.code.value)
+        if stored.state != "verified" or stored.version != context.object_version:
+            raise ArtifactIntegrityError("Private preparation is not a verified candidate")
+        if "stored" in intent and stored != StoredObject.from_wire(intent["stored"]):
+            raise ArtifactIntegrityError("Private preparation reference changed")
+        receipt["candidate_verified"] = True
+    # Even positive observation leaves running/unknown/prepared rows, files and obligations unchanged.
+    return receipt
 
 
 def _token_digest(token):

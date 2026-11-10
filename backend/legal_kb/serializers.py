@@ -1,6 +1,7 @@
 """Serializers for legal knowledge-base APIs."""
 
 from rest_framework import serializers
+from rag_ingestion.serializers import ProtectedRagSerializer
 
 from .models import (
     KbIngestionJob,
@@ -14,8 +15,9 @@ from .models import (
 from .services.hashing import sha256_text
 
 
-class LegalDocumentSerializer(serializers.ModelSerializer):
+class LegalDocumentSerializer(ProtectedRagSerializer):
     """Serializer for legal documents."""
+    rag_text_fields = ('full_text',)
 
     clause_count = serializers.IntegerField(source='clauses.count', read_only=True)
 
@@ -61,8 +63,9 @@ class LegalDocumentSerializer(serializers.ModelSerializer):
         return attrs
 
 
-class LegalClauseSerializer(serializers.ModelSerializer):
+class LegalClauseSerializer(ProtectedRagSerializer):
     """Serializer for legal clauses."""
+    rag_text_fields = ('text',)
 
     document_title = serializers.CharField(source='document.title', read_only=True)
 
@@ -93,8 +96,9 @@ class LegalClauseSerializer(serializers.ModelSerializer):
         return attrs
 
 
-class LegalCaseSerializer(serializers.ModelSerializer):
+class LegalCaseSerializer(ProtectedRagSerializer):
     """Serializer for legal cases."""
+    rag_text_fields = ('summary', 'facts', 'decision')
 
     class Meta:
         model = LegalCase
@@ -126,8 +130,9 @@ class LegalCaseSerializer(serializers.ModelSerializer):
         return attrs
 
 
-class LegalTemplateSerializer(serializers.ModelSerializer):
+class LegalTemplateSerializer(ProtectedRagSerializer):
     """Serializer for legal templates."""
+    rag_text_fields = ('content',)
 
     class Meta:
         model = LegalTemplate
@@ -145,8 +150,9 @@ class LegalTemplateSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'created_at', 'updated_at']
 
 
-class LegalKnowledgeEmbeddingSerializer(serializers.ModelSerializer):
+class LegalKnowledgeEmbeddingSerializer(ProtectedRagSerializer):
     """Serializer for embedding chunks."""
+    rag_text_fields = ('text',)
 
     class Meta:
         model = LegalKnowledgeEmbedding
@@ -168,8 +174,9 @@ class LegalKnowledgeEmbeddingSerializer(serializers.ModelSerializer):
         read_only_fields = fields
 
 
-class KbIngestionJobSerializer(serializers.ModelSerializer):
+class KbIngestionJobSerializer(ProtectedRagSerializer):
     """Serializer for KB ingestion jobs."""
+    rag_text_fields = ('error_message',)
 
     document_title = serializers.CharField(source='document.title', read_only=True)
 
@@ -194,13 +201,9 @@ class KbIngestionJobSerializer(serializers.ModelSerializer):
         read_only_fields = fields
 
 
-class LegalRetrievalLogSerializer(serializers.ModelSerializer):
+class LegalRetrievalLogSerializer(ProtectedRagSerializer):
     """Serializer for retrieval logs."""
-
-    def to_representation(self, instance):
-        data = super().to_representation(instance)
-        data.update(query='[query omitted: material privacy]', filters={}, results=[])
-        return data
+    rag_text_fields = ('query',)
 
     class Meta:
         model = LegalRetrievalLog

@@ -21,22 +21,20 @@
           <button
             class="action-btn"
             :class="{ active: comment.is_liked }"
-            :aria-label="comment.is_liked ? '取消点赞' : '点赞'"
-            :aria-pressed="Boolean(comment.is_liked)"
             @click="handleLike"
           >
-            <span><AppIcon :name="comment.is_liked ? 'bi-heart-fill' : 'bi-heart'" /></span>
+            <span>{{ comment.is_liked ? '❤️' : '🤍' }}</span>
             {{ comment.like_count }}
           </button>
           <button class="action-btn" @click="handleReply">
-            <AppIcon name="bi-chat-dots" /> 回复
+            💬 回复
           </button>
           <button
             v-if="canDelete"
             class="action-btn delete-btn"
             @click="handleDelete"
           >
-            <AppIcon name="bi-trash" /> 删除
+            🗑️ 删除
           </button>
         </div>
       </div>
@@ -169,177 +167,177 @@ const formatTime = (dateStr) => {
 
 <style scoped>
 .comment-item {
-  padding:var(--space-2) 0;
-  border-bottom:var(--stroke) solid var(--line);
+  padding: 20px 0;
+  border-bottom: 1px solid #f0f0f0;
 }
 
 .comment-item:last-child {
-  border-bottom:none;
+  border-bottom: none;
 }
 
 .comment-content {
-  display:flex;
-  gap:var(--space-1);
+  display: flex;
+  gap: 12px;
 }
 
 .comment-avatar {
-  width:var(--space-4);
-  height:var(--space-4);
-  border-radius:50%;
-  background: var(--surface-muted);
-  color:var(--ink);
-  font-size:var(--text-caption);
-  font-weight:bold;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  flex-shrink:0;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  font-size: 14px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
 .comment-body {
-  flex:1;
-  min-width:0;
+  flex: 1;
+  min-width: 0;
 }
 
 .comment-header {
-  display:flex;
-  align-items:center;
-  gap:var(--space-1);
-  margin-bottom:var(--space-1);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
 }
 
 .author-name {
-  font-size:var(--text-caption);
-  font-weight: var(--weight-strong);
-  color:var(--text-primary);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
 }
 
 .comment-time {
-  font-size:var(--text-caption);
-  color:var(--text-secondary);
+  font-size: 12px;
+  color: var(--text-secondary);
 }
 
 .reply-to {
-  margin-bottom:var(--space-1);
-  padding:var(--space-1) var(--space-1);
-  background:var(--surface);
-  border-radius:var(--radius-control);
-  font-size:var(--text-caption);
-  color:var(--text-secondary);
+  margin-bottom: 8px;
+  padding: 8px 12px;
+  background: #f5f5f5;
+  border-radius: 6px;
+  font-size: 13px;
+  color: var(--text-secondary);
 }
 
 .reply-label {
-  color:var(--primary-color);
-  font-weight: var(--weight-medium);
+  color: var(--primary-color);
+  font-weight: 500;
 }
 
 .reply-author {
-  font-weight: var(--weight-medium);
+  font-weight: 500;
 }
 
 .comment-text {
-  font-size:var(--text-caption);
-  line-height:1.6;
-  color:var(--text-primary);
-  margin-bottom:var(--space-1);
-  white-space:pre-wrap;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-primary);
+  margin-bottom: 12px;
+  white-space: pre-wrap;
 }
 
 .comment-actions {
-  display:flex;
-  gap:var(--space-2);
+  display: flex;
+  gap: 16px;
 }
 
 .action-btn {
-  padding:calc(var(--space-1) / 2) var(--space-1);
-  border:none;
-  background:none;
-  cursor:pointer;
-  font-size:var(--text-caption);
-  color:var(--text-secondary);
-  display:flex;
-  align-items:center;
-  gap:calc(var(--space-1) / 2);
-  transition:all var(--motion-normal);
+  padding: 4px 12px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.3s;
 }
 
 .action-btn:hover {
-  color:var(--primary-color);
+  color: var(--primary-color);
 }
 
 .action-btn.active {
-  color:var(--ink-muted);
+  color: #ff4d4f;
 }
 
 .action-btn.delete-btn:hover {
-  color:var(--ink-muted);
+  color: #ff4d4f;
 }
 
 .replies-list {
-  margin-top:var(--space-2);
-  padding-left:var(--space-6);
-  border-left:calc(var(--stroke) * 2) solid var(--line);
+  margin-top: 16px;
+  padding-left: 48px;
+  border-left: 2px solid #f0f0f0;
 }
 
 .reply-input-box {
-  margin-top:var(--space-2);
-  padding:var(--space-2);
-  background:var(--surface);
-  border-radius:var(--radius-control);
+  margin-top: 16px;
+  padding: 16px;
+  background: #f9f9f9;
+  border-radius: 6px;
 }
 
 .reply-textarea {
-  width:100%;
-  padding:var(--space-1);
-  border:var(--stroke) solid var(--line);
-  border-radius:var(--radius-control);
-  font-size:var(--text-caption);
-  resize:vertical;
-  min-height:var(--space-10);
-  margin-bottom:var(--space-1);
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #e8e8e8;
+  border-radius: 4px;
+  font-size: 13px;
+  resize: vertical;
+  min-height: 80px;
+  margin-bottom: 10px;
 }
 
 .reply-textarea:focus {
-  outline-offset:var(--focus-offset);
-  border-color:var(--primary-color);
+  outline: none;
+  border-color: var(--primary-color);
 }
 
 .reply-actions {
-  display:flex;
-  justify-content:flex-end;
-  gap:var(--space-1);
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
 }
 
 .cancel-btn,
 .submit-btn {
-  padding:calc(var(--space-1) / 2) var(--space-2);
-  border:none;
-  border-radius:var(--radius-control);
-  cursor:pointer;
-  font-size:var(--text-caption);
-  transition:all var(--motion-normal);
+  padding: 6px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.3s;
 }
 
 .cancel-btn {
-  background:var(--surface);
-  border:var(--stroke) solid var(--line);
+  background: white;
+  border: 1px solid #d9d9d9;
 }
 
 .cancel-btn:hover {
-  background:var(--surface);
+  background: #f5f5f5;
 }
 
 .submit-btn {
-  background:var(--primary-color);
-  color:var(--on-action);
+  background: var(--primary-color);
+  color: white;
 }
 
 .submit-btn:hover:not(:disabled) {
-  opacity:0.9;
+  opacity: 0.9;
 }
 
 .submit-btn:disabled {
-  opacity:0.6;
-  cursor:not-allowed;
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 </style>

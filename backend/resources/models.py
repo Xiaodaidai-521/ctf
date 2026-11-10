@@ -27,6 +27,7 @@ class Resource(models.Model):
     )
     file = models.FileField(upload_to='resources/', verbose_name='资源文件')
     file_size = models.IntegerField(default=0, verbose_name='文件大小(字节)')
+    private_files = models.JSONField(default=dict, blank=True, editable=False)
     cover_image = models.ImageField(
         upload_to='resource_covers/',
         blank=True,
@@ -88,12 +89,38 @@ class Resource(models.Model):
         self.save(update_fields=['download_count'])
 
 
+class ExportSource(models.Model):
+    """Immutable isolated original/request/plan registration; approval is explicit."""
+    source_ref = models.CharField(max_length=160, unique=True)
+    resource = models.ForeignKey(Resource, on_delete=models.PROTECT)
+    document = models.JSONField()
+    document_hash = models.CharField(max_length=64)
+    expires_at = models.DateTimeField()
+    approval = models.JSONField(null=True)
+    plan_document = models.JSONField(null=True)
+    revoked_at = models.DateTimeField(null=True)
+    execution_document = models.JSONField(null=True)
+    target_approval_ref = models.CharField(max_length=160, blank=True)
+
+
+class ExportSourcePermission(models.Model):
+    """Current per-request source use, separate from target and risk permission."""
+    authorization_ref = models.CharField(max_length=160, unique=True)
+    source = models.ForeignKey(ExportSource, on_delete=models.PROTECT)
+    actor_ref = models.CharField(max_length=160)
+    source_hash = models.CharField(max_length=64)
+    granted_by = models.CharField(max_length=160)
+    expires_at = models.DateTimeField()
+    revoked_at = models.DateTimeField(null=True)
+
+
 class ResourceCache(models.Model):
     """Cache ResourceAgent output by student and normalized knowledge point."""
 
     studentId = models.PositiveIntegerField(db_index=True)
     knowledgePoint = models.CharField(max_length=160, db_index=True)
     resourceList = models.JSONField(default=list, blank=True)
+    canary_payload = models.JSONField(default=dict, blank=True, editable=False)
     studentLevel = models.CharField(max_length=40, blank=True)
     cacheHitCount = models.PositiveIntegerField(default=0)
     createdTime = models.DateTimeField(auto_now_add=True)

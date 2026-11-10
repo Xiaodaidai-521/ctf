@@ -4,9 +4,7 @@ from dataclasses import dataclass, field
 from typing import Dict, Optional
 from uuid import UUID
 
-from .chunking import StructureAwareChunker
 from .cleaning import clean_text
-from .registry import select_parser
 
 
 class UnsupportedFormatError(ValueError):
@@ -28,27 +26,9 @@ class IngestionOutcome:
 class IngestionPipeline:
     """loader(given bytes) -> parse -> clean -> chunk -> embed -> store."""
 
-    def __init__(self, *, chunker=None, embedder=None, repository=None, parser_selector=None):
-        self.chunker = chunker or StructureAwareChunker()
-        self._embedder = embedder
-        self._repository = repository
-        self.parser_selector = parser_selector or select_parser
-
-    @property
-    def embedder(self):
-        if self._embedder is None:
-            from .adapters.embedder_legalkb import LegalKbEmbedder
-
-            self._embedder = LegalKbEmbedder()
-        return self._embedder
-
-    @property
-    def repository(self):
-        if self._repository is None:
-            from .adapters.repository_legalkb import LegalKbChunkRepository
-
-            self._repository = LegalKbChunkRepository()
-        return self._repository
+    def __init__(self, *, chunker, embedder, repository, parser_selector, protect):
+        self.chunker, self.embedder, self.repository = chunker, embedder, repository
+        self.parser_selector, self.protect = parser_selector, protect
 
     def run(
         self,
@@ -64,24 +44,26 @@ class IngestionPipeline:
     ) -> IngestionOutcome:
         parser = self.parser_selector(filename, mime)
         if parser is None:
-            raise UnsupportedFormatError(f'No parser available for: {filename} ({mime})')
+            raise UnsupportedFormatError('RAG_FORMAT_UNSUPPORTED')
 
         parsed = parser.parse(data, filename=filename, mime=mime)
         text = clean_text(parsed.text)
         if not text.strip():
-            raise EmptyDocumentError(f'No extractable text in: {filename}')
+            raise EmptyDocumentError('RAG_TEXT_EMPTY')
 
         metadata = {
+            **(parsed.metadata or {}),
+            **(base_metadata or {}),
             'source_type': source_type,
             'document_id': document_id,
             'filename': filename,
             'parser': parser.name,
             'title': title or filename,
         }
-        metadata.update(parsed.metadata or {})
-        if base_metadata:
-            metadata.update(base_metadata)
-
+        protected = self.protect({'text': text, 'metadata': metadata},
+            object_ref=f'rag/document-{document_id}',
+            object_version=str(ingestion_token) if ingestion_token is not None else 'unversioned', outlet='rag')
+        text, metadata = protected['text'], protected['metadata']
         chunks = self.chunker.split(text, metadata={})
         embedded = self.embedder.embed(chunks)
         # Keep legacy/custom repositories compatible for unversioned direct runs.

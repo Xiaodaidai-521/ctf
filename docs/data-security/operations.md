@@ -172,7 +172,7 @@ KeyReference仍为M0 `schema_version/key_ref/purpose/version/status`。清单sch
 
 响应上限1MiB，stream先收完有界结果再整体保护，然后切块；无法完整取得／保护时不交付部分原文。CTF答案和内部提示词规则在DTO之后由B注入业务回调，未移入M7。三类Detect不扩展；显式凭据字段、实际认证值和旧规则已命中内容另行保护，不宣称可自动识别任意凭据文本。
 
-embedding配置仅空值选择既有确定性本地开发向量（非模型）；qwen/volcano及旧别名dashscope/ark经受控handle，未知厂商或缺handle直接失败，不静默回本地。教学HTTP／SSE异常返回固定MODEL_CALL_FAILED，不返回原始异常。旧 `mainline1.semantic.LangChainSemanticAdapter` 源码仍保留，但默认backend为空、未接B或启用；它不计为已迁移的正式出口，不能手工接入裸SDK绕过本边界。
+embedding配置仅空值选择既有确定性本地开发向量（非模型）；qwen/volcano及旧别名dashscope/ark经受控handle，未知厂商或缺handle直接失败，不静默回本地。教学HTTP／SSE异常返回固定MODEL_CALL_FAILED，不返回原始异常。旧 `mainline1.semantic.LangChainSemanticAdapter` 的裸SDK实现已移除，仅保留构造即报 `SEMANTIC_BACKEND_DISABLED` 的兼容名称；默认backend为空、未接B或启用。该拒绝入口不计为已迁移的正式出口，未来启用仍须批准并接M7。
 
 正式日志丢弃message/args/exception/extra原文，只留固定原因码、类型和计数；Nginx关闭含URI的access log及原始请求错误文本，应用保留受控原因码。AuditGateway唯一入口，DjangoAuditSink私有writer不回调Gateway。SecurityAuditRecord按event_id去重；durable只代表本地持久化，ledger-confirmed才有旧v1条目字段。旧链仍无密钥哈希链，不称新链认证、checkpoint或防管理员改写。Risk/Quota交付未启用。
 
@@ -273,3 +273,216 @@ ParsedArtifact新发布仅接受`ds.parsed-artifact.v1`治理路径。M0 JSON上
 停止新M8使用即可独立回退本期入口；保留已治理私有格式及原源版本，不重写成旧raw payload、不恢复不安全列计划、不创建公开下载。`phase5_rollback`禁止新M8模块导入后运行既有正式保护失败关闭探针，证明三期模型/日志/字段门与框架认证不因停表格而失效；四期sealed格式恢复及逆schema拒绝继续在累计套件中验证。第2期断接B探针仍仅保留历史诊断，不作当前应成功的回退。
 
 本期未生成正式交付、未结算配额、未迁移媒体，unknown交付和密钥版本没有可自动回滚状态；这些能力保持关闭。验收口径应为「适配已验收，交付尚未开放」，其中“已验收”须等待独立验收写入R，不由实现者提前宣告。第6期仍需独立亲验通过后的新授权。
+
+## 10. 第6期：短事务、对账与恢复前提（实施中）
+
+用户于2026-11-06批准六期开工；生产来源／契约未获批准，交付仍未开放。测试仅使用专用隔离PostgreSQL合成数据。`DjangoQuotaPort(environment=..., window_key=..., limit=..., ttl_seconds=...)`显式注入配置，不读取HTTP或环境变量；M6 `active_until`仅供风险检查使用。RiskPort已实现请求范围适配、消费注入的active_until；ExportFlow及B正式装配尚未完成，不能把局部测试接线当生产启用。
+
+- 准备／大文件／外部调用不持交付事务锁。ExportFlow.commit负责提交段：先锁报告、再风险决策和授权、额度绑定与原域锁、私有对象和审计；锁等待后重新取时，不以早先MAC替代当前期限。RiskPort.consume须处于外层UoW，内部复核当前授权及hold后消费原授权；不重新claim或写额度。UoW中任何ProtectionError都停止并保持未commit，commit标记后异常也必须回滚。
+- 风险`decide`在预占前调用原域资格检查，锁后取当前时间并检查最新授权／审批；不创建hold或执行授权。拒绝决策可留存审计，但不得继续预占。后续issue与consume仍须重新检查，不能把准入引用当通行证。
+- 风险共享契约入口为`data_security.tests.test_phase6_risk_contract`与`export_risk.tests.test_phase6_contract`，原样继承19项。后者使用普通manage.py和专用PG、TransactionTestCase及真实DjangoUnitOfWork，不能用TestCase隐含外层事务掩盖autocommit拒绝。两侧分别使用有状态内存额度／正式额度端口，不设置第二个reserve；PG仍由原风险／额度writer写表。测试内存work只标记作用域，不可用于B／真实事务或恢复；当前许可和研判为显式合成owner，不是业务授权签发或生产批准。
+- 未知交付保持unknown和全额额度，保存回执、候选和幂等绑定。不能在finally、超时处理、进程恢复或清理任务中无条件release；不能因文件ready／HTTP开始发送宣称已收全。
+- 额度共享契约测试分别运行`data_security.tests.test_phase6_quota_contract`（有状态内存实现及提交段消费）与`export_quota.test_phase6_contract`（普通manage.py、专用PG）。两者继承同一案例，不按实现分支放宽预期；内存实现只在tests内，不用于B／实际交付、并发或UoW回滚，不替代原PG故障／锁测试。运行时使用既有隔离环境和唯一证据label，不能改默认／bound／pure入口来预绑定。
+- ReportAuthenticator已由内部TableReportExecutor在实际转换／完整输出复检／私有候选验真后调用，尚未接入真实owner交付；不得开放客户端报告签名入口，或将客户端报告中的hash当verify的期望值。后续Flow必须从owner记录取计划／完整执行／对象绑定和实际输入／输出／密文摘要，验证ReportProof，再做当前风险授权／额度复核；MAC不能替代复检实际执行。签发仍须active的audit-auth密钥；验证可由owner显式注入同版本read-only引用，经verify_authentication只返回验证结果，不取得新MAC。保留原签发proof字节，resolver收到的是当前受限状态。不会自动找旧key、续期或批准真实轮换／恢复。
+- 表格prepare没有客户端报告入口。输出复检包括实际cells与保留的XLSX标题，且要求规范roundtrip字节相等；原五期局部golden不自动成为完整可交付文件。当前严格拒绝任何剩余三类候选，keyed动作未装配；未获owner批准时不得自行补动作。认证失败可留下verified但未发布密文，应保留给后续受管清理／恢复，不能凭猜测state下载。
+- ReportRepository保存不可变准备证据及独立的可空逻辑交付回执，重试先由owner完整binding加载旧记录，不重新生成随机密文后覆盖原报告。记录默认禁止序列化，不把低熵输入摘要写普通日志；库内摘要不是MAC，加载后仍须认证及当前权限复核。过期记录保留供恢复，DB错误不可当不存在；短UoW中put成功也不代表外层已提交。报告外键阻止常规删除其引用对象，但文件系统清理仍须受管，不手工删除文件。已有回执只能查历史逻辑状态，不新授予下载权限。内部execute已串联reserve／prepare及unknown分流，正式owner／B及内部release／reconcile的业务恢复入口尚未接线；内部恢复审计增量22项PG已通过，不据此开放下载。新提交段只发带实际报告／密文摘要的v2事件，拒绝旧v1／仅outbox回执；v2适配可在隔离环境显式注入，B与真实owner尚未接线，不能用测试替身启用生产交付。
+- 0006增加准备所有权和终止状态：begin只让新创建者获得准备权，短UoW实际提交后才能继续；不能把返回false当再次执行许可。abort与put／交付共用报告行锁，已成功返回原回执，缺行或读取错误不视为零交付；终止后禁止迟到put和交付，保留已有文件与报告。仓储本身不释放或对账额度，原31项准备隔离PG测试已分轮聚合通过；Flow已有内部execute及释放／对账编排，正式owner闭环尚待接线。回退读取器须认识新nullable准备行与aborted状态，不能直接回退0006丢失终止约束。
+- 对账以可信确切交付证明驱动；同操作、数量、证据引用返回原回执。内部ExportFlow.release／reconcile已以报告锁内abort作为零逻辑交付证明：缺行／坏回执拒绝；当前恢复权限供应器必须显式配置，并在锁等待后返回绑定本execution／reservation的AUDIT／SECURITY_AUDIT ProtectionContext；布尔值不再够用，须提供当前actor和恢复authorization_ref，不能拿旧导出许可代替。已有成功返回旧回执且不重复额度操作；未交付才在同一UoW终止并释放reserved或对unknown按零结算。固定证据引用由Flow生成，不接客户端数量或字符串。任一错误不提交，提交确认丢失返回DELIVERY_UNKNOWN，保留候选与账务供同操作重试。该内部增量6项PG已通过，包含真实提交后确认丢失和并发对账；新的恢复身份／审计增量22项PG已通过，正式恢复入口仍未接线，不能据此开放交付。停止新交付不删除QuotaExecution或原额度记录，不能通过逆迁移抹掉回执获得“重新执行”机会。
+- 显式恢复权限适配已增加RecoveryPermission（security_policies.0007）和DjangoRecoveryAuthorization。签发／认证入口尚未提供，测试仅创建合成许可；不得把模型存在理解为任何角色获权。可信调用方须提供已认证主体和明确引用，短UoW锁序为报告→权限→额度→审计；权限缺失、主体／完整binding不符、操作未授予、撤销或到期都拒绝，DB不可用返回DELIVERY_UNKNOWN，不回退旧导出许可。当前报告锁等待后到期／撤销的两个真实PG场景通过；13项前组只保留逐项ok记录，runner退出未确认，不写整组成功。恢复许可元数据和历史回执须随完整一致性点备份，不能逆迁移删许可来跳过权限检查；正式B／业务恢复入口仍关闭。
+- 内部execute须由可信owner显式提供request、对象上下文、loader和executor，默认未配置时拒绝。风险准入通过后短UoW内begin／单次reserve，正常提交后才issue／claim并在锁外加载原文、转换和加密；不在quota锁内反向领取风险锁。只有begin新建者继续，pending竞争者不重复预占或abort赢家。已知准备失败仅经当前恢复权限走release；UNKNOWN先隔离未来发布，再尝试登记unknown并保留全额额度，不把未知当零。若真实提交已成功却确认丢失，保留原交付，重试只读历史回执。当前36项单测及真实PG execute8＋受影响commit5项共13项通过，额外执行故障／完整binding冲突6项也通过；并不代表HTTP／正式owner已接线。
+- 恢复关键事件现与abort／quota同库提交，独立QuotaRecoveryEvent由唯一Gateway／Sink进入ds.audit.v2；旧v1、仅outbox或缺v2材料不能满足。终止审计失败不释放；unknown登记审计失败时保留原hold，调用方仍UNKNOWN，不伪称已登记。自动unknown事件沿用本次execute已验证的准备owner身份，显式release／reconcile事件用当前恢复操作者身份。重试记录新的操作者观察，嵌套原QuotaReceipt及其observed_at不变，不将审计条数当结算次数。新增纯组90项及恢复／受影响执行路径22项真实PG全部通过，业务恢复供应器／B仍关闭。
+- 0002_quota_execution新增M6绑定／回执表，0003_private_object新增密文身份／候选状态表，0004_export_report新增不可变报告记录及PROTECT私有对象引用，0005_delivery_receipt新增独立逻辑回执字段；均已在隔离测试建库应用，0005后schema drift无变化（delivery-receipt-drift-01）。不得通过逆迁移删除回执来获得重试机会。私有文件迁移前仍必须先建立数据库＋私有文件＋恢复清单一致性恢复点；现有数据库单独备份不能替代。不对生产运行迁移。
+- PrivateStore必须显式装配owner受控0700私有根与CryptoPort；拒绝生产装配，不读取公开MEDIA配置。文件先持久化再登记DB，不承诺跨资源原子；DB失败／回滚留下的密文孤儿不可下载。清理与恢复接线未完成前保留孤儿，不任意删除回执或已引用文件。
+- 新上传解析边界`PrivateUploadBoundary`必须由B显式注入Limits并置于所有POST／FILES消费者之前，view在返回前同步校验／加密消费上传；当前尚未在B或业务路由安装。每对象按实际字节限长、请求内驻留对象按原max_inflight_objects限制，不能改成请求总量20 MiB，也不能据此宣称跨请求限流已完成。失败不回退普通磁盘处理器，finally关闭本请求内存buffer；不返回被关闭的上传流作为下载。原资源／封面格式校验保留。ASGI及网关可能早于中间件缓冲请求体，Django自身ASGIHandler.read_body仍用SpooledTemporaryFile，须另行覆盖，不能仅部署此handler就宣称原文零落盘；交换保护窄项仍未验。
+- 新资源owner可由B的assemble_resource_uploads显式构造，必须配合前述请求边界和服务器serializer context注入；此辅助函数未被start_application或默认路由启用，不是上线开关。原件／封面经原格式校验后只写入私有verified密文，Resource只存内部引用、实际长度和pending状态；上传主体从数据库复核。context显式为None时拒绝，不回退FileField；未注入时保留旧unbound基线，不能将旧路径称为私有上传。新资源原file／cover字段为空，旧审核approved也不能开放下载。封面或Resource入库失败保留不可下载密文候选。B现注入原唯一Gateway及明确binding／clock／data key reference；文件准备后短atomic内保存资源和原件／可选封面各自的PROTECTION新链事件。任一v1／仅outbox／坏回执或审计错误整体回滚资源及所有本次事件，密文保留；提交确认丢失保留已提交资源／事件并返回UNKNOWN，不自动重试／删除／publish。清理、unknown对账与恢复接线仍待，不以失败后删除密文或假装跨资源事务补偿。resources.0004只增元数据字段，已在隔离PG应用且drift无变化，不迁移旧媒体；回退不得逆迁移抹掉私有引用或恢复明文直链。
+- 资源原件内部读取必须另向`assemble_resource_uploads`显式传`source_reads=True`；bool参数和v2认证链在B准入，默认不注入。只在autocommit且无外层事务时调用`read_original(user=..., resource_id=...)`，当前上传者／is_staff及全部认证引用复核完成后才打开原件；封面仅核引用、不读原文。M6只读verified，文件权限／长度／SHA及完整AES-GCM／Limits通过后才返回内部BoundedPayload。不要绕过owner直接把StoredObject当访问许可，不要将该返回值接HTTP或当作源计划／请求批准。失败保留原密文与状态，不自动重传、修复、发布或删除；停止该能力只需保持source_reads=False，不作数据／schema回退。原PrivateStore.read仍只接受published且只返回密文，正式入口拒绝门和旧FileField行为不变。没有新增迁移或全局配置，当前还不是完整导出来源供应器、下载或恢复开通。
+- 资源原件至交付的合成集成仅在`resources.test_phase6_source_delivery`中装配：原TXT上传仍为BINARY，测试loader明确声明CSV解释，资产映射、冻结请求、源批准和风险授权都是夹具；不是新的格式支持或正式来源供应器。真实目标审批不能代替当前原件访问权或认证PROTECTION，原件读取失败时不执行转换／发布。本例没有配置恢复授权，已知读取失败仍保留reserved／preparing／claiming；打开原件后撤销目标审批则保留prepared及verified产物、拒绝最终提交，也不自动release。不要把这些reserved负例写成unknown。成功后的B与仓储重装只验证历史逻辑回执重放，不重新读取原件、预占或发布，不等于进程崩溃恢复或新的下载许可；正式HTTP拒绝门保持。
+- B1补齐内部已交付产物读取的风险owner／Django／Memory实现。`recheck_delivered`核原decision／consumed授权／完整签发binding及当前授权，沿decision→authorization锁序但不修改业务状态，不读active hold或重新研判／领取；`read_committed`只观察原已结算效果，不是新下载许可。完整文件open在交付锁外，额度／审计等待后再次核原较短期限和当前授权，失败不返回产物、放行尝试事件随UoW回滚。只有放行尝试的AUTHORIZATION，不宣称拒绝尝试、HTTP发送或网络结果已留痕。默认Crypto／事件读取仍未向正式下载入口注入，不自动release／重传／修复原交付；历史缺完整binding签发摘要不能自动补写成可下载。相关纯组61项及额度PG26项已通过，真实读取／风险组合结果见acceptance，不计整期完成。
+- 新反馈owner由B的assemble_feedback_uploads显式构造，只能用于合成隔离配置及有界内存上传。原10 MiB业务上限、扩展名、student／submitter工单归属和教师visibility规则保留，当前角色、active与工单从数据库复核。feedback_center.0003新增内部引用，file不写原文；失败密文保留，私有下载明确关闭。反馈owner现将附件与新链PROTECTION事件放在加密／文件处理之后的同库短事务，使用原唯一Gateway；需要明确配置ds.audit.v2，旧链／仅outbox／坏回执不放行。审计拒绝或入链后事务失败回滚附件和事件，不清掉事务前密文；提交确认丢失保留实际已提交的附件／新链，返回DELIVERY_UNKNOWN，不自动重试或删除。原业务访问日志不替代关键审计回执，上传保护成功不等于发布或客户端收全。B另注入同一Sink的认证读取；owner的authenticated_reference先复核当前用户／工单／visibility，后比对认证PROTECTION事件与全部当前上传metadata、原Context和密文摘要，再返回当前访问者上下文及内部StoredObject。此方法不打开文件、解密、发布、重签或提供下载URL；metadata／归属绑定不符、缺证据或旧FileField均拒绝，不用裸JSON回退。读取只是当时权限及引用核对，不代替交付时重新授权、文件验真或unknown提交对账；原事务内读取仍不能证明持久提交。旧附件不迁移，恢复、清理和unknown对账仍待；回退不能删除新引用或恢复私有文件明文直链。
+- 未开通的资源及反馈附件上传已在正式配置启动时关闭真实入口：B把拒绝middleware放在首位，WSGI在任何请求体消费者前返回空503／no-store；根ASGI wrapper在调用Django handler或receive前拒绝，含挂载前缀及尾斜线变体，不再让该正式入口先落默认spool。当前不是可用上传功能，不绕过该门直接启用候选owner；完整生命周期、关键审计、恢复及资源门禁达成后再接线。无DATA_SECURITY_CONFIG保留原unbound应用，其他路径不改。反向代理／ASGI服务器前置缓冲不在此应用探针的证明范围，不能将拒绝入口算作上传性能或全清单G06通过。
+- 私有存储共享契约入口为`data_security.tests.test_phase6_private_contract`和`resources.test_phase6_private_contract`；后者使用普通manage.py、专用PG及测试拥有的0700临时根。两者继承相同案例，故障只操作本次合成密文／记录，不接现有业务私有根。内存实现位于tests，不用于B／业务交付，不替代真实文件权限、fsync、锁、事务回滚、20 MiB完整链或G06扫描证据。
+- 资源上传容量观测使用原显式测试组合，不绕过正式入口拒绝门上线。`resource-upload-capacity-observations-01.json`只记录一次20 MiB上传：计时含multipart构造、解析、原业务校验、owner、加解密验真、私有文件及新链提交，不含输入生成、上传后认证引用读取和文件扫描；tracemalloc自身开销计入。Python分配峰值约209.211 MiB；Linux ru_maxrss为测试runner整个生命周期高水位，前158.496／后395.031 MiB，不是该操作独占峰值或PG／子进程树RSS，不能以二者差额冒充操作RSS。单次约1.606秒／12.457 MiB/s不代表生产吞吐；没有新增资源合格阈值、并发限流或调整Limits。20 MiB＋1在prepare前拒绝并关闭活动buffer；本次正常关闭不证明崩溃清理、交换保护或内存绝对清零。私有密文／普通MEDIA局部检查不代替G06全清单扫描。
+- `resource-upload-crash-postgres-01`以三个测试自有worker验证20 MiB上传崩溃窗口，fork前关闭父进程PG连接，worker仅向自身发送SIGKILL，父进程join／回收，不杀服务或外部会话。登记前留下未登记密文；验真后资源创建前留下verified记录；资源与保护事件提交后留下可按已知业务ID观察的原记录，均不开放read。重装B、完整认证和两次正向观察不改／删密文，不把unknown当零。子进程正常finally没有执行，父fixture在断言结束后的清理不等于产品具备崩溃清理。受控清理、部分写入／登记中断窗口、丢失业务ID的恢复、代理／ASGI前置缓冲及swap仍不在本次证明内；完整一致性点及当前授权未具备前不能据此自动删除孤儿或重传。
+- 新二进制封装把20 MiB原始文件与≤4 KiB类型／Limits头分开计量，一次AES-GCM认证，不自研分块算法；旧JSON封装可读且原限制保留。回退只能使用同时认识两个显式格式的读取器，不能把新格式改名为旧版或恢复明文直链。PrivateStore.read返回内部密文封套；公开下载必须在上层完成当前授权与完整open，现仍未开通。
+- 新链须显式注入CryptoPort、AUDIT key和隔离ObjectContext。v1原writer／验证算法保留，v2用独立audit 0007表及链锁；不将原记录原地改写或升级。当前／保留key由owner显式给定，库记录不能自选新key。验证使用只读接口，签发须ACTIVE，M6不回调Gateway。checkpoint_root须owner预建0700目录，文件为0600不可覆盖的内容寻址对象。只能在无外层事务时创建已提交链检查点；文件与目录fsync前不返回引用，失败文件保留、不自动覆盖。后续验证必须由可信库外管理记录显式提供checkpoint_ref；禁止从待恢复DB选“最新”或缺文件时降级。未选择引用时是无锚验证，即使目录里有文件也不声称截尾保护；检查点后缀仍有窗口。当前没有定期维护／恢复开通接线或旧源迁移；下述归档批准只适用隔离捕获，不据此声明6-F05完成。
+- 旧链捕获组件`DjangoLegacyAuditArchive`在同一个只读PG快照中按原算法验链并流式写age副本；Limits分别限制两表行数和单行大小，不把业务20 MiB当整份归档限额。目录须服务所有且0700，文件0600；只用公钥，保留源表，不迁移／删除。离线age解密实证只针对合成小样本，不开放历史原文下载、不把旧时间或裸SecurityAuditRecord正文升级为已认证。
+- 隔离归档须显式调用`assemble_legacy_archives(config_path=..., directory=..., age=..., recipient=...)`，配置必须已有新链，recipient为ACTIVE BACKUP_PUBLIC；目录／工具路径来自可信装配，不从HTTP请求接受。以认证user调用owner.run(operation='capture', expected_count=..., expected_tail=...)；当前数据库active用户及明确archive_auditledgerentry权限必须通过，audit.0008不自动赋权。无外层事务才可执行。M4先记录精确count／tail的AUTHORIZATION v2，再捕获，随后经同一个Gateway桥接BACKUP；本地回执fsync后才返回成功。批准事件可能存在而捕获失败，不据批准认定已有归档。
+- 桥接写前／写后确认丢失或sidecar保存失败返回带原archive_ref的错误并保留密文；数据库与文件不是跨资源原子。重启后以当前授权user调用owner.run(operation='reconcile', archive_ref=原引用)，只核原文件／有界登记、原认证批准，再以原event_id重放桥接并保存回执，不重新capture。不可用本地confirmed或receipt代替认证链；load只核权限、大小和SHA，不是age解密／标签认证。缺失或篡改拒绝，不当作零效果；partial／age／不完整登记保持隔离，不自动删除／重传。旧源迁移／隔离／删除、离线业务恢复和密钥轮换未完成；仅隔离显式入口，无默认HTTP／生产开通，不把对账成功当历史原文访问批准。
+- 内部离线内容检查可调用M6 `verify_content`：由可信调用方预先取得并核对StoredObject与原认证BACKUP事件，另外提供可由原KeyResolver解析的BACKUP_PRIVATE引用和隔离服务上下文；不要把sidecar或归档header作为批准来源。该方法不查询数据库，也不替调用方认证传入证据／复核当前业务权限。密文目录0700、文件0600；私钥只经memfd交给age，不写命令行正文／日志／仓库。按行有界解密并复用原v1算法，拒绝错钥、截断、header／行数／链／引用不符和额外尾部，必须读完且age退出0。返回仅为内容与可信预期相符，不输出原文、不写源表／新链或恢复库，不授予下载；旧时间及裸事件保证不升级。原capture／reconcile行为不变；失败保留原文件，不能凭此自行迁移、清理或轮换密钥。
+- 显式归档装配可另传`identity=BACKUP_PRIVATE引用`启用owner的`verify`操作，READ_ONLY私钥可用于检查、RETIRED或错用途在装配边界拒绝；不提供identity时仍仅捕获／对账，verify不读文件即拒绝。认证user每次仍需当前active及archive_auditledgerentry权限，并须无外层事务。以原archive_ref调用verify，M4加载登记后从同一新链Sink认证读取原BACKUP事件，必须与登记事件完整相等，再将可信证据交给原M6内容检查；sidecar写confirmed不补出缺失桥接。当前只读检查不写Gateway、create或confirm；有原桥接但缺本地confirmed也不自行修改登记。该组合仍查询权限与新链数据库，不能称整条链离线或代替空库恢复；HTTP、历史原文输出和恢复开通仍关闭。
+- 内部可信审计证据必须经`AuditSink.read_authenticated(event_id)`取得，不能直接把事件表JSON当已认证。该方法复用完整链扫描与显式库外锚点，找到目标仍继续验证后缀，在链锁内保留已验证DTO，返回前不重新查询原始行。无目标／仅outbox／旧链／其他链／坏正文及缺key或检查点拒绝；拒绝不是“确切无交付”，不能据此释放额度、删除候选或重新发布。读取不签发新事件／检查点，不选latest，不改变原链锁序；全链验证不是短事务内的大文件处理，扫描开销随链长度增长，尚无长期链规模吞吐保证。读取复用调用方事务，能看到自身尚未提交事件但不会提交外层UoW；认证成功不等于持久提交确认，unknown对账不能用原未完成事务内的读取冒充提交证明。两域owner现已接入当前权限和metadata比对。两域reconcile只接受已知业务ID，在autocommit且无外层atomic时开启自身只读事务，正常退出后返回认证引用；调用方未提交事件不能据此确认。缺行／拒绝不证明零效果，不自动重传／清理／发布；完整unknown操作标识及生命周期仍待接线。这仍不是公开交付或恢复开通能力。
+- 审计共享契约入口为`data_security.tests.test_phase6_audit_contract`与`audit.test_phase6_contract`。两者继承原15项及新增可信读取7项、相同断言；前者为独立内存状态，后者使用普通manage.py、专用PG及测试拥有的0700检查点目录。故障钩子只修改本轮合成记录／文件，不暴露为生产接口。内存不用于B、账本迁移或恢复，不模拟外层UoW、锁、fsync与持久保存；旧PG并发／回滚／文件权限专项不因新增契约组而重跑或被替代。证据使用新label保留首轮失败，仅续失败或实际受影响项。
+- B新增可选audit_chain配置（仅ds.bootstrap.v2／evaluation），显式给定链身份、当前维护授权、READ_ONLY历史key引用及库外检查点目录／引用；不自动创建目录、选最新锚点、找历史key或升级旧事件。签发沿用独立ACTIVE audit_key，同一Gateway供catalog／protection及后续交付；配置显式checkpoint_ref时启动装配先完整验证，缺／坏文件或缺历史key直接拒绝。无此选项仍是原旧链配置，新事件拒绝而非降级。该B增量13项PG通过，实际新配置启动与ORM／字段4项补充验证也通过；不代表业务恢复ACL、ExportFlow owner、归档、检查点维护调用或下载开通完成。
+- 内部PostgresAgeBackup可显式配置v2：private_root／code_version／required_keys三者一起给定，test／evaluation专用；B仅在ds.bootstrap.v2中接受这三个完整显式选项；原六字段配置仍为数据库v1，不默认升级。数据库导出及M6引用的不可变私有密文共用一个PG快照，两个age文件必须一起保管，主manifest绑定文件包摘要／大小／目录；StoredObject大小／hash仅表示主文件。在线只需公钥，离线身份另行解析声明的恢复key，不猜latest或扫描目录找key；声明可解析还不等于全部引用齐全、数据key正确或完整业务恢复完成。
+- v2恢复先核空库／空私有目录、代码／格式／key引用、两包完整age认证，再流式写0600密文、比对目录并恢复SQL，最后回验数据库文件投影。缺包／截断／错age私钥／缺声明key均失败；manifest目录不符或pg_restore失败可留下密文，但无成功记录且下一次拒绝覆盖非空目录。目标隔离目录须保持不可下载，残留由受控恢复流程处理；不能用删除原文件或忽略错误换取成功。此端口不验证链／检查点，不自动发布候选，也不签发下载许可。
+- 完整主库隔离演练已恢复178表，12个有序投影及真实交付的报告／额度／恢复许可、候选／已发布状态和实际密文open均核验；未登记源孤儿不入包。新链仍依赖明确保留在库外的原检查点，旧链仍按旧算法；故意损坏检查点或替换已声明data／audit key内容，恢复后的独立验真拒绝。此处验证由测试owner编排，不是已实现的业务恢复／下载开通服务；BackupPort的DURABLE不能替代这些检查。单次恢复SQL／文件耗时约18.846秒，不证明备份周期、全规模RPO／RTO或保留政策达标。
+- 资源／反馈新私有文件恢复须由可信装配声明同一M6根及完整原框架／数据／审计key引用，独立保留配置、policy与选定的库外checkpoint；age私钥仅授离线备份身份。空库／空目录完成v2恢复后，再重装原B和两个owner，验证当前主体、工单／visibility、metadata、认证PROTECTION及每个原件／封面／附件的完整open摘要。当前B重装仍使用原ACTIVE引用，不代表轮换或只读恢复专用入口。BackupPort回执只证明恢复步骤，不能替代上述业务检查；停用用户、坏metadata、错误data／audit字节均须继续拒绝，不自动publish或开通HTTP。测试故障只修改本次恢复副本／独立保留的合成key，不能用这种测试写入方式操作真实恢复点。
+- 后续恢复必须在空隔离环境验证全部业务引用与key、链、孤立候选、过期任务和分享状态；完成前下载关闭。当前v2仅M6单根，不含全部资源／反馈／独立执行器旧文件。age流式大备份不受20 MiB业务单对象上限限制；约24 MiB密文包局部验证通过，Python分配观测不等于全进程树RSS或完整业务链资源验收。7个日备份＋4个周备份的显式受管保留现有局部实测（见下文），周期执行及全业务RPO≤24h／RTO≤4h仍未达成验证，不宣称完整恢复达标。
+
+D8保留操作仅面向显式隔离v2配置：通过`assemble_backup_retention`取得owner，创建双包时显式选择daily或weekly；缺省不纳管，旧v1、无登记v2和孤儿不能按mtime补成可删对象。UTC自然日／ISO周各取槽内最新一份，分别留最近7个日槽及4个周槽，不用7／28天TTL替代份数；没有足够备份时保留已有槽，不宣称补齐周期。在线只持BACKUP_PUBLIC，离线私钥、数据key和外部检查点不随退役删除。
+
+维护窗口串行执行：先preview查看确切记录，再由可信调用方以该tuple调用apply；apply重新验库存，变动则拒绝、不自动采用新清单。Limits.max_actions限制登记扫描数（含退役登记）；达到上界必须单独评估登记归档，不能临时调大超过M0上限或跳过未知项。只要受管保留集或淘汰集存在缺包／坏摘要／坏登记，就不清理任何新集合。删除只指向已确认双包，旧未纳管文件保持不变；保留retiring／retired元数据与本地回执，不把这些回执称为v2链记录。
+
+若中途I/O失败或确认丢失，停止批次并保留UNKNOWN；先检查每个登记的retiring／retired和两个文件的实际存在情况，已成功项不重做，未知项不能当未删或已删。当前没有自动修复retiring或并行清理／恢复协调器，须另行核准残留处置；不得删登记来掩盖中断。新增6项真实PG／age测试覆盖保留后离线恢复、正式B／文件公钥、坏新包、边界限额、v1拒绝纳管及双包中途失败；只证明合成单根维护行为，不开放业务下载、不保证备份调度和全规模RPO／RTO。
+
+恢复许可管理仅在B显式调用时装配：当前Django add_recoverypermission／change_recoverypermission权限分别控制签发／撤销，不自动赋权；业务role和is_staff不能代替该权限。许可与v2事件同事务，提交确认丢失返回带许可引用的UNKNOWN，禁止自动再次签发。仅恢复入口用原Flow执行release／reconcile，报告锁后重取当前active用户及明确许可；装配缓存身份不能绕过后续停用。传入的窗口／限额／TTL必须与原预占一致，否则完整绑定冲突，不猜测配置或使用过期导出授权代替恢复许可。不能把已授权零结算当作客户端未收到文件的通用证明；零证据仍由原报告准备隔离及回执仓储产生。
+
+B1新增仅引用恢复HTTP：v2／evaluation的可信配置明确提供export_recovery的window_key、limit、ttl_seconds并已有认证v2链，普通start_application才注入原Flow恢复入口；缺省503，不自动启用。POST `/api/data-security/exports/recovery/release/`或`reconcile/`只收execution_ref／permission_ref，以当前认证用户操作服务端保留的完整binding，客户端不能提交binding／数量／成功证明或配置。没有文件输出、execute／commit或权限签发HTTP，不是B2下载开放。返回逻辑状态并明确network_delivery_confirmed=false；失败保留原候选、报告与额度，提交确认丢失后只按同引用授权对账，禁止自动重传或release。
+
+上述HTTP为已写入但未通过验证的组合，不可按已验入口开通：`b1-risk-delivery-recovery-postgres-01`的9项HTTP均在子进程退出检查失败，未取得父测试的响应／效果断言结果；同组最终审计锁定位1项亦失败。210项为200 ok／10 FAIL、退出1，根因未确认、未修复或续跑；不能以内部恢复入口原2项通过替代HTTP验证。继续保留默认不配置export_recovery及正式交付／下载关闭，完整记录见acceptance §10.1。
+
+security_policies.0009新增可空binding_document，测试库已实际应用；begin及直接put新建时保留完整执行意图。原prepared可从旧报告取binding，无意图的旧preparing保持UNKNOWN，不回填猜测。停止恢复HTTP只需保留配置缺省关闭，不能逆迁移删意图／许可／额度或交给旧清理器；本轮没有迁移原运行库，完整回退／恢复点与候选drift状态见验收记录。
+
+目标计划审批通过`assemble_export_plan_approvals(config_path=...)`显式装配，必须有新链配置。可信调用方传入draft ActionPlan／完整ExecutionBinding／ObjectContext及当前认证user：`manage(operation='approve', requester=...)`复核请求者active、binding主体及两人分离，批准者需add_exportplanapproval权限；`manage(operation='revoke', ...)`需change权限并传入原approved plan，不传requester。返回`(approved_plan, AuditReceipt)`才是已确认管理结果，不是交付／源访问许可；无外层atomic且autocommit时才允许管理。security_policies.0008只新增许可表，迁移不自动赋权或改变旧报告／额度，不逆迁移删审批状态掩盖撤销。
+
+审批UNKNOWN保留稳定approval_ref和原draft／binding／context，不自动重新批准。以当前active且有add_exportplanapproval权限的管理者调用`reconcile(user=..., approval_ref=..., plan=原draft, binding=..., context=...)`；只能在autocommit且无外层atomic时执行。M6核原精确许可及经read_authenticated取得的原AUTHORIZATION metadata，锁后检查撤销／期限，自身读事务正常退出后返回含原Approval的ActionPlan，不生成新ID、不再写事件。缺行、换绑、坏链、撤销／过期或读事务退出错误不能确认成功，也不是确切零效果，不能自动重新批准／释放／删除。当前请求者在后续authorize另行复核，管理观察不把停用主体重新启用；不能把许可行存在或裸事件JSON当作已确认成功。`authorize`供原Flow在预占前和报告锁后调用：当前active请求者、完整精确许可及锁后期限均须通过，准备中撤销不能提交，已预占额度仍按原恢复权限处理，不擅自release。来源真实记录、请求供应器、完整交付B及HTTP仍未接线，测试中的合成来源标签／approval_basis不授予生产来源批准；历史交付回执重放不授予当前下载。
+
+旧执行器新增私有模式仍只供显式内部调用，不开HTTP。需先应用`controlled_export.0002_private_preparation`及原M6迁移；新增app属于同进程库，不加载主后端Django工程。当前隔离测试库已实际应用这些迁移，check及makemigrations --check --dry-run通过；本轮未对原ds_phase1_export业务库执行migrate，不把测试库成功当运行库已升级。原旧文件及ProtectedArtifact引用未迁移。回退须保留private_candidate、prepared／unknown状态及密文，不逆迁移删新引用，不将其交给只认识旧candidates/artifacts的清理器。
+
+显式prepare传原M4绑定方法、可信project_ref及完整Limits；只允许evaluation、无外层atomic且autocommit，不能借新入口提高旧执行器限额。claim先提交稳定attempt上下文，锁外准备后再次检查授权／lease／fence，只保存不可下载verified候选。出现repair_required／unknown时，保留原上下文与原幂等绑定；重放只观察，不重传、不释放配额或删文件。expire_stale_attempts对新私有意图只封为unknown并保留密文，旧模式仍stale／failed；命令不是私有候选清理或效果判定。prepared也不代表PROTECTION新链、可信报告、交付或可创建分享。正式B、原HTTP入口／临时上传、完整下载分享、执行器任务及文件恢复尚未接线。
+
+蜜标内部工具仅供显式隔离owner调用，目录来自受控CanarySeed元数据，不能从请求正文中补任意检测值或目标。plant要求当前授权和合成目标owner持久化回执；测试回调不是正式权限或业务落地。check返回空tuple／新链回执tuple／ProtectionError三种结果，错误不可当无泄露。未装配新链、钥不可用或旧链回执均不得报告告警成功；不在失败处理中递归写日志。实际OfficialAI、SafeLogFormatter／install_safe_logging及TableReportExecutor已有可选CanaryCheckPort注入点，默认不启用蜜标；现有AgentGateway支持显式CanaryToolRegistry注入，但缺省工具为空，三个目标owner、B启用、模型tool-call协议及重启目录恢复／退役均未完成，不能宣称业务已部署。模型检查在最终业务payload保护后、认证与发送前；日志只查已经清洗／格式化的文本，不为查蜜标恢复原文，失败固定输出且不递归日志；表格检查实际serialize→parse结果和保留标题，命中在加密／写候选前拒绝。表格owner必须另供绑定当前execution／对象的检查身份，不能从ObjectContext自造审批。记录为拟输出发现，不是客户端收到或实际泄露证明；不启动线程／cron，不修改原三期封口或M8格式语义。
+
+运行时注册时由装配方提供plant、CanaryCheckPort、resolve_context和load_output；后两者必须依据当前可信用户及操作／对象版本授权并读取对应实际产物。持有admin角色、缓存的用户is_active或模型提供的引用均不是许可。网关只向安全工具转交调用，不将其混进自动学习检索，也不另存原文工具结果到AgentRun。未注入时明确返回CANARY_TOOLS_DISABLED；异常只返回CANARY_TOOL_FAILED，不携带正文或自动重试。生产owner和B装配未实现前，不把显式测试注册当上线，不开启下载。
+
+2026-11-06 16:05用户仅批准6-F04的tmpfs／交换保护实证按环境受限未验登记，不计通过、不降低D7／20 MiB、不执行swapoff。20 MiB处理／超限／峰值内存／吞吐／崩溃清理和6-F03／G06文件级原文扫描仍须实际执行。完整私有文件／审计新链／恢复及canary工具尚未完成，禁止据该窄登记开通下载或进入第7期。
+
+B1当前另登记P6-B1-SOURCE-CONTRACT待授权，细节见实施报告和E6的b1-source-contract-review-01.md。原P5批准不重开，也不请求生产开通；待明确首个正式evaluation来源／冻结请求的登记与源批准、当前使用许可和风险输入权威，以及mainline1环境不兼容时的正向范围。现有TXT→CSV、资产映射及风险ALLOW夹具不接正式B，M8和真实PLAN_APPROVAL_REQUIRED不改。报告binding重取仅供已保留执行恢复，不能替代完整请求／源计划。最后在途组的失败结果已归档，B1已停工但未完成；来源建议未获用户批准，10项失败未修复，本轮不再新增实现或重跑。只读收尾核无相关测试进程／其他PG客户端及遗留的默认／执行器测试库，原库owner不变、检查连接已关闭；这不是看护或全量验收。不启动下一块，不提交候选、推送或开PR。
+
+### B1四点批准后停止边界（2026-11-08，09:24批准前历史）
+
+上一段和§10.1验收记录中的来源待批是批准前截点；用户四点来源批准仍有效，P6-B1-SOURCE-CONTRACT不重新登记待批。新P6-B1-RISK-AUTHORITY需明确现有可用风险画像／真实条件审批读取路线，或另行授权必要的COLUMN_V1持久化供应器；固定政策目录已存在，保持缺画像REQUIRE_APPROVAL及缺历史非零语义，不用测试provider、源／目标批准或MAC绕过。
+
+原十项仅fixture修正后复验为8 ok／2 FAIL，最后两项诊断为2 FAIL、49.471s、exit 1，child均exit 0；默认503的既有5xx审计只新增SecurityAuditRecord，unknown release按原owner契约映射403而新fixture期待409。未抑制审计、改M4／Quota拒绝码或改断言凑绿；失败保留，后两次200不冒充未执行的效果断言通过。临时诊断已封存移除，HTTP只保留secure=True，可精确逆向重建批准起点全文；清理后未重跑。
+
+此历史postflight核owned PG目录、原三库owner、无测试进程／其他客户端／遗留测试库且检查连接关闭，冻结AST／diff通过；当时dirty见E6的`b1-resume-blocked-working-tree-01.json`。这不是G06、drift、看护或候选成绩。正式来源供应器、完整交付B、6-F02 owner矩阵及6-B02 HTTP验收当时未完成，执行方待授权收尾停下；保留密文／意图／许可／回执／审计与unknown容量，不逆迁移或自动释放。此后批准与继续实施见下，不将旧阻断当当前停工状态。
+
+### B1按需最小新建批准后操作边界（2026-11-08，实施中）
+
+09:24批准仅解除已核缺口，06:50来源四点继续有效。内部显式v2 export_delivery仅接受private_root／project_ref／window_key／limit／ttl_seconds，要求evaluation和认证v2链；没有配置仍关闭，没有新增交付、下载或权限签发HTTP。所有权限由明确管理流程授予，迁移不自动赋权；禁止把验收账号、测试预绑定或旧golden的approved标签接入正式B。
+
+内部调用顺序：实际资源私有原件→受限source.register（完整请求／计划／输入／资产身份）→真实第二人source.approve→当前source.grant→grant_risk和原admit→需要时由有change_columnriskpermission的第二人批准→bind保留完整执行→approve_target单独目标批准→唯一ExportFlow执行。原件仍只按获批对象解释CSV；画像缺失仍缺失，不能换policy、改environment、重标mainline1或用目标批准填补风险。risk grant原始完整研判经认证保留，当前授权和审批状态另重取，历史批准人的后续权限丧失不自动改写有效批准，但当前请求者失权会阻断。
+
+同绑定重放与产物读取不做第二次逻辑交付；只有后者在成功授权读取时增加单独观察审计，不重开原件、重研判、reserve／publish／settle。未知效果保留额度与候选，已提交赢家不得退款／重结算；已知准备失败也不能在缺恢复权限时自动release。恢复仍以服务端重取binding＋当前操作专属permission执行，缺报告／意图或数据库错误不证明零；明确fence和零结算共短UoW。HTTP unknown release为403，默认关闭503照旧写既有5xx审计，不抑制审计。
+
+目前独立两项HTTP裁定与8项普通启动修正smoke通过；完整60项owner／故障／恢复组合为58 ok／2 FAIL，仅修新测试的object_ref见证查询和既有logically_delivered状态预期。后续18项为17 ok／1 FAIL，三处真实锁等待均通过；唯一目标审批故障注入需包裹正式B已保存的write_permission，而不是装配后替换类方法。只修测试后，审批确认丢失／原许可对账与新双进程存活准备owner竞争2项完整通过，后者竞争者无业务效果、赢家只一次交付／结算，安全元数据已归档。产品不改；pure同166项只改回工作树根目录调用后全过，不把首轮cwd错误或18／60项失败改成成功，不拼接suite。首轮8项因环境重启停在迁移、0测试结果；自有PG按原identity受控helper恢复，同会话续跑，不覆盖中断证据。没有对生产或原运行库迁移／开通；B1完成前不进B2–B5，候选提交及全量回归归B5。
+
+原十项已有相同 command／cwd 的完整 10 ok；原域 373 的 180 ok／193 无结果仍为中断记录，不称整体通过。四项遗漏后来由主线程普通启动 PG 实际复现为 3 FAIL＋4 FAIL；approval 首轮另有迁移中断、0 测试，原日志保留，只按原 identity 重启自有 PG 并检查／清理遗留测试库后续跑。只读委托误触发技能的 SQLite／35 单测自述始终排除正式 PG 证据。
+
+现行最小修复要求：产物输出或逻辑回执前最后等待后重取当前源／目标／精确 policy，提交还须通过原 consumed 授权的观察复核；到期或撤销不能留下新的成功回执。新条件批准在 decision／permission 锁后重取当前审批者；不追溯改写历史有效批准。approve_target 已得到真实批准 A 后发生源指针保存或确认错误，错误 trace_id 保留 A；用该返回引用调用原 reconcile_target，不重新 approve，不因指针缺失释放或删除。两种故障分别覆盖未保存／已保存源指针，均两次对账保留唯一 A 和认证事件，再完成一次交付／2 条结算。
+
+原样七项反例 `b1-authority-repairs-postgres-01` 已 7 ok、218.646s、exit 0，原 pure 入口 169 项完整通过；实际 postflight 核 871 份源码、精确 ID、0600 与无 runner／测试库／其他客户端。当前完整 457 唯一 ID（正式 84＋原域 373）正在单次串行运行，尚不据子组通过开通或宣告 B1 完成。没有产品全局开关、生产迁移或 HTTP 生命周期扩围；B2–B5 不动，候选全量仍归 B5。详情见 `b1-formal-authority-review-01.md` 与实施报告。
+
+### B2 私有 HTTP、对账与扫描操作（2026-11-08；待独立测试）
+
+以下为副本实现的操作说明，不覆盖上文历史验证记录，不是生产或恢复开通批准。B2 工作会话只写代码并做分钟级无数据库检查；PG、完整运行快照和块裁定由主会话分发。不得在未配置 PG 的 B2 副本启动数据库或以 SQLite 代替。
+
+**主后端显式配置。** 保留现有 `DATA_SECURITY_CONFIG` 的 v2／evaluation／FileKeyResolver／认证 audit_chain 配置，按服务器管理流程准备同 uid 的 0700 密文根，然后增加：
+
+```json
+"private_files": {"private_root": "/srv/ctf-private", "project_ref": "ctf/evaluation"}
+```
+
+这是既有配置的片段，示例路径不自动创建；根不能位于公开 MEDIA／STATIC 内，也不能反向包住它们。若同时设置 export_delivery，project_ref／private_root 必须一致。普通 django.setup／start_application 才注入原件 owner、分享及最前置 middleware／ASGI 边界；手动 assemble 不等于 HTTP 已绑定。缺 private_files 时正式上传仍 body 前 503，其他正式私有调用拒绝，不回落 FileField。正式 MEDIA 猜路径拒绝不代表外部代理已正确配置，代理仍不能直挂私有根。
+
+| 方法与路由 | 输入及权限／结果 |
+| --- | --- |
+| POST `/api/resources/upload/` | 原 multipart／格式校验；当前上传权限；需 `X-File-Operation-ID` 规范 UUID；服务器生成密码对象身份 |
+| GET `/api/resources/{id}/download/`、`cover/download/` | 当前上传者或 active is_staff；完整认证后附件响应，不因 approved 对他人开放 |
+| POST／DELETE `/api/resources/file-operations/{uuid}/` | 原操作主体：正向重取／显式终止后精确清理；返回 operation_id、state、result_id、network_delivery_confirmed=false |
+| POST `/api/resources/{id}/shares/`、`cover/shares/` | 同原件当前 ACL；以新的操作 UUID 创建固定 5 分钟引用，不增添读者权利 |
+| POST `/api/feedback/{ticket}/attachments/` | 原 multipart、工单归属／visibility 与 10 MiB 限额；同操作 UUID 规则 |
+| GET `/api/feedback/{ticket}/attachments/{attachment}/download/` | 每次重取当前工单与 visibility，不用缓存归属或旧 FileField |
+| POST／DELETE `/api/feedback/{ticket}/file-operations/{uuid}/` | 同原操作主体与工单；result_id 为附件 UUID，不是整数 pk |
+| POST `/api/feedback/{ticket}/attachments/{attachment}/shares/` | 同工单／附件 ACL；需操作 UUID |
+| GET／DELETE `/api/data-security/files/shares/{uuid}/` | GET 仍需原件当前 ACL；DELETE 仅原签发者且仍有原件权限；撤销保留证据 |
+| POST `/api/data-security/exports/resources/{execute\|download}/` | JSON 仅 source_ref、permission_ref；复用已配置 B1 owner／Flow，不接客户端批准／binding／成功证明 |
+
+先保存调用方操作 UUID，再发送上传；确认丢失时按原引用观察，或携相同元数据／文件重试，不换 UUID 强行再创建。prepared／missing／UNKNOWN 都不是零效果或可发布；没有确切意图不能删看似孤儿的文件。活跃 flock 持有者存在时观察／清理拒绝，不靠时长接管；进程退出后同根重新装配再正向对账。锁文件保持原路径与权限，不手工删除；此机制不承诺网络文件系统或多个私有根间协调。
+
+显式 DELETE 先将当前授权及终止意图入链／提交，随后只清理该操作保留的精确密文。提交确认或 unlink 确认丢失时保留 tombstone，用同一 DELETE 继续，不删除业务引用、操作行、分享或审计以伪造“没有发生”。published 输出不走此候选清理；已经被逻辑交付消费的额度也不在此退款。新增迁移为 `security_policies.0010_privatefileoperation`，包含操作和分享表；回退必须保留这些表、v2 上传引用及 retired 状态，不能逆迁移抹掉终止约束。备份 live-files 不要求 retired 对应文件，DB dump 仍保留行；备份／清理应在既有串行维护窗口安排，不宣称跨文件系统／数据库原子快照。
+
+**独立执行器。** `CONTROLLED_EXPORT_PRIVATE_CONFIG` 指向受保护、规范绝对路径的 JSON（≤64 KiB）；必须是 `ds.executor-preparation.v1`，精确字段为 schema_version、environment=evaluation、key_manifest、data_key、private_root、project_ref、limits。另保留明确 framework SECRET_KEY、原服务内部凭据、EXECUTION_AUTHORITY_HMAC_SECRET；DATA key 必须 ACTIVE，私有密文根与旧 CONTROLLED_EXPORT_PRIVATE_ROOT 分离，Limits 不提高原执行器上限。普通 app.ready 调用本工程 B，不加载主后端 Django 工程，也不启动额外服务。
+
+原 POST `/api/controlled-export/executions/` 的可信服务认证、X-Caller-ID、授权签名、Idempotency-Key、authorization／plan／file 均保留。新增 GET `/api/controlled-export/executions/{execution_id}/preparation/` 观察；空 body POST 同一路径正向核验保留候选。不能提交 context／候选／成功证明或换 caller 接管。即使 candidate_verified=true，也只称 prepared 或原 repair_required，不补成功事件、发布、结算、分享或负向清理；该独立入口的完整交付仍未开放。正式模式旧 shares／deliveries 路径 body 前关闭，PrivateStorage 拒绝。停能力时保持正式关闭门，不通过清空所有正式配置回到旧明文存储。
+
+两套 ASGI 的引用路由实际总 body 预算 64 KiB；上传按实际接收字节有界驻留，不因伪造／缺失 Content-Length 落默认 spool。业务单对象 20 MiB 与反馈 10 MiB 不变，原件／封面最多 2 个驻留对象。完整验证后才组装内存下载响应；no-store／nosniff 不是网络收讫证据，也不是代理、swap 或所有并发资源的验证。停止新交付／私有下载应撤下对应 private_files／export_delivery 能力并保留 `DATA_SECURITY_CONFIG` 的三、四期安全绑定，不删密文、账本、unknown 额度或退役证据。
+
+**全清单原文扫描。** `tools/data_security/phase6_plaintext_scan.py` 读取操作者事先封存的 `ds.b2-plaintext-scan.v1` 清单，精确字段为 schema_version、scope、targets、max_expanded_bytes；每个 target 仅 category 与绝对 path。runtime 必须登记 private、media、temporary、executor-legacy、backups、logs、evidence、screenshots、production-source 九类，包括实际为空的目录；目录未复制、遗漏、不可读、symlink、快照变化或不支持格式均不能记零。清单须覆盖全部实际根，工具只能证明 declared_inventory_only，不会发现操作者漏报的另一目录。
+
+标记输入为 ID→合成原样值映射（每批 1–100 项，值 8–4096 UTF-8 字节）；使用本轮真实上传原件、附件、导出原文及既有登记语料，不临时换成未用过的随机值。超过 100 项分批扫描相同完整清单，逐批保留结果，不抽样。工具扫描 UTF-8／UTF-16／JSON 转义／base64，原文件流式读；ZIP/XLSX/gzip 只在内存有界展开，不解压到磁盘或运行内容。图片／PDF／嵌套或不支持内容仍是 unscanned；如需渲染审查，另留明确逐文件证据，不能把字节未命中改成 OCR 已通过。
+
+从可信代码目录用本副本 Python `-I -B` 调用脚本，显式传 `--manifest`、`--markers`、`--output`；控制输入和输出放在待扫快照外，不拿扫描器刚创建的空文件充数。输出只含标记 ID、文件／内容摘要、数量和未扫原因，不含命中正文或业务文件名；新输出使用独占创建及 0600。清理前（含故障残留）与显式终止清理后分别封存／扫描；不能先由 fixture teardown 删除产物再报零。源码 scope=source-only 永远不返回 runtime_scope_verified=true；既有合成样例的非零命中保留原结果并单独说明，不删源样例、排除命中或替换标记凑绿。此处没有新识别器、后台扫描、恢复／轮换或蜜标业务接线。
+
+### B3 隔离恢复和旧源维护（2026-11-08；待独立 PG／age 验证）
+
+本节是显式维护接口的使用条件，不是部署、生产删除、密钥销毁或第 6 期验收批准。工作会话只运行无数据库检查；真实演练交独立封存测试树。恢复目标必须为本次获准的隔离空数据库＋新建空私有根（同 uid、0700），不能把这里的 close 当成关闭现有非空线上根的通用开关。先从外部隔离目标网络，核验目标数据库／代码／密钥配置，再操作；不启动 HTTP 来完成恢复。
+
+**完整备份与周期。** 原 `ds.bootstrap.v2` 的 backup 字段保留 database、directory、checks、age、pg_dump、pg_restore、private_root、code_version、required_keys，显式增加 `full_inventory: true`。database 沿原本地 loopback／无内嵌 password 限制，private_root 须与 private_files／export_delivery 相同，project_ref 也保留原值（如 `ctf/evaluation`），不能为了恢复改成 domain。库外目录、工具、清单均由服务器受控输入；checks 不代替全表清单。required_keys 登记包括旧 envelope 读取、索引、审计／报告在内的必要精确引用；遗漏不会被自动补齐为成功。
+
+在线 `assemble_backup_cycle(config_path=..., recipient=...)` 仅接受 ACTIVE BACKUP_PUBLIC 引用，调用 `run_due(context)` 检查完整 daily（24 小时）／weekly（7 日），到期才建立新包。无 full 清单的旧包不算本周期达标。没有新增 cron、线程或自动恢复／清理；接入调度另走运行授权。D8 仍由原 `assemble_backup_retention` 预览并显式确认七日槽＋四周槽删除；保留失败、unknown 和旧无登记包，不以时间到期自行删除。轮换或旧源变更前重新演练并留档，不拿周期新建成功替代恢复演练。
+
+**离线恢复顺序。** 离线清单保留实际需要的旧读钥及明确选定 BACKUP_PRIVATE identity，在线服务只拿 recipient，不能把私钥清单用于普通 HTTP 启动。主站使用 `ctf_backend.security_bootstrap.assemble_recovery(config_path=..., identity=..., archive_directory=..., archive_identity=...)`；归档参数只在确有旧审计归档时显式提供，目录内容要另外受控复制并核验。工厂只构造离线端口，不读待恢复表。context 是原可信服务入口构造的 evaluation／ctf／service/security／SERVICE／STORAGE 上下文，不能由 HTTP 客户端自填。
+
+1. `run_ref = flow.run('close', context)`：对空私有根落受控 journal，保存本次引用；这是演练停服计时起点。构造前的主机／目标库准备不在该计时内，记录时不得宣称生产故障开始时间。
+2. `flow.run('restore', context, backup=selected_backup)`：只传保留的原 StoredObject，读取匹配的离线 identity；完整 age 认证后才 SQL 恢复。恢复前／后都不开通流量，数据库恢复成功也不等于 owner 核验。
+3. 将离线 Django 连接明确指向该目标 NAME／HOST／PORT，使用同一目标配置调用 `flow.run('verify', context)`。PG 必须 autocommit 且不在外层事务；核验器自行建立只读 repeatable-read。提供原外部 checkpoint，不能重建锚；旧审计隔离／删除记录还必须配原实际归档和匹配 identity。检查 complete、opening_allowed、未知／终态计数、真实未锚后缀与外部 key 清单缺口。
+4. 检查完整 DB／密文／pending 清单及 owner 核验记录后，由获准维护者显式 `flow.run('open', context, approved_run_ref=run_ref)`。该调用再比清单并重做 owner 核验；错引用、源变化、旧明文未治理、缺钥／锚、RPO>24h 或 RTO>4h 均不开放。RPO 从实际备份 snapshot_at 到 close，RTO 从 close 到最终 open；记录停服至恢复、恢复、核验、人工确认四段实际时间，不能填合成时钟成绩。
+5. 只有完成该过程后，在线配置中的同一 full backup／私有根身份才能通过恢复门。WSGI／ASGI 的所有 HTTP 路径（含健康／未知路由）及 websocket 都受关闭门约束；ASGI 在 body 前拒绝。无 journal 只保持从未恢复部署的旧基线；不得删除 journal 绕过隔离，也不得通过撤掉安全配置回退旧存储。
+
+每步须检查 ProtectionError，不把返回对象存在当成功。失败保留 journal、partial 目标、原备份、源及未知意图；restoring 失败不允许自动重入覆盖目标。另行批准新隔离目标后重新演练，原失败证据保留。`status` 只读状态；核验后的 `flow.journal.proof(context)` 只返回本地证明路径和 SHA，不是认证账本事件。后续 open 会改变 journal；给治理 owner 固定证明时应在所选最后状态封存受控副本，保持父目录0700／文件0600和精确 SHA，不能使用随后被改写的路径。
+
+**旧源治理。** 先应用 `security_policies.0011_privatefileoperation_legacy_sources` 到获准测试库；工作树的小检查没有执行该迁移。用原 `assemble_private_maintenance(config_path, private_root, project_ref, legacy_root, recovery_proof)` 返回的资源／反馈 owner，传当前用户、原对象／工单 ID 和稳定 operation_id。动作顺序为 stage→实际 full 备份及关闭态 restore/verify→带源专属 proof 的 migrate 或 quarantine→另外授权的 delete；资源方法为 `maintain_legacy(user, resource_id, operation_id, action, replaces=None)`，反馈另需 ticket_id／attachment_id，均用关键字调用。stage 不改 FileField、不授下载或删除；rotate 只替换未切换 staging，实际重加密并保留旧候选，replacement 必须另做恢复证明。staff 不能覆盖当前原上传者及原 ACL。原源字节变化、仍被别的 owner 引用、缺审计／证明都拒绝；删旧源不删新密文、旧意图、tombstone 或历史回执。
+
+旧审计沿 `assemble_legacy_archives(..., identity=..., recovery_proof=...)` 和原 `LegacyArchiveOwner.run`：原捕获／认证桥接→离线验内容→精确源恢复证明→quarantine→单独 delete。当前权限重新检查；法务 FK 拒绝删除时保留引用和全部源，不改成 SET_NULL。旧 payload／event／timestamp 原样保留，历史未认证字段不升级保证。归档目录不是 private 包的一部分，缺原归档时不能把 deleted 标记认作空 genesis。
+
+**密钥和退役。** DATA 轮换在显式 retained_data_keys 登记旧 READ_ONLY 引用，新写只用当前 ACTIVE；旧签名 envelope 保留原 ACTIVE 标签，仅在读取材料时选择明确保留引用，原 resolver 精确匹配不放宽。字段沿原 FieldRotation；不能就地改已签上传／报告／回执的 key_ref。audit retained_keys 保留认证历史，新备份 recipient 只影响新包，旧 identity 离线保留并验证实际能读旧包。恢复结果列 data／index／audit／report／归档 identity 引用；`backup.key_inventory(context, limits)` 仅本地 retained 包诊断，metadata_age_authenticated=False、retirement_allowed=False；私有维护 key_inventory 也不是全域退役授权。汇总保留包、其他归档／checkpoint、opaque 文件和 recipient↔identity 映射，实际离线验包后另行决定，不能凭本地零引用销毁 key。
+
+**独立执行器。** 新 `ds.executor-preparation.v2` 在原 v1 精确字段外增加 retained_data_keys 和 recovery_target_identity；旧 v1 行为保留，target 绑定原完整 BackupPort 的 source_identity。独立工程 `assemble_recovery(backups=..., crypto=..., project_ref=..., limits=...)` 只接显式离线原端口，复用同一 close/restore/verify/open 顺序，不加载主站 owner。核验范围仅原私有 preparation：prepared／unknown 不晋升，过期记录不自动清除，旧 artifact／candidate_storage_ref 未入包则不开通，outbox 不冒称 v2。此处没有执行器发布、下载、分享或负向清理批准。
+
+**测试分发。** 精确 56 ID 与预期见 `~/workspace/data-security-seven-phases/logs/phase-06-block-b3-worklog.md` 的“测试分发请求”。完整主库 fixture 另需 `DS_B3_FULL_RECOVERY_RUN=1`、封存树自有 `.state/postgres.json`（synthetic_only、匹配 socket／port、test_ds_phase1_main）、DS_PHASE3_TOOLS 和唯一绝对路径 DS_B3_RECOVERY_EVIDENCE。正例通过才写真实时间／数量，不写 key 或源正文。adapter／recipient 组沿 `DS_PHASE3_BACKUP_RUN=1` 和每次全新的仓外0700 DS_PHASE3_CONTROLLED。执行器用其独立工程／专用库。禁止在本工作会话跑这些 PG／age 组；测试方须在 teardown 前保留本轮实际产物用于原文扫描，收集 ID 不等于验证通过。
+
+## B4 蜜标隔离部署与维护（2026-11-09；实现不等于验收）
+
+先在获准隔离测试库应用 `security_policies.0012_canaryregistration`、`legal_kb.0006_legaldocument_canary_payload`、`resources.0006_resourcecache_canary_payload`、`challenges.0010_challenge_canary_payload`。本工作会话只做 migration drift，没有连接数据库或执行迁移。不得用生产资料或现有有正文的业务行充当目标。
+
+显式 v2 bootstrap 的 `canary` 段精确包含：
+
+- `seeds`：原 CanarySeed wire 列表，环境 evaluation、域 ctf；三类 target_ref 分别为 knowledge/database/challenge 加实际正整数 pk。
+- `project_ref`：固定可信项目 namespace，用于原 CryptoService AAD；恢复时不得替换。
+- `provider_ref`：实际配置的 volcano/deepseek/moonshot/qwen 之一。audit_chain 必须 ds.audit.v2，backup 必须原 full_inventory=True；所有数据／审计读钥和 checkpoint 按既有离线清单保留。
+
+目标分别是本人空 draft/other 文档、本人空 ResourceCache、staff 可管理的 inactive 空题目。只增加业务表专用加密字段，不发布或自动检索；三处普通正文与原 ACL 保持不变。新目录 model 的 Django permission 不自动授予用户：plant 需 add_canaryregistration＋目标 change；check 需 view_canaryregistration＋目标 view；retire 需 change_canaryregistration＋目标 change，另检查当前 active actor 与本人范围。没有默认 admin/teacher 批准。
+
+可信内部调用 `runtime = assemble_canary_runtime(config_path=...)` 后，显式传当前 user 和已授权任务给 `runtime.run_security_task(user=..., message=...)`。模型只传 seed_id 或 artifact_ref；check 引用格式为 `canary/<seed_id>`，不是文件路径，实际原样产物只由 owner 从业务密文解密。模型按需选择工具，无固定流程、自动重试、HTTP 新入口或普通学习任务自动写操作。任务只返回状态和安全 metadata；不要把原样值、seed、请求正文或异常详情写日志／界面。缺工具／provider 注入直接关闭。
+
+退役由可信维护调用 `components['canary']['owner'].retire(seed_id=..., user=...)` 显式进行，不是模型自动步骤，也不删除任何密文。当前权限仍必须有效；重复退役读取原认证结果，相同 seed 不复活。保留 planted/retired 元数据和配置 seed；不能删配置绕开历史检测。退役不是毁钥批准。
+
+恢复仍用 B3 原 close/restore/verify/open。B 在原 owner 核验之后追加目录只读核验，检查三业务字段、目录、packet／event 和当前选定 checkpoint；孤立密文、遗漏目录配置、错钥／AAD／hash／链都保持失败。成功 metadata 包含 planted/retired 计数和 data_key_refs，不含原样值；引用合并进原恢复清单。两个顺序只读快照不宣称原子跨资源快照。核验不补种、改状态、发锚、开放流量或销毁 key；完整 age 恢复与三出口正式 B 的 PG 结果仍交独立测试会话，详见 B4 工作日志“测试分发请求”。
+
+## 第 7 期文本 RAG、原文申请与统计（2026-11-10；开发状态，非部署批准）
+
+本节补充前述历史截点；六期候选／独立验收仍为七期总验前置，不接手 B5。当前分轮结果与待批事项以 `~/workspace/data-security-seven-phases/evidence/phase-07/INDEX.md`、`GATE-STATUS.md` 和实施报告为准，不能把源码存在或配置片段当作已启用／已验收。
+
+**文本与历史。** RAG pipeline 由 B 显式注入既有 parser／chunker／embedder／repository，正文、标题／文件名／metadata 在切块和 embedding 前保护；查询、召回、cache 读写及再次外发继续过现有保护入口。未绑定的历史基线不因此成为获准发布模式；回退只能使用已验证的脱敏索引或保持不可用，不能靠撤掉安全配置回到原文索引。图片／OCR 已按用户改令搁置，图片拒绝外发；不得据旧图文简报执行 OCR＋遮罩。火山方舟文本 vision 路径固定 `doubao-embedding-vision-251215`、显式 `dimensions=1024`、官方 `/api/v3/embeddings/multimodal`、响应 `data.embedding`；不本地截断或改向量列。凭据仅用既有 key_ref 安全注入，不从本机探测厂商；捕获桩不等于真实语义联调。
+
+**原文申请。** 原 `ds.bootstrap.v2` 可选 `reveal_requests: {"enabled": true}`，需要已绑定字段存储和认证审计；缺配置或关闭不提供能力。仅普通 `start_application` 绑定 M9，单独 assemble 不代表 HTTP 已启动。本期新增 `security_policies.0013_reveal_request` 和 `0014_reveal_request_metadata`，隔离测试迁移证据不授权对运行库或生产执行迁移。
+
+| 路由（统一前缀 `/api/data-security/`） | 使用口径 |
+| --- | --- |
+| GET `reveal-source/` | 仅 source_id、field、field_ref，可选 course_id，单值参数。由现有资料列表的业务编号定位 UUID／当前版本，只返回已获准对象元数据，不创建申请／批准。 |
+| GET `reveal-requests/` | 当前可见申请元数据；offset 默认 0、limit 默认 50／最大 100。不是原文列表。 |
+| POST `reveal-requests/` | object_ref、object_version、fields、purpose、reason，可选 course_id。当前调查用途；ID、申请者、时间、批准和 grant 均由服务端生成。 |
+| POST `reveal-requests/{request_ref}/{approve\|reject\|revoke}/` | 空 JSON 对象，不接受客户端批准人、期限或 grant。继续复核当前对象／角色权限；申请与批准分离。 |
+| POST `reveal-requests/{request_ref}/read/` | 空 JSON 对象，只走限时单次原文读取；持有申请号不等于有权读取，不提供长期明文下载。 |
+| GET `stats/` | 仅当前 active admin；只接受单值 offset，每页固定最多 20 条，next_offset 指向后页。不接受客户端 limit。 |
+
+资料定位支持 email→`users.ctfuser/email`、evidence→`legal.legalanalysistask/input_text`、report→`legal.legalreport/content`。学生仅本人邮箱；教师／管理员扩大用户范围仍需原有效课程授权；法律对象还受原 IsLegalReviewer 与实际 task owner 规则限制。管理员、生成者、CourseDataGrant 或 read_protected 均不等于原文批准；不开放会话、手工事实、密码或密钥。核对后字段／业务编号／课程发生变化须重新定位，提交仍会拒绝旧版本或已撤销权限。
+
+申请／定位 API 沿 IsAuthenticated 和原 owner 权限；管理页路由仍限管理员。理由先保护后保存，列表不泄露申请原样理由；审批最长 900 秒，读取在同 PG UOW 内先单次消费再解密，成功须有同 event_id 的 ds.audit.v2／LEDGER_CONFIRMED 收据。所有新 HTTP 响应均 no-store/private、Pragma=no-cache，不将原文或统计写入浏览器持久存储。管理界面不展示真实原文样本。
+
+**统计。** 沿已启用的第四期管理装配提供只读 reader，不另增统计配置或采集系统。逐报告区分原处理／复扫、单位、资产／Coverage／策略版本；报告重建后还须通过历史 MAC 验证。历史 MAC 只证明完整性，不代表当前授权、交付、网络收讫或验收。缺分母显示未知；确有 eligible=0 时 numerator=denominator=0、ratio=null，并标 NO_ELIGIBLE_UNITS。unknown_records 是未知报告份数，不是字段或单元格数。字段／文本／出口缺完整 Coverage 时明确未知，不能从事件数量反推比例。当前能力只报告 disabled 或 enabled-unverified，不自动升级为已验收。
+
+**保留与恢复后的治理仍未落实。** D8 的七日槽＋四周槽沿原显式预览／批准入口，不是自动 TTL 或最长 28 天销毁承诺。D4 对话类最长 30 天仍只有隔离元数据登记；七期各对象到期起算、例外、派生副本与证据范围列为 P7-RETENTION-SCOPE 待确认，不能直接自动删库／文件。P7-HISTORY-GOV 未批，历史切块／向量／缓存／直链只清点。当前恢复核验能检查恢复快照和原锚，但尚无七期恢复点之后删除／撤销重放成绩，包含新 RevealRequest；不得据恢复成功开通这些未验能力。详见 E7 `LIFECYCLE-SCOPE-01.md`，不另建恢复通道、不绕过原清单或 journal。
+
+**关闭与未验。** 关闭 reveal capability 不删除授权历史；如需撤销未消费批准，须由原有权限路径显式执行，不直改库或清空证据。保留前期字段／P0 保护、密文、账本和 unknown 额度。浏览器因本地网络检查受限，构建与 node --check 不代表页面交互或窄屏通过；不关检查或外露服务绕过。完整候选 default／bound／pure 全量及相关性能／总验部分按 2026-11-10 07:17 改令暂缓，等用户再令，不把文档命令或分轮开发结果计入累计。

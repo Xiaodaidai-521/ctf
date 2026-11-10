@@ -9,7 +9,11 @@ from .errors import ArtifactIntegrityError, ContractError
 
 
 class PrivateStorage:
+    """Unbound legacy files only; formal preparation belongs to the injected M6 store."""
+
     def __init__(self, root=None):
+        if settings.CONTROLLED_EXPORT_PRIVATE_MODE or settings.CONTROLLED_EXPORT_PRIVATE_PREPARATION is not None:
+            raise ContractError("Legacy file access is disabled in private mode", code="LEGACY_STORAGE_DISABLED")
         self.root = Path(root or settings.CONTROLLED_EXPORT_PRIVATE_ROOT).resolve()
         self.root.mkdir(parents=True, exist_ok=True)
 

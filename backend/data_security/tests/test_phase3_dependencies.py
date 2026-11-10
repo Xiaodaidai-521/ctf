@@ -133,7 +133,7 @@ class Phase3DependencyTests(unittest.TestCase):
                 self.assertTrue(check_source(path(source), 'import ' + target, phase=phase))
 
     def test_actual_current_tree_is_scanned_without_excluding_new_modules(self):
-        checked, violations = scan(ROOT, phase=5)
+        checked, violations = scan(ROOT, phase=7)
         self.assertGreater(checked, 500)
         self.assertEqual(violations, [])
 
@@ -172,7 +172,7 @@ class Phase3InventoryTests(unittest.TestCase):
         self.assertIn('PHASE2_FUTURE_IMPLEMENTATION', {v.code for v in scan(self.root)[1]})
 
     def test_unknown_boolean_extra_malformed_or_symlink_declaration_rejected(self):
-        for value in ({'phase': 6, 'version': 'phase-boundary.v1'},
+        for value in ({'phase': 8, 'version': 'phase-boundary.v1'},
                       {'phase': True, 'version': 'phase-boundary.v1'},
                       {'phase': 3, 'version': 'future'},
                       {'phase': 3, 'version': 'phase-boundary.v1', 'allow_everything': True},

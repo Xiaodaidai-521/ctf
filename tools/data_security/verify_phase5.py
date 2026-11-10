@@ -6,7 +6,7 @@ import subprocess
 from tools.data_security import isolation
 
 
-def main():
+def main(*, phase=5):
     parser = argparse.ArgumentParser()
     parser.add_argument('--label', required=True)
     parser.add_argument('--expect-head')
@@ -26,7 +26,7 @@ def main():
                 raise RuntimeError('EXACT_CLEAN_CANDIDATE_REQUIRED')
 
     check_candidate()
-    isolation.EVIDENCE = Path('/home/hatch/workspace/data-security-seven-phases/evidence/phase-05')
+    isolation.EVIDENCE = Path('/home/hatch/workspace/data-security-seven-phases/evidence') / f'phase-{phase:02d}'
     isolation.start_postgres()
     env = isolation.environment()
     env['PYTHONPATH'] = str(root) + ':' + str(root / 'backend') + ':' + str(root / '.state')

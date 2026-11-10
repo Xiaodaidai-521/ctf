@@ -4,8 +4,11 @@ from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from django.db.models import Case, IntegerField, Q, Value, When
 from django.http import FileResponse
+from data_security.contracts import ProtectionError
+from data_security.adapters.django.private_files import (
+    create_private_share, operation_response, private_file_error, private_file_response, private_files, upload_operation_id,
+)
 from .models import Resource
-from learning_knowledge.policy import filter_legacy_queryset
 from .serializers import (
     ResourceSerializer,
     ResourceUploadSerializer,
@@ -21,7 +24,7 @@ class ResourceAdminListView(generics.ListAPIView):
     pagination_class = pagination.PageNumberPagination
 
     def get_queryset(self):
-        queryset = filter_legacy_queryset(super().get_queryset(), 'resource', self.request.user)
+        queryset = super().get_queryset()
 
         # 状态筛选
         status_filter = self.request.query_params.get('status', None)
@@ -64,7 +67,7 @@ class ResourceListView(generics.ListAPIView):
     search_fields = ['title', 'description', 'tags']
 
     def get_queryset(self):
-        queryset = filter_legacy_queryset(super().get_queryset(), 'resource', self.request.user)
+        queryset = super().get_queryset()
         highlight_resource_id = self._highlight_resource_id()
         highlight_resource_ids = self._highlight_resource_ids()
         
@@ -87,7 +90,9 @@ class ResourceListView(generics.ListAPIView):
         if category:
             queryset = queryset.filter(category=category)
 
-        # Highlight changes ordering only; it never widens the readable queryset.
+        if highlight_resource_ids:
+            highlighted = Resource.objects.filter(id__in=highlight_resource_ids, status='approved')
+            queryset = (queryset | highlighted).distinct()
         
         # 排序
         ordering = self.request.query_params.get('ordering', '-created_at')
@@ -151,10 +156,12 @@ class ResourceDetailView(generics.RetrieveAPIView):
     lookup_field = 'id'
 
     def get_queryset(self):
-        return filter_legacy_queryset(
-            Resource.objects.filter(status='approved', is_tutoring_reserved=False),
-            'resource', self.request.user,
-        )
+        queryset = Resource.objects.filter(status='approved')
+        highlight_resource_id = self._highlight_resource_id()
+        requested_id = self.kwargs.get(self.lookup_field)
+        if highlight_resource_id and str(highlight_resource_id) == str(requested_id):
+            return queryset
+        return queryset.filter(is_tutoring_reserved=False)
 
     def get_serializer_context(self):
         context = super().get_serializer_context()
@@ -193,14 +200,25 @@ class ResourceUploadView(generics.CreateAPIView):
                 status=status.HTTP_403_FORBIDDEN
             )
         
+        owner = private_files('resources')
+        if isinstance(owner, ProtectionError):
+            return private_file_error(owner)
+        operation_id = upload_operation_id(request) if owner is not None else None
+        if isinstance(operation_id, ProtectionError):
+            return private_file_error(operation_id)
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        resource = serializer.save()
-        
-        return Response({
-            'message': '资源上传成功，等待审核',
-            'resource': ResourceSerializer(resource).data
-        }, status=status.HTTP_201_CREATED)
+        if owner is not None:
+            resource = owner.create(serializer.validated_data, user=request.user, operation_id=operation_id)
+            if isinstance(resource, ProtectionError):
+                return private_file_error(resource)
+        else:
+            resource = serializer.save()
+        result = {'message': '资源上传成功，等待审核',
+            'resource': ResourceSerializer(resource, context={'request': request}).data}
+        if operation_id is not None:
+            result['operation_id'] = str(operation_id)
+        return Response(result, status=status.HTTP_201_CREATED, headers={'Cache-Control': 'no-store'})
 
 
 class ResourceMyListView(generics.ListAPIView):
@@ -209,9 +227,7 @@ class ResourceMyListView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return filter_legacy_queryset(
-            Resource.objects.filter(uploader=self.request.user), 'resource', self.request.user,
-        )
+        return Resource.objects.filter(uploader=self.request.user)
 
 
 @api_view(['POST'])
@@ -222,7 +238,7 @@ def resource_review_view(request):
     serializer.is_valid(raise_exception=True)
     
     try:
-        resource = filter_legacy_queryset(Resource.objects.all(), 'resource', request.user).get(id=serializer.validated_data['resource_id'])
+        resource = Resource.objects.get(id=serializer.validated_data['resource_id'])
     except Resource.DoesNotExist:
         return Response(
             {'error': '资源不存在'},
@@ -237,7 +253,7 @@ def resource_review_view(request):
     
     return Response({
         'message': '审核完成',
-        'resource': ResourceSerializer(resource).data
+        'resource': ResourceSerializer(resource, context={'request': request}).data
     })
 
 
@@ -245,12 +261,28 @@ def resource_review_view(request):
 @permission_classes([IsAuthenticated])
 def resource_download_view(request, resource_id):
     """资源下载"""
+    owner = private_files('resources')
+    if owner is not None:
+        if isinstance(owner, ProtectionError):
+            return private_file_error(owner)
+        payload = owner.open_download(user=request.user, resource_id=resource_id)
+        if isinstance(payload, ProtectionError):
+            return private_file_error(payload)
+        return private_file_response(payload, filename=f'resource-{resource_id}.bin')
     try:
-        resource = filter_legacy_queryset(
-            Resource.objects.filter(status='approved', is_tutoring_reserved=False),
-            'resource', request.user,
-        ).get(id=resource_id)
+        resource = Resource.objects.get(id=resource_id, status='approved')
     except Resource.DoesNotExist:
+        return Response(
+            {'error': '资源不存在或未通过审核'},
+            status=status.HTTP_404_NOT_FOUND
+        )
+
+    raw_highlight = request.query_params.get('highlight_resource')
+    try:
+        highlight_resource_id = int(raw_highlight)
+    except (TypeError, ValueError):
+        highlight_resource_id = None
+    if resource.is_tutoring_reserved and highlight_resource_id != resource.id:
         return Response(
             {'error': '资源不存在或未通过审核'},
             status=status.HTTP_404_NOT_FOUND
@@ -272,3 +304,34 @@ def resource_download_view(request, resource_id):
     response['Content-Type'] = 'application/octet-stream'
     response['X-Content-Type-Options'] = 'nosniff'
     return response
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def resource_cover_download_view(request, resource_id):
+    owner = private_files('resources')
+    if owner is None or isinstance(owner, ProtectionError):
+        return private_file_error(owner)
+    payload = owner.open_download(user=request.user, resource_id=resource_id, field='cover_image')
+    if isinstance(payload, ProtectionError):
+        return private_file_error(payload)
+    return private_file_response(payload, filename=f'resource-{resource_id}-cover.bin')
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def resource_share_view(request, resource_id, field='file'):
+    return create_private_share(request, domain='resources', object_id=resource_id, field=field)
+
+
+@api_view(['POST', 'DELETE'])
+@permission_classes([IsAuthenticated])
+def resource_file_operation_view(request, operation_id):
+    owner = private_files('resources')
+    if owner is None or isinstance(owner, ProtectionError):
+        return private_file_error(owner)
+    result = owner.reconcile_operation(user=request.user, operation_id=operation_id,
+        cleanup=request.method == 'DELETE')
+    if isinstance(result, ProtectionError):
+        return private_file_error(result)
+    return operation_response(result, operation_id)

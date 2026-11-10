@@ -2,7 +2,7 @@
 from data_security.contracts import (Algorithm, AuditPort, AuditReceipt, ContractViolation,
     Coverage, Durability, Environment, EventKind, KeyPurpose, KeyStatus, Limits, Outcome,
     PayloadKind, PolicyCatalogPort, ProtectedResult, ProtectionContext, ProtectionError,
-    ReasonCode, SecretMaterial, SecurityEvent, Unit)
+    ReasonCode, SecretMaterial, SecurityEvent, SecurityEventV2, Unit)
 from data_security.contracts.schema import reference, require
 from data_security.core.policy import resolve_actions, validate_snapshot
 from data_security.core.redaction import apply_actions, detect
@@ -11,7 +11,8 @@ from data_security.core.redaction import apply_actions, detect
 class ProtectionService:
     def __init__(self, *, policies: PolicyCatalogPort, audit: AuditPort, clock, random_bytes,
                  environment: Environment, limits: Limits, field_ref: str,
-                 keys=None, key_references=(), service_identity='service/protection', truncate=None):
+                 keys=None, key_references=(), service_identity='service/protection', truncate=None,
+                 authenticated_audit=False):
         require(type(environment) is Environment and environment is not Environment.PRODUCTION,
                 ReasonCode.AUTHORIZATION_DENIED)
         require(type(limits) is Limits and callable(clock) and callable(random_bytes), ReasonCode.INVALID_TYPE)
@@ -23,6 +24,8 @@ class ProtectionService:
         self.environment, self.limits, self.field_ref = environment, limits, field_ref
         self.keys, self.key_references, self.service_identity = keys, key_references, service_identity
         self.truncate = truncate
+        require(type(authenticated_audit) is bool, ReasonCode.INVALID_TYPE)
+        self.authenticated_audit = authenticated_audit
 
     def _current_actions(self, context, policy_binding, findings):
         current = self.policies.snapshot(policy_binding)
@@ -86,17 +89,22 @@ class ProtectionService:
             stage = ReasonCode.AUDIT_UNAVAILABLE
             event_bytes = self.random_bytes(16)
             require(type(event_bytes) is bytes and len(event_bytes) == 16, ReasonCode.AUDIT_UNAVAILABLE)
-            event = SecurityEvent(schema_version=SecurityEvent.SCHEMA, event_id='protection/' + event_bytes.hex(),
+            event_type = SecurityEventV2 if self.authenticated_audit else SecurityEvent
+            event = event_type(schema_version=event_type.SCHEMA, event_id='protection/' + event_bytes.hex(),
                 kind=EventKind.PROTECTION, actor_ref=context.actor_ref, object_ref=context.object_ref,
                 object_version=context.object_version, outcome=Outcome.SUCCEEDED, occurred_at=at,
                 counts=(('hit', len(findings)), ('processed', coverage.processed), ('excluded', coverage.excluded)),
                 policy_binding=policy_binding, algorithm_versions=tuple(sorted({a.algorithm.algorithm.value + '-v1' for a in actions})),
-                key_versions=tuple(k.key_ref for k, _ in materials), correlation_ref=trace, reason=None)
-            receipt = self.audit.record(event, Durability.DURABLE)
+                key_versions=tuple(k.key_ref for k, _ in materials), correlation_ref=trace, reason=None,
+                **({'evidence_hashes': ()} if self.authenticated_audit else {}))
+            durability = Durability.LEDGER_CONFIRMED if self.authenticated_audit else Durability.DURABLE
+            receipt = self.audit.record(event, durability)
             if type(receipt) is ProtectionError:
                 raise ContractViolation(receipt.code)
             require(type(receipt) is AuditReceipt and receipt.event_id == event.event_id and
-                    receipt.stored_at >= at, ReasonCode.AUDIT_UNAVAILABLE)
+                    receipt.durability is durability and receipt.stored_at >= at and
+                    (not self.authenticated_audit or receipt.chain_version == 'ds.audit.v2'),
+                    ReasonCode.AUDIT_UNAVAILABLE)
             stage = ReasonCode.POLICY_NOT_APPROVED
             require(self._current_actions(context, policy_binding, findings) == actions,
                     ReasonCode.AUTHORIZATION_EXPIRED)

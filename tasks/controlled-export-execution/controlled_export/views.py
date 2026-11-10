@@ -1,6 +1,8 @@
 from pathlib import Path
 
+from django.conf import settings
 from django.http import StreamingHttpResponse
+from data_security.contracts import ContractViolation
 from rest_framework import status
 from rest_framework.authentication import SessionAuthentication, TokenAuthentication
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
@@ -18,7 +20,7 @@ from .errors import (
     ShareAccessDenied,
     UnsupportedContent,
 )
-from .models import DeliveryAttempt, ShareGrant
+from .models import DeliveryAttempt, ExecutionAttempt, ExportExecution, ShareGrant
 from .serializers import (
     CreateShareSerializer,
     DeliveryResultSerializer,
@@ -38,7 +40,8 @@ from .services import (
 
 
 def _error_response(exc):
-    if isinstance(exc, (IdempotencyConflict, ExecutionConflict)):
+    code = exc.code.value if isinstance(exc, ContractViolation) else exc.code
+    if isinstance(exc, (IdempotencyConflict, ExecutionConflict)) or code == "DELIVERY_UNKNOWN":
         http_status = status.HTTP_409_CONFLICT
     elif isinstance(exc, (AuthorizationRejected, ShareAccessDenied)):
         http_status = status.HTTP_403_FORBIDDEN
@@ -46,7 +49,7 @@ def _error_response(exc):
         http_status = status.HTTP_422_UNPROCESSABLE_ENTITY
     else:
         http_status = status.HTTP_400_BAD_REQUEST
-    return Response({"error_code": exc.code, "detail": str(exc)}, status=http_status)
+    return Response({"error_code": code, "detail": str(exc)}, status=http_status)
 
 
 def _required_header(request, name, max_length=300):
@@ -66,23 +69,54 @@ class ExecuteExportView(InternalView):
     parser_classes = [MultiPartParser, FormParser]
 
     def post(self, request):
+        components = getattr(request, "_controlled_export_private_preparation", None)
+        if (settings.CONTROLLED_EXPORT_PRIVATE_MODE or settings.CONTROLLED_EXPORT_PRIVATE_PREPARATION is not None) \
+                and components is None:
+            return Response({"error_code": "PRIVATE_PREPARATION_UNAVAILABLE"},
+                            status=status.HTTP_503_SERVICE_UNAVAILABLE, headers={"Cache-Control": "no-store"})
         serializer = ExecuteExportSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         upload = serializer.validated_data["file"]
+        execute = components["execute"] if components is not None else execute_authorized_export
         try:
-            receipt, replay = execute_authorized_export(
+            receipt, replay = execute(
                 authorization=serializer.validated_data["authorization"],
                 signature=_required_header(request, "X-Authorization-Signature", 64),
                 plan=serializer.validated_data["plan"],
                 filename=Path(upload.name).name,
-                content=upload.read(),
+                content=upload.read(settings.CONTROLLED_EXPORT_MAX_INPUT_BYTES + 1),
                 idempotency_key=_required_header(request, "Idempotency-Key", 200),
                 caller_id=request.user.service_id,
             )
-        except ControlledExportError as exc:
+        except (ControlledExportError, ContractViolation) as exc:
             return _error_response(exc)
         receipt["idempotent_replay"] = replay
-        return Response(receipt, status=status.HTTP_200_OK if replay else status.HTTP_201_CREATED)
+        return Response(receipt, status=status.HTTP_200_OK if replay else status.HTTP_201_CREATED,
+                        headers={"Cache-Control": "no-store"})
+
+
+class PreparationObservationView(InternalView):
+    def _observe(self, request, execution_id, operation):
+        components = getattr(request, "_controlled_export_private_preparation", None)
+        if components is None:
+            return Response({"error_code": "PRIVATE_PREPARATION_UNAVAILABLE"},
+                            status=status.HTTP_503_SERVICE_UNAVAILABLE, headers={"Cache-Control": "no-store"})
+        try:
+            receipt = components[operation](execution_id=execution_id, caller_id=request.user.service_id)
+        except (ExportExecution.DoesNotExist, ExecutionAttempt.DoesNotExist):
+            return Response({"error_code": "EXECUTION_NOT_FOUND"}, status=status.HTTP_404_NOT_FOUND)
+        except (ControlledExportError, ContractViolation) as exc:
+            return _error_response(exc)
+        return Response(receipt, headers={"Cache-Control": "no-store"})
+
+    def get(self, request, execution_id):
+        return self._observe(request, execution_id, "observe")
+
+    def post(self, request, execution_id):
+        # Only the path reference is consumed, never a client candidate or success claim.
+        if request.META.get("CONTENT_LENGTH") not in (None, "", "0") or request.META.get("HTTP_TRANSFER_ENCODING"):
+            return Response({"error_code": "PREPARATION_REFERENCE_ONLY"}, status=status.HTTP_400_BAD_REQUEST)
+        return self._observe(request, execution_id, "reconcile")
 
 
 class CreateShareView(InternalView):

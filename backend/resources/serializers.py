@@ -1,4 +1,6 @@
 from rest_framework import serializers
+from data_security.contracts import ProtectionError
+from data_security.adapters.django.private_files import private_files
 from .models import Resource
 from .validators import validate_cover_image, validate_resource_file
 from users.serializers import UserSerializer
@@ -32,6 +34,12 @@ class ResourceSerializer(serializers.ModelSerializer):
             'reviewed_at', 'created_at', 'updated_at'
         ]
 
+    def to_representation(self, instance):
+        result = super().to_representation(instance)
+        if private_files('resources') is not None:
+            result['cover_image'] = None
+        return result
+
     def get_tags_list(self, obj):
         return obj.get_tags_list()
 
@@ -39,13 +47,24 @@ class ResourceSerializer(serializers.ModelSerializer):
         return dict(Resource.RESOURCE_TYPE_CHOICES).get(obj.resource_type, obj.resource_type)
 
     def get_file_url(self, obj):
-        if not obj.file:
-            return None
         request = self.context.get('request')
+        owner = private_files('resources')
+        if owner is not None:
+            if isinstance(owner, ProtectionError) or not obj.private_files or not request or not request.user.is_authenticated:
+                return None
+            if obj.uploader_id != request.user.pk and not request.user.is_staff:
+                return None
+        elif not obj.file:
+            return None
         path = f'/api/resources/{obj.id}/download/'
         return request.build_absolute_uri(path) if request else path
 
     def get_cover_url(self, obj):
+        owner = private_files('resources')
+        if owner is not None:
+            if self.get_file_url(obj) is None or 'cover_image' not in obj.private_files.get('files', {}):
+                return None
+            return self.context['request'].build_absolute_uri(f'/api/resources/{obj.id}/cover/download/')
         if obj.cover_image:
             return obj.cover_image.url
         return None
@@ -76,6 +95,15 @@ class ResourceUploadSerializer(serializers.ModelSerializer):
         return validate_cover_image(value)
 
     def create(self, validated_data):
+        if 'private_uploads' in self.context:
+            uploads = self.context['private_uploads']
+            if uploads is None:
+                raise serializers.ValidationError('资源上传暂未开放。')
+            result = uploads.create(validated_data, user=self.context['request'].user)
+            if isinstance(result, ProtectionError):
+                raise serializers.ValidationError('资源暂时无法保存。', code=result.code.value)
+            return result
+
         # 获取上传者
         validated_data['uploader'] = self.context['request'].user
         

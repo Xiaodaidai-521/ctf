@@ -9,7 +9,7 @@ from django.core.exceptions import PermissionDenied, ValidationError
 from django.utils import timezone
 
 from audit.models import AuditEvent, AuditLedgerEntry
-from audit.services import canonical_json, sha256_hex
+from audit.legacy_hashes import canonical_json, sha256_hex
 from challenges.models import ChallengeContainer
 from submissions.models import Submission
 from data_security.adapters.persistence.fields import field_storage_enabled

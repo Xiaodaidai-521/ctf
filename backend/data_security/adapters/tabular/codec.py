@@ -13,7 +13,7 @@ from defusedxml.common import DefusedXmlException
 from openpyxl import Workbook, load_workbook
 from openpyxl.utils.exceptions import IllegalCharacterError
 
-from data_security.contracts import (BoundedPayload, ContractViolation, Coverage, Limits,
+from data_security.contracts import (BoundedPayload, ContractViolation, Coverage, FrozenJSON, Limits,
     MediaType, PayloadKind, ProtectionError, ReasonCode, TableCell, TableColumn, TableSnapshot, Unit)
 from data_security.contracts.schema import reference, require
 
@@ -233,6 +233,24 @@ class TableCodec:
                 KeyError, IndexError, OSError, magic.MagicException):
             return ProtectionError(schema_version=ProtectionError.SCHEMA, code=ReasonCode.UNSUPPORTED_FORMAT,
                                    retryable=False, trace_id='tabular/parse')
+
+    def delivery_metadata(self, snapshot: TableSnapshot, limits: Limits):
+        """Read the non-grid values retained by serialize; never certify arbitrary OOXML.
+
+        The frozen serializer rebuilds properties/styles and copies only sheet
+        titles outside the grid. No parser or serializer semantics change here.
+        """
+        try:
+            require(snapshot.asset_version == self.asset_version and snapshot.input_hash == self.input_hash,
+                    ReasonCode.HASH_MISMATCH)
+            names = dict(self.sheet_names)
+            require(all(s in names for s in snapshot.sheet_ids), ReasonCode.UNSUPPORTED_SCOPE)
+            titles = [names[s] for s in snapshot.sheet_ids] if snapshot.media_type is MediaType.XLSX else []
+            return BoundedPayload(schema_version=BoundedPayload.SCHEMA, kind=PayloadKind.JSON,
+                media_type=MediaType.JSON, text=None, binary=None, tree=FrozenJSON(titles), limits=limits)
+        except ContractViolation as exc:
+            return ProtectionError(schema_version=ProtectionError.SCHEMA, code=exc.code,
+                                   retryable=False, trace_id='tabular/delivery-metadata')
 
     def serialize(self, snapshot: TableSnapshot, limits: Limits):
         try:

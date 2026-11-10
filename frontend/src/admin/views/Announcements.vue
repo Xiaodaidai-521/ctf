@@ -5,10 +5,10 @@
         <h3 class="page-title">公告管理</h3>
         <div class="page-actions">
           <button class="action-btn btn-default" @click="fetchAnnouncements">
-            <AppIcon name="bi-arrow-clockwise" /> 刷新
+            🔄 刷新
           </button>
           <button class="action-btn btn-primary" @click="handleCreate">
-            <AppIcon name="bi-plus" /> 新增公告
+            ➕ 新增公告
           </button>
         </div>
       </div>
@@ -36,7 +36,7 @@
       </div>
 
       <div v-else-if="announcements.length === 0" class="empty-state">
-        <div class="empty-icon"><AppIcon name="bi-megaphone" /></div>
+        <div class="empty-icon">📢</div>
         <p>暂无公告</p>
       </div>
 
@@ -54,7 +54,7 @@
           <div class="announcement-header">
             <div class="announcement-info">
               <h4 class="announcement-title">
-                <span v-if="announcement.is_pinned" class="pinned-badge"><AppIcon name="bi-pin-angle" /></span>
+                <span v-if="announcement.is_pinned" class="pinned-badge">📌</span>
                 {{ announcement.title }}
               </h4>
               <div class="announcement-badges">
@@ -109,7 +109,7 @@
       <div class="modal-content modal-large">
         <div class="modal-header">
           <h3>{{ isEdit ? '编辑公告' : '新增公告' }}</h3>
-          <button class="close-btn" @click="showEditorModal = false" aria-label="关闭"><AppIcon name="bi-x-lg" /></button>
+          <button class="close-btn" @click="showEditorModal = false">✕</button>
         </div>
         <div class="modal-body">
           <div class="admin-form">
@@ -150,7 +150,7 @@
                 <span>置顶公告（会始终显示在列表顶部）</span>
               </label>
             </div>
-            <div class="form-group" style="grid-column:1 / -1;">
+            <div class="form-group" style="grid-column: 1 / -1;">
               <label class="form-label required">公告内容</label>
               <textarea
                 v-model="formData.content"
@@ -173,9 +173,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from 'vue'
-import { usePageFilters } from '@/shared/state/usePageFilters.js'
-import { createAccountGuard } from '@/shared/state/accountScope.js'
+import { ref, onMounted } from 'vue'
 import api from '@/api'
 
 const announcements = ref([])
@@ -187,10 +185,6 @@ const filters = ref({
   priority: '',
 })
 
-usePageFilters('admin-announcements', { filters })
-const guard = createAccountGuard()
-onBeforeUnmount(guard.dispose)
-let request = 0
 const showEditorModal = ref(false)
 const isEdit = ref(false)
 
@@ -204,7 +198,6 @@ const formData = ref({
 })
 
 const fetchAnnouncements = async () => {
-  const current = ++request
   loading.value = true
   try {
     const params = {}
@@ -212,12 +205,11 @@ const fetchAnnouncements = async () => {
     if (filters.value.priority) params.priority = filters.value.priority
 
     const response = await api.announcement.list(params)
-    if (!guard.current() || current !== request) return
     announcements.value = response.results || []
   } catch (error) {
     console.error('获取公告列表失败:', error)
   } finally {
-    if (guard.current() && current === request) loading.value = false
+    loading.value = false
   }
 }
 
@@ -315,349 +307,347 @@ onMounted(() => {
 
 <style scoped>
 .admin-announcements {
-  padding:var(--space-2);
+  padding: 20px;
 }
 
 .page-card {
-  background:var(--surface);
-  border-radius:var(--radius-control);
-  box-shadow: var(--shadow-raised);
-  padding:var(--space-3);
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 24px;
 }
 
 .page-header {
-  display:flex;
-  flex-wrap:wrap;
-  gap:var(--space-2);
-  justify-content:space-between;
-  align-items:center;
-  margin-bottom:var(--space-3);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
 }
 
 .page-title {
-  margin:0;
-  font-size:var(--text-section);
-  color:var(--ink);
+  margin: 0;
+  font-size: 24px;
+  color: #333;
 }
 
 .page-actions {
-  display:flex;
-  gap:var(--space-1);
+  display: flex;
+  gap: 12px;
 }
 
 .filter-bar {
-  display:flex;
-  gap:var(--space-1);
-  margin-bottom:var(--space-3);
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
 }
 
 .filter-select {
-  padding:var(--space-1) var(--space-1);
-  border:var(--stroke) solid var(--line);
-  border-radius:var(--radius-control);
-  font-size:var(--text-caption);
-  min-width:var(--row-label-width);
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  min-width: 120px;
 }
 
 .announcement-list {
-  display:flex;
-  flex-direction:column;
-  gap:var(--space-2);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
 .announcement-item {
-  border:var(--stroke) solid var(--line);
-  border-radius:var(--radius-control);
-  padding:var(--space-2);
-  transition:all var(--motion-normal);
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 16px;
+  transition: all 0.2s;
 }
 
 .announcement-item:hover {
-  box-shadow: var(--shadow-raised);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .announcement-item.pinned {
-  border-left:calc(var(--space-1) / 2) solid var(--line);
+  border-left: 4px solid #ff6b6b;
 }
 
 .announcement-item.priority-high {
-  border-left:calc(var(--space-1) / 2) solid var(--negative);
+  border-left: 4px solid #ff4757;
 }
 
 .announcement-item.priority-medium {
-  border-left:calc(var(--space-1) / 2) solid var(--warning);
+  border-left: 4px solid #ffa502;
 }
 
 .announcement-header {
-  display:flex;
-  justify-content:space-between;
-  align-items:flex-start;
-  margin-bottom:var(--space-1);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
 }
 
 .announcement-title {
-  margin:0;
-  font-size:var(--text-card);
-  color:var(--ink);
-  display:flex;
-  align-items:center;
-  gap:var(--space-1);
+  margin: 0;
+  font-size: 18px;
+  color: #333;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .pinned-badge {
-  font-size:var(--text-body);
+  font-size: 16px;
 }
 
 .announcement-badges {
-  display:flex;
-  gap:var(--space-1);
-  margin-top:var(--space-1);
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
 }
 
 .badge {
-  padding:calc(var(--space-1) / 2) var(--space-1);
-  border-radius:var(--radius-control);
-  font-size:var(--text-caption);
-  font-weight: var(--weight-medium);
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
 }
 
 .status-draft {
-  background:var(--surface);
-  color:var(--ink-secondary);
+  background: #f0f0f0;
+  color: #666;
 }
 
 .status-published {
-  background:var(--positive-soft);
-  color:var(--positive);
+  background: #e8f5e9;
+  color: #4caf50;
 }
 
 .status-archived {
-  background:var(--surface);
-  color:var(--ink-muted);
+  background: #e0e0e0;
+  color: #999;
 }
 
 .priority-low {
-  background:var(--surface);
-  color:var(--action);
+  background: #e3f2fd;
+  color: #2196f3;
 }
 
 .priority-medium {
-  background:var(--warning-soft);
-  color:var(--warning);
+  background: #fff3e0;
+  color: #ff9800;
 }
 
 .priority-high {
-  background:var(--negative-soft);
-  color:var(--negative);
+  background: #ffebee;
+  color: #f44336;
 }
 
 .announcement-actions {
-  display:flex;
-  gap:var(--space-1);
-  flex-shrink:0;
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
 }
 
 .announcement-summary {
-  color:var(--ink-secondary);
-  margin-bottom:var(--space-1);
-  line-height:1.6;
+  color: #666;
+  margin-bottom: 12px;
+  line-height: 1.6;
 }
 
 .announcement-meta {
-  display:flex;
-  gap:var(--space-2);
-  font-size:var(--text-caption);
-  color:var(--ink-muted);
+  display: flex;
+  gap: 16px;
+  font-size: 13px;
+  color: #999;
 }
 
 .action-btn {
-  padding:var(--space-1) var(--space-2);
-  border:none;
-  border-radius:var(--radius-control);
-  cursor:pointer;
-  font-size:var(--text-caption);
-  transition:all var(--motion-normal);
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
 }
 
 .btn-default {
-  background:var(--surface);
-  color:var(--ink);
+  background: #f0f0f0;
+  color: #333;
 }
 
 .btn-primary {
-  background:var(--action);
-  color:var(--on-action);
+  background: #2196f3;
+  color: white;
 }
 
 .btn-success {
-  background:var(--positive);
-  color:var(--on-action);
+  background: #4caf50;
+  color: white;
 }
 
 .btn-warning {
-  background:var(--warning);
-  color:var(--on-action);
+  background: #ff9800;
+  color: white;
 }
 
 .btn-danger {
-  background:var(--negative);
-  color:var(--on-action);
+  background: #f44336;
+  color: white;
 }
 
 .action-btn:hover {
-  opacity:0.8;
+  opacity: 0.8;
 }
 
 .action-btn:disabled {
-  opacity:0.5;
-  cursor:not-allowed;
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .loading-state,
 .empty-state {
-  text-align:center;
-  padding:var(--space-7) var(--space-2);
-  color:var(--ink-muted);
+  text-align: center;
+  padding: 60px 20px;
+  color: #999;
 }
 
 .loading-spinner {
-  width:var(--space-5);
-  height:var(--space-5);
-  border:calc(var(--space-1) / 2) solid var(--line);
-  border-top:calc(var(--space-1) / 2) solid var(--line);
-  border-radius:50%;
-  animation:spin var(--motion-loop) linear infinite;
-  margin:0 auto var(--space-2);
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #2196f3;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 16px;
 }
 
 @keyframes spin {
-  0% { transform:rotate(0deg); }
-  100% { transform:rotate(360deg); }
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
 .empty-icon {
-  font-size:var(--text-page);
-  margin-bottom:var(--space-2);
+  font-size: 48px;
+  margin-bottom: 16px;
 }
 
 .modal-overlay {
-  position:fixed;
-  top:0;
-  left:0;
-  right:0;
-  bottom:0;
-  background:var(--overlay);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  z-index:var(--z-overlay);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
 }
 
 .modal-content {
-  background:var(--surface);
-  border-radius:var(--radius-control);
-  max-width:var(--reading-width);
-  width:90%;
-  max-height:90vh;
-  overflow-y:auto;
+  background: white;
+  border-radius: 8px;
+  max-width: 800px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
 }
 
 .modal-large {
-  max-width:var(--reading-width);
+  max-width: 1000px;
 }
 
 .modal-header {
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  padding:var(--space-2) var(--space-3);
-  border-bottom:var(--stroke) solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid #e0e0e0;
 }
 
 .modal-header h3 {
-  margin:0;
-  font-size:var(--text-card);
+  margin: 0;
+  font-size: 20px;
 }
 
 .close-btn {
-  background:none;
-  border:none;
-  font-size:var(--text-section);
-  cursor:pointer;
-  color:var(--ink-muted);
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #999;
 }
 
 .close-btn:hover {
-  color:var(--ink);
+  color: #333;
 }
 
 .modal-body {
-  padding:var(--space-3);
+  padding: 24px;
 }
 
 .modal-footer {
-  display:flex;
-  justify-content:flex-end;
-  gap:var(--space-1);
-  padding:var(--space-2) var(--space-3);
-  border-top:var(--stroke) solid var(--line);
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 20px 24px;
+  border-top: 1px solid #e0e0e0;
 }
 
 .admin-form {
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:var(--space-2);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
 }
 
 .form-group {
-  display:flex;
-  flex-direction:column;
+  display: flex;
+  flex-direction: column;
 }
 
 .form-label {
-  font-size:var(--text-caption);
-  color:var(--ink);
-  margin-bottom:var(--space-1);
-  font-weight: var(--weight-medium);
+  font-size: 14px;
+  color: #333;
+  margin-bottom: 8px;
+  font-weight: 500;
 }
 
 .form-label.required::after {
-  content:' *';
-  color:var(--ink-muted);
+  content: ' *';
+  color: #f44336;
 }
 
 .form-input,
 .form-select,
 .form-textarea {
-  padding:var(--space-1) var(--space-1);
-  border:var(--stroke) solid var(--line);
-  border-radius:var(--radius-control);
-  font-size:var(--text-caption);
-  font-family: var(--font-family);
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  font-family: inherit;
 }
 
 .form-input:focus,
 .form-select:focus,
 .form-textarea:focus {
-  outline-offset:var(--focus-offset);
-  border-color:var(--line);
+  outline: none;
+  border-color: #2196f3;
 }
 
 .form-textarea {
-  resize:vertical;
-  font-family: var(--font-family);
+  resize: vertical;
+  font-family: inherit;
 }
 
 .checkbox-label {
-  display:flex;
-  align-items:center;
-  gap:var(--space-1);
-  cursor:pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
 }
 
 .form-checkbox {
-  width:var(--space-2);
-  height:var(--space-2);
-  cursor:pointer;
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
 }
 </style>

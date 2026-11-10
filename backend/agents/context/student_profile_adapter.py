@@ -48,8 +48,14 @@ class StudentProfileContextAdapter:
                     "dailyStudyHours": float(preference.daily_study_hours or 0),
                     "difficultyBias": float(preference.difficulty_bias or 0),
                 }
-            # Derived persona snapshots have no material provenance. Do not replay
-            # their labels/traits as trusted model context; keep live user inputs only.
+            persona = getattr(profile, "persona", None)
+            if persona:
+                result["learningPersona"] = {
+                    "label": protect_text(str(persona.persona_label or ""))[:100],
+                    "confidence": float(persona.confidence_score or 0),
+                    "traits": persona.persona_traits if isinstance(persona.persona_traits, dict) else {},
+                    "recommendedAgentRoster": list(persona.recommended_agent_roster or [])[:8],
+                }
             safe_cache_set(key, result, profile_ttl())
             return result
         except ContentProtectionError:

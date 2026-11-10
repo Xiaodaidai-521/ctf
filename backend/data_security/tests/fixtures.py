@@ -1,3 +1,4 @@
+from dataclasses import fields, replace
 from datetime import datetime, timedelta, timezone
 
 from data_security.contracts import *
@@ -83,8 +84,16 @@ def examples():
         object_ref='object/1', object_version='v1', outcome=Outcome.SUCCEEDED, occurred_at=AT,
         counts=(('processed', 1),), policy_binding=binding, algorithm_versions=('replace-v1',),
         key_versions=('enc-data/v1',), correlation_ref='trace/1', reason=None)
+    event_v2 = SecurityEventV2(**{f.name: getattr(event, f.name) for f in fields(event)
+                                 if f.name != 'schema_version'},
+        schema_version=SecurityEventV2.SCHEMA, evidence_hashes=())
     audit = dto(AuditReceipt, event_id='event/1', durability=Durability.DURABLE, stored_at=AT,
         chain_version=None, entry_ref=None, sequence=None, entry_hash=None, checkpoint_ref=None)
+    checkpoint = dto(AuditCheckpoint, chain_identity=HASH,
+        receipt=dto(AuditReceipt, event_id='event/1', durability=Durability.LEDGER_CONFIRMED, stored_at=AT,
+            chain_version='ds.audit.v2', entry_ref='audit/v2/1', sequence=1, entry_hash=HASH, checkpoint_ref=None),
+        checkpointed_at=AT, key=dto(KeyReference, key_ref='audit-auth/v1', purpose=KeyPurpose.AUDIT,
+                                   version='v1', status=KeyStatus.ACTIVE), authentication=bytes(32))
     protected = dto(ProtectedResult, payload=payload, policy_binding=binding, coverage=coverage,
                     protection_version='protection-v1', trace_id='trace/fixture')
     execution = dto(ExecutionBinding, idempotency_key='idempotency/1', request_fingerprint=HASH,
@@ -94,18 +103,32 @@ def examples():
         quantity=10, quantity_unit=Unit.RECORD, expires_at=AT + timedelta(minutes=5), policy_binding=binding)
     quota = dto(QuotaReceipt, binding=execution, state=QuotaState.UNKNOWN, settled_amount=None,
                 observed_at=AT, evidence_ref='evidence/unknown')
+    recovery_event = dto(QuotaRecoveryEvent, event_id='event/recovery', kind=EventKind.AUTHORIZATION,
+        actor_ref='actor/recovery', authorization_ref='authorization/recovery', operation='unknown', quota=quota,
+        object_ref=execution.reservation_id, object_version=execution.asset_version,
+        outcome=Outcome.UNKNOWN, occurred_at=AT, counts=(('unknown', execution.quantity),),
+        policy_binding=binding, algorithm_versions=(), key_versions=(), correlation_ref=execution.execution_id,
+        reason=None)
     report_fields = dict(schema_version=MaskReport.SCHEMA, execution_id='execution/1', executor_ref='executor/fixture',
         asset_version='asset/v1', source=source, action_plan_hash=plan_hash, input_hash=HASH, output_hash=HASH,
         ciphertext_hash=None, policy_binding=binding, algorithm_versions=('replace-v1',), coverage=coverage,
         hit_count=1, excluded=(), unresolved=(), rescan_state=ScanState.COMPLETE, rescan_coverage=coverage,
         outcome=Outcome.SUCCEEDED, created_at=AT)
     report = MaskReport(**report_fields, report_hash=content_hash(report_fields))
+    report_proof = dto(ReportProof, report_hash=report.report_hash, execution_hash=content_hash(execution),
+        context_hash=content_hash(obj_context), key=dto(KeyReference, key_ref='audit-auth/v1',
+        purpose=KeyPurpose.AUDIT, version='v1', status=KeyStatus.ACTIVE), authentication=bytes(32))
     grant_fields = dict(schema_version=RevealGrant.SCHEMA, grant_id='grant/fixture', subject_ref='actor/requester',
         object_ref='object/1', object_version='v1', fields=((RevealField.EMAIL, 'users/email'),),
         purpose_ref='purpose/investigation', authorization_ref='authorization/1', issued_at=AT,
         expires_at=AT + timedelta(minutes=10))
     grant = RevealGrant(**grant_fields, approval=approval(content_hash(grant_fields)), state=GrantState.ACTIVE,
                         consumed_at=None, revoked_at=None)
+    reveal_request = dto(RevealRequestRecord, request_ref='reveal-request-fixture',
+        subject_ref=grant.subject_ref, course_id=1, object_ref=grant.object_ref,
+        object_version=grant.object_version, fields=grant.fields, purpose_ref=grant.purpose_ref,
+        reason=payload, requested_at=AT, state='approved', grant=grant,
+        decided_by=grant.approval.approved_by, decided_at=AT, decision_event_ref=HASH)
     delivery = dto(DeliveryReceipt, binding=execution, outcome=Outcome.UNKNOWN, delivered_records=None,
                    evidence_ref='evidence/unknown', audit=audit)
     request = dto(AIRequest, endpoint_ref='official/fixture', model_ref='model/fixture', content=payload,
@@ -116,10 +139,31 @@ def examples():
                    model_ref='model/fixture', trace_id='trace/fixture')
     stored = dto(StoredObject, object_ref='private/fixture', version='v1', ciphertext_hash=HASH,
                  size_bytes=32, state='candidate')
+    file_operation = dto(FileUploadOperation, operation_ref='upload/fixture', actor_ref='actor/requester',
+        scope_ref='resources/uploads', request_hash=HASH, object_uuid=obj_context.object_uuid,
+        field_refs=('resources/file',), state='preparing', result_ref=None)
+    backup_retention = dto(BackupRetentionRecord,
+        backup=replace(stored, object_ref='backup/' + 'a' * 32, version='v2', state='verified'),
+        created_at=AT, cadence='daily', files_hash=HASH, files_size=64)
+    report_record = dto(ReportRecord, binding=execution, plan=plan, context=obj_context,
+                        stored=stored, report=report, proof=report_proof)
+    reveal_source = dto(RevealSource, object_ref=obj_context.object_uuid,
+                        object_version=obj_context.object_version, fields=((obj_context, envelope),))
+    canary = dto(CanarySeed, seed_id='0123456789abcdef0123456789abcdef', target_kind='knowledge',
+        target_ref='synthetic/document', target_version='v1', environment=Environment.TEST, domain='domain/test')
     metric = dto(Metric, numerator=0, denominator=0, version='metric-v1', zero_reason=ReasonCode.UNSUPPORTED_SCOPE)
     for value in (context, payload, coverage, metric, location, finding, column, cell, snapshot, algorithm,
         policy.approval, teaching, rule, policy, binding, source_document, source, sheet_scope, scope, action,
         unresolved, plan, key, obj_context, envelope, error, event, audit, protected, execution, quota, report,
-        grant, delivery, request, response, embedded, stored):
+        report_proof, grant, delivery, request, response, embedded, stored, report_record, event_v2, checkpoint,
+        recovery_event, canary, backup_retention, file_operation, reveal_source, reveal_request):
         objects[type(value)] = value
     return objects
+
+
+def recovery_context(binding):
+    """Explicit synthetic recovery principal, never a business-owner authorization."""
+    return replace(examples()[ProtectionContext], actor_ref='actor/recovery',
+        authorization_ref='authorization/recovery', environment=Environment(binding.environment),
+        domain=binding.domain_ref, object_ref=binding.execution_id, object_version=binding.asset_version,
+        scope_refs=(binding.reservation_id,), outlet=Outlet.AUDIT, purpose=Purpose.SECURITY_AUDIT)

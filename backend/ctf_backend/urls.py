@@ -37,8 +37,12 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/users/', include('users.urls')),
     path('api/data-security/', include('data_security.adapters.django.policy_api')),
+    path('api/data-security/', include('data_security.adapters.django.reveal_api')),
+    path('api/data-security/', include('data_security.adapters.django.statistics_api')),
+    path('api/data-security/', include('data_security.adapters.django.export_recovery')),
+    path('api/data-security/', include('data_security.adapters.django.export_delivery')),
+    path('api/data-security/', include('data_security.adapters.django.private_files')),
     path('api/challenges/', include('challenges.urls')),
-    path('api/practical-training/', include('practical_training.urls')),
     path('api/submissions/', include('submissions.urls')),
     path('api/resources/', include('resources.urls')),
     path('api/articles/', include('articles.urls')),
@@ -63,15 +67,11 @@ urlpatterns = [
     path('api/analytics/', include('learning_analytics.urls')),
     path('api/learning-map/', include('learning_map.urls')),
     path('api/skill-review/', include('skill_review.urls')),
-    path('api/teaching/', include('teaching_agent.urls')),
-    path('api/learning-knowledge/', include('learning_knowledge.urls')),
-    path('api/teaching-knowledge/', include('learning_knowledge.teacher_urls')),
-    path('api/data-lab/', include('data_lab.urls')),
     path('api/feedback/', include('feedback_center.urls')),
-    path('api/evaluation/', include('evaluation_center.urls')),
 ]
 
 # 开发环境下的媒体文件服务
 if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    if not getattr(settings, 'DATA_SECURITY_FORMAL_MODE', False):
+        urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

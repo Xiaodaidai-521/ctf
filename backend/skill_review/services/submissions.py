@@ -100,12 +100,8 @@ def create_submission(
     payload,
     assistance_tracking=constants.ASSISTANCE_TRACKING_COMPLETE,
     now=None,
-    data_lab_evidence=None,
 ):
     now = now or timezone.now()
-    if attempt.task.validator.get('type') == 'data_lab':
-        from data_lab.verification import validate_context
-        validate_context(data_lab_evidence, student, attempt, payload)
     if attempt.student_id != student.id:
         raise PermissionError('尝试不属于该学生。')
     if attempt.status in ('abandoned',):
@@ -183,7 +179,7 @@ def create_submission(
             'payload_keys': sorted(payload.keys()),
         },
     )
-    result = verification.create_result_for_submission(submission, now=now, data_lab_evidence=data_lab_evidence)
+    result = verification.create_result_for_submission(submission, now=now)
     return submission, True
 
 

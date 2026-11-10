@@ -7,8 +7,6 @@ from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand, CommandError
 from django.db import connection
 
-from users.permissions import is_staff_or_role
-
 from challenges.models import Category as ChallengeCategory, Challenge
 from legal_kb.models import LegalDocument
 from legal_kb.services.hashing import sha256_text
@@ -132,12 +130,9 @@ class Command(BaseCommand):
             return None
         User = get_user_model()
         try:
-            actor = User.objects.get(username=username)
+            return User.objects.get(username=username)
         except User.DoesNotExist as exc:
             raise CommandError(f'Actor user not found: {username}') from exc
-        if not actor.is_active or not is_staff_or_role(actor, 'teacher', 'admin'):
-            raise CommandError('An active staff/admin or teacher actor is required.')
-        return actor
 
     def _import_laws(self, laws_dir, *, actor=None):
         if not laws_dir:

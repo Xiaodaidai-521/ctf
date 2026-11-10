@@ -39,6 +39,7 @@ class Challenge(ProtectedModel):
 
     title = models.CharField(max_length=200, verbose_name='题目名称')
     description = models.TextField(verbose_name='题目描述')
+    canary_payload = models.JSONField(default=dict, blank=True, editable=False)
     category = models.ForeignKey(Category, on_delete=models.CASCADE, verbose_name='分类')
     difficulty = models.CharField(max_length=20, choices=DIFFICULTY_CHOICES, verbose_name='难度')
     score = models.IntegerField(verbose_name='分数')

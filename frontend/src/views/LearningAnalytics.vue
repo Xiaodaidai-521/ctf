@@ -3,8 +3,8 @@
     <div class="container">
       <section class="page-hero">
         <div>
-
-          <h1 class="page-title">{{ names.growth }} · 学习分析</h1>
+          <p class="eyebrow">Learning Analytics</p>
+          <h1 class="page-title">学习分析</h1>
           <p class="page-desc">把能力、投入和掌握趋势放在一起看，方便你判断下一步该补哪里。</p>
         </div>
         <div class="hero-summary">
@@ -163,11 +163,8 @@
 </template>
 
 <script setup>
-import { names } from '@/shared/navigation/names'
-
 import { ref, computed, onMounted, onUnmounted, nextTick, watch } from 'vue'
 import * as echarts from 'echarts'
-import { tokenValue, tokenNumber } from '@/shared/design/chartTokens'
 import api from '@/api'
 
 const activeTab = ref('radar')
@@ -367,8 +364,7 @@ const initRadar = () => {
   if (!radarRef.value) return
   if (!radarChart) radarChart = echarts.init(radarRef.value)
   radarChart.setOption({
-    textStyle: { color: tokenValue('ink-secondary'), fontSize: tokenNumber('text-caption'), fontFamily: tokenValue('font-family') },
-    color: [tokenValue('series-2'), tokenValue('series-1')],
+    color: ['#f59e0b', '#5b7cfa'],
     tooltip: {
       trigger: 'item',
       formatter: (params) => {
@@ -388,7 +384,7 @@ const initRadar = () => {
       icon: 'roundRect',
       itemWidth: 18,
       itemHeight: 10,
-      textStyle: { color: tokenValue('ink-secondary') },
+      textStyle: { color: '#5d6677' },
       data: [previousScoreName.value, currentScoreName.value],
     },
     radar: {
@@ -396,10 +392,10 @@ const initRadar = () => {
       radius: '66%',
       splitNumber: 4,
       indicator: directionNames.value.map((name) => ({ name, max: 100 })),
-      axisName: { color: tokenValue('ink-secondary'), fontSize: tokenNumber('text-caption') },
-      splitLine: { lineStyle: { color: tokenValue('line') } },
-      splitArea: { areaStyle: { color: [tokenValue('surface-muted'), tokenValue('surface')] } },
-      axisLine: { lineStyle: { color: tokenValue('line') } },
+      axisName: { color: '#4f5663', fontSize: 12 },
+      splitLine: { lineStyle: { color: '#e6eaf2' } },
+      splitArea: { areaStyle: { color: ['#f8faff', '#ffffff'] } },
+      axisLine: { lineStyle: { color: '#e6eaf2' } },
     },
     series: [{
       type: 'radar',
@@ -407,16 +403,16 @@ const initRadar = () => {
         {
           value: previousAbilityScores.value,
           name: previousScoreName.value,
-          areaStyle: { color: tokenValue('series-2-soft') },
-          lineStyle: { color: tokenValue('series-2'), width: 3 },
-          itemStyle: { color: tokenValue('series-2') },
+          areaStyle: { color: 'rgba(245, 158, 11, 0.12)' },
+          lineStyle: { color: '#f59e0b', width: 3 },
+          itemStyle: { color: '#f59e0b' },
         },
         {
           value: currentAbilityScores.value,
           name: currentScoreName.value,
-          areaStyle: { color: tokenValue('series-1-soft') },
-          lineStyle: { color: tokenValue('series-1'), width: 3 },
-          itemStyle: { color: tokenValue('series-1') },
+          areaStyle: { color: 'rgba(91, 124, 250, 0.20)' },
+          lineStyle: { color: '#5b7cfa', width: 3 },
+          itemStyle: { color: '#5b7cfa' },
         },
       ],
       symbolSize: 6,
@@ -430,7 +426,6 @@ const initHeatmap = () => {
   const start = activityData[0][0]
   const end = activityData[activityData.length - 1][0]
   heatmapChart.setOption({
-    textStyle: { color: tokenValue('ink-secondary'), fontSize: tokenNumber('text-caption'), fontFamily: tokenValue('font-family') },
     tooltip: {
       formatter: (params) => `${params.value[0]}<br/>学习 ${params.value[1]} 分钟`,
     },
@@ -443,12 +438,12 @@ const initHeatmap = () => {
       bottom: 10,
       itemWidth: 18,
       itemHeight: 12,
-      textStyle: { color: tokenValue('ink-muted') },
+      textStyle: { color: '#6b7280' },
       pieces: [
-        { min: 120, label: '高', color: tokenValue('sequence-high') },
-        { min: 60, max: 119, label: '中', color: tokenValue('sequence-mid') },
-        { min: 1, max: 59, label: '低', color: tokenValue('sequence-low') },
-        { value: 0, label: '无', color: tokenValue('surface-muted') },
+        { min: 120, label: '高', color: '#4e6fe8' },
+        { min: 60, max: 119, label: '中', color: '#89a2f3' },
+        { min: 1, max: 59, label: '低', color: '#c5d1fb' },
+        { value: 0, label: '无', color: '#eef2ff' },
       ],
     },
     calendar: {
@@ -458,11 +453,11 @@ const initHeatmap = () => {
       bottom: 76,
       range: [start, end],
       cellSize: ['auto', 24],
-      splitLine: { lineStyle: { color: tokenValue('line'), width: 1 } },
-      itemStyle: { borderWidth: 1, borderColor: tokenValue('surface') },
-      yearLabel: { show: true, color: tokenValue('ink-muted'), fontWeight: 600 },
-      monthLabel: { color: tokenValue('ink-muted') },
-      dayLabel: { color: tokenValue('ink-muted') },
+      splitLine: { lineStyle: { color: '#d8deea', width: 1 } },
+      itemStyle: { borderWidth: 1, borderColor: '#f7f9fc' },
+      yearLabel: { show: true, color: '#747b88', fontWeight: 600 },
+      monthLabel: { color: '#747b88' },
+      dayLabel: { color: '#747b88' },
     },
     series: [{
       type: 'heatmap',
@@ -481,28 +476,27 @@ const initTrend = () => {
   })
 
   trendChart.setOption({
-    textStyle: { color: tokenValue('ink-secondary'), fontSize: tokenNumber('text-caption'), fontFamily: tokenValue('font-family') },
-    color: [tokenValue('series-1'), tokenValue('series-2'), tokenValue('series-3')],
+    color: ['#5b7cfa', '#14b8a6', '#f59e0b'],
     tooltip: { trigger: 'axis' },
     grid: { left: 36, right: 18, top: 42, bottom: 54 },
     legend: { bottom: 0, icon: 'roundRect' },
     xAxis: {
       type: 'category',
       data: dates,
-      axisLabel: { fontSize: tokenNumber('text-caption'), color: tokenValue('ink-muted') },
-      axisLine: { lineStyle: { color: tokenValue('line') } },
+      axisLabel: { fontSize: 11, color: '#6b7280' },
+      axisLine: { lineStyle: { color: '#e5e7eb' } },
       axisTick: { show: false },
     },
     yAxis: {
       type: 'value',
       max: 100,
-      axisLabel: { color: tokenValue('ink-muted') },
-      splitLine: { lineStyle: { color: tokenValue('line') } },
+      axisLabel: { color: '#6b7280' },
+      splitLine: { lineStyle: { color: '#eef2f7' } },
     },
     series: [
-      { name: 'Web', type: 'line', data: dates.map((_, i) => 56 + Math.round(Math.sin(i / 2) * 8) + i), smooth: true, symbolSize: 6, symbol: 'circle', lineStyle: { type: 'solid' } },
-      { name: 'Crypto', type: 'line', data: dates.map((_, i) => 42 + Math.round(Math.cos(i / 2) * 6) + Math.floor(i / 3)), smooth: true, symbolSize: 6, symbol: 'rect', lineStyle: { type: 'dashed' } },
-      { name: 'Reverse', type: 'line', data: dates.map((_, i) => 48 + Math.round(Math.sin(i / 3) * 7) + Math.floor(i / 4)), smooth: true, symbolSize: 6, symbol: 'triangle', lineStyle: { type: 'dotted' } },
+      { name: 'Web', type: 'line', data: dates.map((_, i) => 56 + Math.round(Math.sin(i / 2) * 8) + i), smooth: true, symbolSize: 6 },
+      { name: 'Crypto', type: 'line', data: dates.map((_, i) => 42 + Math.round(Math.cos(i / 2) * 6) + Math.floor(i / 3)), smooth: true, symbolSize: 6 },
+      { name: 'Reverse', type: 'line', data: dates.map((_, i) => 48 + Math.round(Math.sin(i / 3) * 7) + Math.floor(i / 4)), smooth: true, symbolSize: 6 },
     ],
   })
 }
@@ -587,354 +581,354 @@ onUnmounted(() => {
 
 <style scoped>
 .analytics-page {
-  min-height:calc(100vh - var(--space-8));
-  background:var(--surface-page);
-  padding:var(--space-4) 0 var(--space-6);
+  min-height: calc(100vh - 64px);
+  background: #f5f7fb;
+  padding: 32px 0 48px;
 }
 
 .container {
-  max-width:var(--page-width);
-  margin:0 auto;
-  padding:0 var(--space-2);
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 18px;
 }
 
 .page-hero {
-  display:flex;
-  align-items:flex-end;
-  justify-content:space-between;
-  gap:var(--space-3);
-  margin-bottom:var(--space-3);
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 22px;
 }
 
 .eyebrow {
-  margin:0 0 var(--space-1);
-  color:var(--action);
-  font-size:var(--text-caption);
-  font-weight: var(--weight-strong);
-  letter-spacing:0.08em;
-  text-transform:uppercase;
+  margin: 0 0 8px;
+  color: #5b7cfa;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .page-title {
-  font-size:var(--text-page);
-  font-weight: var(--weight-strong);
-  color:var(--ink);
-  margin:0;
+  font-size: 32px;
+  font-weight: 750;
+  color: #181c25;
+  margin: 0;
 }
 
 .page-desc {
-  margin:var(--space-1) 0 0;
-  color:var(--ink-secondary);
-  font-size:var(--text-caption);
-  line-height:1.7;
+  margin: 10px 0 0;
+  color: #697182;
+  font-size: 15px;
+  line-height: 1.7;
 }
 
 .hero-summary {
-  min-width:var(--row-value-width);
-  padding:var(--space-2) var(--space-2);
-  border-radius:var(--radius-panel);
-  background:var(--surface);
-  box-shadow: var(--shadow-raised);
-  color:var(--ink-secondary);
+  min-width: 164px;
+  padding: 16px 18px;
+  border-radius: 18px;
+  background: #ffffff;
+  box-shadow: 0 14px 34px rgba(66, 91, 166, 0.10);
+  color: #697182;
 }
 
 .hero-summary strong {
-  display:inline-block;
-  margin:0 calc(var(--space-1) / 2);
-  color:var(--action);
-  font-size:var(--text-section);
+  display: inline-block;
+  margin: 0 6px;
+  color: #3158e8;
+  font-size: 30px;
 }
 
 .summary-label {
-  display:block;
-  margin-bottom:calc(var(--space-1) / 2);
-  font-size:var(--text-caption);
+  display: block;
+  margin-bottom: 4px;
+  font-size: 13px;
 }
 
 .overview-grid {
-  display:grid;
-  grid-template-columns:repeat(4, minmax(0, 1fr));
-  gap:var(--space-2);
-  margin-bottom:var(--space-2);
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 20px;
 }
 
 .overview-card {
-  min-height:var(--tile-short-height);
-  padding:var(--space-2);
-  border-radius:var(--radius-panel);
-  background:var(--surface);
-  box-shadow: var(--shadow-raised);
+  min-height: 104px;
+  padding: 18px;
+  border-radius: 18px;
+  background: #ffffff;
+  box-shadow: 0 10px 28px rgba(66, 91, 166, 0.08);
 }
 
 .overview-card.highlight {
-  background: var(--surface-muted);
+  background: linear-gradient(135deg, #eef3ff 0%, #ffffff 70%);
 }
 
 .overview-label,
 .overview-unit {
-  display:block;
-  color:var(--ink-muted);
-  font-size:var(--text-caption);
+  display: block;
+  color: #7a8291;
+  font-size: 13px;
 }
 
 .overview-card strong {
-  display:block;
-  margin:var(--space-1) 0 calc(var(--space-1) / 2);
-  color:var(--ink);
-  font-size:var(--text-section);
-  font-weight: var(--weight-strong);
+  display: block;
+  margin: 8px 0 4px;
+  color: #1d2430;
+  font-size: 28px;
+  font-weight: 760;
 }
 
 .analytics-tabs {
-  margin-top:calc(var(--space-1) / 2);
+  margin-top: 4px;
 }
 
 .chart-card,
 .card {
-  background:var(--surface);
-  border-radius:var(--radius-panel);
-  box-shadow: var(--shadow-raised);
+  background: #ffffff;
+  border-radius: 20px;
+  box-shadow: 0 12px 32px rgba(66, 91, 166, 0.08);
 }
 
 .chart-card {
-  padding:var(--space-3);
+  padding: 24px;
 }
 
 .chart-copy {
-  margin-bottom:var(--space-2);
+  margin-bottom: 18px;
 }
 
 .section-kicker {
-  margin:0 0 calc(var(--space-1) / 2);
-  color:var(--action);
-  font-size:var(--text-caption);
-  font-weight: var(--weight-strong);
+  margin: 0 0 6px;
+  color: #5b7cfa;
+  font-size: 12px;
+  font-weight: 700;
 }
 
 .chart-copy h2 {
-  margin:0;
-  color:var(--ink);
-  font-size:var(--text-card);
+  margin: 0;
+  color: #1d2430;
+  font-size: 22px;
 }
 
 .chart-copy p {
-  margin:var(--space-1) 0 0;
-  max-width:var(--search-width);
-  color:var(--ink-secondary);
-  line-height:1.7;
+  margin: 8px 0 0;
+  max-width: 720px;
+  color: #6d7584;
+  line-height: 1.7;
 }
 
 .chart-layout,
 .heatmap-layout {
-  display:grid;
-  grid-template-columns:minmax(0, 1fr) var(--menu-width);
-  gap:var(--space-2);
-  align-items:stretch;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 280px;
+  gap: 20px;
+  align-items: stretch;
 }
 
 .chart-box {
-  width:100%;
-  height:var(--content-height);
+  width: 100%;
+  height: 420px;
 }
 
 .heatmap-card {
-  min-width:0;
-  border:var(--stroke) solid var(--line);
-  border-radius:var(--radius-panel);
-  background:var(--surface);
+  min-width: 0;
+  border: 1px solid #edf1f7;
+  border-radius: 16px;
+  background: #fbfcff;
 }
 
 .heatmap-box {
-  height:var(--content-height);
+  height: 420px;
 }
 
 .insight-panel {
-  padding:var(--space-2);
-  border-radius:var(--radius-panel);
-  background:var(--surface-muted);
-  border:var(--stroke) solid var(--line);
+  padding: 18px;
+  border-radius: 16px;
+  background: #f8faff;
+  border: 1px solid #edf1f7;
 }
 
 .insight-panel h3 {
-  margin:0 0 var(--space-2);
-  color:var(--ink);
-  font-size:var(--text-body);
+  margin: 0 0 14px;
+  color: #1d2430;
+  font-size: 16px;
 }
 
 .insight-item {
-  padding:var(--space-2) 0;
-  border-top:var(--stroke) solid var(--line);
+  padding: 14px 0;
+  border-top: 1px solid #e7ecf6;
 }
 
 .insight-item:first-of-type {
-  border-top:0;
-  padding-top:0;
+  border-top: 0;
+  padding-top: 0;
 }
 
 .insight-item span,
 .insight-item small {
-  display:block;
-  color:var(--ink-muted);
-  font-size:var(--text-caption);
+  display: block;
+  color: #798292;
+  font-size: 12px;
 }
 
 .insight-item strong {
-  display:block;
-  margin:calc(var(--space-1) / 2) 0;
-  color:var(--action);
-  font-size:var(--text-section);
+  display: block;
+  margin: 4px 0;
+  color: #3158e8;
+  font-size: 24px;
 }
 
 .insight-note {
-  margin:var(--space-2) 0 0;
-  color:var(--ink-secondary);
-  line-height:1.6;
+  margin: 14px 0 0;
+  color: #5d6677;
+  line-height: 1.6;
 }
 
 .legend-row {
-  display:flex;
-  align-items:center;
-  gap:var(--space-1);
-  margin-top:var(--space-2);
-  color:var(--ink-muted);
-  font-size:var(--text-caption);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 18px;
+  color: #7a8291;
+  font-size: 12px;
 }
 
 .legend {
-  width:var(--space-3);
-  height:var(--space-1);
-  border-radius:var(--radius-pill);
+  width: 28px;
+  height: 12px;
+  border-radius: 999px;
 }
 
-.legend.low { background:var(--sequence-low); }
-.legend.mid { background:var(--sequence-mid); }
-.legend.high { background:var(--sequence-high); }
+.legend.low { background: #c5d1fb; }
+.legend.mid { background: #89a2f3; }
+.legend.high { background: #4e6fe8; }
 
 .suggestion-list {
-  display:grid;
-  gap:var(--space-1);
+  display: grid;
+  gap: 12px;
 }
 
 .suggestion-item {
-  padding:var(--space-1);
-  border-radius:var(--radius-panel);
-  background:var(--surface);
+  padding: 12px;
+  border-radius: 12px;
+  background: #ffffff;
 }
 
 .suggestion-item strong,
 .suggestion-item span {
-  display:block;
+  display: block;
 }
 
 .suggestion-item strong {
-  color:var(--ink);
-  margin-bottom:calc(var(--space-1) / 2);
+  color: #1d2430;
+  margin-bottom: 4px;
 }
 
 .suggestion-item span {
-  color:var(--ink-secondary);
-  line-height:1.5;
+  color: #6d7584;
+  line-height: 1.5;
 }
 
 .bottom-grid {
-  display:grid;
-  grid-template-columns:minmax(0, 1.4fr) minmax(var(--menu-width), 0.6fr);
-  gap:var(--space-2);
-  margin-top:var(--space-2);
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(300px, 0.6fr);
+  gap: 20px;
+  margin-top: 20px;
 }
 
 .card {
-  padding:var(--space-3);
+  padding: 22px;
 }
 
 .card-title {
-  font-size:var(--text-body);
-  font-weight: var(--weight-strong);
-  color:var(--ink);
-  margin:0 0 var(--space-2);
+  font-size: 17px;
+  font-weight: 700;
+  color: #1d2430;
+  margin: 0 0 16px;
 }
 
 .weekly-grid {
-  display:grid;
-  grid-template-columns:repeat(3, 1fr);
-  gap:var(--space-2);
-  margin-bottom:var(--space-2);
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-bottom: 16px;
 }
 
 .weekly-stat {
-  padding:var(--space-2);
-  text-align:center;
-  border-radius:var(--radius-panel);
-  background:var(--surface-muted);
+  padding: 16px;
+  text-align: center;
+  border-radius: 14px;
+  background: #f8faff;
 }
 
 .ws-value {
-  font-size:var(--text-section);
-  font-weight: var(--weight-strong);
-  color:var(--action);
-  display:block;
+  font-size: 28px;
+  font-weight: 760;
+  color: #3158e8;
+  display: block;
 }
 
 .ws-label {
-  font-size:var(--text-caption);
-  color:var(--ink-muted);
+  font-size: 13px;
+  color: #7a8291;
 }
 
 .weekly-summary-text {
-  margin:0;
-  font-size:var(--text-caption);
-  color:var(--ink-secondary);
-  line-height:1.7;
+  margin: 0;
+  font-size: 14px;
+  color: #5d6677;
+  line-height: 1.7;
 }
 
 .action-list {
-  display:grid;
-  gap:var(--space-1);
+  display: grid;
+  gap: 12px;
 }
 
 .action-item {
-  display:flex;
-  align-items:flex-start;
-  gap:var(--space-1);
-  color:var(--ink-secondary);
-  line-height:1.55;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  color: #4f5868;
+  line-height: 1.55;
 }
 
 .action-dot {
-  width:var(--space-1);
-  height:var(--space-1);
-  margin-top:var(--space-1);
-  flex:0 0 auto;
-  border-radius:50%;
-  background:var(--action);
+  width: 8px;
+  height: 8px;
+  margin-top: 8px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: #5b7cfa;
 }
 
-@media (max-width: 1120px) {
+@media (max-width: 980px) {
   .page-hero,
   .chart-layout,
   .heatmap-layout,
   .bottom-grid {
-    grid-template-columns:1fr;
+    grid-template-columns: 1fr;
   }
 
   .page-hero {
-    display:grid;
+    display: grid;
   }
 
   .overview-grid {
-    grid-template-columns:repeat(2, 1fr);
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 640px) {
   .overview-grid,
   .weekly-grid {
-    grid-template-columns:1fr;
+    grid-template-columns: 1fr;
   }
 
   .chart-card,
   .card {
-    padding:var(--space-2);
+    padding: 18px;
   }
 }
 </style>

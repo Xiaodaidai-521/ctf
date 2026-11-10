@@ -6,7 +6,7 @@ from django.db.models import Count
 
 from challenges.models import Challenge
 from legal_kb.models import LegalDocument, LegalKnowledgeEmbedding
-from legal_kb.services.embedding_service import EmbeddingService, EmbeddingUnavailableError
+from rag_ingestion.registry import get_embedding_service
 
 
 class Command(BaseCommand):
@@ -32,15 +32,8 @@ class Command(BaseCommand):
         else:
             self.stdout.write(self.style.WARNING('pgvector extension: not applicable, current DB is not PostgreSQL'))
 
-        embedding_service = EmbeddingService()
-        self.stdout.write(f'Embedding provider: {embedding_service.provider or "DISABLED (not configured)"}')
-        try:
-            embedding_service.validate_configuration()
-        except EmbeddingUnavailableError as exc:
-            self.stdout.write(self.style.ERROR(str(exc)))
-        if embedding_service.provider == 'local':
-            self.stdout.write(self.style.WARNING('Local hashing is non-semantic and is not production retrieval.'))
-        self.stdout.write(f'Target index version: {embedding_service.index_version}')
+        embedding_service = get_embedding_service()
+        self.stdout.write(f'Embedding provider: {embedding_service.provider or "local"}')
         self.stdout.write(f'Embedding model: {embedding_service.model}')
         self.stdout.write(f'Embedding dimension: {embedding_service.dimension}')
         self.stdout.write(f'Embedding remote enabled: {embedding_service.uses_remote_provider}')
@@ -77,14 +70,6 @@ class Command(BaseCommand):
         if connection.vendor == 'postgresql':
             self.stdout.write(f'PGVECTOR_NON_NULL: {pgvector_non_null}')
         self.stdout.write(f'All vector source counts: {source_counts}')
-        current = embedding_service.compatible_queryset(LegalKnowledgeEmbedding.objects.all()).count()
-        stale = LegalKnowledgeEmbedding.objects.count() - current
-        self.stdout.write(f'Current vector-space chunks: {current}; legacy/incompatible chunks: {stale}')
-        if stale:
-            self.stdout.write(self.style.WARNING(
-                'Legacy/incompatible chunks are lexical-only. Run rebuild_legal_kb --actor <username> '
-                '(--dry-run first); re-ingest originals separately to upgrade chunk boundaries.'
-            ))
 
         if legal_documents and legal_clause_vectors:
             self.stdout.write(self.style.SUCCESS('Legal regulations appear to be imported and vectorized.'))

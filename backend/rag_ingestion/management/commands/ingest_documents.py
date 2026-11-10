@@ -5,8 +5,6 @@ from pathlib import Path
 from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand, CommandError
 
-from users.permissions import is_staff_or_role
-
 from rag_ingestion.services import IngestionService
 
 
@@ -71,9 +69,6 @@ class Command(BaseCommand):
             return None
         User = get_user_model()
         try:
-            actor = User.objects.get(username=username)
+            return User.objects.get(username=username)
         except User.DoesNotExist as exc:
             raise CommandError(f'Actor user not found: {username}') from exc
-        if not actor.is_active or not is_staff_or_role(actor, 'teacher', 'admin'):
-            raise CommandError('An active staff/admin or teacher actor is required.')
-        return actor

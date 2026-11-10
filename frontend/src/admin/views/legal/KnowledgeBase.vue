@@ -1,14 +1,14 @@
 <template>
   <LegalWorkspace
-    :title="`${names.foundation} · 索引工具`"
-    subtitle="浏览法规、条款、案例与模板，维护资料索引并核对检索结果。"
+    title="知识库浏览"
+    subtitle="浏览法规、条款、案例、模板与检索日志，支撑 RAG 合规分析。"
     table-title="法规文档"
     aside-title="知识检索"
     :metrics="metrics"
     :columns="columns"
     :rows="documents"
     :loading="loading"
-    :row-actions="[{ key: 'ingest', label: '更新索引' }]"
+    :row-actions="[{ key: 'ingest', label: '向量化' }]"
     :actions="[{ key: 'retrieve', label: retrieving ? '解析中...' : '检索', primary: true }]"
     @refresh="loadData"
     @action="retrieve"
@@ -16,12 +16,11 @@
   >
     <template #aside>
       <div class="quick-form">
-        <router-link to="/admin/legal/kb">返回{{ names.foundation }}</router-link>
         <textarea v-model="query" class="form-textarea" rows="5" placeholder="输入检索问题"></textarea>
         <div v-if="retrievalAnswer" class="rag-answer">
           <div class="rag-answer__header">
-            <strong>检索说明</strong>
-            <span v-if="retrievalProvider || retrievalModel">由{{ retrievalProviderLabel }}</span>
+            <strong>模型解析</strong>
+            <span v-if="retrievalProvider || retrievalModel">{{ retrievalProvider }} / {{ retrievalModel }}</span>
           </div>
           <p>{{ retrievalAnswer }}</p>
         </div>
@@ -30,16 +29,16 @@
           <div v-for="item in retrievalCitations" :key="item.id || item.index" class="citation-item">
             <div class="citation-item__header">
               <strong>[{{ item.index }}] {{ item.title }}</strong>
-              <span>{{ legalLabel('source', item.source_type) }} · 相关度 {{ item.score }}</span>
+              <span>{{ item.source_type }} · {{ item.score }}</span>
             </div>
             <p>{{ item.excerpt }}</p>
           </div>
         </div>
         <div v-if="retrievalResults.length" class="raw-results">
-          <h4>检索结果</h4>
+          <h4>原始召回</h4>
           <div v-for="item in retrievalResults" :key="item.id" class="retrieval-item">
             <strong>{{ item.title }}</strong>
-            <span>相关度 {{ item.score }}</span>
+            <span>{{ item.score }}</span>
             <p>{{ item.text?.slice(0, 120) }}</p>
           </div>
         </div>
@@ -49,12 +48,9 @@
 </template>
 
 <script setup>
-import { names } from '@/shared/navigation/names'
-
 import { computed, onMounted, ref } from 'vue'
 import api from '@/api'
 import LegalWorkspace from './LegalWorkspace.vue'
-import { legalLabel } from './displayLabels.js'
 
 const loading = ref(false)
 const documents = ref([])
@@ -70,8 +66,8 @@ const retrievalResults = ref([])
 
 const columns = [
   { key: 'title', label: '文档' },
-  { key: 'document_type', label: '类型', labelKey: 'documentType', badge: true },
-  { key: 'status', label: '状态', labelKey: 'documentStatus', badge: true },
+  { key: 'document_type', label: '类型', badge: true },
+  { key: 'status', label: '状态', badge: true },
   { key: 'jurisdiction', label: '法域' },
   { key: 'updated_at', label: '更新时间', formatter: formatDate },
 ]
@@ -141,10 +137,8 @@ function normalizeList(response) {
 }
 
 function formatDate(value) {
-  return value ? new Date(value).toLocaleString('zh-CN') : '-'
+  return value ? new Date(value).toLocaleString() : '-'
 }
-
-const retrievalProviderLabel = computed(() => retrievalProvider.value ? '平台检索服务' : '本地检索')
 
 onMounted(loadData)
 </script>
@@ -153,65 +147,57 @@ onMounted(loadData)
 .quick-form {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
-  min-width: 0;
-}
-
-.form-textarea {
-  width: 100%;
-  max-width: 100%;
-  min-width: 0;
-  box-sizing: border-box;
+  gap: 12px;
 }
 
 .retrieval-item {
-  border-bottom: var(--stroke) solid var(--line);
-  padding-bottom: var(--space-1);
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 10px;
 }
 
 .retrieval-item span {
   float: right;
-  color: var(--action);
-  font-weight: var(--weight-strong);
+  color: #2563eb;
+  font-weight: 700;
 }
 
 .retrieval-item p {
-  color: var(--ink-secondary);
-  margin: var(--space-1) 0 0;
+  color: #64748b;
+  margin: 6px 0 0;
 }
 
 .rag-answer,
 .citation-list,
 .raw-results {
-  border-top: var(--stroke) solid var(--line);
-  padding-top: var(--space-2);
+  border-top: 1px solid #e2e8f0;
+  padding-top: 12px;
 }
 
 .rag-answer {
-  background: var(--surface-muted);
-  border: var(--stroke) solid var(--line);
-  border-radius: var(--radius-panel);
-  padding: var(--space-2);
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 12px;
 }
 
 .rag-answer__header,
 .citation-item__header {
   align-items: flex-start;
   display: flex;
-  gap: var(--space-1);
+  gap: 8px;
   justify-content: space-between;
 }
 
 .rag-answer__header span,
 .citation-item__header span {
-  color: var(--ink-secondary);
+  color: #64748b;
   flex: 0 0 auto;
-  font-size: var(--text-caption);
+  font-size: 12px;
 }
 
 .rag-answer p {
-  color: var(--ink-secondary);
-  margin: var(--space-1) 0 0;
+  color: #334155;
+  margin: 8px 0 0;
   max-height: 260px;
   overflow: auto;
   white-space: pre-wrap;
@@ -219,20 +205,20 @@ onMounted(loadData)
 
 .citation-list h4,
 .raw-results h4 {
-  color: var(--ink);
-  font-size: var(--text-caption);
-  margin: 0 0 var(--space-1);
+  color: #0f172a;
+  font-size: 14px;
+  margin: 0 0 8px;
 }
 
 .citation-item {
-  border-bottom: var(--stroke) solid var(--line);
-  padding: var(--space-1) 0;
+  border-bottom: 1px solid #e2e8f0;
+  padding: 10px 0;
 }
 
 .citation-item p {
-  color: var(--ink-secondary);
+  color: #64748b;
   display: -webkit-box;
-  margin: var(--space-1) 0 0;
+  margin: 6px 0 0;
   overflow: hidden;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 4;

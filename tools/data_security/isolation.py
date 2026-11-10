@@ -29,6 +29,9 @@ def clean_env(*, transport=False):
     env = {'PATH': os.environ['PATH'], 'HOME': str(STATE / 'home'),
            'TMPDIR': str(STATE / 'tmp'), 'LANG': 'C.UTF-8', 'LC_ALL': 'C.UTF-8',
            'PYTHONDONTWRITEBYTECODE': '1', 'PYTHONUNBUFFERED': '1'}
+    for key in ('PGHOSTADDR', 'PGPORT'):
+        if key in os.environ:
+            env[key] = os.environ[key]
     if transport:
         for key in ('HTTP_PROXY', 'HTTPS_PROXY', 'ALL_PROXY', 'NO_PROXY',
                     'http_proxy', 'https_proxy', 'all_proxy', 'no_proxy',

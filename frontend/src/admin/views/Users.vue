@@ -13,12 +13,6 @@
         </div>
       </div>
 
-      <section id="teacher-applications" class="application-panel">
-        <div class="application-header"><div><h4>待审核教师申请</h4><p>通过申请后，该用户将获得教师权限。</p></div><button class="action-btn btn-default" @click="fetchTeacherApplications" :disabled="applicationsLoading">{{ applicationsLoading ? '加载中…' : '刷新申请' }}</button></div>
-        <p v-if="applicationsError" class="application-error">{{ applicationsError }}</p>
-        <div v-else-if="teacherApplications.length" class="application-list"><div v-for="application in teacherApplications" :key="application.id" class="application-item"><div><strong>{{ application.nickname || application.username }}</strong><span>{{ application.username }} · {{ application.email }}</span></div><div><button class="action-btn btn-primary" :disabled="processingApplicationId === application.id" @click="reviewTeacherApplication(application, 'approve')">通过</button><button class="action-btn btn-danger" :disabled="processingApplicationId === application.id" @click="reviewTeacherApplication(application, 'reject')">拒绝</button></div></div></div>
-        <p v-else class="application-empty">暂无待审核教师申请。</p>
-      </section>
       <!-- 鎼滅储鍜岀瓫閫?-->
       <div class="filter-bar" style="margin-bottom:var(--space-2); display:flex; gap:var(--space-1);">
         <input
@@ -189,23 +183,17 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount, nextTick, watch, computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
 import { usePageFilters } from '@/shared/state/usePageFilters.js'
 import { createAccountGuard } from '@/shared/state/accountScope.js'
 import { useUserStore } from '@/store/user'
 import api from '@/api'
 
 const userStore = useUserStore()
-const route = useRoute()
 const guard = createAccountGuard()
 onBeforeUnmount(guard.dispose)
 
 const users = ref([])
-const teacherApplications = ref([])
-const applicationsLoading = ref(false)
-const applicationsError = ref('')
-const processingApplicationId = ref(null)
 const total = ref(0)
 const page = ref(1)
 const pageSize = ref(20)
@@ -253,33 +241,6 @@ const fetchUsers = async () => {
 }
 
 
-const fetchTeacherApplications = async () => {
-  applicationsLoading.value = true
-  applicationsError.value = ''
-  try {
-    const response = await api.user.teacherApplications()
-    if (!guard.current()) return
-    teacherApplications.value = Array.isArray(response) ? response : response.applications || response.users || []
-  } catch (error) {
-    if (guard.current()) applicationsError.value = '暂时无法加载教师申请，请重试。'
-  } finally {
-    if (guard.current()) applicationsLoading.value = false
-  }
-}
-
-const reviewTeacherApplication = async (application, action) => {
-  if (!confirm('确认执行此操作吗？')) return
-  processingApplicationId.value = application.id
-  try {
-    if (action === 'approve') await api.user.approveTeacherApplication(application.id)
-    else await api.user.rejectTeacherApplication(application.id)
-    await Promise.all([fetchTeacherApplications(), fetchUsers()])
-  } catch (error) {
-    alert(error.response?.data?.error || '教师申请处理失败，请重试。')
-  } finally {
-    processingApplicationId.value = null
-  }
-}
 const handleEdit = (user) => {
   editForm.value = { ...user }
   showEditModal.value = true
@@ -352,16 +313,7 @@ const formatDate = (dateStr) => {
   return new Date(dateStr).toLocaleString('zh-CN')
 }
 
-async function locateApplications() {
-  if (route.hash !== '#teacher-applications') return
-  await nextTick()
-  document.getElementById('teacher-applications')?.scrollIntoView({ block: 'start' })
-}
-watch(() => route.hash, locateApplications)
-onMounted(async () => {
-  await Promise.all([fetchUsers(), fetchTeacherApplications()])
-  if (guard.current()) await locateApplications()
-})
+onMounted(fetchUsers)
 </script>
 
 <style scoped src="../assets/admin.css"></style>
@@ -457,9 +409,6 @@ onMounted(async () => {
   border-top:var(--stroke) solid var(--admin-border-color);
 }
 
-.application-panel { margin-bottom:var(--space-3); padding:var(--space-2); border:var(--stroke) solid var(--admin-border-color); border-radius:var(--radius-control); background:var(--surface-muted); }
-.application-header, .application-item { display:flex; justify-content:space-between; gap:var(--space-2); align-items:center; }
-.application-header h4 { margin:0; font-size:var(--text-body); }.application-header p, .application-item span, .application-empty { margin:calc(var(--space-1) / 2) 0 0; color:var(--text-secondary); font-size:var(--text-caption); }.application-item span { display:block; }.application-list { margin-top:var(--space-2); border-top:var(--stroke) solid var(--admin-border-color); }.application-item { padding:var(--space-2) 0; border-bottom:var(--stroke) solid var(--admin-border-color); }.application-item button + button { margin-left:var(--space-1); }.application-error { color:var(--error-color); font-size:var(--text-caption); }
 </style>
 
 

@@ -1,6 +1,7 @@
 <template>
-  <div class="challenge-card" :class="{ solved: challenge.is_solved }" @click="handleClick" role="button" tabindex="0" :aria-label="`打开题目：${challenge.title}`" @keydown.enter="handleClick" @keydown.space.prevent="handleClick">
+  <div class="challenge-card" :class="{ solved: challenge.is_solved }" @click="handleClick">
     <div class="card-header">
+      <span class="challenge-id">#{{ challenge.id }}</span>
       <span class="difficulty-badge" :class="difficultyClass">{{ difficultyText }}</span>
     </div>
     <div class="card-body">
@@ -11,15 +12,15 @@
     </div>
     <div class="card-footer">
       <div class="meta-item">
-        <span class="meta-icon"><icon-bar-chart aria-hidden="true" /></span>
+        <span class="meta-icon"><i class="bi bi-bar-chart"></i></span>
         <span class="meta-text">积分: {{ challenge.score }}</span>
       </div>
       <div class="meta-item">
-        <span class="meta-icon"><icon-user-group aria-hidden="true" /></span>
+        <span class="meta-icon"><i class="bi bi-people"></i></span>
         <span class="meta-text">解出: {{ challenge.solve_count }}</span>
       </div>
       <div class="meta-item solved-indicator" v-if="challenge.is_solved">
-        <span class="meta-icon"><icon-check-circle aria-hidden="true" /></span>
+        <span class="meta-icon"><i class="bi bi-check2-circle"></i></span>
         <span class="meta-text">已解决</span>
       </div>
     </div>
@@ -58,17 +59,147 @@ const handleClick = () => {
 </script>
 
 <style scoped>
-.challenge-card { background: var(--surface); border-radius: var(--radius-panel); cursor: pointer; transition: background var(--motion-fast); display: flex; flex-direction: column; min-width: 0; }
-.challenge-card:hover { background: var(--surface-hover); }
-.challenge-card:active { background: var(--surface-muted); }
-.card-header { display: flex; align-items: center; padding: var(--space-2) var(--space-2) 0; }
-.difficulty-badge { padding: 0 var(--space-1); border-radius: var(--radius-control); font-size: var(--text-caption); color: var(--ink-secondary); background: var(--surface-muted); }
-.card-body { padding: var(--space-2); flex: 1; }
-.challenge-title { font-size: var(--text-card); line-height: var(--leading-tight); margin: 0 0 var(--space-2); overflow-wrap: anywhere; }
-.challenge-meta { display: flex; flex-wrap: wrap; gap: var(--space-1); }
-.category-tag { color: var(--ink-secondary); font-size: var(--text-caption); }
-.card-footer { display: flex; flex-wrap: wrap; gap: var(--space-1) var(--space-2); padding: var(--space-2); border-top: var(--stroke) solid var(--line); }
-.meta-item { display: flex; align-items: center; gap: var(--space-1); font-size: var(--text-caption); color: var(--ink-secondary); }
-.meta-icon { font-size: var(--icon-size); }
-.solved-indicator { color: var(--positive); }
+.challenge-card {
+  position: relative;
+  background: rgba(255, 250, 242, 0.72);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: none;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  border: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  min-height: 178px;
+}
+
+.challenge-card:hover {
+  box-shadow: 8px 8px 0 rgba(24, 23, 19, 0.1);
+  transform: translateY(-2px);
+  border-color: var(--primary-color);
+}
+
+.challenge-card.solved {
+  border-color: var(--border-color);
+  background: rgba(255, 250, 242, 0.72);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 14px;
+  background: var(--text-primary);
+  color: #fbf7ef;
+}
+
+.challenge-card.solved .card-header {
+  background: var(--text-primary);
+}
+
+.challenge-id {
+  color: var(--secondary-color);
+  font-size: 12px;
+  font-weight: 950;
+  opacity: 1;
+}
+
+.difficulty-badge {
+  padding: 3px 8px;
+  border-radius: 2px;
+  font-size: 11px;
+  font-weight: 850;
+  color: var(--text-primary);
+  background: var(--bg-paper-2);
+  border: 1px solid rgba(24, 23, 19, 0.18);
+}
+
+.difficulty-easy {
+  color: var(--text-primary);
+  background: var(--bg-paper-2);
+}
+
+.difficulty-medium {
+  color: #181713;
+  background: rgba(239, 196, 107, 0.95);
+}
+
+.difficulty-hard {
+  color: #f5eee4;
+  background: rgba(183, 53, 45, 0.92);
+}
+
+.difficulty-expert {
+  color: #f5eee4;
+  background: #5c2f2a;
+}
+
+.card-body {
+  padding: 16px 14px 18px;
+  flex: 1;
+}
+
+.challenge-title {
+  font-size: 18px;
+  line-height: 1.25;
+  font-weight: 950;
+  color: var(--text-primary);
+  margin-bottom: 14px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.challenge-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.category-tag {
+  padding: 3px 8px;
+  background: var(--bg-paper-2);
+  color: var(--primary-color);
+  border-radius: 2px;
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.card-footer {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  padding: 0;
+  background: transparent;
+  border-top: 1px solid var(--border-color);
+}
+
+.meta-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-height: 42px;
+  padding: 8px 6px;
+  border-right: 1px solid var(--border-color);
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.meta-item:last-child {
+  border-right: 0;
+}
+
+.meta-icon {
+  color: var(--primary-color);
+  font-size: 13px;
+}
+
+.meta-text {
+  font-weight: 750;
+}
+
+.solved-indicator {
+  color: var(--text-primary);
+  font-weight: 850;
+}
 </style>

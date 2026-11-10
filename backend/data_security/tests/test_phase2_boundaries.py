@@ -228,7 +228,7 @@ class CompatibilityTests(unittest.TestCase):
 
 class PhaseBoundaryTests(unittest.TestCase):
     def test_authorized_stage_declaration_keeps_matrix_and_future_modules_closed(self):
-        count, violations = scan(ROOT, phase=5)
+        count, violations = scan(ROOT, phase=7)
         self.assertGreater(count, 440)
         self.assertFalse(violations)
         self.assertTrue(scan(ROOT, phase=1)[1])

@@ -92,7 +92,6 @@
 
 <script setup>
 import { computed, ref } from 'vue'
-import { legalLabel, legalBadgeTone } from './displayLabels.js'
 
 const props = defineProps({
   title: { type: String, required: true },
@@ -122,184 +121,174 @@ const formatCell = (row, column) => {
   if (column.formatter) return column.formatter(row[column.key], row)
   const value = row[column.key]
   if (value === null || value === undefined || value === '') return '-'
-  if (column.labelKey) return legalLabel(column.labelKey, value)
   return value
 }
 
-const badgeClass = legalBadgeTone
+const badgeClass = (value) => {
+  const normalized = String(value || '').toLowerCase()
+  if (['completed', 'active', 'final', 'exported', 'published', 'low', 'resolved'].includes(normalized)) return 'ok'
+  if (['running', 'draft', 'medium', 'investigating'].includes(normalized)) return 'warn'
+  if (['failed', 'critical', 'high', 'open'].includes(normalized)) return 'danger'
+  return 'neutral'
+}
 </script>
 
-<style scoped src="../../assets/admin.css"></style>
-
 <style scoped>
+@import '../../assets/admin.css';
 
 .legal-workspace {
-  display:flex;
-  flex-direction:column;
-  gap:var(--space-2);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
 }
 
 .legal-toolbar {
-  display:flex;
-  justify-content:space-between;
-  gap:var(--space-2);
-  align-items:flex-start;
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
 }
 
 .legal-toolbar h2 {
-  margin:0 0 calc(var(--space-1) / 2);
-  font-size:var(--text-card);
-  color:var(--action);
+  margin: 0 0 6px;
+  font-size: 22px;
+  color: #1f2937;
 }
 
 .legal-toolbar p {
-  margin:0;
-  color:var(--ink-secondary);
-  max-width:68ch;
+  margin: 0;
+  color: #64748b;
+  max-width: 68ch;
 }
 
 .toolbar-actions {
-  display:flex;
-  flex-wrap:wrap;
-  gap:var(--space-1);
-  justify-content:flex-end;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
 }
 
 .metric-row {
-  display:grid;
-  grid-template-columns:repeat(auto-fit, minmax(var(--row-label-width), 1fr));
-  gap:var(--space-1);
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
 }
 
 .metric-tile {
-  background:var(--surface);
-  border:var(--stroke) solid var(--line);
-  border-radius:var(--radius-control);
-  padding:var(--space-2);
-  display:flex;
-  flex-direction:column;
-  gap:calc(var(--space-1) / 2);
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .metric-label {
-  font-size:var(--text-caption);
-  color:var(--ink-secondary);
+  font-size: 12px;
+  color: #64748b;
 }
 
 .metric-tile strong {
-  font-size:var(--text-section);
-  color:var(--action);
+  font-size: 24px;
+  color: #0f172a;
 }
 
 .metric-tile small {
-  color:var(--ink-secondary);
+  color: #64748b;
 }
 
 .content-grid {
-  display:grid;
-  grid-template-columns:minmax(0, 1fr) var(--panel-width);
-  gap:var(--space-2);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 18px;
 }
 
 .content-grid.single {
-  grid-template-columns:1fr;
+  grid-template-columns: 1fr;
 }
 
 .table-wrap {
-  overflow-x:auto;
+  overflow-x: auto;
 }
 
 .legal-table th,
 .legal-table td {
-  white-space:nowrap;
+  white-space: nowrap;
 }
 
 .search-input {
-  width:var(--sidebar-width);
+  width: 240px;
 }
 
 .status-badge {
-  display:inline-flex;
-  align-items:center;
-  min-height:var(--space-3);
-  padding:var(--focus-width) var(--space-1);
-  border-radius:var(--radius-pill);
-  font-size:var(--text-caption);
-  font-weight: var(--weight-strong);
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
 }
 
 .status-badge.ok {
-  background:var(--positive-soft);
-  color:var(--positive);
+  background: #ecfdf5;
+  color: #047857;
 }
 
 .status-badge.warn {
-  background:var(--warning-soft);
-  color:var(--warning);
+  background: #fffbeb;
+  color: #b45309;
 }
 
 .status-badge.danger {
-  background:var(--negative-soft);
-  color:var(--negative);
+  background: #fef2f2;
+  color: #b91c1c;
 }
 
 .status-badge.neutral {
-  background:var(--surface);
-  color:var(--ink-secondary);
+  background: #f1f5f9;
+  color: #475569;
 }
 
 .inline-action {
-  border:0;
-  background:transparent;
-  color:var(--action);
-  cursor:pointer;
-  font-weight: var(--weight-strong);
-  margin-right:var(--space-1);
+  border: 0;
+  background: transparent;
+  color: #2563eb;
+  cursor: pointer;
+  font-weight: 600;
+  margin-right: 10px;
 }
 
 .inline-action:disabled {
-  color:var(--ink-muted);
-  cursor:not-allowed;
+  color: #94a3b8;
+  cursor: not-allowed;
 }
 
 .aside-panel {
-  min-height:var(--content-short-height);
+  min-height: 240px;
 }
 
 .loading-state {
-  padding:var(--space-3);
-  text-align:center;
-  color:var(--ink-secondary);
+  padding: 28px;
+  text-align: center;
+  color: #64748b;
 }
 
-@media (max-width: 1120px) {
+@media (max-width: 1100px) {
   .content-grid {
-    grid-template-columns:1fr;
+    grid-template-columns: 1fr;
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 760px) {
   .legal-toolbar {
-    flex-direction:column;
+    flex-direction: column;
   }
 
   .toolbar-actions,
   .search-input {
-    width:100%;
-  }
-
-  .content-grid,
-  .content-grid.single {
-    grid-template-columns:minmax(0, 1fr);
-  }
-
-  .content-grid > .page-card {
-    min-width:0;
-  }
-
-  .page-header {
-    flex-direction:column;
-    align-items:stretch;
+    width: 100%;
   }
 }
 </style>

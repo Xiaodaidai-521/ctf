@@ -3,6 +3,7 @@ from django.urls import path
 from .views import (
     CreateShareView,
     ExecuteExportView,
+    PreparationObservationView,
     RecordDeliveryResultView,
     RevokeShareView,
     RotateShareTokenView,
@@ -12,6 +13,8 @@ from .views import (
 
 urlpatterns = [
     path("executions/", ExecuteExportView.as_view(), name="controlled-export-execute"),
+    path("executions/<uuid:execution_id>/preparation/", PreparationObservationView.as_view(),
+         name="controlled-export-preparation"),
     path("shares/", CreateShareView.as_view(), name="controlled-export-share-create"),
     path("shares/<uuid:share_id>/rotate-token/", RotateShareTokenView.as_view(), name="controlled-export-share-rotate"),
     path("shares/<uuid:share_id>/revoke/", RevokeShareView.as_view(), name="controlled-export-share-revoke"),

@@ -1,7 +1,7 @@
 <template>
   <LegalWorkspace
     title="合规报告"
-    subtitle="创建合规审查任务，查看分析结论并管理报告与导出记录。"
+    subtitle="创建分析任务、运行数智合规官编排，并管理报告生成与导出状态。"
     table-title="报告列表"
     aside-title="新建分析任务"
     :metrics="metrics"
@@ -42,16 +42,16 @@ const taskForm = ref({ title: '', source_type: 'manual', input_text: '' })
 
 const columns = [
   { key: 'title', label: '报告' },
-  { key: 'report_type', label: '类型', labelKey: 'reportType' },
-  { key: 'status', label: '状态', labelKey: 'taskStatus', badge: true },
+  { key: 'report_type', label: '类型' },
+  { key: 'status', label: '状态', badge: true },
   { key: 'summary', label: '摘要', formatter: (value) => value ? String(value).slice(0, 48) : '-' },
   { key: 'generated_at', label: '生成时间', formatter: formatDate },
 ]
 
 const metrics = computed(() => [
   { label: '报告数', value: reports.value.length, hint: '当前页' },
-  { label: '草稿', value: reports.value.filter((item) => item.status === 'draft').length, hint: '尚未定稿' },
-  { label: '已导出', value: reports.value.filter((item) => item.status === 'exported').length, hint: '已留档' },
+  { label: '草稿', value: reports.value.filter((item) => item.status === 'draft').length, hint: 'draft' },
+  { label: '已导出', value: reports.value.filter((item) => item.status === 'exported').length, hint: 'exported' },
 ])
 
 async function loadData() {

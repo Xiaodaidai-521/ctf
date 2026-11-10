@@ -4,14 +4,14 @@ from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
-from django.test import TestCase, override_settings
+from django.test import TestCase
 
 from legal_kb.models import LegalKnowledgeEmbedding
 
 from .interfaces import Chunk, EmbeddedChunk
 from .models import DocumentSource
-from .pipeline import EmptyDocumentError, IngestionPipeline, UnsupportedFormatError
-from .registry import select_parser
+from .pipeline import EmptyDocumentError, UnsupportedFormatError
+from .registry import get_pipeline, select_parser
 from .services import IngestionService
 
 User = get_user_model()
@@ -39,7 +39,6 @@ class RegistryTests(TestCase):
         self.assertNotIn('bad()', parsed.text)
 
 
-@override_settings(EMBEDDING_PROVIDER='local')
 class IngestionServiceTests(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(username='kb-admin', password='pass12345', is_staff=True)
@@ -98,7 +97,7 @@ class IngestionServiceTests(TestCase):
 
 class PipelineUnitTests(TestCase):
     def test_unsupported_format_raises(self):
-        pipeline = IngestionPipeline(parser_selector=lambda filename, mime: None)
+        pipeline = get_pipeline(parser_selector=lambda filename, mime: None)
         with self.assertRaises(UnsupportedFormatError):
             pipeline.run(data=b'x', filename='mystery.xyz', document_id=1)
 
@@ -107,7 +106,7 @@ class PipelineUnitTests(TestCase):
             title='t', filename='t.txt', source_hash='hash-empty', status='running',
         )
         with self.assertRaises(EmptyDocumentError):
-            IngestionPipeline().run(data=b'   ', filename='t.txt', document_id=document.id)
+            get_pipeline().run(data=b'   ', filename='t.txt', document_id=document.id)
 
 
 class RepositoryAtomicityTests(TestCase):
@@ -196,7 +195,6 @@ class MarkItDownParserTests(TestCase):
         self.assertFalse(os.path.exists(captured['path']))  # temp file cleaned up
 
 
-@override_settings(EMBEDDING_PROVIDER='local')
 class DocxContentTests(TestCase):
     """Preserve mixed paragraphs and nested tables in both parser paths."""
 
@@ -271,7 +269,6 @@ class DocxContentTests(TestCase):
         ).exists())
 
 
-@override_settings(EMBEDDING_PROVIDER='local')
 class IngestionOwnershipTests(TestCase):
     """Deterministic interleavings fence old attempts at both index and state."""
 
@@ -286,7 +283,7 @@ class IngestionOwnershipTests(TestCase):
             def parse(self, data, **kwargs):
                 return ParsedDocument(text='NEWER_INDEX')
 
-        pipeline = IngestionPipeline(parser_selector=lambda filename, mime: Parser())
+        pipeline = get_pipeline(parser_selector=lambda filename, mime: Parser())
         return IngestionService(pipeline=pipeline).ingest_bytes(
             data=self.DATA, filename='newer.txt', visibility='staff', reingest=reingest,
         )
@@ -322,7 +319,6 @@ class IngestionOwnershipTests(TestCase):
         audit.assert_not_called()
 
     def test_older_success_cannot_replace_newer_index(self):
-        from .adapters.embedder_legalkb import LegalKbEmbedder
         from .interfaces import ParsedDocument
 
         class OlderParser:
@@ -331,14 +327,14 @@ class IngestionOwnershipTests(TestCase):
             def parse(self, data, **kwargs):
                 return ParsedDocument(text='OLDER_INDEX')
 
-        embedder = LegalKbEmbedder()
+        embedder = get_pipeline().embedder
         real_embed = embedder.embed
 
         def older_embed(chunks):
             self.assertEqual(self._newer_upload().status, 'completed')
             return real_embed(chunks)
 
-        pipeline = IngestionPipeline(
+        pipeline = get_pipeline(
             parser_selector=lambda filename, mime: OlderParser(), embedder=embedder,
         )
         with patch.object(embedder, 'embed', side_effect=older_embed):
@@ -351,7 +347,7 @@ class IngestionOwnershipTests(TestCase):
         from dataclasses import replace
         from unittest.mock import Mock
 
-        actual_pipeline = IngestionPipeline()
+        actual_pipeline = get_pipeline()
 
         def older_run(**kwargs):
             outcome = actual_pipeline.run(**kwargs)
@@ -384,7 +380,6 @@ class IngestionOwnershipTests(TestCase):
 
     def test_older_success_cannot_override_a_newer_failed_rebuild(self):
         from unittest.mock import Mock
-        from .adapters.embedder_legalkb import LegalKbEmbedder
         from .interfaces import ParsedDocument
 
         original = IngestionService().ingest_bytes(data=self.DATA, filename='original.txt')
@@ -398,7 +393,7 @@ class IngestionOwnershipTests(TestCase):
             def parse(self, data, **kwargs):
                 return ParsedDocument(text='STALE_SUCCESS_MUST_NOT_COMMIT')
 
-        embedder = LegalKbEmbedder()
+        embedder = get_pipeline().embedder
         real_embed = embedder.embed
 
         def interleaved_embed(chunks):
@@ -410,7 +405,7 @@ class IngestionOwnershipTests(TestCase):
             self.assertEqual(newer.status, 'failed')
             return real_embed(chunks)
 
-        pipeline = IngestionPipeline(
+        pipeline = get_pipeline(
             parser_selector=lambda filename, mime: OlderParser(), embedder=embedder,
         )
         with patch.object(embedder, 'embed', side_effect=interleaved_embed):
@@ -420,8 +415,7 @@ class IngestionOwnershipTests(TestCase):
         self.assertEqual(document.status, 'failed')
         self.assertEqual(document.filename, 'newer.txt')
         self.assertEqual(document.visibility, 'staff')
-        self.assertEqual(document.error_message, 'RuntimeError')
-        self.assertNotIn('newer parser failure', document.error_message)
+        self.assertIn('newer parser failure', document.error_message)
         texts = list(LegalKnowledgeEmbedding.objects.filter(
             source_type='document', object_id=document.id,
         ).values_list('text', flat=True))

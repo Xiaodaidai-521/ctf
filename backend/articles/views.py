@@ -5,7 +5,6 @@ from rest_framework.exceptions import PermissionDenied
 from django.db.models import Q, Count, F
 from django.utils import timezone
 from .models import Article, Category, Comment, ArticleLike, CommentLike, ArticleCollect
-from learning_knowledge.policy import filter_legacy_queryset
 from .serializers import (
     ArticleListSerializer, ArticleDetailSerializer, ArticleCreateSerializer,
     ArticleUpdateSerializer, ArticleReviewSerializer, CommentSerializer,
@@ -25,9 +24,7 @@ class ArticleViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
     def get_queryset(self):
-        queryset = filter_legacy_queryset(
-            Article.objects.select_related('author', 'category'), 'article', self.request.user,
-        )
+        queryset = Article.objects.select_related('author', 'category')
 
         # 管理员可以查看所有状态的文章
         if self.request.user.is_staff:
@@ -41,8 +38,12 @@ class ArticleViewSet(viewsets.ModelViewSet):
                 if status_filter != 'all':
                     queryset = queryset.filter(status=status_filter)
         else:
-            # A client status filter must never authorize unpublished articles.
-            queryset = queryset.filter(status='approved')
+            # 普通用户只能查看已发布的文章（除非是作者查看自己的文章）
+            status_filter = self.request.query_params.get('status', 'approved')
+            if status_filter == 'all':
+                queryset = queryset.filter(status='approved')
+            else:
+                queryset = queryset.filter(status=status_filter)
 
         # 搜索
         search = self.request.query_params.get('search')
@@ -149,9 +150,9 @@ class ArticleViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'])
     def my_favorites(self, request):
         """获取我的收藏文章"""
-        queryset = self.get_queryset().filter(
+        queryset = Article.objects.filter(
             id__in=ArticleCollect.objects.filter(user=request.user).values('article_id')
-        ).order_by('-created_at')
+        ).select_related('author', 'category').order_by('-created_at')
 
         page = self.paginate_queryset(queryset)
         if page is not None:
@@ -266,19 +267,12 @@ class CommentViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
     def get_queryset(self):
-        readable = filter_legacy_queryset(Article.objects.all(), 'article', self.request.user)
-        if not self.request.user.is_staff:
-            readable = readable.filter(status='approved')
-        queryset = Comment.objects.select_related('author', 'article', 'parent').filter(
-            article__in=readable,
-        )
+        queryset = Comment.objects.select_related('author', 'article', 'parent')
 
         # 文章筛选
         article_id = self.request.query_params.get('article')
         if article_id:
-            queryset = queryset.filter(article_id=article_id)
-            if self.action == 'list':
-                queryset = queryset.filter(parent=None)
+            queryset = queryset.filter(article_id=article_id, parent=None)  # 只返回一级评论
 
         # 排序
         ordering = self.request.query_params.get('ordering', '-created_at')
@@ -303,11 +297,6 @@ class CommentViewSet(viewsets.ModelViewSet):
         article.save(update_fields=['comment_count'])
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-    def perform_update(self, serializer):
-        if serializer.instance.author != self.request.user and not self.request.user.is_staff:
-            raise PermissionDenied('Only the author or an administrator can update a comment.')
-        serializer.save()
 
     def perform_destroy(self, instance):
         """删除评论时需要检查权限"""
@@ -348,6 +337,6 @@ class CommentViewSet(viewsets.ModelViewSet):
     def replies(self, request, pk=None):
         """获取评论的所有回复"""
         comment = self.get_object()
-        replies = self.get_queryset().filter(parent=comment, article=comment.article)
+        replies = comment.replies.all()
         serializer = CommentSerializer(replies, many=True, context={'request': request})
         return Response(serializer.data)

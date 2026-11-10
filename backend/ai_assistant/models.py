@@ -1,4 +1,5 @@
 from django.db import models
+from data_security.adapters.persistence.fields import ProtectedModel
 
 
 class AgentPreset(models.Model):
@@ -102,8 +103,9 @@ class AIConversation(models.Model):
         return f"Conversation {self.id} - {self.user.username}"
 
 
-class AIMessage(models.Model):
+class AIMessage(ProtectedModel):
     """AI消息记录"""
+    encrypted_fields = ('content', 'metadata')
 
     conversation = models.ForeignKey(
         AIConversation,
@@ -119,12 +121,13 @@ class AIMessage(models.Model):
     agent_name = models.CharField(max_length=100, null=True, blank=True)
     provider = models.CharField(max_length=50, null=True, blank=True)
     metadata = models.JSONField(default=dict, blank=True)
-    # Server-sealed body provenance. Empty for legacy/imported messages; never an API input.
-    history_origin = models.JSONField(default=dict, blank=True, editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         ordering = ['created_at']
+        constraints = [models.CheckConstraint(
+            condition=models.Q(security_state='legacy-v0') | models.Q(content='', metadata={}),
+            name='message_sealed_fields_no_plaintext')]
 
     def __str__(self):
-        return f"{self.role}: {self.content[:50]}..."
+        return f"{self.role}: message {self.pk}"

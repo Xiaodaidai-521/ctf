@@ -9,6 +9,7 @@ class ExportExecution(models.Model):
     STATE = [
         ("queued", "queued"),
         ("running", "running"),
+        ("prepared", "prepared"),
         ("succeeded", "succeeded"),
         ("failed", "failed"),
         ("cancelled", "cancelled"),
@@ -52,6 +53,8 @@ class ExportExecution(models.Model):
 class ExecutionAttempt(models.Model):
     STATUS = [
         ("running", "running"),
+        ("prepared", "prepared"),
+        ("unknown", "unknown"),
         ("succeeded", "succeeded"),
         ("failed", "failed"),
         ("cancelled", "cancelled"),
@@ -65,6 +68,7 @@ class ExecutionAttempt(models.Model):
     lease_expires_at = models.DateTimeField()
     status = models.CharField(max_length=20, choices=STATUS, default="running", db_index=True)
     candidate_storage_ref = models.CharField(max_length=500, blank=True)
+    private_candidate = models.JSONField(default=dict, blank=True)
     error_code = models.CharField(max_length=80, blank=True)
     started_at = models.DateTimeField(auto_now_add=True)
     completed_at = models.DateTimeField(null=True, blank=True)

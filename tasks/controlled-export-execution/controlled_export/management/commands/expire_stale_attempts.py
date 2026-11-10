@@ -21,19 +21,20 @@ class Command(BaseCommand):
                 execution = ExportExecution.objects.select_for_update().get(pk=attempt.execution_id)
                 if attempt.status != "running" or attempt.lease_expires_at > timezone.now():
                     continue
-                attempt.status = "stale"
-                attempt.completed_at = timezone.now()
+                uncertain = bool(attempt.private_candidate)
+                attempt.status = "unknown" if uncertain else "stale"
+                attempt.completed_at = None if uncertain else timezone.now()
                 attempt.error_code = "LEASE_EXPIRED"
                 attempt.save(update_fields=["status", "completed_at", "error_code"])
                 if execution.active_attempt_id == attempt.attempt_id and execution.state == "running":
-                    execution.state = "failed"
+                    execution.state = "repair_required" if uncertain else "failed"
                     execution.error_code = "LEASE_EXPIRED_RECONCILIATION_REQUIRED"
-                    execution.completed_at = timezone.now()
+                    execution.completed_at = None if uncertain else timezone.now()
                     execution.save(update_fields=["state", "error_code", "completed_at", "updated_at"])
                     _outbox(
                         "execution",
                         execution.execution_id,
-                        "execution.failed",
+                        "execution.preparation_unknown" if uncertain else "execution.failed",
                         {
                             "execution_id": str(execution.execution_id),
                             "attempt_id": str(attempt.attempt_id),

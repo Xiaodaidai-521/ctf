@@ -23,10 +23,6 @@ api.interceptors.response.use(
 
 
 const service = {
-  dataSecurity: {
-    policies: () => api.get('/data-security/policies/'),
-    preview: (sampleCase) => api.post('/data-security/preview/', { case: sampleCase }),
-  },
   // 认证相关
   auth: {
     csrf: () => api.get('/users/csrf/'),
@@ -44,9 +40,6 @@ const service = {
     adminCreate: (data) => api.post('/users/admin/users/create/', data),
     adminUpdate: (id, data) => api.put(`/users/admin/users/${id}/update/`, data),
     adminDelete: (id) => api.delete(`/users/admin/users/${id}/delete/`),
-    teacherApplications: () => api.get('/users/admin/teacher-applications/'),
-    approveTeacherApplication: (id) => api.post(`/users/admin/teacher-applications/${id}/approve/`),
-    rejectTeacherApplication: (id) => api.post(`/users/admin/teacher-applications/${id}/reject/`),
   },
 
   // 题目相关
@@ -176,8 +169,6 @@ const service = {
     concepts: (params) => api.get('/learning-paths/knowledge-concepts/', { params }),
     // 概念详情
     conceptDetail: (id) => api.get(`/learning-paths/knowledge-concepts/${id}/`),
-    // 我的知识状态
-    myState: () => api.get('/learning-paths/knowledge/my-state/'),
   },
 
   // 考试相关

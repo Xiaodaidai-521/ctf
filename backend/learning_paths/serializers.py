@@ -1,8 +1,4 @@
-import uuid
-
 from rest_framework import serializers
-from rest_framework.validators import UniqueValidator
-from django.utils.text import slugify
 from django.contrib.auth import get_user_model
 from django.db.models import Q
 from .models import (
@@ -19,20 +15,24 @@ class LearningPathListSerializer(serializers.ModelSerializer):
     """学习路径列表序列化器"""
     total_modules = serializers.SerializerMethodField()
     total_labs = serializers.SerializerMethodField()
+    enrollment_count = serializers.SerializerMethodField()
     modules = serializers.SerializerMethodField()
 
     class Meta:
         model = LearningPath
-        fields = ['id', 'slug', 'title', 'description', 'difficulty', 'estimated_hours',
-                 'total_modules', 'total_labs', 'color', 'order', 'is_published',
+        fields = ['id', 'title', 'description', 'difficulty', 'estimated_hours',
+                 'total_modules', 'total_labs', 'enrollment_count', 'color', 'order', 'is_published',
                  'created_at', 'updated_at', 'modules']
-        read_only_fields = ['slug', 'created_at', 'updated_at']
+        read_only_fields = ['created_at', 'updated_at']
 
     def get_total_modules(self, obj):
         return obj.modules.filter(is_required=True).count()
 
     def get_total_labs(self, obj):
         return ModuleLab.objects.filter(module__learning_path=obj).count()
+
+    def get_enrollment_count(self, obj):
+        return obj.user_progresses.count()
 
     def get_modules(self, obj):
         modules = obj.modules.filter(parent_module=None).order_by('order')
@@ -82,19 +82,23 @@ class LearningPathDetailSerializer(serializers.ModelSerializer):
     modules = serializers.SerializerMethodField()
     total_modules = serializers.SerializerMethodField()
     total_labs = serializers.SerializerMethodField()
+    enrollment_count = serializers.SerializerMethodField()
 
     class Meta:
         model = LearningPath
-        fields = ['id', 'slug', 'title', 'description', 'difficulty', 'estimated_hours',
-                 'total_modules', 'total_labs', 'color', 'order', 'is_published',
+        fields = ['id', 'title', 'description', 'difficulty', 'estimated_hours',
+                 'total_modules', 'total_labs', 'enrollment_count', 'color', 'order', 'is_published',
                  'created_at', 'updated_at', 'modules']
-        read_only_fields = ['slug', 'created_at', 'updated_at']
+        read_only_fields = ['created_at', 'updated_at']
 
     def get_total_modules(self, obj):
         return obj.modules.filter(is_required=True).count()
 
     def get_total_labs(self, obj):
         return ModuleLab.objects.filter(module__learning_path=obj).count()
+
+    def get_enrollment_count(self, obj):
+        return obj.user_progresses.count()
 
     def get_modules(self, obj):
         modules = obj.modules.filter(parent_module=None).order_by('order')
@@ -103,22 +107,10 @@ class LearningPathDetailSerializer(serializers.ModelSerializer):
 
 class LearningPathCreateSerializer(serializers.ModelSerializer):
     """学习路径创建序列化器"""
-    slug = serializers.SlugField(
-        max_length=200, required=False,
-        validators=[UniqueValidator(queryset=LearningPath.objects.all())]
-    )
-
     class Meta:
         model = LearningPath
-        fields = ['id', 'slug', 'title', 'description', 'difficulty', 'estimated_hours',
-                 'color', 'order', 'is_published']
-        read_only_fields = ['id']
-
-    def create(self, validated_data):
-        if 'slug' not in validated_data:
-            base = slugify(validated_data['title'])[:167] or 'learning-path'
-            validated_data['slug'] = f'{base}-{uuid.uuid4().hex}'
-        return super().create(validated_data)
+        fields = ['title', 'description', 'difficulty', 'estimated_hours',
+                 'color', 'order', 'is_active']
 
 
 class PathModuleCreateSerializer(serializers.ModelSerializer):
@@ -132,18 +124,8 @@ class PathModuleCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = PathModule
-        fields = ['id', 'learning_path', 'parent_module', 'title', 'description', 'module_type',
-                 'content', 'order', 'is_required', 'estimated_minutes', 'requires']
-        read_only_fields = ['id']
-
-    def validate(self, attrs):
-        path = attrs['learning_path']
-        parent = attrs.get('parent_module')
-        if parent and parent.learning_path_id != path.pk:
-            raise serializers.ValidationError({'parent_module': 'Parent must belong to this path.'})
-        if any(module.learning_path_id != path.pk for module in attrs.get('requires', [])):
-            raise serializers.ValidationError({'requires': 'Prerequisites must belong to this path.'})
-        return attrs
+        fields = ['title', 'description', 'module_type', 'order', 'is_required',
+                 'theory_content', 'theory_url', 'estimated_minutes', 'requires']
 
     def create(self, validated_data):
         requires_data = validated_data.pop('requires', [])
@@ -248,8 +230,26 @@ class KnowledgeConceptSerializer(serializers.ModelSerializer):
         return ConceptRelationSerializer(relations, many=True).data
 
     def get_resources(self, obj):
-        resources = obj.concept_resources.all()
-        return [{'id': r.id, 'url': r.url, 'title': r.title} for r in resources]
+        result = []
+        for r in obj.concept_resources.all():
+            target = r.content_object
+            if target is None:
+                continue
+            title = getattr(target, 'title', None) or getattr(target, 'name', '') or ''
+            model = r.content_type.model
+            if model == 'resource':
+                url = f'/resources?resource={r.object_id}'
+            elif model == 'article':
+                url = f'/community/article/{r.object_id}'
+            elif model == 'challenge':
+                url = f'/challenges/{r.object_id}'
+            else:
+                url = ''
+            result.append({
+                'id': r.id, 'title': title, 'url': url, 'role': r.role,
+                'content_type': model, 'object_id': r.object_id,
+            })
+        return result
 
 
 class ConceptRelationSerializer(serializers.ModelSerializer):

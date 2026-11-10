@@ -3,7 +3,7 @@
 """Audit models for platform events, AI calls, and tamper-evident ledger entries."""
 
 from django.conf import settings
-from django.db import models
+from django.db import models, transaction
 from data_security.adapters.persistence.fields import ProtectedModel
 from django.utils import timezone
 
@@ -106,8 +106,17 @@ class AuditEvent(ProtectedModel):
         return request.META.get('REMOTE_ADDR', '')
 
 
+class OnlineLegacyLedgerManager(models.Manager):
+    def get_queryset(self):
+        closed = AuditLedgerLock.objects.filter(key='default').exclude(legacy_archive={})
+        return super().get_queryset().filter(~models.Exists(closed))
+
+
 class AuditLedgerEntry(models.Model):
     """Tamper-evident audit ledger entry backed by a hash chain."""
+
+    # Isolated evidence remains accessible only through the maintenance base manager.
+    objects = OnlineLegacyLedgerManager()
 
     event_category = models.CharField(
         max_length=50,
@@ -145,6 +154,7 @@ class AuditLedgerEntry(models.Model):
         verbose_name = 'Audit ledger entry'
         verbose_name_plural = 'Audit ledger entries'
         ordering = ['id']
+        permissions = [('archive_auditledgerentry', '可批准历史审计加密归档')]
         indexes = [
             models.Index(fields=['event_category', 'created_at']),
             models.Index(fields=['object_type', 'object_id']),
@@ -160,6 +170,8 @@ class AuditLedgerLock(models.Model):
 
     key = models.CharField(max_length=50, unique=True, default='default')
     updated_at = models.DateTimeField(auto_now=True, verbose_name='Updated at')
+    # Only the default/v1 lock uses this retained, metadata-only governance record.
+    legacy_archive = models.JSONField(default=dict, blank=True)
 
     class Meta:
         verbose_name = 'Audit ledger lock'
@@ -169,8 +181,17 @@ class AuditLedgerLock(models.Model):
         return self.key
 
 
+class OnlineSecurityAuditManager(models.Manager):
+    def get_queryset(self):
+        closed = AuditLedgerLock.objects.filter(key='default').exclude(legacy_archive={})
+        legacy = models.Q(ledger_entry__isnull=False) | models.Q(event__schema_version='ds.security-event.v1')
+        return super().get_queryset().exclude(models.Q(models.Exists(closed)) & legacy)
+
+
 class SecurityAuditRecord(models.Model):
     """Durable M0 event and its optional, separately confirmed legacy-chain entry."""
+
+    objects = OnlineSecurityAuditManager()
 
     event_id = models.CharField(max_length=64, unique=True)
     event = models.JSONField()
@@ -178,6 +199,39 @@ class SecurityAuditRecord(models.Model):
     audit_event = models.OneToOneField(AuditEvent, on_delete=models.PROTECT)
     ledger_entry = models.OneToOneField(
         AuditLedgerEntry, on_delete=models.PROTECT, null=True, blank=True)
+
+    def save(self, *args, **kwargs):
+        # DURABLE v1 writes do not call the legacy ledger writer. Close that path too;
+        # v2 writes keep their existing event-row -> v2-lock ordering.
+        if self._state.adding and (self.ledger_entry_id is not None or
+                                  self.event.get('schema_version') == 'ds.security-event.v1'):
+            from data_security.contracts import ReasonCode
+            from data_security.contracts.schema import require
+            with transaction.atomic():
+                AuditLedgerLock.objects.get_or_create(key='default')
+                lock = AuditLedgerLock.objects.select_for_update().get(key='default')
+                require(lock.legacy_archive == {}, ReasonCode.AUDIT_UNAVAILABLE)
+                return super().save(*args, **kwargs)
+        return super().save(*args, **kwargs)
+
+
+class AuthenticatedAuditEntry(models.Model):
+    """Version-two chain; legacy rows and their hash algorithm remain untouched."""
+
+    record = models.OneToOneField(SecurityAuditRecord, on_delete=models.PROTECT)
+    chain_identity = models.CharField(max_length=64)
+    sequence = models.PositiveBigIntegerField()
+    previous_hash = models.CharField(max_length=64)
+    event_hash = models.CharField(max_length=64)
+    recorded_at = models.DateTimeField()
+    key = models.JSONField()
+    authentication = models.BinaryField(max_length=32)
+    current_hash = models.CharField(max_length=64, unique=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(
+            fields=['chain_identity', 'sequence'], name='audit_v2_chain_sequence')]
+        ordering = ['sequence']
 
 
 class AIAuditLog(ProtectedModel):

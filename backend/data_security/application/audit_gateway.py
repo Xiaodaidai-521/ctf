@@ -1,16 +1,16 @@
 """Single audit entry point; never calls the auditing protection facade."""
 from data_security.contracts import (AuditPort, AuditReceipt, AuditSink, Durability,
-                                     ProtectionError, ReasonCode, SecurityEvent)
+                                     ProtectionError, QuotaRecoveryEvent, ReasonCode, SecurityEvent, SecurityEventV2)
 
 
 class AuditGateway(AuditPort):
     def __init__(self, *, sink: AuditSink):
         self.sink = sink
 
-    def record(self, event: SecurityEvent, durability: Durability) -> AuditReceipt | ProtectionError:
+    def record(self, event: SecurityEvent | SecurityEventV2 | QuotaRecoveryEvent, durability: Durability) -> AuditReceipt | ProtectionError:
         # DTO construction is the field whitelist. Do not accept dictionaries,
         # detail, exception objects, or ORM records at this boundary.
-        if type(event) is not SecurityEvent or type(durability) is not Durability:
+        if type(event) not in (SecurityEvent, SecurityEventV2, QuotaRecoveryEvent) or type(durability) is not Durability:
             return ProtectionError(schema_version=ProtectionError.SCHEMA,
                 code=ReasonCode.INVALID_TYPE, retryable=False, trace_id='audit/gateway')
         try:

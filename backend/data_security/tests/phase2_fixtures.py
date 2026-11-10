@@ -123,3 +123,6 @@ class MemoryAudit:
 
     def checkpoint(self, chain_ref):
         return self.verify(chain_ref)
+
+    def read_authenticated(self, event_id):
+        return dto(ProtectionError, code=ReasonCode.AUDIT_UNAVAILABLE, retryable=False, trace_id='fixture/audit')

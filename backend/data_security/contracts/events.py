@@ -1,8 +1,9 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, fields
 from datetime import datetime
 from typing import ClassVar
 
-from .enums import Durability, EventKind, Outcome, ReasonCode
+from .crypto import KeyReference
+from .enums import Durability, EventKind, KeyPurpose, KeyStatus, Outcome, ReasonCode
 from .policies import PolicyBinding
 from .schema import DTO, count, digest, reference, require
 
@@ -51,6 +52,24 @@ class SecurityEvent(DTO):
 
 
 @dataclass(frozen=True, slots=True, kw_only=True, repr=False)
+class SecurityEventV2(SecurityEvent):
+    """Owner-computed evidence digests, never a caller-supplied report body."""
+    SCHEMA: ClassVar[str] = 'ds.security-event.v2'
+    evidence_hashes: tuple[tuple[str, str], ...]
+
+    def __post_init__(self):
+        SecurityEvent.__post_init__(self)
+        names = tuple(name for name, value in self.evidence_hashes)
+        require(len(names) <= 3 and len(set(names)) == len(names))
+        require(names == tuple(sorted(names)))
+        for name, value in self.evidence_hashes:
+            require(name in ('archive', 'ciphertext', 'report'))
+            digest(value)
+        if self.kind is EventKind.DELIVERY and self.outcome is Outcome.SUCCEEDED:
+            require('report' in names and 'ciphertext' in names, ReasonCode.REPORT_MISMATCH)
+
+
+@dataclass(frozen=True, slots=True, kw_only=True, repr=False)
 class AuditReceipt(DTO):
     SCHEMA: ClassVar[str] = 'ds.audit-receipt.v1'
     event_id: str
@@ -78,3 +97,26 @@ class AuditReceipt(DTO):
             if self.checkpoint_ref is not None:
                 reference(self.checkpoint_ref)
                 require(self.chain_version != 'v1')
+
+
+@dataclass(frozen=True, slots=True, kw_only=True, repr=False)
+class AuditCheckpoint(DTO):
+    SCHEMA: ClassVar[str] = 'ds.audit-checkpoint.v1'
+    chain_identity: str
+    receipt: AuditReceipt
+    checkpointed_at: datetime
+    key: KeyReference
+    authentication: bytes
+
+    def __post_init__(self):
+        DTO.__post_init__(self)
+        digest(self.chain_identity)
+        require(self.receipt.durability is Durability.LEDGER_CONFIRMED and
+                self.receipt.chain_version == 'ds.audit.v2' and self.receipt.checkpoint_ref is None)
+        require(self.checkpointed_at >= self.receipt.stored_at)
+        require(self.key.purpose is KeyPurpose.AUDIT and self.key.status is KeyStatus.ACTIVE)
+        require(len(self.authentication) == 32)
+
+    def content(self):
+        return {field.name: getattr(self, field.name) for field in fields(self)
+                if field.name != 'authentication'}

@@ -12,6 +12,10 @@ urlpatterns = [
     path('<uuid:feedback_id>/', views.FeedbackDetailView.as_view(), name='feedback-detail'),
     path('<uuid:feedback_id>/evidence/', views.FeedbackEvidenceAddView.as_view(), name='feedback-add-evidence'),
     path('<uuid:feedback_id>/attachments/', views.FeedbackAttachmentUploadView.as_view(), name='feedback-upload-attachment'),
+    path('<uuid:feedback_id>/attachments/<uuid:attachment_id>/shares/',
+        views.FeedbackAttachmentShareView.as_view(), name='feedback-attachment-share'),
+    path('<uuid:feedback_id>/file-operations/<uuid:operation_id>/',
+        views.FeedbackFileOperationView.as_view(), name='feedback-file-operation'),
     path(
         '<uuid:feedback_id>/attachments/<uuid:attachment_id>/download/',
         views.FeedbackAttachmentDownloadView.as_view(),

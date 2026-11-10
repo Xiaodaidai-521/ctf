@@ -26,13 +26,13 @@ def protect_stored_value(value):
 
 class FieldStorage:
     def __init__(self, *, crypto, data_key, protect_value, index_keys=(), read_keys=(), legacy_reads=False,
-                 index_deadline=None):
+                 index_deadline=None, register_retention=None):
         require(index_deadline is None or type(index_deadline) is datetime and
                 index_deadline.utcoffset() is not None, ReasonCode.INVALID_VALUE)
         require(len(index_keys) != 2 or index_deadline is not None, ReasonCode.INVALID_VALUE)
         self.crypto, self.data_key, self.protect_value = crypto, data_key, protect_value
         self.index_keys, self.legacy_reads = tuple(index_keys), legacy_reads
-        self.index_deadline = index_deadline
+        self.index_deadline, self.register_retention = index_deadline, register_retention
         self.read_keys = {key.key_ref: key for key in (*read_keys, data_key)}
 
     def context(self, instance, name, version):
@@ -41,16 +41,19 @@ class FieldStorage:
             object_version='v' + str(version), field_ref=instance._meta.label_lower + '/' + name,
             authorization_ref='authorization/phase4-storage')
 
-    def seal(self, instance, name, value, revision):
+    def seal(self, instance, name, value, revision, *, enroll=True):
         json_field = isinstance(instance._meta.get_field(name), models.JSONField)
         payload = BoundedPayload(schema_version=BoundedPayload.SCHEMA,
             kind=PayloadKind.JSON if json_field else PayloadKind.TEXT,
             media_type=MediaType.JSON if json_field else MediaType.TEXT,
             text=None if json_field else value, tree=FrozenJSON(value) if json_field else None,
             binary=None, limits=BASELINE_LIMITS)
-        result = self.crypto.seal(payload, self.context(instance, name, revision), self.data_key)
+        context = self.context(instance, name, revision)
+        result = self.crypto.seal(payload, context, self.data_key)
         if type(result) is ProtectionError:
             raise RuntimeError(result.code.value)
+        if enroll and value and self.register_retention is not None:
+            self.register_retention(context, result)
         return {'revision': revision, 'envelope': result.to_wire()}
 
     def read(self, instance, name):
@@ -198,7 +201,7 @@ class ProtectedModel(models.Model):
                     value = normalize_email(value)
                     self.email_index, self.email_index_previous = _adapter.email_indexes(self, value)
                     changed.update(('email_index', 'email_index_previous'))
-                envelopes[name] = _adapter.seal(self, name, value, revision)
+                envelopes[name] = _adapter.seal(self, name, value, revision, enroll=not legacy_migration)
                 setattr(self, name, {} if isinstance(self._meta.get_field(name), models.JSONField) else '')
                 changed.add(name)
             for name in self.redacted_fields:
