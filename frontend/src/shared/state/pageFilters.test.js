@@ -39,12 +39,11 @@ for (const [page, keys] of [['Users', ['searchKeyword', 'page', 'pageSize']], ['
     assert.match(source, /onBeforeUnmount\(guard\.dispose\)/)
   })
 }
-test('governance tasks land at pending articles and the teacher application section', () => {
+test('governance tasks land at pending articles and the user list loads on mount', () => {
   const articles = fs.readFileSync(new URL('../../admin/views/Articles.vue', import.meta.url), 'utf8')
   assert.match(articles, /statuses\.includes\(route\.query\.status\)/)
   assert.match(articles, /watch\(\(\) => route\.query\.status/)
   const users = fs.readFileSync(new URL('../../admin/views/Users.vue', import.meta.url), 'utf8')
-  assert.match(users, /id="teacher-applications"/)
-  assert.match(users, /await Promise\.all\(\[fetchUsers\(\), fetchTeacherApplications\(\)\]\)/)
-  assert.match(users, /await locateApplications\(\)/)
+  assert.doesNotMatch(users, /teacher-applications|fetchTeacherApplications/)
+  assert.match(users, /onMounted\(fetchUsers\)/)
 })
