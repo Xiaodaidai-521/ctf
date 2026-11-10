@@ -25,18 +25,6 @@ from users.permissions import IsTeacherOrAdmin
 
 
 MANAGEMENT_ACTIONS = {'create', 'update', 'partial_update', 'destroy'}
-DRAFT_MANAGEMENT_ACTIONS = {'create', 'list', 'retrieve', 'update', 'partial_update'}
-
-
-class IsPathManager(IsTeacherOrAdmin):
-    def has_permission(self, request, view):
-        return bool(super().has_permission(request, view)
-                    and request.user.is_active
-                    and getattr(request.user, 'role', None) in ('teacher', 'admin'))
-
-
-def can_read_managed_drafts(view):
-    return view.action in DRAFT_MANAGEMENT_ACTIONS and IsPathManager().has_permission(view.request, view)
 
 
 class LearningPathViewSet(viewsets.ModelViewSet):
@@ -45,13 +33,11 @@ class LearningPathViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         if self.action in MANAGEMENT_ACTIONS:
-            return [IsPathManager()]
+            return [IsTeacherOrAdmin()]
         return [permissions.IsAuthenticatedOrReadOnly()]
 
     def get_queryset(self):
-        queryset = LearningPath.objects.all()
-        if not can_read_managed_drafts(self):
-            queryset = queryset.filter(is_published=True)
+        queryset = LearningPath.objects.filter(is_published=True)
 
         # 搜索
         search = self.request.query_params.get('search', '')
@@ -123,13 +109,11 @@ class PathModuleViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         if self.action in MANAGEMENT_ACTIONS:
-            return [IsPathManager()]
+            return [IsTeacherOrAdmin()]
         return [permissions.IsAuthenticatedOrReadOnly()]
 
     def get_queryset(self):
         queryset = PathModule.objects.select_related('learning_path', 'parent_module').prefetch_related('requires_modules', 'module_labs__lab')
-        if not can_read_managed_drafts(self):
-            queryset = queryset.filter(learning_path__is_published=True)
 
         # 学习路径筛选
         path_id = self.request.query_params.get('learning_path') or self.request.query_params.get('path')
@@ -405,11 +389,7 @@ class KnowledgeConceptViewSet(viewsets.ModelViewSet):
         return [permissions.IsAuthenticatedOrReadOnly()]
 
     def get_queryset(self):
-        from learning_knowledge.policy import filter_legacy_queryset
-
-        queryset = filter_legacy_queryset(
-            KnowledgeConcept.objects.all(), 'knowledge_concept', self.request.user,
-        )
+        queryset = KnowledgeConcept.objects.all()
 
         # 搜索
         search = self.request.query_params.get('search', '')

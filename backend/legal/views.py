@@ -11,7 +11,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from audit.models import AuditEvent
-from audit.services import AuditLedgerService, canonical_json, sha256_hex
+from audit.legacy_hashes import canonical_json, sha256_hex
+from audit.services import AuditLedgerService
 from data_security.adapters.persistence.fields import field_storage_enabled
 from users.permissions import authorized_users
 

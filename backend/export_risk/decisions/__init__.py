@@ -10,6 +10,8 @@ from .service import (
     create_risk_decision,
     invalidate_decision,
     prepare_execution,
+    recheck_delivered,
+    recheck_execution,
     revoke_authorization,
 )
 
@@ -21,6 +23,8 @@ __all__ = [
     "IdempotencyConflict",
     "create_risk_decision",
     "prepare_execution",
+    "recheck_delivered",
+    "recheck_execution",
     "claim",
     "consume",
     "revoke_authorization",

@@ -20,9 +20,14 @@ class IsLegalKbReader(BasePermission):
 class IsLegalKbAdmin(BasePermission):
     """Allow only admins to modify legal knowledge-base data."""
 
-    def has_permission(self, request, view):
+    @staticmethod
+    def allows(user):
         return bool(
-            request.user
-            and request.user.is_authenticated
-            and (request.user.is_staff or getattr(request.user, 'role', '') == 'admin')
+            user
+            and user.is_authenticated
+            and user.is_active
+            and (user.is_staff or getattr(user, 'role', '') == 'admin')
         )
+
+    def has_permission(self, request, view):
+        return self.allows(request.user)

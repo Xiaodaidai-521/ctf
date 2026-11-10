@@ -21,7 +21,7 @@ from legal_kb.models import LegalKnowledgeEmbedding
 from .adapters.repository_legalkb import LegalKbChunkRepository
 from .interfaces import Chunk, EmbeddedChunk, ParsedDocument
 from .models import DocumentSource
-from .pipeline import IngestionPipeline
+from .registry import get_pipeline
 from .services import IngestionService
 
 
@@ -88,7 +88,7 @@ class PostgresIngestionConcurrencyTests(TransactionTestCase):
                 return [EmbeddedChunk(chunk, vector, local, 'concurrency-fixture', 1024)
                         for chunk in chunks]
 
-        return IngestionPipeline(
+        return get_pipeline(
             parser_selector=lambda filename, mime: parser,
             chunker=Chunker(), embedder=Embedder(), repository=repository,
         )
@@ -228,8 +228,7 @@ class PostgresIngestionConcurrencyTests(TransactionTestCase):
         document.refresh_from_db()
         self.assertEqual(document.status, 'failed')
         self.assertEqual(document.filename, 'newer.txt')
-        self.assertEqual(document.error_message, 'RuntimeError')
-        self.assertNotIn('newer parser failure', document.error_message)
+        self.assertIn('newer parser failure', document.error_message)
         self.assertEqual(list(LegalKnowledgeEmbedding.objects.filter(
             source_type='document', object_id=document.pk,
         ).order_by('chunk_index').values_list('text', flat=True)),

@@ -21,6 +21,11 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from data_security.contracts import ProtectionError
+from data_security.adapters.django.private_files import (
+    create_private_share, operation_response, private_file_error, private_file_response, private_files, upload_operation_id,
+)
+
 from . import constants
 from .models import (
     FeedbackCandidate,
@@ -652,6 +657,16 @@ class FeedbackAttachmentUploadView(APIView):
     parser_classes = [MultiPartParser, FormParser]
 
     def post(self, request, feedback_id):
+        owner = private_files('feedback')
+        if isinstance(owner, ProtectionError):
+            return private_file_error(owner)
+        operation_id = upload_operation_id(request) if owner is not None else None
+        if isinstance(operation_id, ProtectionError):
+            return private_file_error(operation_id)
+        if owner is None and hasattr(self, 'private_uploads'):
+            owner = self.private_uploads
+            if owner is None:
+                return Response({'detail': '附件上传暂未开放。'}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
         ticket = _get_ticket(feedback_id)
         if not _can_access(request.user, ticket):
             return Response(
@@ -667,32 +682,49 @@ class FeedbackAttachmentUploadView(APIView):
                 {'code': 'forbidden', 'detail': '学生不能上传仅教师可见的附件。'},
                 status=status.HTTP_403_FORBIDDEN,
             )
-        digest = hashlib.sha256()
-        for chunk in upload.chunks():
-            digest.update(chunk)
-        upload.seek(0)
-        attachment = FeedbackAttachment.objects.create(
-            ticket=ticket,
-            file=upload,
-            original_name=(upload.name or 'attachment').rsplit('/', 1)[-1].rsplit('\\', 1)[-1],
-            content_type=getattr(upload, 'content_type', '') or 'application/octet-stream',
-            size=upload.size,
-            sha256=digest.hexdigest(),
-            visibility=visibility,
-            uploaded_by=request.user,
-        )
+        if owner is not None:
+            options = {'operation_id': operation_id} if operation_id is not None else {}
+            attachment = owner.create(serializer.validated_data, user=request.user, ticket_id=ticket.pk, **options)
+            if isinstance(attachment, ProtectionError):
+                if operation_id is not None:
+                    return private_file_error(attachment)
+                return Response({'code': attachment.code.value, 'detail': '附件暂时无法保存。'},
+                                status=status.HTTP_400_BAD_REQUEST)
+        else:
+            digest = hashlib.sha256()
+            for chunk in upload.chunks():
+                digest.update(chunk)
+            upload.seek(0)
+            attachment = FeedbackAttachment.objects.create(
+                ticket=ticket,
+                file=upload,
+                original_name=(upload.name or 'attachment').rsplit('/', 1)[-1].rsplit('\\', 1)[-1],
+                content_type=getattr(upload, 'content_type', '') or 'application/octet-stream',
+                size=upload.size,
+                sha256=digest.hexdigest(),
+                visibility=visibility,
+                uploaded_by=request.user,
+            )
         _log_access(ticket, request.user, 'upload_attachment', allowed=True)
-        return Response(
-            _attachment_payload(attachment, _audience(request.user)),
-            status=status.HTTP_201_CREATED,
-        )
+        result = _attachment_payload(attachment, _audience(request.user))
+        if operation_id is not None:
+            result['operation_id'] = str(operation_id)
+        return Response(result, status=status.HTTP_201_CREATED, headers={'Cache-Control': 'no-store'})
 
 
 class FeedbackAttachmentDownloadView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, feedback_id, attachment_id):
+        owner = private_files('feedback')
+        if isinstance(owner, ProtectionError):
+            return private_file_error(owner)
         ticket = _get_ticket(feedback_id)
+        if owner is not None:
+            payload = owner.open_download(user=request.user, ticket_id=ticket.pk, attachment_id=attachment_id)
+            if isinstance(payload, ProtectionError):
+                return private_file_error(payload)
+            return private_file_response(payload, filename=f'attachment-{attachment_id}.bin')
         attachment = get_object_or_404(
             FeedbackAttachment, ticket=ticket, attachment_id=attachment_id,
         )
@@ -708,6 +740,9 @@ class FeedbackAttachmentDownloadView(APIView):
                 {'code': 'forbidden', 'detail': '该附件仅教师可见。'},
                 status=status.HTTP_403_FORBIDDEN,
             )
+        if attachment.private_file or not attachment.file:
+            _log_access(ticket, request.user, constants.ATTACHMENT_DOWNLOAD_ACTION, allowed=False, note='not_ready')
+            return Response({'detail': '附件暂不可下载。'}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
         _log_access(ticket, request.user, constants.ATTACHMENT_DOWNLOAD_ACTION, allowed=True)
         response = FileResponse(
             attachment.file.open('rb'),
@@ -717,6 +752,32 @@ class FeedbackAttachmentDownloadView(APIView):
         )
         response['X-Content-Type-Options'] = 'nosniff'
         return response
+
+
+class FeedbackAttachmentShareView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, feedback_id, attachment_id):
+        ticket = _get_ticket(feedback_id)
+        return create_private_share(request, domain='feedback', object_id=attachment_id,
+            ticket_id=ticket.pk, field='attachment')
+
+
+class FeedbackFileOperationView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, feedback_id, operation_id):
+        owner = private_files('feedback')
+        if owner is None or isinstance(owner, ProtectionError):
+            return private_file_error(owner)
+        ticket = _get_ticket(feedback_id)
+        result = owner.reconcile_operation(user=request.user, ticket_id=ticket.pk,
+            operation_id=operation_id, cleanup=request.method == 'DELETE')
+        if isinstance(result, ProtectionError):
+            return private_file_error(result)
+        return operation_response(result, operation_id)
+
+    delete = post
 
 
 # ---------------------------------------------------------------------------

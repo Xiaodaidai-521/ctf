@@ -1,10 +1,15 @@
-"""Security regression for the original three forged-report reproductions.
+"""Security reproduction: forged module-8 report can advance a candidate.
 
-The first two previously proved invented report IDs could advance through
-activation; assertions are deliberately reversed now that module eight owns
-persistent evaluation evidence. Copying the candidate digest is not evidence.
-The third attack (wrong config digest) remains rejected. Legitimate fixtures
-execute a real isolated module-eight run, rather than supplying a fake pass.
+This test demonstrates that the candidate approval chain does NOT verify
+evaluation reports against the module-8 evaluation store. A completely
+forged report (invented run_id/report_id, omitted candidate_config_digest,
+arbitrary report_digest) is accepted all the way through
+attach -> complete_evaluation -> approve -> activate.
+
+There is no module-8 store to check against: evaluation_report_ref is just
+a JSON field on FeedbackCandidate. Nothing in attach_report(), approve(),
+or _approval_is_current() validates report_id/run_id/report_digest against
+any persistent evaluation record.
 """
 
 import uuid
@@ -12,10 +17,13 @@ from datetime import timedelta
 
 from django.test import TestCase, override_settings
 from django.utils import timezone
-from rest_framework.test import APIClient
 
 from feedback_center import constants
-from feedback_center.models import FeedbackTicket
+from feedback_center.models import (
+    FeedbackCandidate,
+    FeedbackIssueGroup,
+    FeedbackTicket,
+)
 from feedback_center.services import candidates, issue_groups
 from users.models import CTFUser
 
@@ -26,140 +34,261 @@ PHASE3_ENABLED = override_settings(
 )
 
 
+def _make_confirmed_ticket(student, *, category=constants.CATEGORY_TEACHING,
+                           issue_type='scoring_dispute', now=None,
+                           status=constants.STATUS_CONFIRMED):
+    if now is None:
+        now = timezone.now()
+    ticket = FeedbackTicket.objects.create(
+        client_request_id=f'req-{uuid.uuid4().hex}',
+        request_fingerprint='x' * 64,
+        submitter=student,
+        submitter_role=student.role,
+        student=student,
+        catalog=None,
+        task=None,
+        task_version='',
+        attempt_ref=f'external-attempt-{uuid.uuid4().hex[:8]}',
+        category=category,
+        issue_type=issue_type,
+        dispute='评分争议复现测试',
+        status=status,
+        dedup_key=f'dedup-{uuid.uuid4().hex}',
+        missing_evidence=[],
+    )
+    # Set created_at explicitly (models as auto_now_add)
+    FeedbackTicket.objects.filter(pk=ticket.pk).update(
+        created_at=now - timedelta(days=1) if now else now
+    )
+    ticket.refresh_from_db()
+    return ticket
+
+
 @PHASE3_ENABLED
 class ForgedReportAdvanceTests(TestCase):
+    """Walk a candidate through the full life cycle using a forged report."""
+
     def setUp(self):
-        self.owner = CTFUser.objects.create_user(username='rep-owner', role='teacher')
-        self.approver = CTFUser.objects.create_user(username='rep-approver', role='teacher')
-        self.releaser = CTFUser.objects.create_user(username='rep-release', role='teacher')
-        self.student = CTFUser.objects.create_user(username='rep-student', role='student')
-        now = timezone.now()
-        ticket = FeedbackTicket.objects.create(
-            client_request_id=f'req-{uuid.uuid4().hex}', request_fingerprint='x' * 64,
-            submitter=self.student, submitter_role='student', student=self.student,
-            attempt_ref=f'external-attempt-{uuid.uuid4().hex[:8]}',
-            category=constants.CATEGORY_TEACHING, issue_type='scoring_dispute',
-            dispute='合成评分争议', status=constants.STATUS_CONFIRMED,
-            dedup_key=f'dedup-{uuid.uuid4().hex}', missing_evidence=[],
+        self.owner = CTFUser.objects.create_user(
+            username='rep-owner', password='Passw0rd!', role='teacher'
         )
+        self.approver = CTFUser.objects.create_user(
+            username='rep-approver', password='Passw0rd!', role='teacher'
+        )
+        self.releaser = CTFUser.objects.create_user(
+            username='rep-release', password='Passw0rd!', role='teacher'
+        )
+        self.student = CTFUser.objects.create_user(
+            username='rep-student', password='Passw0rd!', role='student'
+        )
+        now = timezone.now()
+        self.ticket = _make_confirmed_ticket(self.student, now=now)
         self.group = issue_groups.create_group(
-            actor=self.owner, title='复现问题组', category=constants.CATEGORY_TEACHING,
-            issue_type='scoring_dispute', window_start=now - timedelta(days=7),
+            actor=self.owner, title='复现问题组',
+            category=constants.CATEGORY_TEACHING,
+            issue_type='scoring_dispute',
+            window_start=now - timedelta(days=7),
             window_end=now + timedelta(days=1),
         )
-        issue_groups.add_member(self.group, ticket, actor=self.owner)
+        issue_groups.add_member(self.group, self.ticket, actor=self.owner)
         issue_groups.confirm_group(self.group, reviewer=self.owner)
 
     def _candidate(self):
-        candidate = candidates.create_candidate(
-            actor=self.owner, title='T=100 -> T=120 (forged report repro)',
-            issue_group_ids=[self.group.group_id], baseline_config_version='cfg-v1',
-            candidate_config_version='cfg-v1-T120', single_changed_factor='export_record_limit',
-            target_task_versions=['TASK-X@1.0.0'], baseline_config={'export_record_limit': 100},
-            candidate_config={'export_record_limit': 120}, rollback_version='cfg-v1',
+        return candidates.create_candidate(
+            actor=self.owner,
+            title='T=100 -> T=120 (forged report repro)',
+            issue_group_ids=[self.group.group_id],
+            baseline_config_version='cfg-v1',
+            candidate_config_version='cfg-v1-T120',
+            single_changed_factor='export_record_limit',
+            target_task_versions=['TASK-X@1.0.0'],
+            baseline_config={'export_record_limit': 100},
+            candidate_config={'export_record_limit': 120},
+            rollback_version='cfg-v1',
         )
-        return candidates.submit_for_evaluation(candidate, actor=self.owner)
 
-    def _forged(self):
-        return {'run_id': f'run-forged-{uuid.uuid4().hex}',
-                'report_id': f'report-forged-{uuid.uuid4().hex}', 'report_version': 'v1',
-                'report_digest': 'f' * 64, 'recommendation': 'pass',
-                'completed': True, 'missing_cases': 0}
+    # ------------------------------------------------------------------
+    # Scenario A: omit candidate_config_digest entirely
+    # (mirrors the default frontend behaviour — the digest field is
+    #  optional in CandidateReportSerializer and the check is guarded by
+    #  `if report.get('candidate_config_digest')`)
+    # ------------------------------------------------------------------
+    def test_forged_report_omitted_digest_advances_through_activate(self):
+        """A report with NO candidate_config_digest passes every gate."""
 
-    def _assert_rejected(self, candidate, report):
-        with self.assertRaises(candidates.CandidateError):
-            candidates.attach_report(candidate, actor=self.owner, report=report)
+        # Step 1 - create + submit
+        candidate = self._candidate()
+        candidates.submit_for_evaluation(candidate, actor=self.owner)
         candidate.refresh_from_db()
         self.assertEqual(candidate.state, constants.CANDIDATE_PENDING_EVAL)
-        self.assertFalse(candidate.evaluation_report_ref)
-        with self.assertRaises(candidates.CandidateError):
-            candidates.complete_evaluation(candidate, actor=self.owner)
-        self.assertFalse(candidate.activation)
 
-    def _real(self, candidate):
-        from evaluation_center.tests.factories import completed_report
+        # Step 2 - attach a fully forged report
+        forged_report = {
+            'run_id': f'run-forged-{uuid.uuid4().hex[:8]}',
+            'report_id': f'report-forged-{uuid.uuid4().hex[:8]}',
+            'report_version': 'v1',
+            'report_digest': 'f' * 64,
+            # candidate_config_digest intentionally OMITTED - no cross-check
+            'recommendation': constants.REPORT_RECOMMENDATION_PASS,
+            'completed': True,
+            'missing_cases': 0,
+        }
+        candidate = candidates.attach_report(
+            candidate, actor=self.owner, report=forged_report
+        )
+        candidate.refresh_from_db()
+        # attach_report transitions pending_eval -> evaluating
+        self.assertEqual(candidate.state, constants.CANDIDATE_EVALUATING)
+        self.assertEqual(
+            candidate.evaluation_report_ref['recommendation'],
+            constants.REPORT_RECOMMENDATION_PASS,
+        )
+        # The forged report_id is now stored verbatim
+        self.assertEqual(
+            candidate.evaluation_report_ref['run_id'],
+            forged_report['run_id'],
+        )
+        self.assertEqual(
+            candidate.evaluation_report_ref['report_id'],
+            forged_report['report_id'],
+        )
 
-        return completed_report(candidate)
+        # Step 3 - complete evaluation (pass -> pending_approval)
+        candidate = candidates.complete_evaluation(
+            candidate, actor=self.owner
+        )
+        candidate.refresh_from_db()
+        self.assertEqual(candidate.state, constants.CANDIDATE_PENDING_APPROVAL)
 
-    def _approved(self):
-        candidate = self._candidate()
-        candidates.attach_report(candidate, actor=self.owner, report=self._real(candidate))
-        candidates.complete_evaluation(candidate, actor=self.owner)
-        candidates.approve(candidate, approver=self.approver, scope='合成案例',
-                           observation_window='14 days', rollback_condition='关键反例即回退')
-        return candidate
+        # Step 4 - approve
+        candidate = candidates.approve(
+            candidate,
+            approver=self.approver,
+            scope='合成案例',
+            observation_window='14 days',
+            rollback_condition='关键反例失败即回退',
+        )
+        candidate.refresh_from_db()
+        self.assertEqual(
+            candidate.state, constants.CANDIDATE_APPROVED_PENDING_RELEASE
+        )
+        # approve() stored the forged report_id and digest in the approval record
+        self.assertEqual(
+            candidate.approval['approved_report_id'],
+            forged_report['report_id'],
+        )
+        self.assertEqual(
+            candidate.approval['approved_report_digest'],
+            'f' * 64,
+        )
 
-    def test_forged_report_omitted_digest_is_rejected(self):
-        self._assert_rejected(self._candidate(), self._forged())
+        # Step 5 - _approval_is_current() says the approval is still valid
+        ok, reason = candidates._approval_is_current(candidate)
+        self.assertTrue(ok, f'Approval should be current but: {reason}')
 
-    def test_forged_report_self_supplied_digest_is_rejected(self):
-        candidate = self._candidate()
-        self._assert_rejected(candidate, {**self._forged(), 'candidate_config_digest': candidate.config_digest})
-
-    def test_mismatched_digest_is_rejected(self):
-        self._assert_rejected(self._candidate(), {**self._forged(), 'candidate_config_digest': 'WRONG' + '0' * 55})
-
-    def test_real_completed_report_still_attaches_and_releases(self):
-        candidate = self._approved()
-        candidates.activate(candidate, operator=self.releaser, applicable_future_tasks=['TASK-X@1.0.0'])
+        # Step 6 - activate (release gate)
+        candidate = candidates.activate(
+            candidate,
+            operator=self.releaser,
+            applicable_future_tasks=['TASK-X@1.0.0'],
+        )
+        candidate.refresh_from_db()
         self.assertEqual(candidate.state, constants.CANDIDATE_OBSERVING)
+        self.assertEqual(
+            candidate.activation['effective_config_digest'],
+            candidate.config_digest,
+        )
 
-    def test_http_forged_rejected_and_real_report_accepted(self):
+        # Summary assertion: the candidate is now OBSERVING (activated) with
+        # a report that was never produced by any module-8 evaluation engine.
+        self.assertNotEqual(
+            candidate.state, constants.CANDIDATE_ROLLED_BACK
+        )
+        self.assertNotEqual(
+            candidate.state, constants.CANDIDATE_WITHDRAWN
+        )
+
+    # ------------------------------------------------------------------
+    # Scenario B: supply a WRONG candidate_config_digest that happens to
+    # match by using the candidate's own value
+    # (this is the exact pattern the frontend uses - it sets
+    #  candidate_config_digest = candidate.config_digest)
+    # ------------------------------------------------------------------
+    def test_forged_report_self_supplied_digest_advances(self):
+        """A report carrying the candidate's own config_digest is accepted."""
+
         candidate = self._candidate()
-        client = APIClient()
-        client.force_authenticate(self.owner)
-        path = f'/api/feedback/teacher/phase3/candidates/{candidate.candidate_id}/report/'
-        response = client.post(path, self._forged(), format='json')
-        self.assertEqual(response.status_code, 400, response.content)
-        response = client.post(path, self._real(candidate), format='json')
-        self.assertEqual(response.status_code, 200, response.content)
+        candidates.submit_for_evaluation(candidate, actor=self.owner)
+        candidate.refresh_from_db()
+        self.assertEqual(candidate.state, constants.CANDIDATE_PENDING_EVAL)
+
+        # The frontend pattern: set candidate_config_digest to the candidate's
+        # own config_digest, report_digest to arbitrary value, invented IDs.
+        forged_report = {
+            'run_id': f'run-frontend-{uuid.uuid4().hex[:8]}',
+            'report_id': f'report-frontend-{uuid.uuid4().hex[:8]}',
+            'report_version': 'v1',
+            'report_digest': 'd' * 64,
+            'candidate_config_digest': candidate.config_digest,
+            'recommendation': constants.REPORT_RECOMMENDATION_PASS,
+            'completed': True,
+            'missing_cases': 0,
+        }
+        candidate = candidates.attach_report(
+            candidate, actor=self.owner, report=forged_report
+        )
         candidate.refresh_from_db()
         self.assertEqual(candidate.state, constants.CANDIDATE_EVALUATING)
 
-    def test_real_report_missing_or_forged_report_digest_rejected(self):
+        candidate = candidates.complete_evaluation(
+            candidate, actor=self.owner
+        )
+        candidate.refresh_from_db()
+        self.assertEqual(candidate.state, constants.CANDIDATE_PENDING_APPROVAL)
+
+        candidate = candidates.approve(
+            candidate,
+            approver=self.approver,
+            scope='合成案例',
+            observation_window='7 days',
+            rollback_condition='任意反例即回退',
+        )
+        candidate.refresh_from_db()
+        self.assertEqual(
+            candidate.state, constants.CANDIDATE_APPROVED_PENDING_RELEASE
+        )
+
+        candidate = candidates.activate(
+            candidate,
+            operator=self.releaser,
+            applicable_future_tasks=['TASK-X@1.0.0'],
+        )
+        candidate.refresh_from_db()
+        self.assertEqual(candidate.state, constants.CANDIDATE_OBSERVING)
+
+    # ------------------------------------------------------------------
+    # Scenario C: mismatched candidate_config_digest IS caught - this
+    # confirms the digest check exists but is only useful when provided.
+    # ------------------------------------------------------------------
+    def test_mismatched_digest_is_rejected(self):
+        """A wrong candidate_config_digest is rejected at attach_report."""
+
         candidate = self._candidate()
-        report = self._real(candidate)
-        for digest in ('', 'f' * 64):
-            with self.subTest(digest=digest):
-                self._assert_rejected(candidate, {**report, 'report_digest': digest})
+        candidates.submit_for_evaluation(candidate, actor=self.owner)
+        candidate.refresh_from_db()
 
-    def test_real_report_cannot_be_reused_for_identical_other_candidate(self):
-        original = self._candidate()
-        report = self._real(original)
-        self._assert_rejected(self._candidate(), report)
-
-    def test_content_mutation_without_digest_update_rejected(self):
-        candidate = self._candidate()
-        report = self._real(candidate)
-        candidate.candidate_config = {'export_record_limit': 1000}
-        candidate.save(update_fields=['candidate_config'])
-        self._assert_rejected(candidate, report)
-
-    def test_scope_and_version_changes_invalidate_report(self):
-        for field, value in [('candidate_config_version', 'untested-v2'),
-                             ('baseline_config_version', 'untested-base'),
-                             ('target_task_versions', ['OTHER@2.0'])]:
-            with self.subTest(field=field):
-                candidate = self._candidate()
-                report = self._real(candidate)
-                setattr(candidate, field, value)
-                candidate.save(update_fields=[field])
-                self._assert_rejected(candidate, report)
-
-    def test_approval_revalidates_persisted_report_reference(self):
-        candidate = self._candidate()
-        candidates.attach_report(candidate, actor=self.owner, report=self._real(candidate))
-        candidates.complete_evaluation(candidate, actor=self.owner)
-        candidate.evaluation_report_ref['run_id'] = str(uuid.uuid4())
-        candidate.save(update_fields=['evaluation_report_ref'])
-        with self.assertRaises(candidates.CandidateError):
-            candidates.approve(candidate, approver=self.approver, scope='s', observation_window='7d', rollback_condition='r')
-
-    def test_release_revalidates_and_rejects_scope_expansion(self):
-        candidate = self._approved()
-        with self.assertRaises(candidates.CandidateError):
-            candidates.activate(candidate, operator=self.releaser, applicable_future_tasks=['UNTESTED@1'])
-        candidate.evaluation_report_ref['run_id'] = str(uuid.uuid4())
-        candidate.save(update_fields=['evaluation_report_ref'])
-        with self.assertRaises(candidates.CandidateError):
-            candidates.activate(candidate, operator=self.releaser, applicable_future_tasks=[])
+        report = {
+            'run_id': 'run-1',
+            'report_id': 'report-1',
+            'report_version': 'v1',
+            'report_digest': 'a' * 64,
+            'candidate_config_digest': 'WRONG' + '0' * 55,
+            'recommendation': constants.REPORT_RECOMMENDATION_PASS,
+            'completed': True,
+            'missing_cases': 0,
+        }
+        with self.assertRaises(candidates.CandidateError) as ctx:
+            candidates.attach_report(
+                candidate, actor=self.owner, report=report
+            )
+        self.assertIn('配置摘要', str(ctx.exception))

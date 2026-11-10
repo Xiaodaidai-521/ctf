@@ -92,41 +92,11 @@ class SemanticBackend(Protocol):
 
 
 class LangChainSemanticAdapter:
-    """Existing installed langchain_openai transport, explicit fixed parameters only.
-
-    No provider manager import: its __init__ loads .env and supports cross-provider routing.
-    Construct through deployment code only after approval; this module never looks up keys.
-    Token counter must be a deployment-verified, already-local tokenizer for this model.
-    """
+    """Disabled compatibility name; semantic transport must use the approved M7 boundary."""
     kind = 'live'
 
     def __init__(self, config, *, api_key, token_counter):
-        require(config.endpoint.startswith('https://') and api_key and callable(token_counter), 'BACKEND_CONFIG_INVALID')
-        require(config.revision is None, 'MODEL_REVISION_UNSUPPORTED')
-        self.provider, self.model, self.endpoint = config.provider, config.model, config.endpoint
-        self.config, self._token_counter = config, token_counter
-        from langchain_openai import ChatOpenAI
-        self._client = ChatOpenAI(api_key=api_key, base_url=config.endpoint, model=config.model,
-                                  temperature=0, max_tokens=config.max_output_tokens,
-                                  request_timeout=config.timeout_seconds, max_retries=0,
-                                  streaming=False)
-
-    def count_input_tokens(self, request):
-        return self._token_counter(request.messages())
-
-    async def complete(self, request, config):
-        require(config == self.config, 'BACKEND_CONFIG_INVALID')
-        response = await self._client.ainvoke([(m['role'], m['content']) for m in request.messages()])
-        require(not getattr(response, 'tool_calls', None), 'MODEL_OUTPUT_INVALID')
-        require(isinstance(response.content, str), 'MODEL_OUTPUT_INVALID')
-        raw_usage = getattr(response, 'usage_metadata', None)
-        usage = {k: raw_usage[k] for k in ('input_tokens', 'output_tokens', 'total_tokens') if k in raw_usage} if isinstance(raw_usage, dict) else None
-        metadata = getattr(response, 'response_metadata', {}) or {}
-        finish = metadata.get('finish_reason')
-        require(finish in (None, 'stop'), 'MODEL_OUTPUT_TRUNCATED')
-        reported_model = metadata.get('model_name') or metadata.get('model') or self.model
-        require(isinstance(reported_model, str), 'MODEL_ID_MISMATCH')
-        return SemanticReply(response.content, reported_model, usage)
+        raise InputError('SEMANTIC_BACKEND_DISABLED')
 
 
 def cell_key(cell):

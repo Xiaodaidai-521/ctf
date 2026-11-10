@@ -125,7 +125,19 @@ def _tighten_expiry(auth, expiry):
         auth.save(update_fields=["valid_until"])
 
 
-def _recheck_record(auth, decision, now, deadline):
+def _legacy_require_active(*, reservation_id, request_fingerprint, amount=None):
+    """Compatibility for callers not yet using the delivery flow's injected port."""
+    from export_quota.services import QuotaError, QuotaService
+    try:
+        return QuotaService.require_active(
+            reservation_id=reservation_id, request_fingerprint=request_fingerprint,
+            amount=amount,
+        ).expires_at
+    except QuotaError:
+        return None
+
+
+def _recheck_record(auth, decision, now, deadline, *, require_active, state="valid"):
     """Shared stored-state/hold validation for replay and claim, inside locks.
 
     ``deadline`` is the caller's full execution deadline (decision, and for
@@ -135,7 +147,7 @@ def _recheck_record(auth, decision, now, deadline):
     """
     if auth is None or decision is None:
         return NotExecutable(Disposition.DENY, (rc.EXEC_DECISION_INVALID,))
-    if decision.status != "valid" or auth.state != "valid":
+    if decision.status != "valid" or auth.state != state:
         return NotExecutable(Disposition.DENY, (rc.EXEC_AUTHORIZATION_REVOKED,))
     if (auth.decision_id != decision.decision_id
             or auth.request_fingerprint != decision.request_fingerprint):
@@ -144,14 +156,12 @@ def _recheck_record(auth, decision, now, deadline):
         return NotExecutable(Disposition.DEFER, (rc.EXEC_DECISION_EXPIRED,))
     _tighten_expiry(auth, deadline)
     if auth.reservation_id:
-        from export_quota.services import QuotaError, QuotaService
-        try:
-            reservation = QuotaService.require_active(
-                reservation_id=auth.reservation_id, request_fingerprint=auth.request_fingerprint,
-            )
-        except QuotaError:
+        reservation_expiry = require_active(
+            reservation_id=auth.reservation_id, request_fingerprint=auth.request_fingerprint,
+        )
+        if not _unexpired(reservation_expiry, timezone.now()):
             return NotExecutable(Disposition.DEFER, (rc.EXEC_RESERVATION_INVALID,))
-        _tighten_expiry(auth, reservation.expires_at)
+        _tighten_expiry(auth, reservation_expiry)
     # Re-read the clock after lock waits; the earlier instant cannot extend validity.
     if not _unexpired(auth.valid_until, timezone.now()):
         return NotExecutable(Disposition.DEFER, (rc.EXEC_DECISION_EXPIRED,))
@@ -178,49 +188,81 @@ def _to_authorization(auth, decision) -> ExecutionAuthorization:
     )
 
 
-def prepare_execution(decision_id, request, authorization_snapshot, *, idempotency_key,
-                      environment="production", approval=None, quota=None, quota_limit=0,
-                      data_domain="", window_key=""):
-    """Return NotExecutable or a currently valid, deadline-bounded authorization."""
-    with transaction.atomic():
-        reason = check_admission(environment, [request.source_mode, authorization_snapshot.source_mode])
-        if reason:
-            return NotExecutable(Disposition.DENY, (reason,))
-        decision = RiskDecision.objects.select_for_update().filter(decision_id=decision_id).first()
-        now = timezone.now()
-        if decision is None or decision.status != "valid":
-            return NotExecutable(Disposition.DENY, (rc.EXEC_DECISION_INVALID,))
-        if decision.request_fingerprint != request.request_fingerprint:
-            return NotExecutable(Disposition.DENY, (rc.EXEC_FINGERPRINT_MISMATCH,))
-        if not _unexpired(decision.valid_until, now):
-            return NotExecutable(Disposition.DEFER, (rc.EXEC_DECISION_EXPIRED,))
-        # One environment gate: request, snapshot, decision and caller must agree.
-        if len({request.environment, authorization_snapshot.environment,
-                decision.environment, environment}) != 1:
-            return NotExecutable(Disposition.DEFER, (rc.CONSISTENCY_ENVIRONMENT_MISMATCH,))
-        if environment == "production" and (
-            decision.source_mode != SourceMode.PRODUCTION.value or decision.environment != "production"
-        ):
-            return NotExecutable(Disposition.DENY, (rc.EXEC_DECISION_SOURCE_UNTRUSTED,))
-        blocker = _authorization_blocker(request, authorization_snapshot, now)
+def _execution_blocker(decision, request, snapshot, now, *, environment, approval):
+    """Shared live eligibility checks for issuing and pre-delivery rechecking."""
+    reason = check_admission(environment, [request.source_mode, snapshot.source_mode])
+    if reason:
+        return NotExecutable(Disposition.DENY, (reason,))
+    if decision is None or decision.status != "valid":
+        return NotExecutable(Disposition.DENY, (rc.EXEC_DECISION_INVALID,))
+    if decision.request_fingerprint != request.request_fingerprint:
+        return NotExecutable(Disposition.DENY, (rc.EXEC_FINGERPRINT_MISMATCH,))
+    if not _unexpired(decision.valid_until, now):
+        return NotExecutable(Disposition.DEFER, (rc.EXEC_DECISION_EXPIRED,))
+    if len({request.environment, snapshot.environment, decision.environment, environment}) != 1:
+        return NotExecutable(Disposition.DEFER, (rc.CONSISTENCY_ENVIRONMENT_MISMATCH,))
+    if environment == "production" and decision.source_mode != SourceMode.PRODUCTION.value:
+        return NotExecutable(Disposition.DENY, (rc.EXEC_DECISION_SOURCE_UNTRUSTED,))
+    blocker = _authorization_blocker(request, snapshot, now)
+    if blocker is not None:
+        return blocker
+    if decision.action == "deny":
+        return NotExecutable(Disposition.DENY, (rc.EXEC_ACTION_DENY,))
+    if decision.action == "defer":
+        return NotExecutable(Disposition.DEFER, (rc.EXEC_ACTION_DEFER,))
+    if decision.action == "require_approval":
+        blocker = _approval_blocker(decision, request, approval, environment)
         if blocker is not None:
             return blocker
+    for ob in (decision.obligations or []):
+        if ob.get("type") not in SUPPORTED_OBLIGATION_TYPES:
+            return NotExecutable(Disposition.REQUIRE_APPROVAL, (rc.EXEC_OBLIGATION_UNSUPPORTED,))
+    return None
 
-        if decision.action == "deny":
-            return NotExecutable(Disposition.DENY, (rc.EXEC_ACTION_DENY,))
-        if decision.action == "defer":
-            return NotExecutable(Disposition.DEFER, (rc.EXEC_ACTION_DEFER,))
-        if decision.action == "require_approval":
-            blocker = _approval_blocker(decision, request, approval, environment)
-            if blocker is not None:
-                return blocker
-        for ob in (decision.obligations or []):
-            if ob.get("type") not in SUPPORTED_OBLIGATION_TYPES:
-                return NotExecutable(Disposition.REQUIRE_APPROVAL, (rc.EXEC_OBLIGATION_UNSUPPORTED,))
+
+def check_execution_eligibility(decision_id, request, authorization_snapshot, *,
+                                environment="production", approval=None):
+    """Pre-reservation eligibility only: no hold, authorization, claim or quota write.
+
+    Preparation and delivery still recheck; this result is not an execution grant.
+    """
+    with transaction.atomic():
+        decision = RiskDecision.objects.select_for_update().filter(decision_id=decision_id).first()
+        return _execution_blocker(decision, request, authorization_snapshot, timezone.now(),
+                                  environment=environment, approval=approval)
+
+
+def prepare_execution(decision_id, request, authorization_snapshot, *, idempotency_key,
+                      environment="production", approval=None, quota=None, quota_limit=0,
+                      data_domain="", window_key="", reservation_id="",
+                      authorization_id=None, execution_id=None,
+                      require_active=_legacy_require_active, execution_binding_hash=None):
+    """Prepare using either the legacy quota path or an already reserved flow hold.
+
+    The flow supplies all three identities and require_active; this path never
+    reserves or releases quota. Its adapter also binds the complete execution
+    hash for read-only delivered rechecks. Legacy callers keep their old digest.
+    """
+    external_hold = bool(reservation_id)
+    if external_hold and (quota is not None or authorization_id is None or execution_id is None
+                          or require_active is _legacy_require_active):
+        raise ValueError("external hold requires explicit identities and require_active, without quota")
+    if not external_hold and (authorization_id is not None or execution_id is not None):
+        raise ValueError("explicit identities require an external hold")
+    with transaction.atomic():
+        decision = RiskDecision.objects.select_for_update().filter(decision_id=decision_id).first()
+        blocker = _execution_blocker(decision, request, authorization_snapshot, timezone.now(),
+                                     environment=environment, approval=approval)
+        if blocker is not None:
+            return blocker
 
         # Upstream grant and decision both bound the execution, not just preparation.
         expiry = min(decision.valid_until, parse_aware_timestamp(authorization_snapshot.valid_until))
         bound = digest("prepare", request.request_fingerprint, decision_id, decision.obligations)
+        if external_hold:
+            bound = digest(bound, reservation_id, authorization_id, execution_id)
+        if execution_binding_hash is not None:
+            bound = digest(bound, execution_binding_hash)
         rec = IdempotencyRecord.objects.filter(key=idempotency_key).first()
         if rec is not None:
             if rec.operation != "prepare_execution" or rec.bound_digest != bound:
@@ -230,13 +272,21 @@ def prepare_execution(decision_id, request, authorization_snapshot, *, idempoten
             ).first()
             # Re-check stored state and tighten to the current full deadline; a
             # newer grant can only shorten, never revive, the existing hold.
-            blocker = _recheck_record(auth, decision, timezone.now(), expiry)
+            blocker = _recheck_record(auth, decision, timezone.now(), expiry,
+                                      require_active=require_active)
             if blocker is not None:
                 return blocker
             return _to_authorization(auth, decision)
 
-        reservation_id = ""
-        if quota is not None:
+        if external_hold:
+            reservation_expiry = require_active(
+                reservation_id=reservation_id, request_fingerprint=request.request_fingerprint,
+                amount=request.record_count,
+            )
+            if not _unexpired(reservation_expiry, timezone.now()):
+                return NotExecutable(Disposition.DEFER, (rc.EXEC_RESERVATION_INVALID,))
+            expiry = min(expiry, reservation_expiry)
+        elif quota is not None:
             from export_quota.services import QuotaError, QuotaExceeded
             reservation_id = _uid("resv")
             try:
@@ -256,14 +306,14 @@ def prepare_execution(decision_id, request, authorization_snapshot, *, idempoten
                 return NotExecutable(Disposition.DEFER, (rc.EXEC_RESERVATION_INVALID,))
             expiry = min(expiry, reservation_expiry)
         if not _unexpired(expiry, timezone.now()):
-            if reservation_id:
-                quota.release(reservation_id=reservation_id)  # don't commit a leaked hold
+            if reservation_id and not external_hold:
+                quota.release(reservation_id=reservation_id)  # legacy-owned hold only
             return NotExecutable(Disposition.DEFER, (rc.EXEC_AUTHORIZATION_EXPIRED,))
 
         auth = ExecutionAuthorizationRecord.objects.create(
-            authorization_id=_uid("auth"), decision_id=decision_id,
+            authorization_id=authorization_id or _uid("auth"), decision_id=decision_id,
             request_fingerprint=request.request_fingerprint, state="valid",
-            execution_id=_uid("exec"), reservation_id=reservation_id, valid_until=expiry,
+            execution_id=execution_id or _uid("exec"), reservation_id=reservation_id, valid_until=expiry,
         )
         IdempotencyRecord.objects.create(
             key=idempotency_key, operation="prepare_execution",
@@ -276,7 +326,7 @@ def prepare_execution(decision_id, request, authorization_snapshot, *, idempoten
 
 
 @transaction.atomic
-def claim(authorization_id: str) -> bool:
+def claim(authorization_id: str, *, require_active=_legacy_require_active) -> bool:
     """Claim once if decision, authorization and quota hold are still valid.
 
     Lock decision before authorization, matching preparation. SQLite cannot
@@ -288,7 +338,8 @@ def claim(authorization_id: str) -> bool:
     decision = RiskDecision.objects.select_for_update().filter(decision_id=original.decision_id).first()
     auth = ExecutionAuthorizationRecord.objects.select_for_update().get(pk=original.pk)
     deadline = decision.valid_until if decision is not None else None
-    blocker = _recheck_record(auth, decision, timezone.now(), deadline)
+    blocker = _recheck_record(auth, decision, timezone.now(), deadline,
+                              require_active=require_active)
     if blocker is not None:
         if auth.state == "valid" and rc.EXEC_DECISION_EXPIRED in blocker.reason_codes:
             auth.state = "expired"
@@ -296,6 +347,80 @@ def claim(authorization_id: str) -> bool:
         return False
     auth.state = "claiming"
     auth.save(update_fields=["state"])
+    return True
+
+
+@transaction.atomic
+def recheck_execution(authorization_id, request, authorization_snapshot, *, decision_id,
+                      execution_id, reservation_id, require_active, environment="production",
+                      approval=None):
+    """Recheck a claimed flow execution before logical delivery; never settle a hold.
+
+    The caller's short UoW retains these locks until delivery/audit commit. Fresh
+    grants are supplied by the trusted assembly, not by the download client.
+    """
+    decision = RiskDecision.objects.select_for_update().filter(decision_id=decision_id).first()
+    auth = ExecutionAuthorizationRecord.objects.select_for_update().filter(
+        authorization_id=authorization_id,
+    ).first()
+    if (auth is None or auth.decision_id != decision_id or auth.execution_id != execution_id
+            or not reservation_id or auth.reservation_id != reservation_id):
+        return NotExecutable(Disposition.DENY, (rc.EXEC_FINGERPRINT_MISMATCH,))
+    blocker = _execution_blocker(decision, request, authorization_snapshot, timezone.now(),
+                                 environment=environment, approval=approval)
+    if blocker is not None:
+        return blocker
+    deadline = min(decision.valid_until, parse_aware_timestamp(authorization_snapshot.valid_until))
+    blocker = _recheck_record(auth, decision, timezone.now(), deadline,
+                              require_active=require_active, state="claiming")
+    if blocker is not None:
+        return blocker
+    return _to_authorization(auth, decision)
+
+
+@transaction.atomic
+def recheck_delivered(authorization_id, request, authorization_snapshot, *, decision_id,
+                      execution_id, reservation_id, decision_key, idempotency_key,
+                      execution_binding_hash, expires_at, environment="production", approval=None):
+    """Lock and read the consumed authorization; never claim, tighten or read a hold.
+
+    Lock decision before authorization, retaining both until the caller's outer
+    UoW ends (or this short transaction ends for a standalone call). Both owner
+    idempotency records must identify this exact request/execution. Recheck state
+    and deadlines after lock waits, without renewing the authorization.
+    """
+    decision = RiskDecision.objects.select_for_update().filter(decision_id=decision_id).first()
+    auth = ExecutionAuthorizationRecord.objects.select_for_update().filter(
+        authorization_id=authorization_id,
+    ).first()
+    admission = IdempotencyRecord.objects.filter(key=decision_key).first()
+    issued = IdempotencyRecord.objects.filter(key=idempotency_key).first()
+    if decision is None or auth is None or admission is None or issued is None:
+        return NotExecutable(Disposition.DENY, (rc.EXEC_DECISION_INVALID,))
+    if (admission.operation != "create_decision" or admission.result_ref != decision_id
+            or admission.request_fingerprint != request.request_fingerprint
+            or auth.decision_id != decision_id or auth.execution_id != execution_id
+            or auth.reservation_id != reservation_id
+            or auth.request_fingerprint != request.request_fingerprint):
+        return NotExecutable(Disposition.DENY, (rc.EXEC_FINGERPRINT_MISMATCH,))
+    bound = digest("prepare", request.request_fingerprint, decision_id, decision.obligations)
+    bound = digest(bound, reservation_id, authorization_id, execution_id)
+    bound = digest(bound, execution_binding_hash)
+    if (issued.operation != "prepare_execution" or issued.result_ref != authorization_id
+            or issued.request_fingerprint != request.request_fingerprint or issued.bound_digest != bound):
+        raise IdempotencyConflict(idempotency_key)
+    if auth.state != "consumed":
+        return NotExecutable(Disposition.DENY, (rc.EXEC_AUTHORIZATION_REVOKED,))
+    blocker = _execution_blocker(decision, request, authorization_snapshot, timezone.now(),
+                                 environment=environment, approval=approval)
+    if blocker is not None:
+        return blocker
+    # Approval/permission reads may take time. Retest every deadline at return,
+    # including the original authorization deadline, which may predate binding expiry.
+    now = timezone.now()
+    deadline = min(decision.valid_until, parse_aware_timestamp(authorization_snapshot.valid_until), expires_at)
+    if not _unexpired(auth.valid_until, now) or not _unexpired(deadline, now):
+        return NotExecutable(Disposition.DEFER, (rc.EXEC_DECISION_EXPIRED,))
     return True
 
 

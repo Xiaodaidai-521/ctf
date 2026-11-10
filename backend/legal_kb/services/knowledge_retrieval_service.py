@@ -1,13 +1,15 @@
-"""Task-authorized lexical retrieval shared by learning agents.
+"""Leak-safe semantic knowledge retrieval shared by learning agents.
 
-The legacy facade and constructor remain compatible; the learner path never
-uses the generic vector store. A source allowlist can only narrow Scope policy.
+This is a thin facade over :class:`LegalRetrievalService`. It keeps a single
+vector store / embedding entry point (no parallel RAG stack) while enforcing a
+teaching-safe source allowlist: challenge solution text is never exposed to the
+learner-facing agents, so only concepts, approved articles/resources and legal
+clauses are returned by default.
 """
 
 from typing import Dict, List, Optional
 
 from django.conf import settings
-from rest_framework.exceptions import NotFound
 
 from .retrieval_service import LegalRetrievalService
 
@@ -23,7 +25,7 @@ DEFAULT_SAFE_SOURCE_TYPES = (
 
 
 class SafeKnowledgeRetrievalService:
-    """Return normalized teaching-safe items, preserving the historical facade."""
+    """Return normalized, teaching-safe knowledge items via semantic retrieval."""
 
     def __init__(
         self,
@@ -31,13 +33,10 @@ class SafeKnowledgeRetrievalService:
         safe_source_types=None,
     ):
         self.retrieval_service = retrieval_service or LegalRetrievalService()
-        configured = safe_source_types if safe_source_types is not None else getattr(
+        configured = safe_source_types or getattr(
             settings, 'KNOWLEDGE_RAG_SAFE_SOURCE_TYPES', None
         )
-        self.safe_source_types = tuple(
-            value for value in (configured if configured is not None else DEFAULT_SAFE_SOURCE_TYPES)
-            if value in DEFAULT_SAFE_SOURCE_TYPES
-        )
+        self.safe_source_types = tuple(configured or DEFAULT_SAFE_SOURCE_TYPES)
 
     def retrieve(
         self,
@@ -46,34 +45,21 @@ class SafeKnowledgeRetrievalService:
         top_k: int = 8,
         user=None,
         extra_filters: Optional[Dict] = None,
-        task_context=None,
     ) -> List[Dict]:
         """Return normalized knowledge items, or an empty list when query is blank."""
         text = str(query or '').strip()
         if not text:
             return []
-        requested = (extra_filters or {}).get('source_type', self.safe_source_types)
-        if isinstance(requested, str):
-            requested = [requested]
-        allowed = set(self.safe_source_types).intersection(requested or [])
-        if not allowed:
-            return []
-        from learning_knowledge.policy import Scope
-        from learning_knowledge.services import search
-        if (not isinstance(task_context, Scope) or task_context.user != user
-                or task_context.purpose != 'lesson'):
-            return []
-        # Only authorized chunks enter local lexical ranking; no provider calls.
-        try:
-            cards = search(task_context, query=text)['results']
-        except NotFound:
-            return []
-        return [{
-            'source_type': card['source_kind'], 'title': card['title'],
-            'summary': card['excerpt'], 'text': card['excerpt'],
-            'url': card['view_endpoint'], 'evidence_id': card['evidence_id'],
-            'retrieval': 'lexical', 'metadata': {},
-        } for card in cards if card['source_kind'] in allowed][:top_k]
+        filters = {'source_type': list(self.safe_source_types)}
+        if extra_filters:
+            filters.update(extra_filters)
+        matches = self.retrieval_service.retrieve(
+            query=text,
+            top_k=top_k,
+            filters=filters,
+            user=user,
+        )
+        return [self._normalize(match) for match in matches]
 
     def _normalize(self, match: Dict) -> Dict:
         source_type = match.get('source_type') or ''
@@ -91,7 +77,8 @@ class SafeKnowledgeRetrievalService:
             'rrf_score': match.get('rrf_score', 0),
             'url': self._entry_url(source_type, match.get('object_id'), metadata),
             'metadata': metadata,
-            'retrieval': 'semantic',
+            'retrieval': match.get('retrieval', 'unknown'),
+            'vector_space': match.get('vector_space', ''),
         }
 
     def _category(self, source_type: str, metadata: Dict) -> str:

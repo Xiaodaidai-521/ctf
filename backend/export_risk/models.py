@@ -222,3 +222,24 @@ class EventOutbox(models.Model):
 
     def __str__(self):
         return f'{self.event_type}:{self.event_id}:{self.status}'
+
+
+class ColumnRiskPermission(models.Model):
+    """One isolated, object-bound risk grant and its conditional approval."""
+
+    permission_ref = models.CharField(max_length=160, unique=True)
+    decision = models.ForeignKey(RiskDecision, to_field='decision_id', on_delete=models.PROTECT)
+    request_fingerprint = models.CharField(max_length=64)
+    binding_hash = models.CharField(max_length=64)
+    grant_document = models.JSONField()
+    grant_event_id = models.CharField(max_length=64)
+    approval_document = models.JSONField(null=True)
+    approval_event_id = models.CharField(max_length=64, blank=True)
+    state = models.CharField(max_length=16, choices=(
+        ('pending', '待审批'), ('approved', '已审批'), ('revoked', '已撤销'),
+    ), default='pending')
+    expires_at = models.DateTimeField()
+    revoked_at = models.DateTimeField(null=True)
+
+    class Meta:
+        permissions = (('use_columnriskpermission', '使用逐列导出风险许可'),)

@@ -10,6 +10,7 @@ from ai_providers import Message, get_manager
 from data_security.adapters.django.content import (
     ContentProtectionError, content_protection_enabled, protect_text,
 )
+from data_security.adapters.django.rag import protect_rag, protect_rag_fields, rag_protection_enabled
 
 from .retrieval_service import LegalRetrievalService
 
@@ -37,7 +38,8 @@ class RagAnswerService:
             filters=filters or {},
             user=user,
         )
-        query = protect_text(query)
+        query = protect_rag(protect_text(query), object_ref='rag/answer-query',
+                            object_version='v1', outlet='model')
         citations = self._build_citations(results)
         provider = 'local'
         model = 'rag-template-v1'
@@ -71,9 +73,10 @@ class RagAnswerService:
         }
         if provider_error:
             payload['provider_error'] = provider_error
-        if include_raw and not content_protection_enabled():
+        if include_raw and not (content_protection_enabled() or rag_protection_enabled()):
             payload['results'] = results
-        return payload
+        return protect_rag_fields(payload, text_fields=('answer',),
+                                  object_ref='rag/answer', object_version='v1')
 
     def _call_provider(self, *, query: str, citations: List[Dict]):
         manager = get_manager()
@@ -96,7 +99,8 @@ class RagAnswerService:
                     '不要以“法律审核师”自称，法律审核师只用于用户问答页。'
                 ),
             ),
-            Message(role='user', content=self._build_prompt(query=query, citations=citations)),
+            Message(role='user', content=protect_rag(self._build_prompt(query=query, citations=citations),
+                object_ref='rag/answer-prompt', object_version='v1', outlet='model')),
         ]
         errors = []
         for provider in providers:
@@ -147,7 +151,7 @@ class RagAnswerService:
         citations = []
         for index, item in enumerate(results, start=1):
             metadata = item.get('metadata') or {}
-            if content_protection_enabled():
+            if content_protection_enabled() or rag_protection_enabled():
                 audit_id = metadata.get('audit_event_id')
                 metadata = {
                     'audit_event_id': protect_text(audit_id) if isinstance(audit_id, str) else audit_id,
@@ -157,8 +161,11 @@ class RagAnswerService:
                 'id': item.get('id'),
                 'source_type': protect_text(item.get('source_type', '')),
                 'object_id': item.get('object_id'),
-                'title': protect_text(item.get('title') or 'Knowledge chunk'),
+                'title': protect_rag(protect_text(item.get('title') or 'Knowledge chunk'),
+                    object_ref='rag/citation-title', object_version='v1', outlet='api'),
                 'score': item.get('score') or 0,
+                'retrieval': item.get('retrieval', 'unknown'),
+                'vector_space': item.get('vector_space', ''),
                 'excerpt': self._truncate(item.get('text', ''), 600),
                 'metadata': metadata,
             })
@@ -339,7 +346,9 @@ class RagAnswerService:
 
     @staticmethod
     def _truncate(text: str, limit: int) -> str:
-        value = ' '.join(protect_text(text or '').split())
+        value = protect_rag(protect_text(text or ''), object_ref='rag/citation-text',
+                            object_version='v1', outlet='api')
+        value = ' '.join(value.split())
         if len(value) <= limit:
             return value
         return value[:limit - 3].rstrip() + '...'

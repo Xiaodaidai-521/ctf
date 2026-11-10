@@ -6,11 +6,14 @@ import time
 from typing import Dict, List, Optional
 
 from django.conf import settings
-from django.db import connection, transaction
+from django.db import connection
 from django.db.models import Q
 
+from data_security.adapters.django.rag import protect_rag, protect_rag_fields
+from rag_ingestion.registry import get_embedding_service
+
 from ..models import LegalKnowledgeEmbedding, LegalRetrievalLog
-from .embedding_service import EmbeddingService, EmbeddingUnavailableError, cosine_similarity
+from .embedding_service import EmbeddingService, cosine_similarity
 from .visibility import apply_embedding_visibility
 
 
@@ -21,67 +24,73 @@ class LegalRetrievalService:
     """Retrieve legal knowledge chunks using vector similarity fallback."""
 
     def __init__(self, embedding_service: Optional[EmbeddingService] = None):
-        self.embedding_service = embedding_service or EmbeddingService()
+        self.embedding_service = embedding_service if embedding_service is not None else get_embedding_service()
 
     def retrieve(self, *, query: str, top_k: int = 8, filters: Optional[Dict] = None, user=None) -> List[Dict]:
-        """Return top chunks via hybrid (vector + lexical) RRF fusion, and log the query."""
+        """Return hybrid RRF results and log the protected query."""
+        _, results = self.retrieve_groups(query=query, groups=[filters or {}], top_k=top_k, user=user)
+        return results[0]
+
+    def retrieve_groups(self, *, query: str, groups: List[Dict], top_k: int = 8, user=None) -> tuple[str, List[List[Dict]]]:
+        """Share one protected query vector across independently scoped result groups."""
         started = time.perf_counter()
-        filters = filters or {}
-        queryset = LegalKnowledgeEmbedding.objects.all()
-        source_type = filters.get('source_type')
-        if source_type:
-            if isinstance(source_type, (list, tuple, set)):
-                queryset = queryset.filter(source_type__in=source_type)
-            else:
-                queryset = queryset.filter(source_type=source_type)
-
-        # Enforce uploaded-document visibility at the shared query layer so that
-        # teacher-facing RAG cannot surface staff-only documents. Non-document
-        # rows are unaffected; anonymous/internal callers fail closed.
-        queryset = apply_embedding_visibility(queryset, user)
-
-        query_embedding = []
-        if queryset.exists():
-            try:
-                self.embedding_service.validate_configuration()
-                compatible = self.embedding_service.compatible_queryset(queryset)
-                if compatible.exists():
-                    # Only the query leaves this process, never candidate text.
-                    query_embedding = self.embedding_service.embed_text(query)
-                if queryset.exclude(pk__in=compatible.values('pk')).exists():
-                    logger.warning('Stale or incompatible KB vectors ignored; rebuild_legal_kb is required.')
-            except EmbeddingUnavailableError:
-                logger.warning('Semantic retrieval unavailable; using lexical-only retrieval (no hashing).')
-
-        results = None
-        if connection.vendor == 'postgresql' and len(query_embedding) == 1024:
-            try:
-                with transaction.atomic():
-                    results = self._retrieve_with_pgvector(query, query_embedding, queryset, top_k)
-            except Exception:
-                # Database/SDK exception strings may contain query/vector data.
-                logger.warning('pgvector retrieval unavailable; using canonical JSON/lexical retrieval.')
-                results = None
-        if not results:
-            results = self._retrieve_portable(query, query_embedding, queryset, top_k)
-
-        return self._record_results(
-            query=query,
-            top_k=top_k,
-            filters=filters,
-            results=results,
-            started=started,
-            user=user,
+        query = protect_rag(query, object_ref='rag/query', object_version='v1', outlet='embedding')
+        query_embedding = (
+            self.embedding_service.embed_text(query)
+            if connection.vendor == 'postgresql'
+            else self.embedding_service.embed_local_text(query)
         )
+        grouped = []
+        for filters in groups:
+            queryset = LegalKnowledgeEmbedding.objects.all()
+            source_type = filters.get('source_type')
+            if source_type:
+                if isinstance(source_type, (list, tuple, set)):
+                    queryset = queryset.filter(source_type__in=source_type)
+                else:
+                    queryset = queryset.filter(source_type=source_type)
+            if filters.get('object_id') is not None:
+                queryset = queryset.filter(object_id=filters['object_id'])
+            if filters.get('challenge_id') is not None:
+                from django.contrib.contenttypes.models import ContentType
+                from ai_assistant.models import ChallengeKnowledgePack
+                from challenges.models import Challenge
+
+                challenge_id = filters['challenge_id']
+                packs = ChallengeKnowledgePack.objects.filter(challenge_id=challenge_id).values('pk')
+                queryset = queryset.filter(
+                    Q(content_type=ContentType.objects.get_for_model(Challenge), object_id=challenge_id) |
+                    Q(content_type=ContentType.objects.get_for_model(ChallengeKnowledgePack), object_id__in=packs))
+
+            # Uploaded-document visibility stays at the shared query layer;
+            # anonymous/internal callers cannot see document rows.
+            queryset = apply_embedding_visibility(queryset, user)
+            results = None
+            if connection.vendor == 'postgresql' and len(query_embedding) == 1024:
+                try:
+                    results = self._retrieve_with_pgvector(query, query_embedding, queryset, top_k)
+                except Exception as exc:
+                    # Preserve the portable local-vector path without claiming
+                    # that it is the remote model's semantic result.
+                    logger.warning('pgvector_retrieval_unavailable',
+                                   extra={'error_type': type(exc).__name__})
+            if not results:
+                results = self._retrieve_portable(query, query_embedding, queryset, top_k)
+            grouped.append(self._record_results(query=query, top_k=top_k, filters=filters,
+                results=results, started=started, user=user))
+        return query, grouped
 
     def _retrieve_with_pgvector(self, query, query_embedding, queryset, top_k):
         """Use the pgvector ANN index for recall, then fuse with a lexical arm."""
         from pgvector.django import CosineDistance
 
         pool_size = max(top_k * 4, 40)
+        vector_queryset = queryset.exclude(embedding_vector__isnull=True)
+        vector_space = getattr(self.embedding_service, 'vector_space', '')
+        if vector_space:
+            vector_queryset = vector_queryset.filter(metadata__vector_space=vector_space)
         vector_items = list(
-            self.embedding_service.compatible_queryset(queryset).exclude(embedding_vector__isnull=True)
-            .annotate(distance=CosineDistance('embedding_vector', query_embedding))
+            vector_queryset.annotate(distance=CosineDistance('embedding_vector', query_embedding))
             .order_by('distance')[:pool_size]
         )
         if not vector_items:
@@ -99,11 +108,19 @@ class LegalRetrievalService:
         )
 
     def _retrieve_portable(self, query, query_embedding, queryset, top_k):
-        """Use canonical JSON on SQLite or non-1024 spaces; never invent vectors."""
+        """Portable JSON + lexical path for SQLite/offline or pgvector fallback.
+
+        The stored JSON ``embedding`` is always the 128-dim local vector, so the
+        query must also be embedded locally here. (On PostgreSQL ``retrieve``
+        builds a 1024-dim remote query vector for ANN; reusing it against the
+        128-dim JSON vectors would mismatch and zero every vector score, silently
+        degrading this fallback to lexical-only.)
+        """
+        local_query_embedding = self.embedding_service.embed_local_text(query)
         pool_items = list(queryset[:1000])
         return self._fuse(
             query=query,
-            query_embedding=query_embedding,
+            query_embedding=local_query_embedding,
             items=pool_items,
             top_k=top_k,
             vector_scores=None,
@@ -130,16 +147,25 @@ class LegalRetrievalService:
             return []
         rrf_k = int(getattr(settings, 'LEGAL_KB_RRF_K', 60))
 
+        declared_space = getattr(self.embedding_service, 'vector_space', '')
         scored = []
         for item in items:
-            vector_score = 0.0
-            if query_embedding and self.embedding_service.matches_index(item):
-                if vector_scores is not None and item.id in vector_scores:
-                    vector_score = vector_scores[item.id]
-                else:
-                    vector_score = cosine_similarity(query_embedding, item.embedding)
+            if vector_scores is not None:
+                vector_score = vector_scores.get(item.id, 0.0)
+                space = declared_space if item.id in vector_scores else ''
+                mode = getattr(self.embedding_service, 'retrieval_mode', 'unknown') if space else 'unknown'
+            elif declared_space and (item.embedding_model != 'local-hash-v1' or
+                                     item.embedding_dimension != 128):
+                vector_score, mode, space = 0.0, 'lexical', ''
+            else:
+                vector_score = cosine_similarity(query_embedding, item.embedding)
+                mode = 'deterministic' if declared_space else 'unknown'
+                space = EmbeddingService.LOCAL_VECTOR_SPACE if declared_space else ''
             lexical_score = self._lexical_similarity(query, f'{item.title} {item.text}')
-            scored.append({'item': item, 'vector': vector_score, 'lexical': lexical_score})
+            if vector_score <= 0 and lexical_score > 0:
+                mode, space = 'lexical', ''
+            scored.append({'item': item, 'vector': vector_score, 'lexical': lexical_score,
+                           'retrieval': mode, 'vector_space': space})
 
         vector_rank = self._rank_map(scored, 'vector')
         lexical_rank = self._rank_map(scored, 'lexical')
@@ -157,7 +183,7 @@ class LegalRetrievalService:
         threshold = float(getattr(settings, 'LEGAL_KB_SCORE_THRESHOLD', 0.35)) if apply_threshold else 0.0
         results = []
         for row in scored:
-            if row['fused'] <= 0 or row['display'] < threshold:
+            if row['display'] < threshold:
                 continue
             item = row['item']
             results.append({
@@ -168,6 +194,8 @@ class LegalRetrievalService:
                 'text': item.text,
                 'score': row['display'],
                 'rrf_score': round(row['fused'], 6),
+                'retrieval': row['retrieval'],
+                'vector_space': row['vector_space'],
                 'metadata': item.metadata,
             })
             if len(results) >= top_k:
@@ -196,12 +224,15 @@ class LegalRetrievalService:
         return unique
 
     def _record_results(self, *, query, top_k, filters, results, started, user):
+        results = [protect_rag_fields(item, text_fields=('text',),
+                   object_ref=f'rag/retrieval/{item["id"]}', object_version='v1') for item in results]
+        filters = protect_rag(filters, object_ref='rag/query-filters', object_version='v1', outlet='rag')
         latency_ms = int((time.perf_counter() - started) * 1000)
         LegalRetrievalLog.objects.create(
-            query='[query omitted: material privacy]',
+            query=query,
             top_k=top_k,
-            filters={'source_type': filters.get('source_type', [])},
-            results=[{'id': row.get('id'), 'source_type': row.get('source_type')} for row in results],
+            filters=filters,
+            results=results,
             latency_ms=latency_ms,
             user=user if getattr(user, 'is_authenticated', True) else None,
         )

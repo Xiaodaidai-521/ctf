@@ -239,6 +239,7 @@ class FeedbackAttachment(models.Model):
         FeedbackTicket, on_delete=models.CASCADE, related_name='attachments', verbose_name='反馈工单',
     )
     file = models.FileField(upload_to=feedback_attachment_path, verbose_name='受控文件')
+    private_file = models.JSONField(default=dict, blank=True, editable=False)
     original_name = models.CharField(max_length=255, verbose_name='原始文件名')
     content_type = models.CharField(max_length=128, blank=True, verbose_name='内容类型')
     size = models.PositiveBigIntegerField(default=0, verbose_name='字节数')

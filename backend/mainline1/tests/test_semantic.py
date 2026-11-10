@@ -2,7 +2,6 @@ import asyncio
 import copy
 import json
 import sys
-import types
 import unittest
 from dataclasses import asdict, replace
 from pathlib import Path
@@ -298,15 +297,9 @@ class SemanticTests(unittest.IsolatedAsyncioTestCase):
         for name, value in [('SensitivityProfile', data['profile'])] + [('Finding', f) for f in data['findings'] + data['source_findings']]:
             Draft202012Validator(dict(schema, **{'$ref': '#/$defs/' + name}), format_checker=FormatChecker()).validate(value)
 
-    def test_real_transport_constructor_pins_options_without_provider_registry(self):
-        captured = {}
-        class ClientDouble:
-            def __init__(self, **kwargs):
-                captured.update(kwargs)
-        with patch.dict(sys.modules, {'langchain_openai': types.SimpleNamespace(ChatOpenAI=ClientDouble)}):
-            LangChainSemanticAdapter(self.config, api_key='synthetic-unit-test-value', token_counter=lambda _: 100)
-        self.assertEqual(captured['max_retries'], 0)
-        self.assertEqual(captured['temperature'], 0)
-        self.assertEqual(captured['max_tokens'], self.config.max_output_tokens)
-        self.assertFalse(captured['streaming'])
+    def test_legacy_transport_is_disabled_without_loading_sdk_or_credentials(self):
+        with patch.dict(sys.modules, {'langchain_openai': None}):
+            with self.assertRaises(InputError) as caught:
+                LangChainSemanticAdapter(self.config, api_key='synthetic-unit-test-value', token_counter=lambda _: 100)
+        self.assertEqual(caught.exception.code, 'SEMANTIC_BACKEND_DISABLED')
         self.assertNotIn('ai_providers', sys.modules)

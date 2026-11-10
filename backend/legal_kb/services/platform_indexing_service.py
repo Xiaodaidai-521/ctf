@@ -5,8 +5,7 @@ from typing import Iterable, List
 
 from django.contrib.contenttypes.models import ContentType
 from django.db import transaction
-
-from users.permissions import is_staff_or_role
+from django.db import connection
 
 from audit.models import AuditEvent
 from audit.services import AuditLedgerService
@@ -15,7 +14,10 @@ from articles.models import Article
 from challenges.models import Challenge
 from learning_paths.models import KnowledgeConcept
 from resources.models import Resource
+from rag_ingestion.registry import get_embedding_service
+from data_security.adapters.django.rag import RagProtectionError, protect_rag, rag_protection_enabled
 
+from ..permissions import IsLegalKbAdmin
 from ..models import LegalKnowledgeEmbedding
 from .chunking_service import ChunkingService
 from .embedding_service import EmbeddingService
@@ -43,7 +45,7 @@ class PlatformContentIndexingService:
     }
 
     def __init__(self, embedding_service: EmbeddingService = None):
-        self.embedding_service = embedding_service or EmbeddingService()
+        self.embedding_service = embedding_service if embedding_service is not None else get_embedding_service()
 
     def index_all(self, *, actor=None) -> List[PlatformIndexingResult]:
         """Index all supported platform content types."""
@@ -55,7 +57,6 @@ class PlatformContentIndexingService:
             self.index_knowledge_concepts(actor=actor),
         ]
 
-    @transaction.atomic
     def index_challenges(self, *, actor=None) -> PlatformIndexingResult:
         """Index active CTF challenge metadata and text."""
         queryset = Challenge.objects.filter(is_active=True).select_related('category')
@@ -91,7 +92,6 @@ class PlatformContentIndexingService:
             hint_map_text,
         ])
 
-    @transaction.atomic
     def index_challenge_knowledge_packs(self, *, actor=None) -> PlatformIndexingResult:
         """Index generated CTF challenge knowledge packs for legal-review retrieval."""
         queryset = ChallengeKnowledgePack.objects.select_related('challenge', 'challenge__category')
@@ -101,14 +101,13 @@ class PlatformContentIndexingService:
             actor=actor,
             title_getter=lambda item: item.challenge.title,
             text_getter=self._build_challenge_pack_text,
-            metadata_getter=lambda item, chunk: {
+            metadata_getter=lambda item: {
                 'source_type': 'challenge',
                 'kind': 'knowledge_pack',
                 'challenge_id': item.challenge_id,
                 'category_name': item.category_name,
                 'difficulty': item.difficulty,
                 'pack_version': item.pack_version,
-                'chunk_key': chunk.clause_key,
             },
         )
 
@@ -134,7 +133,6 @@ class PlatformContentIndexingService:
             pack.context_text or '',
         ])
 
-    @transaction.atomic
     def index_articles(self, *, actor=None) -> PlatformIndexingResult:
         """Index approved community articles."""
         queryset = Article.objects.filter(status='approved').select_related('category')
@@ -152,7 +150,6 @@ class PlatformContentIndexingService:
             ]),
         )
 
-    @transaction.atomic
     def index_resources(self, *, actor=None) -> PlatformIndexingResult:
         """Index approved learning resources."""
         queryset = Resource.objects.filter(status='approved')
@@ -170,7 +167,6 @@ class PlatformContentIndexingService:
             ]),
         )
 
-    @transaction.atomic
     def index_knowledge_concepts(self, *, actor=None) -> PlatformIndexingResult:
         """Index knowledge concept definitions for semantic knowledge retrieval.
 
@@ -185,7 +181,7 @@ class PlatformContentIndexingService:
             actor=actor,
             title_getter=lambda item: item.name,
             text_getter=self._build_knowledge_concept_text,
-            metadata_getter=lambda item, chunk: {
+            metadata_getter=lambda item: {
                 'source_type': 'knowledge_concept',
                 'concept_id': item.id,
                 'slug': item.slug,
@@ -195,7 +191,6 @@ class PlatformContentIndexingService:
                 'mitre_attack_id': item.mitre_attack_id,
                 'cwe_id': item.cwe_id,
                 'url': f'/learning/concepts/{item.slug}',
-                'chunk_key': chunk.clause_key,
             },
         )
 
@@ -216,29 +211,6 @@ class PlatformContentIndexingService:
             parts.append(f'CWE：{concept.cwe_id}')
         return '\n'.join(parts)
 
-    @staticmethod
-    def _embedding_text(title, chunk, metadata) -> str:
-        """Add known context only to the vector input, never to the chunk body.
-
-        Plain-text chunks have synthetic titles (``Chunk N``), not headings.
-        Use explicit heading metadata / chapter information instead; categories
-        and concept types are not evidence of a document's section hierarchy.
-        """
-        context = []
-        if title:
-            context.append(f'标题：{title}')
-        chapter = metadata.get('chapter') or chunk.chapter
-        if isinstance(chapter, str) and chapter.strip():
-            context.append(f'章节：{chapter.strip()}')
-        heading_path = metadata.get('heading_path')
-        if isinstance(heading_path, str):
-            heading_path = [heading_path]
-        if isinstance(heading_path, (list, tuple)):
-            headings = [part.strip() for part in heading_path if isinstance(part, str) and part.strip()]
-            if headings:
-                context.append(f'章节路径：{" > ".join(headings)}')
-        return '\n'.join(context) + '\n\n' + chunk.text if context else chunk.text
-
     def _index_queryset(
         self,
         *,
@@ -249,99 +221,88 @@ class PlatformContentIndexingService:
         text_getter,
         metadata_getter=None,
     ) -> PlatformIndexingResult:
-        # Local development mode is not permission to index as a student.
-        if actor is not None and (not actor.is_active or not is_staff_or_role(actor, 'teacher', 'admin')):
-            raise ValueError('Indexing requires an authorized staff or teacher actor.')
-        if self.embedding_service.uses_remote_provider:
-            from learning_knowledge.models import Material
-            from .visibility import _is_staff_or_admin, _is_teacher
-
-            if not (_is_staff_or_admin(actor) or _is_teacher(actor)):
-                raise ValueError('Remote indexing requires an authorized staff or teacher actor.')
-            # Authorize/minimize BEFORE rendering source text or calling a provider.
-            registered = Material.objects.filter(source_type=source_type).values('source_object_id')
-            queryset = queryset.exclude(pk__in=registered)
-            if source_type == 'challenge':
-                queryset = queryset.none()
+        if rag_protection_enabled() and not IsLegalKbAdmin.allows(actor):
+            raise RagProtectionError('RAG_AUTHORIZATION_REQUIRED')
         content_type = ContentType.objects.get_for_model(queryset.model)
         indexed_objects = 0
         embedded_chunks = 0
+        prepared = []
 
-        for item in queryset.select_for_update(of=('self',)).iterator():
+        for item in queryset.iterator():
             text = (text_getter(item) or '').strip()
             if not text:
                 continue
-            LegalKnowledgeEmbedding.objects.filter(
-                content_type=content_type,
-                object_id=item.id,
-                source_type=source_type,
-            ).delete()
-            chunks = ChunkingService.split_plain_text(
-                text,
-                max_chars=ChunkingService.TEACHING_MAX_CHARS,
-                overlap=ChunkingService.TEACHING_OVERLAP,
-            )
-            if not chunks:
-                continue
-            title = title_getter(item)
-            # Only explicit source headings are eligible context. Current
-            # articles/resources/concepts have no structured heading metadata;
-            # knowledge packs may supply it through their existing JSON field.
-            source_metadata = getattr(item, 'metadata', None)
-            heading_metadata = {
-                key: source_metadata[key]
-                for key in ('heading_path', 'chapter') if key in source_metadata
-            } if isinstance(source_metadata, dict) else {}
-            indexed_objects += 1
-            for chunk in chunks:
-                metadata = metadata_getter(item, chunk) if metadata_getter else {
-                    'source_type': source_type,
-                    'chunk_key': chunk.clause_key,
-                }
-                metadata = {**heading_metadata, **metadata}
-                embedding = self.embedding_service.embed_text(
-                    self._embedding_text(title, chunk, metadata),
-                )
-                LegalKnowledgeEmbedding.objects.create(
-                    source_type=source_type,
-                    content_type=content_type,
-                    object_id=item.id,
-                    chunk_index=chunk.order - 1,
-                    title=title,
-                    text=chunk.text,
-                    text_hash=sha256_text(chunk.text),
-                    **self.embedding_service.storage_fields(embedding),
-                    metadata={
-                        **metadata,
-                        'vector_model': self.embedding_service.model,
-                        'chunking_version': ChunkingService.VERSION,
-                    },
-                )
-                embedded_chunks += 1
+            object_ref = f'rag/platform/{source_type}/{item.pk}'
+            version = 'v' + str(int(item.updated_at.timestamp() * 1_000_000))
+            headers = protect_rag({'title': title_getter(item),
+                'metadata': metadata_getter(item) if metadata_getter else {}},
+                object_ref=object_ref, object_version=version)
+            text = protect_rag(text, object_ref=object_ref, object_version=version)
+            chunks = ChunkingService.split_plain_text(text)
+            vectors = [(chunk, self.embedding_service.embed_text(chunk.text),
+                        self.embedding_service.embed_local_text(chunk.text)) for chunk in chunks]
+            prepared.append((item.pk, headers, vectors))
+            if chunks:
+                indexed_objects += 1
+            embedded_chunks += len(chunks)
 
-        AuditEvent.log(
-            category='kb_ingestion',
-            summary=f'Platform content indexed: {source_type}',
-            user=actor,
-            detail={
-                'source_type': source_type,
-                'indexed_objects': indexed_objects,
-                'embedded_chunks': embedded_chunks,
-            },
-        )
-        AuditLedgerService.append_entry(
-            event_category='kb_ingestion',
-            object_type=f'platform.{source_type}',
-            object_id='bulk',
-            actor=actor,
-            payload={
-                'action': 'index_platform_content',
-                'source_type': source_type,
-                'indexed_objects': indexed_objects,
-                'embedded_chunks': embedded_chunks,
-                'embedding_model': self.embedding_service.model,
-            },
-        )
+        with transaction.atomic():
+            for object_id, headers, vectors in prepared:
+                LegalKnowledgeEmbedding.objects.filter(
+                    content_type=content_type,
+                    object_id=object_id,
+                    source_type=source_type,
+                ).delete()
+                for chunk, semantic_embedding, embedding in vectors:
+                    LegalKnowledgeEmbedding.objects.create(
+                        source_type=source_type,
+                        content_type=content_type,
+                        object_id=object_id,
+                        chunk_index=chunk.order - 1,
+                        title=headers['title'],
+                        text=chunk.text,
+                        text_hash=sha256_text(chunk.text),
+                        embedding=embedding,
+                        embedding_vector=(
+                            semantic_embedding
+                            if connection.vendor == 'postgresql' and len(semantic_embedding) == 1024
+                            else None
+                        ),
+                        embedding_model='local-hash-v1',
+                        embedding_dimension=len(embedding),
+                        metadata={
+                            **headers['metadata'],
+                            'source_type': source_type,
+                            'chunk_key': chunk.clause_key,
+                            'vector_model': self.embedding_service.model,
+                            'vector_space': self.embedding_service.vector_space,
+                            'retrieval_mode': self.embedding_service.retrieval_mode,
+                        },
+                    )
+
+            AuditEvent.log(
+                category='kb_ingestion',
+                summary=f'Platform content indexed: {source_type}',
+                user=actor,
+                detail={
+                    'source_type': source_type,
+                    'indexed_objects': indexed_objects,
+                    'embedded_chunks': embedded_chunks,
+                },
+            )
+            AuditLedgerService.append_entry(
+                event_category='kb_ingestion',
+                object_type=f'platform.{source_type}',
+                object_id='bulk',
+                actor=actor,
+                payload={
+                    'action': 'index_platform_content',
+                    'source_type': source_type,
+                    'indexed_objects': indexed_objects,
+                    'embedded_chunks': embedded_chunks,
+                    'embedding_model': self.embedding_service.model,
+                },
+            )
         return PlatformIndexingResult(
             source_type=source_type,
             indexed_objects=indexed_objects,

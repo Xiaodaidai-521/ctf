@@ -4,9 +4,6 @@ from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.permissions import SAFE_METHODS
-
-from users.permissions import IsTeacherOrAdmin
 
 from .models import (
     KbIngestionJob,
@@ -34,11 +31,11 @@ from .services.retrieval_service import LegalRetrievalService
 
 
 class LegalKbPermissionMixin:
-    """Teachers/admins write; every unsafe method is gated, including actions."""
+    """Use admin permissions for writes and reader permissions for reads."""
 
     def get_permissions(self):
-        if self.request.method not in SAFE_METHODS:
-            return [IsTeacherOrAdmin()]
+        if self.action in ['create', 'update', 'partial_update', 'destroy', 'ingest']:
+            return [IsLegalKbAdmin()]
         return [IsLegalKbReader()]
 
 
@@ -47,12 +44,6 @@ class LegalDocumentViewSet(LegalKbPermissionMixin, viewsets.ModelViewSet):
 
     queryset = LegalDocument.objects.select_related('created_by').prefetch_related('clauses')
     serializer_class = LegalDocumentSerializer
-
-    def get_queryset(self):
-        from learning_knowledge.models import Material
-        registered = Material.objects.filter(source_type='legal_clause').values('source_object_id')
-        parents = LegalClause.objects.filter(pk__in=registered).values('document_id')
-        return super().get_queryset().exclude(pk__in=parents)
 
     def perform_create(self, serializer):
         serializer.save(created_by=self.request.user)
@@ -71,8 +62,7 @@ class LegalClauseViewSet(LegalKbPermissionMixin, viewsets.ModelViewSet):
     serializer_class = LegalClauseSerializer
 
     def get_queryset(self):
-        from learning_knowledge.policy import filter_legacy_queryset
-        queryset = filter_legacy_queryset(super().get_queryset(), 'legal_clause', self.request.user)
+        queryset = super().get_queryset()
         document_id = self.request.query_params.get('document')
         search = self.request.query_params.get('search')
         if document_id:

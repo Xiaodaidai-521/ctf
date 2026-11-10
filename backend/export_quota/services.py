@@ -53,6 +53,19 @@ class ReservationResult:
     expires_at: Optional[datetime] = None
 
 
+@dataclass(frozen=True)
+class ReservationSnapshot:
+    reservation_id: str
+    subject_id: str
+    data_domain: str
+    window_key: str
+    request_fingerprint: str
+    amount: int
+    state: str
+    settled_amount: int
+    expires_at: Optional[datetime]
+
+
 def _locked_reservation(reservation_id: str):
     """Lock bucket before reservation; callers must hold an atomic transaction."""
     original = QuotaReservation.objects.get(reservation_id=reservation_id)
@@ -138,6 +151,18 @@ class QuotaService:
         _require_active(reservation, now if now is not None else timezone.now())
         return ReservationResult(reservation.reservation_id, reservation.bucket_id,
                                  reservation.amount, True, reservation.expires_at)
+
+    @staticmethod
+    @transaction.atomic
+    def observe(*, reservation_id: str) -> ReservationSnapshot:
+        """Read authoritative state under the same locks used for transitions."""
+        try:
+            bucket, reservation = _locked_reservation(reservation_id)
+        except QuotaReservation.DoesNotExist as exc:
+            raise QuotaStateError(f"missing reservation {reservation_id}") from exc
+        return ReservationSnapshot(reservation.reservation_id, bucket.subject_id, bucket.data_domain,
+            bucket.window_key, reservation.request_fingerprint, reservation.amount, reservation.state,
+            reservation.settled_amount, reservation.expires_at)
 
     @staticmethod
     def commit(*, reservation_id: str, delivered_amount: int) -> None:

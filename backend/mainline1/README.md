@@ -86,7 +86,7 @@ Windows 启动进程输出使用文件以避免继承管道挂起。证据输出
 
 ## 第5步内部语义边界与融合
 
-`semantic.SemanticBackend`及`LangChainSemanticAdapter`提供显式后端边界；默认无后端、无真实批准，保持Blocked。
+`semantic.SemanticBackend`保留显式后端契约；`LangChainSemanticAdapter`仅保留构造即报`SEMANTIC_BACKEND_DISABLED`的兼容名称，不再加载SDK或发送请求。默认无后端、无真实批准，保持Blocked；未来启用须另经批准并接M7。
 `fusion.scan_context()`接收第3步ParseResult和第4步RuleResult，组织固定目标/上下文、校验输出、映射原文、
 融合去重及冲突，返回私有Finding/Profile。默认组合关闭；test_only共现规则仅用于合成测试。
 保持原规则证据，原始模型分数未校准；不可靠位置降为整格，不生成字符级操作或外发授权。

@@ -37,6 +37,7 @@ class LegalDocument(models.Model):
     source_name = models.CharField(max_length=200, blank=True, verbose_name='Source name')
     source_hash = models.CharField(max_length=64, unique=True, verbose_name='Source hash')
     full_text = models.TextField(verbose_name='Full text')
+    canary_payload = models.JSONField(default=dict, blank=True, editable=False)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='active')
     effective_date = models.DateField(null=True, blank=True, verbose_name='Effective date')
     published_date = models.DateField(null=True, blank=True, verbose_name='Published date')
@@ -197,12 +198,11 @@ class LegalKnowledgeEmbedding(models.Model):
     text = models.TextField(verbose_name='Text')
     text_hash = models.CharField(max_length=64, db_index=True, verbose_name='Text hash')
     embedding = models.JSONField(default=list, blank=True, verbose_name='Embedding')
-    # A projection of the same canonical JSON vector, only for 1024-dim spaces.
-    # Legacy rows have no version and are usable for lexical retrieval only.
+    # Production PostgreSQL uses this field for ANN retrieval. JSON stays as a
+    # portable fallback for local SQLite development and old indexed content.
     embedding_vector = VectorField(dimensions=1024, null=True, blank=True, verbose_name='Embedding vector')
     embedding_model = models.CharField(max_length=120, blank=True, verbose_name='Embedding model')
     embedding_dimension = models.PositiveIntegerField(default=0, verbose_name='Embedding dimension')
-    index_version = models.CharField(max_length=64, default='', blank=True, db_index=True)
     metadata = models.JSONField(default=dict, blank=True, verbose_name='Metadata')
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='Created at')
     updated_at = models.DateTimeField(auto_now=True, verbose_name='Updated at')

@@ -6,13 +6,13 @@ from typing import Dict, Optional
 from uuid import uuid4
 
 from django.db import transaction
-from rest_framework.exceptions import PermissionDenied, ValidationError
 
-from users.permissions import is_staff_or_role
+from data_security.adapters.django.rag import RagProtectionError, protect_rag, rag_protection_enabled
 
 from .interfaces import SupersededIngestionError
 from .models import DocumentSource
 from .pipeline import IngestionPipeline
+from .registry import get_pipeline
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +21,7 @@ class IngestionService:
     """Register an uploaded document, run the pipeline, track status + audit."""
 
     def __init__(self, pipeline: Optional[IngestionPipeline] = None):
-        self.pipeline = pipeline or IngestionPipeline()
+        self.pipeline = pipeline if pipeline is not None else get_pipeline()
 
     def ingest_bytes(
         self,
@@ -35,40 +35,32 @@ class IngestionService:
         metadata: Optional[Dict] = None,
         reingest: bool = False,
     ) -> DocumentSource:
-        # Actorless calls are existing trusted CLI/worker use, never an API identity.
-        if uploaded_by is not None and (
-            not uploaded_by.is_active or not is_staff_or_role(uploaded_by, 'teacher', 'admin')
-        ):
-            raise PermissionDenied('Teacher or administrator permission required.')
-        visibility_order = {'staff': 0, 'internal': 1, 'learner': 2}
-        if visibility not in visibility_order:
-            raise ValidationError('Unknown document visibility.')
         source_hash = hashlib.sha256(data or b'').hexdigest()
+        if rag_protection_enabled() and not (
+            uploaded_by and uploaded_by.is_authenticated and uploaded_by.is_active
+            and (uploaded_by.is_staff or getattr(uploaded_by, 'role', '') == 'admin')
+        ):
+            raise RagProtectionError('RAG_AUTHORIZATION_REQUIRED')
+        headers = protect_rag({'title': title or filename, 'filename': filename,
+                               'mime': mime or '', 'metadata': metadata or {}},
+                              object_ref='rag/upload-' + source_hash, object_version='v1', outlet='rag')
         # Serialize task claims, not parsing or remote embedding. get_or_create
         # retries a concurrent unique-key insert; the row lock then protects the
         # completed check and assignment of a new task token together.
         with transaction.atomic():
-            document, created = DocumentSource.objects.select_for_update().get_or_create(
+            document, _ = DocumentSource.objects.select_for_update().get_or_create(
                 source_hash=source_hash,
             )
-            if not created:
-                previous_visibility = document.visibility if document.visibility in visibility_order else 'staff'
-                self.check_existing_source(document, uploaded_by)
-                visibility = min((previous_visibility, visibility), key=visibility_order.get)
             if document.status == 'completed' and not reingest:
-                if document.visibility != visibility:
-                    document.visibility = visibility
-                    document.save(update_fields=['visibility', 'updated_at'])
                 return document
             token = uuid4()
-            document.title = title or filename
-            document.filename = filename
-            document.mime = mime or ''
+            document.title = headers['title']
+            document.filename = headers['filename']
+            document.mime = headers['mime']
             document.byte_size = len(data or b'')
             document.visibility = visibility
-            document.metadata = metadata or {}
-            if created:
-                document.uploaded_by = uploaded_by
+            document.metadata = headers['metadata']
+            document.uploaded_by = uploaded_by
             document.status = 'running'
             document.ingestion_token = token
             document.error_message = ''
@@ -81,7 +73,7 @@ class IngestionService:
                 mime=mime,
                 document_id=document.id,
                 source_type='document',
-                base_metadata={**(metadata or {}), 'visibility': visibility},
+                base_metadata={**headers['metadata'], 'visibility': visibility},
                 title=document.title,
                 ingestion_token=token,
             )
@@ -91,7 +83,8 @@ class IngestionService:
         except Exception as exc:
             document, updated = self._finish(
                 document.id, token, status='failed',
-                error_message=type(exc).__name__,
+                error_message=(f'{type(exc).__name__}: RAG_OPERATION_FAILED' if rag_protection_enabled()
+                               else f'{type(exc).__name__}: {exc}'),
             )
             if updated:
                 self._audit(document, action='ingest_failed', actor=uploaded_by)
@@ -106,14 +99,12 @@ class IngestionService:
         document, updated = self._finish(
             document.id, token, status='completed', parser=outcome.parser,
             chunk_count=outcome.chunk_count, embedded_count=outcome.embedded_count,
+            title=outcome.metadata['title'], filename=outcome.metadata['filename'], metadata=outcome.metadata,
             error_message='',
         )
         if updated:
             self._audit(document, action='ingest_completed', actor=uploaded_by)
         return document
-
-    def check_existing_source(self, document, actor):
-        """Trusted workers retain the legacy reingest contract; HTTP uploads add a gate."""
 
     @staticmethod
     def _finish(document_id, token, **changes):
@@ -133,7 +124,7 @@ class IngestionService:
 
             AuditEvent.log(
                 category='kb_ingestion',
-                summary=f'RAG document {document.pk}: {action}',
+                summary=f'RAG document {action}: {document.title}',
                 user=actor,
                 detail={
                     'document_id': document.id,
@@ -147,13 +138,3 @@ class IngestionService:
         except Exception:
             # Auditing is best-effort and must never break ingestion.
             pass
-
-
-class UploadIngestionService(IngestionService):
-    """Interactive uploads must not disclose or claim an unreadable existing source."""
-
-    def check_existing_source(self, document, actor):
-        # Called inside the claim row lock, including hash-deduplicated uploads.
-        if (document.visibility not in {'internal', 'learner'}
-                and not is_staff_or_role(actor, 'admin')):
-            raise PermissionDenied('Document unavailable.')

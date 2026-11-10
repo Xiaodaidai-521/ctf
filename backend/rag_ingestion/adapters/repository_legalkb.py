@@ -38,10 +38,10 @@ class LegalKbChunkRepository:
         # previous index intact instead of a half-rebuilt one. Parsing and (remote)
         # embedding already happened before this call, so the transaction is short.
         with transaction.atomic():
-            document = DocumentSource.objects.select_for_update().get(pk=document_id)
-            if (document.ingestion_token != ingestion_token
-                    or (ingestion_token is not None and document.status != 'running')):
-                raise SupersededIngestionError('A newer ingestion owns this document.')
+            if ingestion_token is not None:
+                document = DocumentSource.objects.select_for_update().get(pk=document_id)
+                if document.ingestion_token != ingestion_token or document.status != 'running':
+                    raise SupersededIngestionError('A newer ingestion owns this document.')
             LegalKnowledgeEmbedding.objects.filter(
                 content_type=content_type,
                 object_id=document_id,
@@ -50,12 +50,14 @@ class LegalKbChunkRepository:
 
             created = 0
             for item in embedded:
-                is_semantic = len(item.vector) == 1024
-                store_vector = item.vector if (is_semantic and connection.vendor == 'postgresql') else None
+                fits_vector_column = len(item.vector) == 1024
+                store_vector = item.vector if (fits_vector_column and connection.vendor == 'postgresql') else None
                 metadata = {
                     **base_metadata,
                     **(item.chunk.metadata or {}),
-                    'vector_model': item.model if is_semantic else 'local-hash-v1',
+                    'vector_model': item.model,
+                    'vector_space': item.vector_space,
+                    'retrieval_mode': item.retrieval_mode,
                 }
                 LegalKnowledgeEmbedding.objects.create(
                     source_type=source_type,
