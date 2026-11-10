@@ -22,9 +22,11 @@ INSTALLED_APPS = [
     "rest_framework",
     "rest_framework.authtoken",
     "controlled_export",
+    "data_security.adapters.persistence.apps.PolicyPersistenceConfig",
 ]
 
 MIDDLEWARE = [
+    "controlled_export_service.security_bootstrap.private_upload_middleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -34,6 +36,7 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = "controlled_export_service.urls"
 WSGI_APPLICATION = "controlled_export_service.wsgi.application"
+ASGI_APPLICATION = "controlled_export_service.asgi.application"
 TEMPLATES = []
 
 DATABASE_URL = os.environ.get("CONTROLLED_EXPORT_DATABASE_URL", "")
@@ -84,6 +87,13 @@ REST_FRAMEWORK = {
 CONTROLLED_EXPORT_ENVIRONMENT = os.environ.get("CONTROLLED_EXPORT_ENVIRONMENT", "evaluation")
 if CONTROLLED_EXPORT_ENVIRONMENT not in {"evaluation", "production"}:
     raise RuntimeError("CONTROLLED_EXPORT_ENVIRONMENT must be evaluation or production")
+# Unbound regressions retain the old path. Formal mode never falls back to it.
+CONTROLLED_EXPORT_PRIVATE_CONFIG = os.environ.get("CONTROLLED_EXPORT_PRIVATE_CONFIG", "")
+CONTROLLED_EXPORT_PRIVATE_MODE = bool(os.environ.get("DATA_SECURITY_CONFIG") or CONTROLLED_EXPORT_PRIVATE_CONFIG) or os.environ.get(
+    "CONTROLLED_EXPORT_PRIVATE_MODE", "false"
+).lower() in {"1", "true", "yes"}
+# Same-process B may explicitly inject components; no provider is loaded from a client/config path.
+CONTROLLED_EXPORT_PRIVATE_PREPARATION = None
 CONTROLLED_EXPORT_PRIVATE_ROOT = Path(
     os.environ.get("CONTROLLED_EXPORT_PRIVATE_ROOT", str(VAR_DIR / "private"))
 )

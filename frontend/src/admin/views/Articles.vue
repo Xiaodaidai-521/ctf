@@ -2,10 +2,10 @@
   <div class="admin-articles">
     <div class="page-card">
       <div class="page-header">
-        <h3 class="page-title">{{ names.resourceReview }} · 文章</h3>
+        <h3 class="page-title">文章审核</h3>
         <div class="page-actions">
           <button class="action-btn btn-default" @click="fetchArticles">
-            <AppIcon name="bi-arrow-clockwise" /> 刷新
+            🔄 刷新
           </button>
         </div>
       </div>
@@ -30,9 +30,8 @@
         <p>加载中...</p>
       </div>
 
-      <div v-else-if="readError" class="empty-state" role="alert"><p>{{ readError }}</p><button class="action-btn btn-default" @click="fetchArticles">重新读取</button></div>
       <div v-else-if="articles.length === 0" class="empty-state">
-        <div class="empty-icon"><AppIcon name="bi-pencil-square" /></div>
+        <div class="empty-icon">📝</div>
         <p>{{ selectedStatus === 'pending' ? '暂无待审核文章' : '暂无文章' }}</p>
       </div>
 
@@ -44,7 +43,7 @@
         >
           <div class="article-cover">
             <img v-if="article.cover" :src="article.cover" />
-            <div v-else class="cover-placeholder"><AppIcon name="bi-file-text" /></div>
+            <div v-else class="cover-placeholder">📄</div>
           </div>
           <div class="article-info">
             <div class="article-header">
@@ -60,9 +59,9 @@
               </span>
               <span class="meta-item">{{ article.category_name }}</span>
               <span class="meta-item">{{ formatDate(article.created_at) }}</span>
-              <span class="meta-item"><AppIcon name="bi-eye" /> {{ article.view_count }}</span>
-              <span class="meta-item"><AppIcon name="bi-heart-fill" /> {{ article.like_count }}</span>
-              <span class="meta-item"><AppIcon name="bi-chat-dots" /> {{ article.comment_count }}</span>
+              <span class="meta-item">👁️ {{ article.view_count }}</span>
+              <span class="meta-item">❤️ {{ article.like_count }}</span>
+              <span class="meta-item">💬 {{ article.comment_count }}</span>
             </div>
             <div v-if="article.tags_list?.length" class="article-tags">
               <span
@@ -76,19 +75,19 @@
           </div>
           <div class="article-actions">
             <button class="action-btn btn-success" @click="handleReview(article, 'approved')" :disabled="article.status !== 'pending'">
-              <AppIcon name="bi-check2" /> 通过
+              ✓ 通过
             </button>
             <button class="action-btn btn-danger" @click="handleReview(article, 'rejected')" :disabled="article.status !== 'pending'">
-              <AppIcon name="bi-x-lg" /> 拒绝
+              ✕ 拒绝
             </button>
             <button class="action-btn btn-default" @click="handlePreview(article)">
-              <AppIcon name="bi-eye" /> 查看
+              👁️ 查看
             </button>
             <button class="action-btn btn-warning" @click="handleToggleRecommend(article)" :disabled="article.status !== 'approved'">
               {{ article.is_recommend ? '⭐ 取消推荐' : '⭐ 推荐' }}
             </button>
             <button class="action-btn btn-default" @click="handleToggleTop(article)" :disabled="article.status !== 'approved'">
-              <AppIcon name="bi-pin-angle" /> {{ article.is_top ? '取消置顶' : '置顶' }}
+              {{ article.is_top ? '🔝 取消置顶' : '🔝 置顶' }}
             </button>
           </div>
         </div>
@@ -114,7 +113,7 @@
       <div class="modal-content">
         <div class="modal-header">
           <h3>审核备注</h3>
-          <button class="close-btn" @click="showReviewModal = false" aria-label="关闭"><AppIcon name="bi-x-lg" /></button>
+          <button class="close-btn" @click="showReviewModal = false">✕</button>
         </div>
         <div class="modal-body">
           <div class="admin-form">
@@ -145,7 +144,7 @@
       <div class="modal-content modal-large">
         <div class="modal-header">
           <h3>文章预览</h3>
-          <button class="close-btn" @click="showPreviewModal = false" aria-label="关闭"><AppIcon name="bi-x-lg" /></button>
+          <button class="close-btn" @click="showPreviewModal = false">✕</button>
         </div>
         <div class="modal-body">
           <div class="preview-content">
@@ -154,16 +153,16 @@
               <span class="badge" :class="`status-${previewArticle?.status}`">
                 {{ getStatusText(previewArticle?.status) }}
               </span>
-              <span v-if="previewArticle?.is_top" class="badge badge-top"><AppIcon name="bi-pin-angle" /> 置顶</span>
-              <span v-if="previewArticle?.is_recommend" class="badge badge-recommend"><AppIcon name="bi-star-fill" /> 推荐</span>
+              <span v-if="previewArticle?.is_top" class="badge badge-top">🔝 置顶</span>
+              <span v-if="previewArticle?.is_recommend" class="badge badge-recommend">⭐ 推荐</span>
             </div>
             <div class="preview-meta">
               <span>作者: {{ previewArticle?.author?.username }}</span>
               <span>分类: {{ previewArticle?.category_name }}</span>
               <span>创建时间: {{ formatDate(previewArticle?.created_at) }}</span>
-              <span><AppIcon name="bi-eye" /> {{ previewArticle?.view_count }}</span>
-              <span><AppIcon name="bi-heart-fill" /> {{ previewArticle?.like_count }}</span>
-              <span><AppIcon name="bi-chat-dots" /> {{ previewArticle?.comment_count }}</span>
+              <span>👁️ {{ previewArticle?.view_count }}</span>
+              <span>❤️ {{ previewArticle?.like_count }}</span>
+              <span>💬 {{ previewArticle?.comment_count }}</span>
             </div>
             <div v-if="previewArticle?.summary" class="preview-summary">
               <h4>摘要</h4>
@@ -196,18 +195,11 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { usePageFilters } from '@/shared/state/usePageFilters.js'
-import { createAccountGuard } from '@/shared/state/accountScope.js'
+import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import api from '@/api'
-import { names } from '@/shared/navigation/names.js'
 
 const router = useRouter()
-const route = useRoute()
-const guard = createAccountGuard()
-onBeforeUnmount(guard.dispose)
-let request = 0
 
 const articles = ref([])
 const loading = ref(false)
@@ -215,12 +207,6 @@ const total = ref(0)
 const page = ref(1)
 const pageSize = ref(20)
 const selectedStatus = ref('pending')
-usePageFilters('admin-articles', { selectedStatus, page, pageSize })
-const statuses = ['pending', 'approved', 'rejected', 'all']
-if (statuses.includes(route.query.status)) { selectedStatus.value = route.query.status; page.value = 1 }
-watch(() => route.query.status, status => {
-  if (statuses.includes(status)) { selectedStatus.value = status; page.value = 1; fetchArticles() }
-})
 
 const statusFilters = [
   { label: '待审核', value: 'pending' },
@@ -245,11 +231,8 @@ const reviewing = ref(false)
 const showPreviewModal = ref(false)
 const previewArticle = ref(null)
 
-const readError = ref('')
 const fetchArticles = async () => {
-  const current = ++request
   loading.value = true
-  readError.value = ''
   try {
     const params = {
       page: page.value,
@@ -260,13 +243,12 @@ const fetchArticles = async () => {
     }
 
     const response = await api.article.list(params)
-    if (!guard.current() || current !== request) return
     articles.value = response.results || []
     total.value = response.count || 0
   } catch (error) {
-    if (guard.current() && current === request) readError.value = '暂时无法读取文章，请重试。'
+    console.error('获取文章列表失败:', error)
   } finally {
-    if (guard.current() && current === request) loading.value = false
+    loading.value = false
   }
 }
 
@@ -390,338 +372,338 @@ onMounted(() => {
 
 <style scoped>
 .admin-articles {
-  padding:var(--space-3);
+  padding: 24px;
 }
 
 .filter-bar {
-  display:flex;
-  gap:var(--space-1);
-  margin-bottom:var(--space-3);
-  flex-wrap:wrap;
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
 }
 
 .filter-btn {
-  padding:var(--space-1) var(--space-2);
-  border:var(--stroke) solid var(--line);
-  background:var(--surface);
-  border-radius:var(--radius-control);
-  cursor:pointer;
-  font-size:var(--text-caption);
-  transition:all var(--motion-normal);
-  display:flex;
-  align-items:center;
-  gap:calc(var(--space-1) / 2);
+  padding: 8px 16px;
+  border: 1px solid #d9d9d9;
+  background: white;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .filter-btn:hover {
-  border-color:var(--primary-color);
-  color:var(--primary-color);
+  border-color: var(--primary-color);
+  color: var(--primary-color);
 }
 
 .filter-btn.active {
-  background:var(--primary-color);
-  color:var(--on-action);
-  border-color:var(--primary-color);
+  background: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
 }
 
 .count {
-  font-size:var(--text-caption);
-  opacity:0.8;
+  font-size: 12px;
+  opacity: 0.8;
 }
 
 .article-list {
-  display:flex;
-  flex-direction:column;
-  gap:var(--space-2);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
 .article-item {
-  display:flex;
-  gap:var(--space-2);
-  padding:var(--space-2);
-  background:var(--surface);
-  border-radius:var(--radius-control);
-  align-items:flex-start;
+  display: flex;
+  gap: 16px;
+  padding: 20px;
+  background: #fafafa;
+  border-radius: 8px;
+  align-items: flex-start;
 }
 
 .article-cover {
-  width:var(--row-label-width);
-  height:var(--thumbnail-short-height);
-  border-radius:var(--radius-control);
-  overflow:hidden;
-  background: var(--surface-muted);
-  flex-shrink:0;
+  width: 120px;
+  height: 90px;
+  border-radius: 6px;
+  overflow: hidden;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  flex-shrink: 0;
 }
 
 .article-cover img {
-  width:100%;
-  height:100%;
-  object-fit:cover;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .cover-placeholder {
-  width:100%;
-  height:100%;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:var(--text-page);
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40px;
 }
 
 .article-info {
-  flex:1;
-  min-width:0;
+  flex: 1;
+  min-width: 0;
 }
 
 .article-header {
-  display:flex;
-  align-items:center;
-  gap:var(--space-1);
-  margin-bottom:var(--space-1);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
 }
 
 .article-title {
-  font-size:var(--text-body);
-  font-weight: var(--weight-strong);
-  margin:0;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .status-badge {
-  padding:calc(var(--stroke) * 2) var(--space-1);
-  border-radius:var(--radius-control);
-  font-size:var(--text-caption);
-  font-weight: var(--weight-strong);
-  white-space:nowrap;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
 }
 
 .status-pending {
-  background:var(--warning-soft);
-  color:var(--warning);
+  background: #fff7e6;
+  color: #fa8c16;
 }
 
 .status-approved {
-  background:var(--positive-soft);
-  color:var(--positive);
+  background: #f6ffed;
+  color: #52c41a;
 }
 
 .status-rejected {
-  background:var(--negative-soft);
-  color:var(--negative);
+  background: #fff1f0;
+  color: #ff4d4f;
 }
 
 .article-summary {
-  font-size:var(--text-caption);
-  color:var(--ink-secondary);
-  margin-bottom:var(--space-1);
-  overflow:hidden;
-  text-overflow:ellipsis;
-  display:-webkit-box;
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
 }
 
 .article-meta {
-  display:flex;
-  flex-wrap:wrap;
-  gap:var(--space-1);
-  font-size:var(--text-caption);
-  color:var(--ink-muted);
-  margin-bottom:var(--space-1);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: 13px;
+  color: #999;
+  margin-bottom: 8px;
 }
 
 .article-tags {
-  display:flex;
-  flex-wrap:wrap;
-  gap:calc(var(--space-1) / 2);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
 }
 
 .tag {
-  padding:calc(var(--stroke) * 2) var(--space-1);
-  background:var(--surface);
-  color:var(--primary-color);
-  border-radius:var(--radius-panel);
-  font-size:var(--text-caption);
+  padding: 2px 8px;
+  background: #e6f7ff;
+  color: var(--primary-color);
+  border-radius: 12px;
+  font-size: 11px;
 }
 
 .article-actions {
-  display:flex;
-  flex-direction:column;
-  gap:var(--space-1);
-  flex-shrink:0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex-shrink: 0;
 }
 
 .preview-content h2 {
-  font-size:var(--text-section);
-  margin-bottom:var(--space-2);
+  font-size: 24px;
+  margin-bottom: 16px;
 }
 
 .preview-badges {
-  display:flex;
-  flex-wrap:wrap;
-  gap:var(--space-1);
-  margin-bottom:var(--space-2);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
 }
 
 .badge {
-  padding:calc(var(--space-1) / 2) var(--space-1);
-  border-radius:var(--radius-panel);
-  font-size:var(--text-caption);
-  font-weight: var(--weight-strong);
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
 }
 
 .badge-top {
-  background:var(--surface);
-  color:var(--ink-secondary);
+  background: #fff7e6;
+  color: #fa8c16;
 }
 
 .badge-recommend {
-  background:var(--surface);
-  color:var(--ink-secondary);
+  background: #f6ffed;
+  color: #52c41a;
 }
 
 .preview-meta {
-  display:flex;
-  flex-wrap:wrap;
-  gap:var(--space-2);
-  font-size:var(--text-caption);
-  color:var(--ink-secondary);
-  margin-bottom:var(--space-2);
-  padding-bottom:var(--space-2);
-  border-bottom:var(--stroke) solid var(--line);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #f0f0f0;
 }
 
 .preview-summary h4,
 .preview-body h4 {
-  font-size:var(--text-body);
-  margin-bottom:var(--space-1);
-  margin-top:var(--space-2);
+  font-size: 16px;
+  margin-bottom: 8px;
+  margin-top: 20px;
 }
 
 .preview-summary p {
-  font-size:var(--text-caption);
-  color:var(--ink);
-  line-height:1.6;
-  margin-bottom:var(--space-2);
+  font-size: 14px;
+  color: #333;
+  line-height: 1.6;
+  margin-bottom: 20px;
 }
 
 .preview-text {
-  font-size:var(--text-caption);
-  color:var(--ink);
-  line-height:1.6;
-  background:var(--surface);
-  padding:var(--space-2);
-  border-radius:var(--radius-control);
-  white-space:pre-wrap;
+  font-size: 14px;
+  color: #333;
+  line-height: 1.6;
+  background: #fafafa;
+  padding: 16px;
+  border-radius: 6px;
+  white-space: pre-wrap;
 }
 
 .preview-tags {
-  display:flex;
-  flex-wrap:wrap;
-  gap:var(--space-1);
-  margin-top:var(--space-2);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 20px;
 }
 
 .modal-large {
-  max-width:var(--reading-width);
+  max-width: 900px;
 }
 
 .loading-state,
 .empty-state {
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  padding:var(--space-10) var(--space-2);
-  text-align:center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 20px;
+  text-align: center;
 }
 
 .loading-spinner {
-  width:var(--space-5);
-  height:var(--space-5);
-  border:calc(var(--space-1) / 2) solid var(--line);
-  border-top-color:var(--primary-color);
-  border-radius:50%;
-  animation:spin var(--motion-loop) linear infinite;
-  margin-bottom:var(--space-2);
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f0f0f0;
+  border-top-color: var(--primary-color);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-bottom: 16px;
 }
 
 @keyframes spin {
-  to { transform:rotate(360deg); }
+  to { transform: rotate(360deg); }
 }
 
 .empty-icon {
-  font-size:var(--text-page);
-  margin-bottom:var(--space-2);
+  font-size: 64px;
+  margin-bottom: 16px;
 }
 
 .pagination {
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  margin-top:var(--space-3);
-  padding-top:var(--space-2);
-  border-top:var(--stroke) solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid #f0f0f0;
 }
 
 .pagination-info {
-  font-size:var(--text-caption);
-  color:var(--ink-secondary);
+  font-size: 14px;
+  color: #666;
 }
 
 .pagination-controls {
-  display:flex;
-  align-items:center;
-  gap:var(--space-1);
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .action-btn {
-  padding:calc(var(--space-1) / 2) var(--space-2);
-  border:var(--stroke) solid var(--line);
-  background:var(--surface);
-  border-radius:var(--radius-control);
-  cursor:pointer;
-  font-size:var(--text-caption);
-  transition:all var(--motion-normal);
+  padding: 6px 16px;
+  border: 1px solid #d9d9d9;
+  background: white;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.3s;
 }
 
 .action-btn:hover:not(:disabled) {
-  opacity:0.85;
+  opacity: 0.85;
 }
 
 .action-btn:disabled {
-  opacity:0.4;
-  cursor:not-allowed;
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 
 .btn-success {
-  background:var(--positive);
-  color:var(--on-action);
-  border-color:var(--positive);
+  background: #52c41a;
+  color: white;
+  border-color: #52c41a;
 }
 
 .btn-danger {
-  background:var(--negative);
-  color:var(--on-action);
-  border-color:var(--negative);
+  background: #ff4d4f;
+  color: white;
+  border-color: #ff4d4f;
 }
 
 .btn-warning {
-  background:var(--warning);
-  color:var(--on-action);
-  border-color:var(--warning);
+  background: #faad14;
+  color: white;
+  border-color: #faad14;
 }
 
 .btn-primary {
-  background:var(--primary-color);
-  color:var(--on-action);
-  border-color:var(--primary-color);
+  background: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
 }
 
 .btn-default {
-  background:var(--surface);
-  color:var(--ink);
+  background: white;
+  color: #333;
 }
 </style>

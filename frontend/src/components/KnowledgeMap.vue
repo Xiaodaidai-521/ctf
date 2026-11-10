@@ -39,7 +39,6 @@
 <script setup>
 import { ref, watch, onMounted, onBeforeUnmount, nextTick, computed } from 'vue'
 import * as echarts from 'echarts'
-import { sequentialColor, tokenValue, tokenNumber } from '@/shared/design/chartTokens'
 
 const props = defineProps({
   nodes: {
@@ -62,7 +61,14 @@ const popoverAnchorStyle = ref({})
 let chartInstance = null
 let resizeObserver = null
 
-const masteryColor = (mastery) => sequentialColor(mastery)
+const masteryColor = (mastery) => {
+  const v = Math.max(0, Math.min(1, mastery))
+  // 0 → 灰色 #9ca3af, 1 → 亮青 #00f5ff
+  const r = Math.round(156 + (0 - 156) * v)
+  const g = Math.round(163 + (245 - 163) * v)
+  const b = Math.round(175 + (255 - 175) * v)
+  return `rgb(${r}, ${g}, ${b})`
+}
 
 const buildOption = () => {
   const nodes = (props.nodes || []).map(n => ({
@@ -74,8 +80,8 @@ const buildOption = () => {
     },
     label: {
       show: true,
-      fontSize: tokenNumber('text-caption'),
-      color: tokenValue('ink')
+      fontSize: 12,
+      color: '#333'
     },
     // 存储原始数据供 popover 和 click 使用
     _raw: n
@@ -92,8 +98,7 @@ const buildOption = () => {
     label: {
       show: !!e.relation,
       formatter: e.relation || '',
-      fontSize: tokenNumber('text-caption'),
-      color: tokenValue('ink-secondary')
+      fontSize: 10
     }
   }))
 
@@ -197,43 +202,43 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .knowledge-map {
-  position:relative;
-  width:100%;
-  min-height:var(--chart-height);
-  background:var(--color-bg-1);
-  border:var(--stroke) solid var(--color-border);
-  border-radius:var(--radius-control);
-  overflow:hidden;
+  position: relative;
+  width: 100%;
+  min-height: 400px;
+  background: var(--color-bg-1);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  overflow: hidden;
 }
 
 .chart-container {
-  width:100%;
-  height:var(--chart-height);
+  width: 100%;
+  height: 400px;
 }
 
 .popover-anchor {
-  display:block;
+  display: block;
 }
 
 .node-popover {
-  display:flex;
-  flex-direction:column;
-  gap:var(--space-1);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .popover-name {
-  font-size:var(--text-caption);
-  font-weight: var(--weight-strong);
-  color:var(--color-text-1);
-  margin-bottom:calc(var(--space-1) / 2);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-text-1);
+  margin-bottom: 4px;
 }
 
 .popover-row {
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:var(--space-1);
-  font-size:var(--text-caption);
-  color:var(--color-text-2);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 13px;
+  color: var(--color-text-2);
 }
 </style>

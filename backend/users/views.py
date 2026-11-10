@@ -80,7 +80,7 @@ class RegisterView(generics.CreateAPIView):
         login(request, user)
         request.session.set_expiry(settings.SESSION_COOKIE_AGE)
         return Response({
-            'user': UserSerializer(user).data,
+            'user': UserSerializer(user, context={'request': request}).data,
             'message': '注册成功'
         }, status=status.HTTP_201_CREATED)
 
@@ -103,7 +103,7 @@ def login_view(request):
         login(request, user)
         request.session.set_expiry(settings.SESSION_COOKIE_AGE)
         return Response({
-            'user': UserSerializer(user).data,
+            'user': UserSerializer(user, context={'request': request}).data,
             'message': '登录成功'
         })
     else:
@@ -132,14 +132,14 @@ def logout_view(request):
 @permission_classes([IsAuthenticated])
 def profile_view(request):
     """获取当前用户信息"""
-    return Response(UserSerializer(request.user).data)
+    return Response(UserSerializer(request.user, context={'request': request}).data)
 
 
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])
 def profile_update_view(request):
     """更新用户信息"""
-    serializer = UserSerializer(request.user, data=request.data, partial=True)
+    serializer = UserSerializer(request.user, data=request.data, partial=True, context={'request': request})
     serializer.is_valid(raise_exception=True)
     password_changed = 'password' in serializer.validated_data
     user = serializer.save()
@@ -235,7 +235,7 @@ def admin_user_list_view(request):
 
     paginated_users = users[start:end]
 
-    serializer = UserSerializer(paginated_users, many=True)
+    serializer = UserSerializer(paginated_users, many=True, context={'request': request})
 
     return Response({
         'users': serializer.data,
@@ -264,11 +264,11 @@ def admin_user_delete_view(request, user_id):
 @permission_classes([IsAdminUser])
 def admin_user_create_view(request):
     """管理员 - 创建用户"""
-    serializer = AdminUserCreateSerializer(data=request.data)
+    serializer = AdminUserCreateSerializer(data=request.data, context={'request': request})
     serializer.is_valid(raise_exception=True)
     user = serializer.save()
     return Response({
-        'user': UserSerializer(user).data,
+        'user': UserSerializer(user, context={'request': request}).data,
         'message': '用户创建成功'
     }, status=status.HTTP_201_CREATED)
 
@@ -282,10 +282,10 @@ def admin_user_update_view(request, user_id):
     except CTFUser.DoesNotExist:
         return Response({'error': '用户不存在'}, status=404)
 
-    serializer = AdminUserUpdateSerializer(user, data=request.data, partial=True)
+    serializer = AdminUserUpdateSerializer(user, data=request.data, partial=True, context={'request': request})
     serializer.is_valid(raise_exception=True)
     serializer.save()
     return Response({
-        'user': UserSerializer(user).data,
+        'user': UserSerializer(user, context={'request': request}).data,
         'message': '用户更新成功'
     })

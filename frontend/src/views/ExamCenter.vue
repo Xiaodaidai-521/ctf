@@ -1,205 +1,1036 @@
 <template>
   <div class="exam-center-page">
-    <header class="exam-heading">
-      <div>
-        <p class="exam-eyebrow">{{ names.exams }} · 正式测评</p>
-        <h1>{{ names.exams }}</h1>
-        <p class="exam-subtitle">理论 + 实战的综合测评；练习在靶场，题内辅导先讲思路再练习。</p>
-      </div>
-      <router-link :to="recordsPath" class="records-link">
-        测评记录{{ recordCount === null ? '' : `（${recordCount}）` }}<AppIcon name="bi-chevron-right" />
-      </router-link>
-    </header>
-
-    <div v-if="dataLoading" class="page-state" role="status">正在读取测评状态…</div>
-    <div v-else-if="dataError" class="page-state is-error" role="alert">
-      {{ dataError }}<button type="button" class="text-action" @click="loadData">重新加载</button>
+    <div class="page-header">
+      <h1 class="page-title">测试中心</h1>
+      <p class="page-subtitle">参加理论考试和实战训练，检验你的学习成果</p>
     </div>
 
-    <div class="exam-layout">
-      <section class="exam-card" aria-labelledby="exam-card-heading">
-        <header class="card-heading">
-          <div>
-            <h2 id="exam-card-heading">综合测试</h2>
-            <p class="card-note">理论与实战各限时 180 分钟；完成理论后进入实战。</p>
-          </div>
-          <span class="status-badge" :class="`is-${statusKind}`">{{ statusLabel }}</span>
-        </header>
-
-        <dl class="exam-facts">
-          <div>
-            <dt>理论测试</dt>
-            <dd>30 单选 + 20 多选 + 20 判断 · 180 分钟</dd>
-          </div>
-          <div>
-            <dt>实战测试</dt>
-            <dd>3 简单 + 2 中等 + 1 困难 · 180 分钟</dd>
-          </div>
-          <div>
-            <dt>通过条件</dt>
-            <dd>以理论卷及格线与后台判定为准</dd>
-          </div>
-        </dl>
-
-        <div v-if="ongoingExamId" class="primary-actions">
-          <button type="button" class="btn btn-primary btn-block" :disabled="loading" @click="continueExam">
-            {{ loading ? '正在读取…' : '继续测评' }}
-          </button>
-          <button type="button" class="text-action danger" :disabled="loading" @click="abandonAndStartNew">
-            放弃当前测评并重新开始
-          </button>
-          <p class="action-note">放弃不可恢复；仅保留已提交的答案。</p>
+    <!-- 学习水平评级 -->
+    <div class="level-section">
+      <div class="level-card" :class="'level-' + level.grade.toLowerCase()">
+        <div class="level-grade">{{ level.grade }}</div>
+        <div class="level-info">
+          <div class="level-title">{{ level.title }}</div>
+          <div class="level-desc">{{ level.description }}</div>
         </div>
-        <div v-else class="primary-actions">
-          <button type="button" class="btn btn-primary btn-block" :disabled="loading || !statusLoaded" @click="startExam">
-            {{ loading ? '正在准备测评…' : '开始测评' }}
-          </button>
-          <p class="action-note">组卷由后台按题库条件完成；题库不足时不会生成不完整的测评。</p>
+        <div class="level-progress">
+          <div class="progress-label">
+            <template v-if="level.isTopLevel">已达到最高等级</template>
+            <template v-else>距离下一等级还需 {{ level.remainingScore }} 分</template>
+          </div>
+          <div class="progress-bar">
+            <div
+              class="progress-fill"
+              :style="{ width: level.progressPercent + '%' }"
+            ></div>
+          </div>
         </div>
+      </div>
+    </div>
 
-        <p v-if="actionError" class="page-state is-error" role="alert">{{ actionError }}</p>
-      </section>
+    <!-- 成绩趋势图 -->
+    <div class="chart-section">
+      <div class="section-header">
+        <h2 class="section-title">成绩趋势</h2>
+        <div class="section-subtitle">历次考试成绩变化</div>
+      </div>
+      <div class="chart-container">
+        <div ref="chartRef" class="chart"></div>
+        <div v-if="!hasExamHistory" class="no-data">
+          <div class="no-data-icon"><i class="bi bi-graph-up"></i></div>
+          <div class="no-data-text">暂无考试记录</div>
+          <div class="no-data-desc">完成考试后将显示成绩趋势图</div>
+        </div>
+      </div>
+    </div>
 
-      <aside class="exam-side" aria-labelledby="side-heading">
-        <h2 id="side-heading" class="side-title">怎么用这块</h2>
-        <ul class="side-list">
-          <li><strong>待考/可开始</strong><span>点击“开始测评”，从理论部分进入正式答题。</span></li>
-          <li><strong>进行中</strong><span>只显示“继续测评”，回到同一份卷子的已保存进度。</span></li>
-          <li><strong>记录区</strong><span>全部历史、筛选、逐题结果与等级趋势，不在这里复制一份。</span></li>
-        </ul>
-        <p class="side-note">正式答题页不提供题内辅导入口；不做答案提示，也不绕过服务端防辅导策略。</p>
-      </aside>
+    <!-- 考试统计卡片 -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon">
+          <i class="bi bi-journal-check"></i>
+        </div>
+        <div class="stat-content">
+          <div class="stat-value">{{ stats.total_exams }}</div>
+          <div class="stat-label">考试总数</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">
+          <i class="bi bi-check-circle"></i>
+        </div>
+        <div class="stat-content">
+          <div class="stat-value">{{ stats.passed_exams }}</div>
+          <div class="stat-label">通过考试</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">
+          <i class="bi bi-trophy"></i>
+        </div>
+        <div class="stat-content">
+          <div class="stat-value">{{ stats.average_score.toFixed(1) }}%</div>
+          <div class="stat-label">平均成绩</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">
+          <i class="bi bi-star"></i>
+        </div>
+        <div class="stat-content">
+          <div class="stat-value">{{ Number(stats.best_score || 0).toFixed(1) }}%</div>
+          <div class="stat-label">最高成绩</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 开始考试区域 -->
+    <div class="start-exam-section">
+      <div class="exam-info-card">
+        <div class="exam-info-header">
+          <h3 class="exam-info-title">综合测试</h3>
+          <div class="exam-info-badge">推荐</div>
+        </div>
+        <div class="exam-info-content">
+          <div class="exam-type">
+            <div class="type-item">
+              <div class="type-icon"><i class="bi bi-journal-text"></i></div>
+              <div class="type-info">
+                <div class="type-name">理论测试</div>
+                <div class="type-desc">30单选 + 20多选 + 20判断</div>
+              </div>
+            </div>
+            <div class="type-item">
+              <div class="type-icon"><i class="bi bi-terminal"></i></div>
+              <div class="type-info">
+                <div class="type-name">实战测试</div>
+                <div class="type-desc">3简单 + 2中等 + 1困难</div>
+              </div>
+            </div>
+          </div>
+          <div class="exam-tips">
+            <div class="tip-item"><i class="bi bi-clock"></i> 理论测试限时 180 分钟</div>
+            <div class="tip-item"><i class="bi bi-clock-history"></i> 实战测试限时 180 分钟</div>
+            <div class="tip-item"><i class="bi bi-arrow-right-square"></i> 完成理论测试后自动进入实战测试</div>
+          </div>
+        </div>
+        <div v-if="hasOngoingExam && ongoingExamId" class="ongoing-exam-actions">
+          <button
+            class="btn btn-primary btn-large btn-block"
+            @click="continueExam"
+          >
+            继续进行中的考试
+          </button>
+          <button
+            class="btn btn-outline btn-large btn-block"
+            @click="abandonAndStartNew"
+          >
+            放弃当前考试并开始新考试
+          </button>
+          <div class="ongoing-warning">
+            <i class="bi bi-exclamation-triangle"></i>
+            放弃当前考试将无法恢复
+          </div>
+        </div>
+        <button
+          v-else
+          class="btn btn-primary btn-large btn-block"
+          @click="startExam"
+          :disabled="loading"
+        >
+          <span v-if="loading">正在准备考试...</span>
+          <span v-else>开始测试</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- 最近考试记录 -->
+    <div class="history-section">
+      <div class="section-header">
+        <h2 class="section-title">最近考试记录</h2>
+        <router-link to="/exam-history" class="view-all-link">查看全部 →</router-link>
+      </div>
+      <div class="history-list">
+        <div v-if="recentRecords.length === 0" class="no-history">
+          <div class="no-history-icon"><i class="bi bi-clipboard2-check"></i></div>
+          <div class="no-history-text">暂无考试记录</div>
+          <div class="no-history-desc">开始测试后，考试记录将显示在这里</div>
+        </div>
+        <div
+          v-for="record in recentRecords"
+          :key="record.id"
+          class="history-item"
+          @click="viewResult(record.id)"
+        >
+          <div class="history-left">
+            <div class="history-type">{{ getExamTypeText(record.exam_type) }}</div>
+            <div class="history-title">{{ record.exam_title || '未命名考试' }}</div>
+            <div class="history-time">{{ formatTime(record.created_at) }}</div>
+          </div>
+          <div class="history-right">
+            <div class="history-score" :class="{ 'passed': record.is_passed, 'failed': !record.is_passed }">
+              {{ record.score }}分
+            </div>
+            <div class="history-status">
+              {{ record.is_passed ? '通过' : '未通过' }}
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { ref, onMounted, onUnmounted, computed, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
-import AppIcon from '@/shared/design/AppIcon.vue'
-import { names } from '@/shared/navigation/names'
-import { RECORDS_PATH, examsApi } from '@/learning/exams/api.js'
+import * as echarts from 'echarts'
+import api from '@/api'
+import { useUserStore } from '@/store/user'
 
 const router = useRouter()
-const recordsPath = RECORDS_PATH
+const userStore = useUserStore()
+
+const chartRef = ref(null)
+let scoreChart = null
 const loading = ref(false)
-const dataLoading = ref(true)
-const dataError = ref('')
-const actionError = ref('')
-const statusLoaded = ref(false)
+const stats = ref({
+  total_exams: 0,
+  theory_exams: 0,
+  practice_exams: 0,
+  passed_exams: 0,
+  average_score: 0,
+  best_score: 0,
+})
+
+const level = ref({
+  grade: 'D',
+  title: '初学者',
+  description: '继续努力，多加练习',
+  currentScore: 0,
+  nextLevelScore: 60,
+  progressPercent: 0,
+})
+
+const scoreTrend = ref({
+  dates: [],
+  scores: [],
+  theory_scores: [],
+  practice_scores: [],
+})
+
+const recentRecords = ref([])
+const hasExamHistory = ref(false)
 const ongoingExamId = ref(null)
-const recordCount = ref(null)
+const hasOngoingExam = computed(() => !!ongoingExamId.value)
 
-// 主操作只由真实进行中记录决定，不根据本地“点过开始”推断。
-const statusKind = computed(() => ongoingExamId.value ? 'ongoing' : 'idle')
-const statusLabel = computed(() => ongoingExamId.value ? '进行中' : statusLoaded.value ? '待考' : '状态未读取')
+// 学习等级定义
+const defaultLevelDefinitions = [
+  { grade: 'S', title: '大师', description: 'CTF 界的传奇人物', minScore: 90 },
+  { grade: 'A', title: '专家', description: 'CTF 领域的顶尖高手', minScore: 80 },
+  { grade: 'B', title: '高手', description: '经验丰富的安全专家', minScore: 70 },
+  { grade: 'C', title: '进阶', description: '具备一定的安全技能', minScore: 60 },
+  { grade: 'D', title: '初学者', description: '继续努力，多加练习', minScore: 0 },
+]
+const levelDefinitions = ref(defaultLevelDefinitions)
 
-async function loadData() {
-  dataLoading.value = true
-  dataError.value = ''
-  statusLoaded.value = false
-  try {
-    // 只读进行中记录；统计、趋势与最近记录在记录区读取。
-    const [records, history] = await Promise.all([
-      examsApi.records({ status: 'in_progress' }),
-      examsApi.myHistory(),
-    ])
-    const list = Array.isArray(records?.results) ? records.results : []
-    ongoingExamId.value = list[0]?.id ?? null
-    recordCount.value = Array.isArray(history?.records) ? history.records.length : null
-    statusLoaded.value = true
-  } catch {
-    dataError.value = '测评状态暂时未能读取，请重试；不会据此认为你没有进行中的测评。'
-  } finally {
-    dataLoading.value = false
+const normalizePercent = (value) => {
+  const n = Number(value)
+  if (!Number.isFinite(n)) return 0
+  return Math.max(0, Math.min(100, n))
+}
+
+// 计算学习等级
+const calculateLevel = (averageScore) => {
+  const score = normalizePercent(averageScore)
+  const definitions = [...levelDefinitions.value].sort((a, b) => Number(b.minScore || 0) - Number(a.minScore || 0))
+  for (const levelDef of definitions) {
+    const minScore = normalizePercent(levelDef.minScore)
+    if (score >= minScore) {
+      const nextLevelIndex = definitions.indexOf(levelDef) - 1
+      const nextLevel = nextLevelIndex >= 0 ? definitions[nextLevelIndex] : null
+      const nextLevelScore = nextLevel ? normalizePercent(nextLevel.minScore) : 100
+      const rawProgress = nextLevel
+        ? ((score - minScore) / Math.max(1, nextLevelScore - minScore)) * 100
+        : 100
+
+      return {
+        ...levelDef,
+        currentScore: score,
+        nextLevelScore,
+        remainingScore: nextLevel ? Math.max(0, Math.ceil(nextLevelScore - score)) : 0,
+        isTopLevel: !nextLevel,
+        progressPercent: normalizePercent(rawProgress),
+      }
+    }
+  }
+  const fallback = definitions[definitions.length - 1] || defaultLevelDefinitions[defaultLevelDefinitions.length - 1]
+  return {
+    ...fallback,
+    currentScore: score,
+    nextLevelScore: 60,
+    remainingScore: Math.max(0, Math.ceil(60 - score)),
+    isTopLevel: false,
+    progressPercent: normalizePercent(score),
   }
 }
 
-const continueExam = () => {
-  if (ongoingExamId.value) router.push(`/exam-taking/${ongoingExamId.value}`)
-}
-
-// 放弃先显式确认；取消不写入任何状态。
-const abandonAndStartNew = async () => {
-  if (!confirm('确定要放弃当前测评吗？此操作无法撤销！')) return
-  loading.value = true
-  actionError.value = ''
+// 初始化图表
+const loadLevelDefinitions = async () => {
   try {
-    await examsApi.abandonComprehensive()
-    ongoingExamId.value = null
-    await startExam()
-  } catch {
-    actionError.value = '未能确认测评已放弃；请重新加载后再试，当前进行中记录不会被当作已完成。'
-  } finally {
-    loading.value = false
-  }
-}
-
-const startExam = async () => {
-  loading.value = true
-  actionError.value = ''
-  try {
-    const res = await examsApi.startComprehensive()
-    if (res?.theory_record?.id) {
-      router.push(`/exam-taking/${res.theory_record.id}`)
-    } else {
-      actionError.value = '后台未返回可开始的测评记录，请刷新后重试。'
+    const data = await api.exams.levelRules()
+    if (Array.isArray(data) && data.length > 0) {
+      levelDefinitions.value = data
     }
   } catch (error) {
-    const existingRecord = error?.response?.data?.exam_record_id
-    if (existingRecord) {
-      ongoingExamId.value = existingRecord
-      actionError.value = '你还有进行中的测评，可以继续完成，或确认放弃后重新开始。'
-    } else {
-      actionError.value = '测评尚未创建成功。请稍后重试；若仍失败，请联系教师检查题库是否满足组卷条件。'
+    console.error('Failed to load exam level rules:', error)
+  }
+}
+
+const initChart = () => {
+  if (!chartRef.value || !hasExamHistory.value) return
+
+  if (!scoreChart) scoreChart = echarts.init(chartRef.value)
+  const option = {
+    color: ['#b7352d', '#4f7c52', '#d58b25'],
+    tooltip: {
+      trigger: 'axis',
+      backgroundColor: 'rgba(255, 250, 242, 0.96)',
+      borderColor: '#e4d8c8',
+      borderWidth: 1,
+      textStyle: { color: '#181713' },
+      valueFormatter: (value) => (value === null || value === undefined ? '-' : `${value}%`),
+    },
+    legend: {
+      data: ['总分', '理论', '实战'],
+      bottom: 0,
+      icon: 'roundRect',
+      itemWidth: 18,
+      itemHeight: 10,
+      textStyle: { color: '#6f665d' },
+    },
+    grid: {
+      left: 42,
+      right: 24,
+      top: 28,
+      bottom: 56,
+      containLabel: true,
+    },
+    xAxis: {
+      type: 'category',
+      boundaryGap: false,
+      data: scoreTrend.value.dates,
+      axisTick: { show: false },
+      axisLine: { lineStyle: { color: '#e4d8c8' } },
+      axisLabel: {
+        color: '#8a8178',
+        fontSize: 11,
+        hideOverlap: true,
+        formatter: (value) => (value && value.length > 5 ? value.slice(5) : value),
+      },
+    },
+    yAxis: {
+      type: 'value',
+      name: '成绩',
+      min: 0,
+      max: 100,
+      axisLabel: {
+        color: '#8a8178',
+        formatter: '{value}%',
+      },
+      splitLine: { lineStyle: { color: '#ece2d6' } },
+    },
+    series: [
+      {
+        name: '总分',
+        type: 'line',
+        data: scoreTrend.value.scores,
+        smooth: true,
+        symbolSize: 7,
+        lineStyle: { width: 3 },
+        areaStyle: { color: 'rgba(183, 53, 45, 0.10)' },
+      },
+      {
+        name: '理论',
+        type: 'line',
+        data: scoreTrend.value.theory_scores,
+        smooth: true,
+        symbolSize: 7,
+        lineStyle: { width: 2 },
+        connectNulls: false,
+      },
+      {
+        name: '实战',
+        type: 'line',
+        data: scoreTrend.value.practice_scores,
+        smooth: true,
+        symbolSize: 7,
+        lineStyle: { width: 2 },
+        connectNulls: false,
+      },
+    ],
+  }
+  scoreChart.setOption(option, true)
+}
+
+const resizeChart = () => scoreChart?.resize()
+
+const fillMissingTrendSeries = (values, length) => {
+  const series = Array.isArray(values) ? values.slice(0, length) : []
+  while (series.length < length) series.push(null)
+
+  const firstValue = series.find((value) => value !== null && value !== undefined)
+  let lastValue = firstValue ?? 0
+
+  return series.map((value) => {
+    if (value !== null && value !== undefined) {
+      lastValue = value
+      return value
     }
+    return lastValue
+  })
+}
+
+const normalizeTrend = (trend) => {
+  const dates = Array.isArray(trend?.dates) ? trend.dates : []
+  return {
+    dates,
+    scores: Array.isArray(trend?.scores) ? trend.scores : [],
+    theory_scores: Array.isArray(trend?.theory_scores) ? trend.theory_scores : [],
+    practice_scores: fillMissingTrendSeries(trend?.practice_scores, dates.length),
+  }
+}
+
+// 加载数据
+const loadData = async () => {
+  try {
+    // 加载统计数据
+    await loadLevelDefinitions()
+
+    const statsRes = await api.exams.statistics()
+    stats.value = statsRes
+
+    // 计算学习等级
+    level.value = calculateLevel(stats.value.average_score)
+
+    // 加载成绩趋势
+    const trendRes = await api.exams.scoreTrend()
+    scoreTrend.value = normalizeTrend(trendRes)
+    hasExamHistory.value = scoreTrend.value.dates.length > 0
+
+    // 先渲染趋势图，避免后续历史记录/进行中考试接口失败时留下空白图表区域
+    await nextTick()
+    initChart()
+
+    // 加载最近考试记录
+    const historyRes = await api.exams.myHistory()
+    recentRecords.value = historyRes.records.slice(0, 5) // 只显示最近5条
+
+    // 检查是否有进行中的考试
+    const recordsRes = await api.exams.records({ status: 'in_progress' })
+    if (recordsRes.results && recordsRes.results.length > 0) {
+      ongoingExamId.value = recordsRes.results[0].id
+    }
+  } catch (error) {
+    console.error('加载数据失败:', error)
+  }
+}
+
+// 继续进行中的考试
+const continueExam = () => {
+  if (ongoingExamId.value) {
+    router.push(`/exam-taking/${ongoingExamId.value}`)
+  }
+}
+
+// 放弃当前考试并开始新考试
+const abandonAndStartNew = async () => {
+  if (!confirm('确定要放弃当前考试吗？此操作无法撤销！')) {
+    return
+  }
+
+  loading.value = true
+  try {
+    // 调用放弃考试 API
+    await api.exams.startComprehensiveExam({ abandon: true })
+
+    // 清空进行中考试 ID
+    ongoingExamId.value = null
+    hasOngoingExam.value = false
+
+    // 开始新考试
+    await startExam()
+  } catch (error) {
+    console.error('放弃考试失败:', error)
+    alert(error.response?.data?.error || '操作失败，请稍后重试')
   } finally {
     loading.value = false
   }
 }
 
-onMounted(loadData)
-defineExpose({
-  loadData, startExam, abandonAndStartNew, continueExam,
-  loading, dataLoading, dataError, actionError, ongoingExamId, recordCount, statusLabel,
+// 开始考试
+const startExam = async () => {
+  loading.value = true
+  try {
+    const res = await api.exams.startComprehensiveExam()
+    if (res.theory_record) {
+      router.push(`/exam-taking/${res.theory_record.id}`)
+    }
+  } catch (error) {
+    console.error('创建考试失败:', error)
+    alert(error.response?.data?.error || '创建考试失败，请稍后重试')
+  } finally {
+    loading.value = false
+  }
+}
+
+// 查看结果
+const viewResult = (recordId) => {
+  router.push(`/exam-result/${recordId}`)
+}
+
+// 格式化时间
+const formatTime = (timeString) => {
+  const date = new Date(timeString)
+  const now = new Date()
+  const diff = now - date
+
+  if (diff < 60000) {
+    return '刚刚'
+  } else if (diff < 3600000) {
+    return `${Math.floor(diff / 60000)}分钟前`
+  } else if (diff < 86400000) {
+    return `${Math.floor(diff / 3600000)}小时前`
+  } else if (diff < 604800000) {
+    return `${Math.floor(diff / 86400000)}天前`
+  } else {
+    return date.toLocaleDateString('zh-CN')
+  }
+}
+
+// 获取考试类型文本
+const getExamTypeText = (type) => {
+  const map = {
+    'theory': '理论考试',
+    'practice': '实战考试',
+  }
+  return map[type] || '考试'
+}
+
+onMounted(() => {
+  loadData()
+  window.addEventListener('resize', resizeChart)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', resizeChart)
+  scoreChart?.dispose()
 })
 </script>
+
 <style scoped>
-.exam-center-page { width: min(var(--page-width), calc(100% - var(--page-gutter) * 2)); margin: 0 auto; padding: var(--space-3) 0 var(--space-6); color: var(--ink); }
-.exam-heading { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: var(--space-2); margin-bottom: var(--space-3); }
-.exam-eyebrow { margin: 0 0 2px; color: var(--ink-secondary); font-size: var(--text-caption); }
-.exam-heading h1 { margin: 0 0 var(--space-1); font-size: var(--text-page); line-height: var(--leading-tight); }
-.exam-subtitle { margin: 0; color: var(--ink-secondary); font-size: var(--text-caption); }
-.records-link { display: inline-flex; align-items: center; gap: var(--space-1); min-height: var(--control-height); color: var(--action); font-size: var(--text-caption); text-decoration: none; }
-.page-state { margin-bottom: var(--space-2); padding: var(--space-2); border-radius: var(--radius-control); background: var(--surface-muted); color: var(--ink-secondary); }
-.page-state.is-error { background: var(--negative-soft); color: var(--negative); }
-.exam-layout { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: var(--space-2); align-items: start; }
-.exam-card, .exam-side { min-width: 0; padding: var(--space-3); border-radius: var(--radius-panel); background: var(--surface); }
-.card-heading { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: var(--space-2); margin-bottom: var(--space-2); }
-.card-heading h2 { margin: 0 0 var(--space-1); font-size: var(--text-section); }
-.card-note, .action-note, .side-note { margin: 0; color: var(--ink-secondary); font-size: var(--text-caption); }
-.status-badge { flex: none; padding: 2px var(--space-1); border-radius: var(--radius-pill); background: var(--surface-muted); color: var(--ink-secondary); font-size: var(--text-caption); }
-.status-badge.is-idle { background: var(--action-soft); color: var(--action); }
-.status-badge.is-ongoing { background: var(--warning-soft); color: var(--warning); }
-.exam-facts { display: grid; gap: var(--space-1); margin: 0 0 var(--space-3); padding: var(--space-2) 0; border-top: var(--stroke) solid var(--line); border-bottom: var(--stroke) solid var(--line); }
-.exam-facts div { display: grid; grid-template-columns: minmax(calc(var(--space-8) + var(--space-2)), auto) minmax(0, 1fr); gap: var(--space-2); }
-.exam-facts dt { color: var(--ink-secondary); font-size: var(--text-caption); }
-.exam-facts dd { margin: 0; overflow-wrap: anywhere; }
-.primary-actions { display: grid; gap: var(--space-1); }
-.btn { display: inline-flex; align-items: center; justify-content: center; gap: var(--space-1); min-height: var(--control-height); padding: var(--space-1) var(--space-2); border: var(--stroke) solid var(--line-strong); border-radius: var(--radius-control); background: var(--surface); color: var(--ink); font: inherit; cursor: pointer; }
-.btn-block { width: 100%; }
-.btn-primary { border-color: var(--action); background: var(--action); color: var(--on-action); }
-.btn:disabled { border-color: var(--line); background: var(--disabled); color: var(--disabled-ink); cursor: not-allowed; }
-.text-action { justify-self: start; padding: 0; border: 0; background: transparent; color: var(--action); font: inherit; cursor: pointer; }
-.text-action.danger { color: var(--negative); }
-.exam-side { display: grid; gap: var(--space-1); }
-.side-title { margin: 0; font-size: var(--text-card); }
-.side-list { display: grid; gap: var(--space-1); margin: 0; padding: 0; list-style: none; }
-.side-list li { display: grid; gap: 2px; padding-top: var(--space-1); border-top: var(--stroke) solid var(--line); }
-.side-list strong { font-size: var(--text-caption); }
-.side-list span { color: var(--ink-secondary); font-size: var(--text-caption); }
-.side-note { padding-top: var(--space-1); border-top: var(--stroke) solid var(--line); color: var(--ink-muted); }
-.records-link:focus-visible, .btn:focus-visible, .text-action:focus-visible { outline: var(--focus-width) solid var(--action); outline-offset: var(--focus-offset); }
-.is-compact .exam-layout { grid-template-columns: minmax(0, 1fr); }
-.is-compact .exam-facts div { grid-template-columns: minmax(0, 1fr); gap: 2px; }
+.exam-center-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 44px 24px 32px;
+}
+
+.page-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.page-title {
+  font-size: 44px;
+  line-height: 1;
+  font-weight: 950;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.page-subtitle {
+  font-size: 16px;
+  color: var(--text-secondary);
+}
+
+/* 学习等级卡片 */
+.level-section {
+  margin-bottom: 32px;
+}
+
+.level-card {
+  background: var(--bg-paper-2);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 28px;
+  box-shadow: 10px 10px 0 rgba(24, 23, 19, 0.06);
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) minmax(240px, 360px);
+  align-items: center;
+  gap: 24px;
+  overflow: hidden;
+}
+
+.level-grade {
+  width: 88px;
+  height: 88px;
+  border-radius: 8px;
+  background: var(--bg-dark);
+  color: var(--secondary-color);
+  border: 1px solid rgba(24, 23, 19, 0.2);
+  font-size: 42px;
+  font-weight: 950;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.level-info {
+  min-width: 0;
+}
+
+.level-title {
+  font-size: 24px;
+  font-weight: 950;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.level-desc {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-bottom: 12px;
+}
+
+.level-progress {
+  min-width: 0;
+}
+
+.progress-label {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.progress-bar {
+  height: 10px;
+  background: #fffaf2;
+  border: 1px solid rgba(24, 23, 19, 0.12);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--primary-color);
+  border-radius: 0;
+  transition: width 0.3s;
+}
+
+/* 图表区域 */
+.chart-section {
+  background: #fffaf2bd;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 28px;
+  box-shadow: 10px 10px 0 rgba(24, 23, 19, 0.04);
+  margin-bottom: 32px;
+}
+
+.section-header {
+  margin-bottom: 24px;
+}
+
+.section-title {
+  font-size: 20px;
+  font-weight: 950;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.section-subtitle {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.chart-container {
+  min-height: 320px;
+  position: relative;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: #fffaf2a8;
+  padding: 12px 12px 4px;
+}
+
+.chart {
+  width: 100%;
+  height: 340px;
+}
+
+.no-data {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+}
+
+.no-data-icon,
+.no-history-icon {
+  width: 72px;
+  height: 72px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(24, 23, 19, 0.16);
+  border-radius: 8px;
+  background: #fffaf2bd;
+  color: var(--primary-color);
+  font-size: 30px;
+  margin-bottom: 16px;
+}
+
+.no-data-text {
+  font-size: 16px;
+  margin-bottom: 8px;
+}
+
+.no-data-desc {
+  font-size: 14px;
+}
+
+/* 统计卡片 */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 20px;
+  margin-bottom: 32px;
+}
+
+.stat-card {
+  background: #fffaf2bd;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 24px;
+  box-shadow: 8px 8px 0 rgba(24, 23, 19, 0.04);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.stat-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 8px;
+  border: 1px solid rgba(24, 23, 19, 0.16);
+  background: #fffaf2bd;
+  color: var(--primary-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+}
+
+.stat-content {
+  flex: 1;
+}
+
+.stat-value {
+  font-size: 28px;
+  font-weight: 950;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.stat-label {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+/* 开始考试区域 */
+.start-exam-section {
+  margin-bottom: 32px;
+}
+
+.exam-info-card {
+  background: #fffaf2bd;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 32px;
+  box-shadow: 10px 10px 0 rgba(24, 23, 19, 0.05);
+}
+
+.exam-info-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.exam-info-title {
+  font-size: 24px;
+  font-weight: 950;
+  color: var(--text-primary);
+}
+
+.exam-info-badge {
+  background: var(--bg-dark);
+  color: #fbf7ef;
+  padding: 6px 14px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 850;
+}
+
+.exam-type {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.type-item {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px;
+  background: #fffaf294;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+}
+
+.type-icon {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(24, 23, 19, 0.16);
+  border-radius: 6px;
+  background: #fffaf2bd;
+  color: var(--primary-color);
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.type-name {
+  font-size: 16px;
+  font-weight: 950;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.type-desc {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.exam-tips {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 24px;
+  padding: 16px;
+  background: rgba(239, 196, 107, 0.16);
+  border: 1px solid rgba(239, 196, 107, 0.35);
+  border-radius: 6px;
+}
+
+.tip-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #785313;
+  font-weight: 700;
+}
+
+.ongoing-tip {
+  margin-top: 12px;
+  padding: 12px;
+  background: rgba(183, 53, 45, 0.08);
+  color: var(--primary-color);
+  border: 1px solid rgba(183, 53, 45, 0.18);
+  border-radius: 6px;
+  text-align: center;
+  font-size: 14px;
+}
+
+.ongoing-exam-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ongoing-warning {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px;
+  background: rgba(183, 53, 45, 0.08);
+  color: var(--primary-color);
+  border: 1px solid rgba(183, 53, 45, 0.18);
+  border-radius: 6px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.btn-large {
+  padding: 16px 32px;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+/* 历史记录 */
+.history-section {
+  background: #fffaf2bd;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 32px;
+  box-shadow: 10px 10px 0 rgba(24, 23, 19, 0.04);
+}
+
+.view-all-link {
+  color: var(--primary-color);
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.no-history {
+  padding: 48px;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.no-history-text {
+  font-size: 16px;
+  margin-bottom: 8px;
+}
+
+.no-history-desc {
+  font-size: 14px;
+}
+
+.history-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px;
+  background: #fffaf294;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.history-item:hover {
+  background: var(--bg-paper-2);
+  transform: translateX(4px);
+}
+
+.history-left {
+  flex: 1;
+}
+
+.history-type {
+  display: inline-block;
+  padding: 4px 12px;
+  background: var(--bg-dark);
+  color: #fbf7ef;
+  border-radius: 4px;
+  font-size: 12px;
+  margin-bottom: 8px;
+}
+
+.history-title {
+  font-size: 16px;
+  font-weight: 950;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.history-time {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.history-right {
+  text-align: right;
+}
+
+.history-score {
+  font-size: 24px;
+  font-weight: 950;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.history-score.passed {
+  color: var(--success-color);
+}
+
+.history-score.failed {
+  color: var(--primary-color);
+}
+
+.history-status {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+@media (max-width: 820px) {
+  .exam-center-page {
+    padding: 18px;
+  }
+
+  .level-card {
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .level-progress {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+
+  .progress-label {
+    text-align: left;
+  }
+
+  .chart-section,
+  .history-section,
+  .exam-info-card {
+    padding: 20px;
+  }
+}
+
+@media (max-width: 560px) {
+  .level-card {
+    grid-template-columns: 1fr;
+    justify-items: start;
+  }
+
+  .level-grade {
+    width: 72px;
+    height: 72px;
+    font-size: 34px;
+  }
+
+  .exam-type {
+    flex-direction: column;
+  }
+}
 </style>

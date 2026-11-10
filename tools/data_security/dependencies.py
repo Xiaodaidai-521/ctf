@@ -25,6 +25,8 @@ EXTERNAL = {
     'B': {'django', 'cryptography', 'openpyxl', 'httpx', 'requests', 'openai', 'anthropic'},
 }
 LEGACY_PORTS = ('mainline1.parsing', 'mainline1.planning', 'controlled_export.transformations')
+BOOTSTRAP_MODULES = ('ctf_backend.security_bootstrap', 'controlled_export_service.security_bootstrap',
+                     'tasks.controlled-export-execution.controlled_export_service.security_bootstrap')
 PHASE2_MODULES = frozenset({
     'data_security.core', 'data_security.core.crypto', 'data_security.core.redaction', 'data_security.core.policy',
     'data_security.application', 'data_security.application.protection', 'data_security.application.crypto_service',
@@ -206,6 +208,258 @@ PHASE5_IO_STDLIB = {
     'data_security.adapters.tabular.parsed_artifacts': {'unicodedata'},
 }
 
+PHASE6_MODULES = PHASE5_MODULES | frozenset({
+    'controlled_export_service.security_bootstrap',
+    'tasks.controlled-export-execution.controlled_export_service.security_bootstrap',
+    'data_security.adapters.persistence.quota', 'data_security.adapters.persistence.uow',
+    'data_security.adapters.persistence.risk', 'data_security.adapters.persistence.private_store',
+    'data_security.application.reports', 'data_security.application.table_reports',
+    'data_security.application.export_flow', 'data_security.application.canary',
+    'data_security.application.private_files', 'data_security.application.backup_retention',
+    'data_security.application.legacy_archive', 'data_security.application.backup_recovery',
+    'data_security.adapters.persistence.private_maintenance', 'data_security.adapters.persistence.recovery_state',
+    'data_security.adapters.persistence.recovery_verifier', 'data_security.adapters.persistence.executor_recovery',
+    'data_security.adapters.persistence.migrations.0011_privatefileoperation_legacy_sources',
+    'data_security.adapters.persistence.canary_catalog', 'data_security.adapters.persistence.canary_targets',
+    'data_security.adapters.persistence.migrations.0012_canaryregistration',
+    'data_security.adapters.django.canary_tools', 'data_security.adapters.django.uploads',
+    'data_security.adapters.django.recovery_ingress',
+    'data_security.adapters.django.private_ingress', 'data_security.adapters.django.export_recovery',
+    'data_security.adapters.django.export_delivery', 'data_security.adapters.persistence.export_delivery',
+    'data_security.adapters.django.private_files', 'data_security.adapters.persistence.file_operations',
+    'data_security.adapters.persistence.file_shares',
+    'data_security.adapters.persistence.migrations.0010_privatefileoperation',
+    'data_security.adapters.persistence.migrations.0009_export_binding',
+    'data_security.adapters.persistence.report_records', 'data_security.adapters.persistence.recovery',
+    'data_security.adapters.persistence.legacy_archive', 'data_security.adapters.persistence.export_plans',
+    'data_security.adapters.persistence.migrations.0008_exportplanapproval',
+    'data_security.adapters.persistence.migrations.0007_recoverypermission',
+    'data_security.adapters.persistence.migrations.0002_quota_execution',
+    'data_security.adapters.persistence.migrations.0003_private_object',
+    'data_security.adapters.persistence.migrations.0004_export_report',
+    'data_security.adapters.persistence.migrations.0005_delivery_receipt',
+    'data_security.adapters.persistence.migrations.0006_preparation_fence',
+})
+PHASE6_PACKAGES = PHASE5_PACKAGES
+PHASE6_LEGACY = {
+    **PHASE5_LEGACY,
+    'audit.models': (*PHASE5_LEGACY['audit.models'], 'data_security.contracts'),
+    'tasks.controlled-export-execution.controlled_export.views': ('data_security.contracts',),
+    'audit.recovery_permissions': ('data_security.contracts',),
+    'audit.legacy_archives': ('data_security.contracts',),
+    'audit.export_plans': ('data_security.contracts',),
+    'resources.private_uploads': ('data_security.contracts',),
+    'resources.export_sources': ('data_security.contracts',),
+    'export_risk.column_authority': ('data_security.contracts',),
+    'resources.serializers': ('data_security.contracts', 'data_security.adapters.django.private_files'),
+    'resources.views': ('data_security.contracts', 'data_security.adapters.django.private_files'),
+    'feedback_center.private_uploads': ('data_security.contracts',),
+    'feedback_center.views': ('data_security.contracts', 'data_security.adapters.django.private_files'),
+}
+PHASE6_STARTUP = {
+    **PHASE3_STARTUP,
+    'ctf_backend.asgi': {'ctf_backend.security_bootstrap.guard_private_upload_asgi'},
+    'tasks.controlled-export-execution.controlled_export.apps': {
+        'controlled_export_service.security_bootstrap.start_application'},
+    'tasks.controlled-export-execution.controlled_export_service.asgi': {
+        'controlled_export_service.security_bootstrap.guard_private_upload_asgi'},
+}
+PHASE6_EXTERNAL = {
+    **PHASE5_EXTERNAL,
+    'tasks.controlled-export-execution.controlled_export_service.security_bootstrap': {
+        'django.conf.settings', 'controlled_export.services.execute_authorized_export',
+        'controlled_export.services.observe_private_preparation',
+        'controlled_export.services.inspect_private_preparation'},
+    'data_security.adapters.persistence.executor_recovery': {
+        'django.db.DatabaseError', 'django.db.connection', 'django.db.transaction',
+        'controlled_export.errors.ControlledExportError', 'controlled_export.models.DeliveryAttempt',
+        'controlled_export.models.ExecutionAttempt', 'controlled_export.models.ExportExecution',
+        'controlled_export.models.OutboxEvent', 'controlled_export.models.ProtectedArtifact', 'controlled_export.models.ShareGrant'},
+    'data_security.adapters.django.private_ingress': {
+        'django.core.handlers.asgi.get_script_prefix', 'django.core.handlers.asgi.ASGIHandler',
+        'django.core.exceptions.RequestAborted', 'django.core.exceptions.RequestDataTooBig', 'django.http.HttpResponse'},
+    'data_security.adapters.django.recovery_ingress': {'django.http.HttpResponse'},
+    'data_security.adapters.django.private_files': {
+        'django.http.HttpResponse', 'django.utils.http.content_disposition_header', 'django.urls.path',
+        'rest_framework.decorators.api_view', 'rest_framework.decorators.permission_classes',
+        'rest_framework.permissions.IsAuthenticated', 'rest_framework.response.Response'},
+    'data_security.adapters.django.export_delivery': {
+        'django.urls.path', 'rest_framework.decorators.api_view', 'rest_framework.decorators.permission_classes',
+        'rest_framework.permissions.IsAuthenticated', 'rest_framework.response.Response'},
+    'data_security.adapters.persistence.canary_catalog': {'django.db.models'},
+    'data_security.adapters.persistence.canary_targets': {
+        'django.db.DatabaseError', 'django.db.connection', 'django.db.transaction',
+        'challenges.models.Challenge', 'legal_kb.models.LegalDocument',
+        'resources.models.ResourceCache', 'users.models.CTFUser'},
+    'data_security.adapters.persistence.migrations.0012_canaryregistration': {'django.db.models', 'django.db.migrations'},
+    'data_security.adapters.persistence.file_operations': {'django.db.connection', 'django.db.transaction'},
+    'data_security.adapters.persistence.file_shares': {'django.db.DatabaseError', 'django.db.connection', 'django.db.transaction'},
+    'data_security.adapters.persistence.migrations.0010_privatefileoperation': {'django.db.models', 'django.db.migrations'},
+    'ctf_backend.security_bootstrap': PHASE5_EXTERNAL['ctf_backend.security_bootstrap'] | {
+        'agent_runtime.gateway.AgentGateway',
+        'resources.private_uploads.ResourcePrivateUploads',
+        'feedback_center.private_uploads.FeedbackPrivateUploads',
+        'audit.recovery_permissions.RecoveryPermissionOwner', 'audit.legacy_archives.LegacyArchiveOwner',
+        'audit.export_plans.ExportPlanOwner', 'resources.export_sources.ResourceExportSources',
+        'export_risk.column_authority.ColumnRiskOwner', 'export_risk.column_authority.freeze_request',
+        'export_risk.contracts.SourceMode'},
+    'data_security.adapters.django.uploads': {
+        'django.core.exceptions.RequestDataTooBig', 'django.core.exceptions.TooManyFilesSent',
+        'django.core.files.uploadedfile.InMemoryUploadedFile',
+        'django.core.files.uploadhandler.FileUploadHandler', 'django.core.files.uploadhandler.StopFutureHandlers',
+        'django.http.multipartparser.MultiPartParserError',
+    },
+    'data_security.adapters.persistence.audit': PHASE5_EXTERNAL['data_security.adapters.persistence.audit'] | {
+        'audit.models.AuthenticatedAuditEntry', 'django.db.connection'},
+    'data_security.adapters.persistence.legacy_archive': {
+        'django.db.DatabaseError', 'django.db.connection', 'django.db.transaction', 'django.db.models.Q',
+        'audit.models.AuditLedgerEntry', 'audit.models.AuditLedgerLock', 'audit.models.SecurityAuditRecord',
+        'audit.services.AuditLedgerService',
+    },
+    'data_security.adapters.persistence.backup': PHASE5_EXTERNAL['data_security.adapters.persistence.backup'] | {'psycopg2.sql'},
+    'data_security.adapters.persistence.private_maintenance': {'django.db.connection', 'django.db.transaction'},
+    'data_security.adapters.persistence.recovery_verifier': {
+        'django.db.DatabaseError', 'django.db.connection', 'django.db.transaction', 'django.db.models.Q',
+        'audit.models.AuditLedgerEntry', 'audit.models.AuditLedgerLock', 'audit.models.SecurityAuditRecord',
+        'audit.services.AuditLedgerService', 'export_quota.models.QuotaBucket', 'export_quota.models.QuotaReservation',
+        'feedback_center.models.FeedbackAttachment', 'resources.models.Resource'},
+    'data_security.adapters.persistence.migrations.0011_privatefileoperation_legacy_sources': {
+        'django.db.models', 'django.db.migrations'},
+    'data_security.adapters.persistence.quota': {
+        'django.db.DatabaseError', 'django.db.IntegrityError', 'django.db.transaction', 'django.utils.timezone',
+        'export_quota.services.QuotaConflict', 'export_quota.services.QuotaError',
+        'export_quota.services.QuotaExceeded', 'export_quota.services.QuotaService',
+    },
+    'data_security.adapters.persistence.uow': {'django.db.transaction'},
+    'data_security.adapters.persistence.recovery': {
+        'django.db.DatabaseError', 'django.db.connection', 'django.db.transaction'},
+    'data_security.adapters.persistence.export_plans': {'django.db.DatabaseError', 'django.db.transaction'},
+    'data_security.adapters.persistence.export_delivery': {
+        'django.db.DatabaseError', 'django.db.connection',
+        'export_risk.column_authority.ColumnRiskSupplier', 'export_risk.column_authority.decode_request',
+        'export_risk.contracts.ExportRequestSnapshot'},
+    'data_security.adapters.django.export_recovery': {
+        'django.urls.path', 'rest_framework.decorators.api_view', 'rest_framework.decorators.permission_classes',
+        'rest_framework.permissions.IsAuthenticated', 'rest_framework.response.Response'},
+    'data_security.adapters.persistence.migrations.0009_export_binding': {'django.db.models', 'django.db.migrations'},
+    'data_security.adapters.persistence.migrations.0008_exportplanapproval': {'django.db.models', 'django.db.migrations'},
+    'data_security.adapters.persistence.migrations.0007_recoverypermission': {'django.db.models', 'django.db.migrations'},
+    'data_security.adapters.persistence.risk': {
+        'django.db.DatabaseError', 'django.db.IntegrityError', 'django.db.connection', 'django.db.transaction',
+        'export_risk.contracts.AuthorizationSnapshot', 'export_risk.contracts.ExportRequestSnapshot',
+        'export_risk.contracts.ExportRiskAssessment', 'export_risk.contracts.NotExecutable',
+        'export_risk.contracts.SourceMode', 'export_risk.decisions.service.IdempotencyConflict',
+        'export_risk.decisions.service.check_execution_eligibility',
+        'export_risk.decisions.service.claim', 'export_risk.decisions.service.consume',
+        'export_risk.decisions.service.create_risk_decision',
+        'export_risk.decisions.service.prepare_execution', 'export_risk.decisions.service.recheck_execution',
+        'export_risk.decisions.service.recheck_delivered',
+    },
+    'data_security.adapters.persistence.private_store': {'django.db.DatabaseError', 'django.db.transaction'},
+    'data_security.adapters.persistence.report_records': {
+        'django.db.DatabaseError', 'django.db.IntegrityError', 'django.db.connection', 'django.db.transaction'},
+    'data_security.adapters.persistence.migrations.0006_preparation_fence': {
+        'django.db.models', 'django.db.migrations', 'django.db.models.deletion'},
+    'data_security.adapters.persistence.migrations.0005_delivery_receipt': {'django.db.models', 'django.db.migrations'},
+    'data_security.adapters.persistence.migrations.0004_export_report': {
+        'django.db.models', 'django.db.migrations', 'django.db.models.deletion'},
+    'data_security.adapters.persistence.migrations.0002_quota_execution': {'django.db.models', 'django.db.migrations'},
+    'data_security.adapters.persistence.migrations.0003_private_object': {'django.db.models', 'django.db.migrations'},
+}
+PHASE6_IO_STDLIB = {
+    **PHASE5_IO_STDLIB,
+    'tasks.controlled-export-execution.controlled_export_service.security_bootstrap': {'pathlib', 'secrets'},
+    'data_security.adapters.django.uploads': {'io'},
+    'data_security.adapters.django.private_ingress': {'io'},
+    'data_security.adapters.persistence.file_operations': {'os', 'stat', 'fcntl', 'contextlib'},
+    'data_security.adapters.persistence.backup': PHASE5_IO_STDLIB['data_security.adapters.persistence.backup'] | {'stat', 'tarfile'},
+    'data_security.adapters.persistence.audit': {'os', 'pathlib', 'stat'},
+    'data_security.adapters.persistence.legacy_archive': {'os', 'pathlib', 'stat', 'subprocess', 'contextlib'},
+    'data_security.adapters.persistence.private_store': {'os', 'pathlib', 'stat'},
+    'data_security.adapters.persistence.private_maintenance': {'contextlib', 'os', 'pathlib', 'stat'},
+    'data_security.adapters.persistence.recovery_state': {'os', 'pathlib', 'stat'},
+}
+
+PHASE7_MODULES = PHASE6_MODULES | frozenset({
+    'data_security.adapters.django.rag', 'data_security.adapters.django.reveal_api',
+    'data_security.application.reveal', 'data_security.adapters.persistence.reveal',
+    'data_security.adapters.persistence.migrations.0013_reveal_request',
+    'data_security.adapters.persistence.migrations.0014_reveal_request_metadata',
+    'data_security.adapters.persistence.migrations.0015_export_retention_registration',
+    'data_security.adapters.persistence.migrations.0016_export_retention_intent',
+    'data_security.adapters.persistence.migrations.0017_reveal_retention_registration',
+    'data_security.adapters.persistence.migrations.0018_export_candidate_registration',
+    'data_security.adapters.persistence.reveal_retention',
+    'data_security.adapters.persistence.export_lifecycle',
+    'data_security.adapters.persistence.export_retention_journal',
+    'data_security.adapters.django.statistics_api', 'data_security.adapters.persistence.statistics',
+})
+PHASE7_PACKAGES = PHASE6_PACKAGES
+PHASE7_LEGACY = {
+    **PHASE6_LEGACY,
+    'rag_ingestion.services': ('data_security.adapters.django.rag',),
+    'legal_kb.services.retrieval_service': ('data_security.adapters.django.rag',),
+    'legal_kb.services.ingestion_service': ('data_security.adapters.django.rag',),
+    'legal_kb.services.platform_indexing_service': ('data_security.adapters.django.rag',),
+    'rag_ingestion.serializers': ('data_security.adapters.django.rag',),
+    'ai_assistant.service': (*PHASE6_LEGACY['ai_assistant.service'], 'data_security.adapters.django.rag'),
+    'ai_assistant.views': (*PHASE6_LEGACY['ai_assistant.views'],
+                           'data_security.adapters.django.content', 'data_security.adapters.django.rag'),
+    'ai_assistant.response_adapter': ('data_security.adapters.django.rag',),
+    'ai_assistant.tutor_request_orchestrator': ('data_security.adapters.django.content',),
+    'legal_kb.services.rag_answer_service': (*PHASE6_LEGACY['legal_kb.services.rag_answer_service'],
+                                           'data_security.adapters.django.rag'),
+}
+PHASE7_EXTERNAL = {
+    **PHASE6_EXTERNAL,
+    'data_security.adapters.persistence.audit': PHASE6_EXTERNAL['data_security.adapters.persistence.audit'] | {
+        'django.core.management.color.no_style'},
+    'data_security.adapters.django.rag': {'rest_framework.exceptions.APIException'},
+    'data_security.adapters.django.statistics_api': {
+        'django.urls.path', 'rest_framework.permissions.IsAuthenticated',
+        'rest_framework.response.Response', 'rest_framework.views.APIView'},
+    'data_security.adapters.persistence.statistics': {'django.db.DatabaseError'},
+    'data_security.adapters.django.reveal_api': {
+        'django.urls.path', 'rest_framework.parsers.JSONParser', 'rest_framework.permissions.IsAuthenticated',
+        'rest_framework.response.Response', 'rest_framework.views.APIView'},
+    'data_security.adapters.persistence.reveal': {
+        'django.db.DatabaseError', 'django.db.connection', 'django.db.models.Q', 'legal.models.LegalAnalysisTask', 'legal.models.LegalReport',
+        'legal.permissions.IsLegalReviewer', 'legal.services.data_access.authorized_legal_objects',
+        'users.models.CTFUser', 'users.permissions.authorized_users'},
+    'data_security.adapters.persistence.migrations.0013_reveal_request': {
+        'django.conf.settings', 'django.db.models', 'django.db.migrations', 'django.db.models.deletion'},
+    'data_security.adapters.persistence.migrations.0014_reveal_request_metadata': {
+        'django.db.models', 'django.db.migrations'},
+    'data_security.adapters.persistence.migrations.0015_export_retention_registration': {
+        'django.db.models', 'django.db.migrations'},
+    'data_security.adapters.persistence.migrations.0016_export_retention_intent': {
+        'django.db.models', 'django.db.migrations'},
+    'data_security.adapters.persistence.migrations.0017_reveal_retention_registration': {
+        'django.db.models', 'django.db.migrations'},
+    'data_security.adapters.persistence.migrations.0018_export_candidate_registration': {
+        'django.db.models', 'django.db.migrations'},
+    'data_security.adapters.persistence.reveal_retention': {'django.db.connection'},
+    'data_security.adapters.persistence.export_lifecycle': {
+        'django.db.DatabaseError', 'django.db.connection', 'django.db.transaction', 'audit.models.AuthenticatedAuditEntry'},
+    'ctf_backend.security_bootstrap': PHASE6_EXTERNAL['ctf_backend.security_bootstrap'] | {
+        'rag_ingestion.adapters.parser_plain.PlainTextParser',
+        'rag_ingestion.adapters.parser_docx.DocxParser',
+        'rag_ingestion.adapters.parser_pdf.PdfParser',
+        'rag_ingestion.adapters.parser_markitdown.MarkItDownParser',
+        'rag_ingestion.pipeline.IngestionPipeline', 'rag_ingestion.chunking.StructureAwareChunker',
+        'rag_ingestion.registry.select_parser', 'rag_ingestion.registry.bind_ingestion',
+        'rag_ingestion.adapters.embedder_legalkb.LegalKbEmbedder',
+        'rag_ingestion.adapters.repository_legalkb.LegalKbChunkRepository',
+        'legal_kb.services.embedding_service.EmbeddingService',
+    },
+}
+PHASE7_IO_STDLIB = {
+    **PHASE6_IO_STDLIB,
+    'data_security.adapters.persistence.export_lifecycle': {'os'},
+    'data_security.adapters.persistence.export_retention_journal': {'os', 'pathlib', 'stat'},
+}
+
+
 IO_STDLIB = {
     'M5': {'os', 'pathlib', 'stat'},
     'M6': {'os', 'pathlib', 'stat', 'io', 'subprocess', 'contextlib', 'tempfile', 'shutil', 'time'},
@@ -226,7 +480,7 @@ class Violation:
 def owner(module):
     if module in ('data_security', 'data_security.core', 'data_security.adapters'):
         return 'M0'
-    if module == 'ctf_backend.security_bootstrap' or module.startswith('ctf_backend.security_bootstrap.'):
+    if any(module == prefix or module.startswith(prefix + '.') for prefix in BOOTSTRAP_MODULES):
         return 'B'
     prefixes = (
         ('data_security.contracts', 'M0'), ('data_security.core.redaction', 'M1'),
@@ -257,12 +511,14 @@ def allowed_import(source_owner, target, *, phase=1, module=None, is_module=Fals
     if target_owner:
         if target_owner not in ALLOWED[source_owner]:
             return False
-        if phase in (3, 4, 5) and target_owner != 'M0':
+        if phase in (3, 4, 5, 6, 7) and target_owner != 'M0':
             # A concrete module or one member imported from it, not arbitrary
             # future descendants hidden under an approved package prefix.
             modules, packages = {3: (PHASE3_MODULES, PHASE3_PACKAGES),
                                  4: (PHASE4_MODULES, PHASE4_PACKAGES),
-                                 5: (PHASE5_MODULES, PHASE5_PACKAGES)}[phase]
+                                 5: (PHASE5_MODULES, PHASE5_PACKAGES),
+                                 6: (PHASE6_MODULES, PHASE6_PACKAGES),
+                                 7: (PHASE7_MODULES, PHASE7_PACKAGES)}[phase]
             return (target in modules or not is_module and
                     target.rpartition('.')[0] in modules - packages)
         return True
@@ -271,12 +527,14 @@ def allowed_import(source_owner, target, *, phase=1, module=None, is_module=Fals
     top = target.split('.')[0]
     if top in PURE_STDLIB or (source_owner == 'M1' and top == 'ipaddress'):
         return True
-    if phase in (3, 4, 5):
+    if phase in (3, 4, 5, 6, 7):
         if source_owner == 'M3' and top == 'cryptography':
             return True
         external, io = {3: (PHASE3_EXTERNAL, PHASE3_IO_STDLIB),
                         4: (PHASE4_EXTERNAL, PHASE4_IO_STDLIB),
-                        5: (PHASE5_EXTERNAL, PHASE5_IO_STDLIB)}[phase]
+                        5: (PHASE5_EXTERNAL, PHASE5_IO_STDLIB),
+                        6: (PHASE6_EXTERNAL, PHASE6_IO_STDLIB),
+                        7: (PHASE7_EXTERNAL, PHASE7_IO_STDLIB)}[phase]
         return (target in external.get(module, set()) or
                 top in io.get(module, set()) and top in sys.stdlib_module_names)
     if top in IO_STDLIB.get(source_owner, set()) and top in sys.stdlib_module_names:
@@ -289,6 +547,8 @@ def allowed_import(source_owner, target, *, phase=1, module=None, is_module=Fals
 def check_source(path, source, *, phase=1):
     module = module_name(path)
     current = owner(module)
+    http_bridge = phase == 7 and module in (
+        'ai_assistant.views', 'ai_assistant.response_adapter', 'ai_assistant.tutor_request_orchestrator')
     package = module if str(path).endswith('__init__.py') else module.rpartition('.')[0]
     try:
         with warnings.catch_warnings():
@@ -320,26 +580,30 @@ def check_source(path, source, *, phase=1):
                 imported.append((node.lineno, target, False))
                 aliases[alias.asname or alias.name] = target
     for line, target, is_module in imported:
+        if http_bridge and target.split('.')[0] in ('openai', 'anthropic'):
+            findings.append(Violation(str(path), line, 'BUSINESS_SDK_BYPASS'))
         if current:
             if not allowed_import(current, target, phase=phase, module=module, is_module=is_module):
                 findings.append(Violation(str(path), line, 'DEPENDENCY_' + current))
-        elif target == 'ctf_backend.security_bootstrap' or target.startswith('ctf_backend.security_bootstrap.'):
-            if phase not in (3, 4, 5) or target not in PHASE3_STARTUP.get(module, set()):
+        elif owner(target) == 'B':
+            startup = PHASE6_STARTUP if phase in (6, 7) else PHASE3_STARTUP
+            if phase not in (3, 4, 5, 6, 7) or target not in startup.get(module, set()):
                 findings.append(Violation(str(path), line, 'BOOTSTRAP_REVERSE_IMPORT'))
         elif target.startswith('data_security') and module != 'data_security':
             permitted = phase == 2 and any(target == prefix or target.startswith(prefix + '.')
                 for prefix in PHASE2_LEGACY.get(module, ()))
-            if phase in (3, 4, 5):
-                legacy = {3: PHASE3_LEGACY, 4: PHASE4_LEGACY, 5: PHASE5_LEGACY}[phase]
+            if phase in (3, 4, 5, 6, 7):
+                legacy = {3: PHASE3_LEGACY, 4: PHASE4_LEGACY, 5: PHASE5_LEGACY,
+                          6: PHASE6_LEGACY, 7: PHASE7_LEGACY}[phase]
                 permitted = any(target == prefix or not is_module and target.rpartition('.')[0] == prefix or
                     prefix == 'data_security.contracts' and target.startswith(prefix + '.')
                     for prefix in legacy.get(module, ()))
             if not permitted:
                 findings.append(Violation(str(path), line,
-                    f'PHASE{phase}_BUSINESS_NOT_CONNECTED' if phase in (3, 4, 5) else 'PHASE1_BUSINESS_NOT_CONNECTED'))
-        elif phase in (3, 4, 5) and module == 'ai_providers' and target.split('.')[0] not in PURE_STDLIB | {'asyncio'}:
+                    f'PHASE{phase}_BUSINESS_NOT_CONNECTED' if phase in (3, 4, 5, 6, 7) else 'PHASE1_BUSINESS_NOT_CONNECTED'))
+        elif phase in (3, 4, 5, 6, 7) and module == 'ai_providers' and target.split('.')[0] not in PURE_STDLIB | {'asyncio'}:
             findings.append(Violation(str(path), line, 'PHASE3_AI_FACADE_DEPENDENCY'))
-    if current or phase in (3, 4, 5):
+    if current or phase in (3, 4, 5, 6, 7):
         def dotted(node):
             if isinstance(node, ast.Name):
                 return aliases.get(node.id, node.id)
@@ -352,7 +616,8 @@ def check_source(path, source, *, phase=1):
                 if name:
                     aliases[node.targets[0].id] = name
         for node in ast.walk(tree):
-            if isinstance(node, (ast.Subscript, ast.Attribute)) and current and current not in ('M5', 'B'):
+            if isinstance(node, (ast.Subscript, ast.Attribute)) and (
+                    http_bridge or current and current not in ('M5', 'B')):
                 name = dotted(node.value) if isinstance(node, ast.Subscript) else dotted(node)
                 if name == 'os.environ' or name.startswith('os.environ.'):
                     findings.append(Violation(str(path), node.lineno, 'SECRET_CONFIG_BYPASS'))
@@ -366,9 +631,10 @@ def check_source(path, source, *, phase=1):
                 name.endswith(('.now', '.today', '.utcnow')) or name.startswith(('random.', 'secrets.', 'time.'))
             ):
                 findings.append(Violation(str(path), node.lineno, 'IMPLICIT_IO_CLOCK_RANDOM'))
-            if current and current not in ('B', 'M5') and name in ('os.getenv', 'os.environ.get', 'os.environ.__getitem__'):
+            if (http_bridge or current and current not in ('B', 'M5')) and name in (
+                    'os.getenv', 'os.environ.get', 'os.environ.__getitem__'):
                 findings.append(Violation(str(path), node.lineno, 'SECRET_CONFIG_BYPASS'))
-            if (phase in (3, 4, 5) and current == 'M6' and
+            if (phase in (3, 4, 5, 6, 7) and current == 'M6' and
                     name == 'audit.services.AuditLedgerService.append_entry'):
                 findings.append(Violation(str(path), node.lineno, 'AUDIT_SINK_PUBLIC_CALLBACK'))
     return findings
@@ -385,23 +651,24 @@ def scan(root, *, phase=None):
         except (OSError, ValueError):
             return 0, [Violation(str(declaration), 1, 'UNKNOWN_PHASE_BOUNDARY')]
         if (type(value) is not dict or set(value) != {'phase', 'version'} or
-                type(value['phase']) is not int or value['phase'] not in (1, 2, 3, 4, 5) or
+                type(value['phase']) is not int or value['phase'] not in (1, 2, 3, 4, 5, 6, 7) or
                 value['version'] != 'phase-boundary.v1'):
             return 0, [Violation(str(declaration), 1, 'UNKNOWN_PHASE_BOUNDARY')]
         phase = value['phase']
     # An explicit phase is historical/strict, never silently promoted by the
     # declaration. Only the default scan follows the declared current phase.
-    if type(phase) is not int or phase not in (1, 2, 3, 4, 5):
+    if type(phase) is not int or phase not in (1, 2, 3, 4, 5, 6, 7):
         raise ValueError('UNKNOWN_PHASE_BOUNDARY')
     violations = []
     checked = 0
     paths = list((root / 'backend').rglob('*.py'))
     paths += list((root / 'tasks/controlled-export-execution/controlled_export').rglob('*.py'))
+    paths += list((root / 'tasks/controlled-export-execution/controlled_export_service').rglob('*.py'))
     for path in sorted(paths):
         relative = path.relative_to(root)
         if any(part in ('.venv', '__pycache__', 'tests') for part in relative.parts):
             continue
-        if phase not in (3, 4, 5) and 'migrations' in relative.parts:
+        if phase not in (3, 4, 5, 6, 7) and 'migrations' in relative.parts:
             continue
         if path.name.startswith('test_') or path.name == 'tests.py':
             continue
@@ -411,7 +678,7 @@ def scan(root, *, phase=None):
         checked += 1
         module = module_name(relative)
         inventory = {2: PHASE2_MODULES, 3: PHASE3_MODULES, 4: PHASE4_MODULES,
-                     5: PHASE5_MODULES}.get(phase, PHASE2_MODULES)
+                     5: PHASE5_MODULES, 6: PHASE6_MODULES, 7: PHASE7_MODULES}.get(phase, PHASE2_MODULES)
         if owner(module) in ALLOWED.keys() - {'M0'} and (phase == 1 or module not in inventory):
             violations.append(Violation(str(relative), 1, f'PHASE{phase}_FUTURE_IMPLEMENTATION'))
         # Bytes preserve Python's declared encoding and UTF-8 BOM handling.
@@ -422,7 +689,7 @@ def scan(root, *, phase=None):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--root', default=str(Path(__file__).resolve().parents[2]))
-    parser.add_argument('--phase', type=int, choices=(1, 2, 3, 4, 5))
+    parser.add_argument('--phase', type=int, choices=(1, 2, 3, 4, 5, 6, 7))
     args = parser.parse_args()
     checked, findings = scan(args.root, phase=args.phase)
     print(json.dumps({'checked_python_files': checked, 'violations': [

@@ -5,41 +5,42 @@
         <h3 class="page-title">用户管理</h3>
         <div class="page-actions">
           <button class="action-btn btn-default" @click="fetchUsers">
-            刷新
+            馃攧 刷新
           </button>
           <button class="action-btn btn-primary" @click="showCreateModal = true">
-            新增用户
+            鉃?新增用户
           </button>
         </div>
       </div>
 
-      <section id="teacher-applications" class="application-panel">
-        <div class="application-header"><div><h4>待审核教师申请</h4><p>通过申请后，该用户将获得教师权限。</p></div><button class="action-btn btn-default" @click="fetchTeacherApplications" :disabled="applicationsLoading">{{ applicationsLoading ? '加载中…' : '刷新申请' }}</button></div>
+      <section class="application-panel">
+        <div class="application-header"><div><h4>Pending teacher applications</h4><p>Approve an application to grant teacher access.</p></div><button class="action-btn btn-default" @click="fetchTeacherApplications" :disabled="applicationsLoading">{{ applicationsLoading ? 'Loading...' : 'Refresh applications' }}</button></div>
         <p v-if="applicationsError" class="application-error">{{ applicationsError }}</p>
-        <div v-else-if="teacherApplications.length" class="application-list"><div v-for="application in teacherApplications" :key="application.id" class="application-item"><div><strong>{{ application.nickname || application.username }}</strong><span>{{ application.username }} · {{ application.email }}</span></div><div><button class="action-btn btn-primary" :disabled="processingApplicationId === application.id" @click="reviewTeacherApplication(application, 'approve')">通过</button><button class="action-btn btn-danger" :disabled="processingApplicationId === application.id" @click="reviewTeacherApplication(application, 'reject')">拒绝</button></div></div></div>
-        <p v-else class="application-empty">暂无待审核教师申请。</p>
+        <div v-else-if="teacherApplications.length" class="application-list"><div v-for="application in teacherApplications" :key="application.id" class="application-item"><div><strong>{{ application.nickname || application.username }}</strong><span>{{ application.username }} · {{ application.email }}</span></div><div><button class="action-btn btn-primary" :disabled="processingApplicationId === application.id" @click="reviewTeacherApplication(application, 'approve')">Approve</button><button class="action-btn btn-danger" :disabled="processingApplicationId === application.id" @click="reviewTeacherApplication(application, 'reject')">Reject</button></div></div></div>
+        <p v-else class="application-empty">No teacher applications are awaiting review.</p>
       </section>
       <!-- 鎼滅储鍜岀瓫閫?-->
-      <div class="filter-bar" style="margin-bottom:var(--space-2); display:flex; gap:var(--space-1);">
+      <div class="filter-bar" style="margin-bottom: 20px; display: flex; gap: 12px;">
         <input
           v-model="searchKeyword"
           type="text"
           class="form-input"
           placeholder="搜索用户名或邮箱..."
-          style="flex:1; max-width:var(--menu-width);"
+          style="flex: 1; max-width: 300px;"
           @keyup.enter="fetchUsers"
         />
         <button class="action-btn btn-primary" @click="fetchUsers">
-          搜索
+          馃攳 搜索
         </button>
       </div>
 
       <!-- 用户列表 -->
-      <div class="table-container" style="overflow-x:auto;">
+      <div class="table-container" style="overflow-x: auto;">
         <table class="admin-table">
           <thead>
             <tr>
-              <th>用户名</th>
+              <th>ID</th>
+              <th>鐢ㄦ埛鍚?</th>
               <th>昵称</th>
               <th>邮箱</th>
               <th>积分</th>
@@ -49,8 +50,9 @@
           </thead>
           <tbody>
             <tr v-for="user in users" :key="user.id">
+              <td>{{ user.id }}</td>
               <td>
-                <div style="display:flex; align-items:center; gap:var(--space-1);">
+                <div style="display: flex; align-items: center; gap: 8px;">
                   <div class="user-avatar-small">{{ user.username.charAt(0) }}</div>
                   <span>{{ user.username }}</span>
                 </div>
@@ -61,10 +63,10 @@
               <td>{{ formatDate(user.created_at) }}</td>
               <td>
                 <button class="action-btn btn-default" @click="handleEdit(user)">
-                  编辑
+                  鉁忥笍 编辑
                 </button>
                 <button class="action-btn btn-danger" @click="handleDelete(user)" :disabled="user.id === currentUserId">
-                  删除
+                  馃棏锔?删除
                 </button>
               </td>
             </tr>
@@ -72,24 +74,21 @@
         </table>
 
         <div v-if="users.length === 0" class="empty-state">
-          <div class="empty-icon"><AppIcon name="bi-inbox" /></div>
+          <div class="empty-icon">馃摥</div>
           <p>暂无用户数据</p>
         </div>
       </div>
 
       <!-- 分页 -->
-      <div class="pagination" style="display:flex; justify-content:space-between; align-items:center; margin-top:var(--space-2); padding-top:var(--space-2); border-top:var(--stroke) solid var(--admin-border-color);">
+      <div class="pagination" style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--admin-border-color);">
         <div class="pagination-info">
-          共 {{ total }} 条记录
-        </div>
-        <div class="pagination-controls" style="display:flex; gap:var(--space-1);">
+          鍏?{{ total }} 鏉¤褰?        </div>
+        <div class="pagination-controls" style="display: flex; gap: 8px;">
           <button class="action-btn btn-default" @click="changePage(page - 1)" :disabled="page === 1">
-            上一页
-          </button>
-          <span style="padding:var(--space-1) var(--space-2);">第 {{ page }} 页</span>
+            涓婁竴椤?          </button>
+          <span style="padding: 8px 16px;">绗?{{ page }} 椤?</span>
           <button class="action-btn btn-default" @click="changePage(page + 1)" :disabled="page * pageSize >= total">
-            下一页
-          </button>
+            涓嬩竴椤?          </button>
         </div>
       </div>
     </div>
@@ -99,12 +98,12 @@
       <div class="modal-content">
         <div class="modal-header">
           <h3>编辑用户</h3>
-          <button class="close-btn" @click="showEditModal = false" aria-label="关闭"><AppIcon name="bi-x-lg" /></button>
+          <button class="close-btn" @click="showEditModal = false">鉁?</button>
         </div>
         <div class="modal-body">
           <div class="admin-form">
             <div class="form-group">
-              <label class="form-label">用户名</label>
+              <label class="form-label">鐢ㄦ埛鍚?</label>
               <input v-model="editForm.username" type="text" class="form-input" disabled />
             </div>
             <div class="form-group">
@@ -124,7 +123,7 @@
               <select v-model="editForm.role" class="form-select">
                 <option value="student">用户</option>
                 <option value="teacher">教师</option>
-                <option value="admin">管理员</option>
+                <option value="admin">绠＄悊鍛?</option>
               </select>
             </div>
           </div>
@@ -132,7 +131,7 @@
         <div class="modal-footer">
           <button class="action-btn btn-default" @click="showEditModal = false">取消</button>
           <button class="action-btn btn-primary" @click="handleSave" :disabled="saving">
-            {{ saving ? '保存中…' : '保存' }}
+            {{ saving ? '淇濆瓨涓?..' : '保存' }}
           </button>
         </div>
       </div>
@@ -143,36 +142,36 @@
       <div class="modal-content">
         <div class="modal-header">
           <h3>新增用户</h3>
-          <button class="close-btn" @click="showCreateModal = false" aria-label="关闭"><AppIcon name="bi-x-lg" /></button>
+          <button class="close-btn" @click="showCreateModal = false">鉁?</button>
         </div>
         <div class="modal-body">
           <div class="admin-form">
             <div class="form-group">
-              <label class="form-label required">用户名</label>
+              <label class="form-label required">鐢ㄦ埛鍚?</label>
               <input v-model="createForm.username" type="text" class="form-input" placeholder="请输入用户名" />
             </div>
             <div class="form-group">
               <label class="form-label required">密码</label>
-              <input v-model="createForm.password" type="password" class="form-input" placeholder="请输入密码" />
+              <input v-model="createForm.password" type="password" class="form-input" placeholder="璇疯緭鍏ュ瘑鐮" />
             </div>
             <div class="form-group">
               <label class="form-label">昵称</label>
-              <input v-model="createForm.nickname" type="text" class="form-input" placeholder="请输入昵称" />
+              <input v-model="createForm.nickname" type="text" class="form-input" placeholder="璇疯緭鍏ユ樀绉" />
             </div>
             <div class="form-group">
               <label class="form-label required">邮箱</label>
-              <input v-model="createForm.email" type="email" class="form-input" placeholder="请输入邮箱" />
+              <input v-model="createForm.email" type="email" class="form-input" placeholder="璇疯緭鍏ラ偖绠" />
             </div>
             <div class="form-group">
               <label class="form-label">战队</label>
-              <input v-model="createForm.team" type="text" class="form-input" placeholder="请输入战队名称" />
+              <input v-model="createForm.team" type="text" class="form-input" placeholder="璇疯緭鍏ユ垬闃熷悕绉" />
             </div>
             <div class="form-group">
               <label class="form-label">角色</label>
               <select v-model="createForm.role" class="form-select">
                 <option value="student">用户</option>
                 <option value="teacher">教师</option>
-                <option value="admin">管理员</option>
+                <option value="admin">绠＄悊鍛?</option>
               </select>
             </div>
           </div>
@@ -180,7 +179,7 @@
         <div class="modal-footer">
           <button class="action-btn btn-default" @click="showCreateModal = false">取消</button>
           <button class="action-btn btn-primary" @click="handleCreate" :disabled="creating">
-            {{ creating ? '创建中…' : '创建' }}
+            {{ creating ? '鍒涘缓涓?..' : '创建' }}
           </button>
         </div>
       </div>
@@ -189,17 +188,11 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount, nextTick, watch, computed } from 'vue'
-import { useRoute } from 'vue-router'
-import { usePageFilters } from '@/shared/state/usePageFilters.js'
-import { createAccountGuard } from '@/shared/state/accountScope.js'
+import { ref, onMounted, computed } from 'vue'
 import { useUserStore } from '@/store/user'
 import api from '@/api'
 
 const userStore = useUserStore()
-const route = useRoute()
-const guard = createAccountGuard()
-onBeforeUnmount(guard.dispose)
 
 const users = ref([])
 const teacherApplications = ref([])
@@ -210,7 +203,6 @@ const total = ref(0)
 const page = ref(1)
 const pageSize = ref(20)
 const searchKeyword = ref('')
-usePageFilters('admin-users', { searchKeyword, page, pageSize })
 
 const showEditModal = ref(false)
 const showCreateModal = ref(false)
@@ -244,7 +236,6 @@ const fetchUsers = async () => {
       page_size: pageSize.value,
       search: searchKeyword.value
     })
-    if (!guard.current()) return
     users.value = response.users
     total.value = response.total
   } catch (error) {
@@ -258,24 +249,23 @@ const fetchTeacherApplications = async () => {
   applicationsError.value = ''
   try {
     const response = await api.user.teacherApplications()
-    if (!guard.current()) return
     teacherApplications.value = Array.isArray(response) ? response : response.applications || response.users || []
   } catch (error) {
-    if (guard.current()) applicationsError.value = '暂时无法加载教师申请，请重试。'
+    applicationsError.value = error.response?.data?.error || 'Unable to load teacher applications.'
   } finally {
-    if (guard.current()) applicationsLoading.value = false
+    applicationsLoading.value = false
   }
 }
 
 const reviewTeacherApplication = async (application, action) => {
-  if (!confirm('确认执行此操作吗？')) return
+  if (!confirm('Confirm this action?')) return
   processingApplicationId.value = application.id
   try {
     if (action === 'approve') await api.user.approveTeacherApplication(application.id)
     else await api.user.rejectTeacherApplication(application.id)
     await Promise.all([fetchTeacherApplications(), fetchUsers()])
   } catch (error) {
-    alert(error.response?.data?.error || '教师申请处理失败，请重试。')
+    alert(error.response?.data?.error || `Unable to ${action} teacher application.`)
   } finally {
     processingApplicationId.value = null
   }
@@ -305,7 +295,7 @@ const handleSave = async () => {
 }
 
 const handleDelete = async (user) => {
-  if (!confirm('确认执行此操作吗？')) return
+  if (!confirm('Confirm this action?')) return
   try {
     const res = await api.user.adminDelete(user.id)
     alert(res?.message || '删除成功')
@@ -352,114 +342,107 @@ const formatDate = (dateStr) => {
   return new Date(dateStr).toLocaleString('zh-CN')
 }
 
-async function locateApplications() {
-  if (route.hash !== '#teacher-applications') return
-  await nextTick()
-  document.getElementById('teacher-applications')?.scrollIntoView({ block: 'start' })
-}
-watch(() => route.hash, locateApplications)
-onMounted(async () => {
-  await Promise.all([fetchUsers(), fetchTeacherApplications()])
-  if (guard.current()) await locateApplications()
+onMounted(() => {
+  fetchUsers()
+  fetchTeacherApplications()
 })
 </script>
 
-<style scoped src="../assets/admin.css"></style>
-
 <style scoped>
+@import '../assets/admin.css';
 
 .user-avatar-small {
-  width:var(--space-4);
-  height:var(--space-4);
-  border-radius:50%;
-  background:var(--admin-primary-color);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  color:var(--on-action);
-  font-size:var(--text-caption);
-  font-weight:bold;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--admin-primary-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 12px;
+  font-weight: bold;
 }
 
 .empty-state {
-  text-align:center;
-  padding:var(--space-7) var(--space-2);
-  color:var(--text-secondary);
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-secondary);
 }
 
 .empty-icon {
-  font-size:var(--text-page);
-  margin-bottom:var(--space-2);
+  font-size: 64px;
+  margin-bottom: 16px;
 }
 
 .modal-overlay {
-  position:fixed;
-  top:0;
-  left:0;
-  right:0;
-  bottom:0;
-  background:var(--overlay);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  z-index:2000;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
 }
 
 .modal-content {
-  background:var(--surface);
-  border-radius:var(--radius-control);
-  width:100%;
-  max-width:var(--search-width);
-  max-height:90vh;
-  overflow:hidden;
-  display:flex;
-  flex-direction:column;
+  background: white;
+  border-radius: 8px;
+  width: 100%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .modal-header {
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  padding:var(--space-2) var(--space-3);
-  border-bottom:var(--stroke) solid var(--admin-border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--admin-border-color);
 }
 
 .modal-header h3 {
-  margin:0;
-  font-size:var(--text-body);
-  font-weight: var(--weight-strong);
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
 }
 
 .close-btn {
-  border:none;
-  background:none;
-  font-size:var(--text-card);
-  cursor:pointer;
-  color:var(--text-secondary);
-  transition:color var(--motion-normal);
+  border: none;
+  background: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: var(--text-secondary);
+  transition: color 0.3s;
 }
 
 .close-btn:hover {
-  color:var(--text-primary);
+  color: var(--text-primary);
 }
 
 .modal-body {
-  padding:var(--space-3);
-  overflow-y:auto;
-  flex:1;
+  padding: 24px;
+  overflow-y: auto;
+  flex: 1;
 }
 
 .modal-footer {
-  display:flex;
-  justify-content:flex-end;
-  gap:var(--space-1);
-  padding:var(--space-2) var(--space-3);
-  border-top:var(--stroke) solid var(--admin-border-color);
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 16px 24px;
+  border-top: 1px solid var(--admin-border-color);
 }
 
-.application-panel { margin-bottom:var(--space-3); padding:var(--space-2); border:var(--stroke) solid var(--admin-border-color); border-radius:var(--radius-control); background:var(--surface-muted); }
-.application-header, .application-item { display:flex; justify-content:space-between; gap:var(--space-2); align-items:center; }
-.application-header h4 { margin:0; font-size:var(--text-body); }.application-header p, .application-item span, .application-empty { margin:calc(var(--space-1) / 2) 0 0; color:var(--text-secondary); font-size:var(--text-caption); }.application-item span { display:block; }.application-list { margin-top:var(--space-2); border-top:var(--stroke) solid var(--admin-border-color); }.application-item { padding:var(--space-2) 0; border-bottom:var(--stroke) solid var(--admin-border-color); }.application-item button + button { margin-left:var(--space-1); }.application-error { color:var(--error-color); font-size:var(--text-caption); }
+.application-panel { margin-bottom: 24px; padding: 18px; border: 1px solid var(--admin-border-color); border-radius: 8px; background: rgba(255, 255, 255, 0.5); }
+.application-header, .application-item { display: flex; justify-content: space-between; gap: 16px; align-items: center; }
+.application-header h4 { margin: 0; font-size: 16px; }.application-header p, .application-item span, .application-empty { margin: 4px 0 0; color: var(--text-secondary); font-size: 13px; }.application-item span { display: block; }.application-list { margin-top: 14px; border-top: 1px solid var(--admin-border-color); }.application-item { padding: 14px 0; border-bottom: 1px solid var(--admin-border-color); }.application-item button + button { margin-left: 8px; }.application-error { color: var(--error-color); font-size: 13px; }
 </style>
 
 

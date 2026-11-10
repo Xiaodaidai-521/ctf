@@ -14,9 +14,9 @@ B模式只给目标规范化全文和类别定义；C模式追加本列表头、
 
 ## 模型边界与批准条件
 
-`semantic.py`定义`SemanticBackend`、不可变请求/响应容器和`LangChainSemanticAdapter`，复用仓库既有`langchain_openai`运输依赖。没有安装新依赖。未复用`ai_providers`包自动注册入口，原因是其`__init__`会加载环境且管理器允许跨provider路由；现有DeepSeek调用路径也不能据kwargs证明本次预算参数生效。本适配器要求显式注入凭据、已批准HTTPS端点、provider/model及已验证本地token计数器，不读取.env、不自动选模型、不自动降级到其他provider。
+`semantic.py`保留`SemanticBackend`和不可变请求/响应容器。2026-11-10 C核销修复移除了休眠裸SDK运输实现；`LangChainSemanticAdapter`只保留构造即报`SEMANTIC_BACKEND_DISABLED`的兼容名称，不读取凭据、不加载SDK、不发送请求。现行provider manager已不自行加载.env，旧有关于自动注册的说明不再适用。没有安装新依赖或启用语义识别；未来确需启用须另获批准，经M7安全端口装配，而不是恢复该实现。
 
-固定`context-semantic-v1`模板、temperature=0、max_tokens、request_timeout、streaming=false、max_retries=0。没有绑定任何工具；响应带tool_calls或非stop结束原因时拒绝。报告的模型名若与配置不同则拒绝；provider未报告模型名时只能保留请求名，不能据此证明实际修订。当前适配器不支持固定revision，非空revision拒绝；画像记录`MODEL_REVISION_UNPINNED`，temperature=0不保证服务端输出确定。
+`context-semantic-v1`模板及内部请求/响应校验契约继续保留；以下预算、批准及模型限制用于显式后端契约，不代表已有可用真实运输适配器。画像记录`MODEL_REVISION_UNPINNED`，temperature=0不保证服务端输出确定。
 
 真实调用前验证可信`LiveApproval`的source/provider/model/endpoint/domain/environment/asset_hashes以及调用、输入token、输出token和金额预算。金额使用整数微单位及显式币种、保守的每token上界价格；未获取报价或编造价格。输入token计数必须包含system及user消息。每次发送前预留费用与最大输出token，超时/失败不自动退还；无自动重试。`asyncio.wait_for`加客户端超时限制单次等待，但超时不能证明远端停止计费。
 

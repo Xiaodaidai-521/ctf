@@ -29,7 +29,6 @@
 <script setup>
 import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue'
 import * as echarts from 'echarts'
-import { tokenValue, tokenNumber } from '@/shared/design/chartTokens'
 import api from '@/api'
 import LegalWorkspace from './LegalWorkspace.vue'
 
@@ -43,8 +42,8 @@ let chart = null
 
 const columns = [
   { key: 'title', label: '任务' },
-  { key: 'source_type', label: '来源', labelKey: 'source' },
-  { key: 'status', label: '状态', labelKey: 'taskStatus', badge: true },
+  { key: 'source_type', label: '来源' },
+  { key: 'status', label: '状态', badge: true },
   { key: 'result_summary', label: '摘要', formatter: (value) => value ? String(value).slice(0, 42) : '-' },
   { key: 'created_at', label: '创建时间', formatter: formatDate },
 ]
@@ -91,7 +90,6 @@ function renderChart() {
   if (!chartRef.value) return
   if (!chart) chart = echarts.init(chartRef.value)
   chart.setOption({
-    textStyle: { color: tokenValue('ink-secondary'), fontSize: tokenNumber('text-caption'), fontFamily: tokenValue('font-family') },
     tooltip: { trigger: 'item' },
     series: [{
       type: 'pie',
@@ -99,7 +97,7 @@ function renderChart() {
       data: riskBreakdown.value,
       label: { formatter: '{b}: {c}' },
     }],
-    color: [tokenValue('negative-strong'), tokenValue('negative'), tokenValue('warning'), tokenValue('positive')],
+    color: ['#b91c1c', '#dc2626', '#f59e0b', '#10b981'],
   })
 }
 
@@ -130,20 +128,20 @@ onUnmounted(() => {
 
 <style scoped>
 .risk-chart {
-  width:100%;
-  height:var(--content-short-height);
+  width: 100%;
+  height: 240px;
 }
 
 .aside-list {
-  display:flex;
-  flex-direction:column;
-  gap:var(--space-1);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .aside-row {
-  display:flex;
-  justify-content:space-between;
-  border-bottom:var(--stroke) solid var(--line);
-  padding-bottom:var(--space-1);
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 8px;
 }
 </style>

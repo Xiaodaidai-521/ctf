@@ -1,7 +1,7 @@
 <template>
   <LegalWorkspace
     title="演练入口"
-    subtitle="浏览合规演练题目，将网络安全实训与法律合规场景结合。"
+    subtitle="聚合 Compliance 分类下的合规演练题目，连接 CTF 实训与法律合规场景。"
     table-title="合规演练题目"
     aside-title="分类状态"
     :metrics="metrics"
@@ -16,8 +16,8 @@
   >
     <template #aside>
       <div class="category-note">
-        <strong>合规演练</strong>
-        <p>{{ complianceCategory?.description || '合规演练分类由平台统一维护。' }}</p>
+        <strong>{{ complianceCategory?.name || 'Compliance' }}</strong>
+        <p>{{ complianceCategory?.description || '合规演练分类会通过后端数据迁移自动创建。' }}</p>
         <span>题目数：{{ exercises.length }}</span>
       </div>
     </template>
@@ -39,16 +39,16 @@ const complianceCategory = computed(() => categories.value.find((item) => item.n
 
 const columns = [
   { key: 'title', label: '题目' },
-  { key: 'difficulty', label: '难度', labelKey: 'difficulty', badge: true },
+  { key: 'difficulty', label: '难度', badge: true },
   { key: 'score', label: '分值' },
   { key: 'solve_count', label: '解出数' },
-  { key: 'is_active', label: '状态', formatter: (value) => value ? '启用中' : '已停用', badge: true },
+  { key: 'is_active', label: '状态', formatter: (value) => value ? 'active' : 'inactive', badge: true },
 ]
 
 const metrics = computed(() => [
-  { label: '演练题目', value: exercises.value.length, hint: '合规分类' },
-  { label: '启用中', value: exercises.value.filter((item) => item.is_active).length, hint: '当前可练' },
-  { label: '分类题数', value: complianceCategory.value?.challenge_count || 0, hint: '本分类' },
+  { label: '演练题目', value: exercises.value.length, hint: 'Compliance' },
+  { label: '启用中', value: exercises.value.filter((item) => item.is_active).length, hint: 'active' },
+  { label: '分类题数', value: complianceCategory.value?.challenge_count || 0, hint: 'category' },
 ])
 
 async function loadData() {
@@ -81,9 +81,9 @@ onMounted(loadData)
 
 <style scoped>
 .category-note {
-  display:flex;
-  flex-direction:column;
-  gap:var(--space-1);
-  color:var(--ink);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  color: #334155;
 }
 </style>

@@ -16,7 +16,7 @@
       <div class="version-list">
         <div v-for="version in versions" :key="version.id" class="version-row">
           <strong>{{ version.title }}</strong>
-          <span>第 {{ version.version }} 版</span>
+          <span>{{ version.protocol_key }} v{{ version.version }}</span>
           <small>{{ version.is_published ? '已发布' : '草稿' }}</small>
         </div>
       </div>
@@ -32,31 +32,20 @@ import LegalWorkspace from './LegalWorkspace.vue'
 const loading = ref(false)
 const consents = ref([])
 const versions = ref([])
-const userNames = ref({})
 
 const columns = [
-  { key: 'user', label: '用户', formatter: (value) => userNames.value[String(value)] || '用户名称暂不可用' },
+  { key: 'user', label: '用户ID' },
   { key: 'protocol_name', label: '协议' },
   { key: 'version', label: '版本' },
-  { key: 'consent_method', label: '方式', labelKey: 'consentMethod', badge: true },
+  { key: 'consent_method', label: '方式', badge: true },
   { key: 'signed_at', label: '签署时间', formatter: formatDate },
 ]
 
 const metrics = computed(() => [
   { label: '签署记录', value: consents.value.length, hint: '当前页' },
   { label: '协议版本', value: versions.value.length, hint: '当前页' },
-  { label: '已发布', value: versions.value.filter((item) => item.is_published).length, hint: '可签署' },
+  { label: '已发布', value: versions.value.filter((item) => item.is_published).length, hint: 'published' },
 ])
-
-async function loadUserNames() {
-  try {
-    const response = await api.user.adminUsers({ page_size: 500 })
-    const users = response.users || response.results || []
-    userNames.value = Object.fromEntries(users.map(user => [String(user.id), user.nickname || user.username]))
-  } catch {
-    userNames.value = {}
-  }
-}
 
 async function loadData() {
   loading.value = true
@@ -77,26 +66,24 @@ function normalizeList(response) {
 }
 
 function formatDate(value) {
-  return value ? new Date(value).toLocaleString('zh-CN') : '-'
+  return value ? new Date(value).toLocaleString() : '-'
 }
 
-onMounted(async () => {
-  await Promise.all([loadData(), loadUserNames()])
-})
+onMounted(loadData)
 </script>
 
 <style scoped>
 .version-list {
   display: flex;
   flex-direction: column;
-  gap: var(--space-1);
+  gap: 10px;
 }
 
 .version-row {
   display: flex;
   flex-direction: column;
-  gap: var(--space-1);
-  padding-bottom: var(--space-1);
-  border-bottom: var(--stroke) solid var(--line);
+  gap: 4px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #e2e8f0;
 }
 </style>

@@ -42,7 +42,7 @@ class IsolatedResolver:
         return SecretMaterial(path.read_bytes().strip(), purpose)
 
 
-class BackupAcceptance(unittest.TestCase):
+class BackupFixture(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         if os.environ.get('DS_PHASE3_BACKUP_RUN') != '1':
@@ -139,6 +139,8 @@ class BackupAcceptance(unittest.TestCase):
                 cursor.execute("SELECT to_regclass('public.items')")
                 self.assertIsNone(cursor.fetchone()[0])
 
+
+class BackupAcceptance(BackupFixture):
     def test_round_trip_manifest_counts_digest_and_permissions(self):
         result = self.create()
         receipt = self.offline.restore(result, self.offline_context)

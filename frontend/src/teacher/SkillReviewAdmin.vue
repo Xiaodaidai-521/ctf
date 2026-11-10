@@ -14,10 +14,9 @@
     <p v-if="message" class="message">{{ message }}</p>
     <div v-if="loading" class="state-box">正在读取...</div>
 
-    <div v-else-if="loadError" class="message" role="alert">{{ loadError }} <button class="btn" @click="loadAll">重新读取</button></div>
     <template v-else>
       <div class="tabs">
-        <button v-for="tab in tabs" :key="tab.key" :class="{ active: activeTab === tab.key }" @click="selectTab(tab.key)">
+        <button v-for="tab in tabs" :key="tab.key" :class="{ active: activeTab === tab.key }" @click="activeTab = tab.key">
           {{ tab.label }}<span v-if="counts[tab.countKey]" class="count">{{ counts[tab.countKey] }}</span>
         </button>
       </div>
@@ -46,9 +45,8 @@
               <div><span class="label">帮助层级</span>{{ task.submission.assistance.level_label || '无' }}</div>
               <div><span class="label">帮助来源</span>{{ task.submission.assistance.source_label }}</div>
             </div>
-            <RecordView :value="task.submission.items" title="提交分项" />
-            <h3>核验明细</h3>
-            <RecordView :value="task.submission.program_result" title="核验明细" />
+            <pre class="payload">{{ JSON.stringify(task.submission.items, null, 2) }}</pre>
+            <p class="muted small">程序核验明细：{{ JSON.stringify(task.submission.program_result) }}</p>
           </details>
 
           <div v-if="task.status !== 'reviewed' && task.status !== 'corrected'" class="review-form">
@@ -68,7 +66,7 @@
                 <option value="fail">未通过</option>
               </select>
               <input v-model="reviewForms[task.task_id].remarks" placeholder="评阅说明（必填）" />
-              <button class="btn btn-secondary btn-small" @click="submitManual(task)">提交评阅</button>
+              <button class="btn btn-primary btn-small" @click="submitManual(task)">提交评阅</button>
             </div>
           </div>
           <div v-else class="muted small">
@@ -85,7 +83,7 @@
           <input v-model="batchForm.basis" placeholder="抽样依据（必填）" />
           <input v-model.number="batchForm.sample_size" type="number" min="0" placeholder="随机样本数" />
           <input v-model.number="batchForm.high_risk_size" type="number" min="0" placeholder="高风险样本数" />
-          <input v-model.number="batchForm.random_seed" type="number" placeholder="可复现随机值" />
+          <input v-model.number="batchForm.random_seed" type="number" placeholder="随机种子" />
           <input v-model.number="batchForm.days" type="number" min="1" placeholder="时间窗天数" />
           <button class="btn btn-primary btn-small" @click="createBatch">建立批次</button>
         </div>
@@ -97,13 +95,13 @@
               <strong>{{ item.student }} · {{ item.task_title }}</strong>
               <p class="muted small">
                 {{ item.batch_title }} · {{ item.selection_reason === 'high_risk' ? '高风险' : '随机' }}
-                <template v-if="item.risk_reasons.length"> · {{ item.risk_reasons.map(riskLabel).join('、') }}</template>
+                <template v-if="item.risk_reasons.length"> · {{ item.risk_reasons.join('、') }}</template>
                 <template v-if="item.overdue"> · 已超期</template>
               </p>
             </div>
             <div class="item-actions">
               <button v-if="item.status === 'pending'" class="btn btn-small" @click="claimSampling(item)">认领</button>
-              <button v-if="item.status === 'claimed'" class="btn btn-secondary btn-small" @click="completeSampling(item)">完成复核</button>
+              <button v-if="item.status === 'claimed'" class="btn btn-primary btn-small" @click="completeSampling(item)">完成复核</button>
             </div>
           </div>
           <p v-if="item.status === 'completed'" class="muted small">已完成复核。</p>
@@ -128,7 +126,7 @@
               <option value="rejected">驳回</option>
             </select>
             <input v-model="disputeForms[item.dispute_id].resolution" placeholder="处理结论（必填）" />
-            <button class="btn btn-secondary btn-small" @click="resolveDispute(item)">提交</button>
+            <button class="btn btn-primary btn-small" @click="resolveDispute(item)">提交</button>
           </div>
           <p v-else class="muted small">处理结论：{{ item.resolution }}</p>
         </article>
@@ -151,7 +149,7 @@
                 <template v-if="item.outcome_label"> · {{ item.outcome_label }}</template>
               </p>
             </div>
-            <span class="badge">{{ selectionLabel(item.selection_reason) }}</span>
+            <span class="badge">{{ item.selection_reason }}</span>
           </div>
         </article>
       </section>
@@ -170,8 +168,8 @@
           分母为 0 时显示“暂无数据”，不补成 0；执行能力首期未开展，不进入分子或分母。
         </p>
         <details>
-          <summary>固定核查样例</summary>
-          <RecordView :value="regression" title="固定核查样例" />
+          <summary>固定回归样例（交模块八）</summary>
+          <pre class="payload">{{ JSON.stringify(regression, null, 2) }}</pre>
         </details>
       </section>
     </template>
@@ -179,12 +177,8 @@
 </template>
 
 <script setup>
-import { onMounted, onBeforeUnmount, reactive, ref, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { onMounted, reactive, ref } from 'vue'
 import service from '@/api'
-import RecordView from '@/shared/forms/RecordView.vue'
-import { feedbackError } from './feedbackPresentation.js'
-import { recordRows } from '@/shared/forms/recordPresentation.js'
 
 const tabs = [
   { key: 'manual', label: '开放题必评', countKey: 'manual_pending' },
@@ -193,20 +187,8 @@ const tabs = [
   { key: 'retest', label: '复测安排', countKey: '' },
   { key: 'stats', label: '统计口径', countKey: '' },
 ]
-const route = useRoute()
-const router = useRouter()
-const tabPreset = value => typeof value === 'string' && tabs.some(tab => tab.key === value) ? value : 'manual'
-const activeTab = ref(tabPreset(route.query?.tab))
-watch(() => route.query?.tab, value => { activeTab.value = tabPreset(value) })
-function selectTab(value) {
-  activeTab.value = tabPreset(value)
-  void router.replace({ path: route.path, query: { ...route.query, tab: activeTab.value }, hash: route.hash })
-}
+const activeTab = ref('manual')
 const loading = ref(true)
-const loadError = ref('')
-let loadRead = 0
-let alive = true
-onBeforeUnmount(() => { alive = false; ++loadRead })
 const message = ref('')
 const counts = reactive({ manual_pending: 0, sampling_pending: 0, disputes_pending: 0 })
 const manualTasks = ref([])
@@ -236,10 +218,14 @@ function rateText(entry) {
   return `${entry.numerator}/${entry.denominator}（${Math.round(entry.rate * 100)}%）`
 }
 
-function extractError(err) { return feedbackError(err, '操作未完成，请检查输入后重试。') }
-const riskLabels = { unknown_independence: '独立性未知', assisted: '受助', pending_manual: '待教师评阅', verification_failed: '核验未完成', dispute: '存在评分争议', environment_affected: '受环境影响', failed: '未通过', high_risk: '高风险' }
-const riskLabel = value => riskLabels[value] || '需人工核查'
-const selectionLabel = value => recordRows({ selection_reason: value })[0]?.value || '抽选依据待确认'
+function extractError(err) {
+  const data = err?.response?.data
+  if (!data) return '网络或服务异常。'
+  if (typeof data === 'string') return data
+  if (typeof data.detail === 'string') return data.detail
+  if (data.detail?.detail) return data.detail.detail
+  return '操作未完成。'
+}
 
 function ensureReviewForm(task) {
   if (!reviewForms[task.task_id]) {
@@ -253,12 +239,12 @@ function ensureReviewForm(task) {
 }
 
 async function loadAll() {
-  const current = ++loadRead
   loading.value = true
-  loadError.value = ''
+  message.value = ''
   try {
-    const [queue, manual, samplingPayload, disputesPayload, retestPayload, statsPayload, regressionPayload] = await Promise.all([
-      service.skillReview.teacherQueue(),
+    const queue = await service.skillReview.teacherQueue()
+    Object.assign(counts, queue.counts)
+    const [manual, samplingPayload, disputesPayload, retestPayload, statsPayload, regressionPayload] = await Promise.all([
       service.skillReview.manualTasks(),
       service.skillReview.samplingItems(),
       service.skillReview.teacherDisputes(),
@@ -266,13 +252,10 @@ async function loadAll() {
       service.skillReview.stats(),
       service.skillReview.regressionCases(),
     ])
-    if (!alive || current !== loadRead) return
-    if (![manual, samplingPayload, disputesPayload, retestPayload].every(payload => Array.isArray(payload?.items))) throw new Error('Incomplete review queue')
-    Object.assign(counts, queue.counts)
-    manualTasks.value = manual.items
-    samplingItems.value = samplingPayload.items
-    disputes.value = disputesPayload.items
-    retests.value = retestPayload.items
+    manualTasks.value = manual.items || []
+    samplingItems.value = samplingPayload.items || []
+    disputes.value = disputesPayload.items || []
+    retests.value = retestPayload.items || []
     stats.value = statsPayload
     regression.value = regressionPayload
     for (const task of manualTasks.value) {
@@ -284,9 +267,9 @@ async function loadAll() {
       }
     }
   } catch (err) {
-    if (alive && current === loadRead) loadError.value = feedbackError(err, '验收待办未能完整读取，请重试。')
+    message.value = extractError(err)
   } finally {
-    if (alive && current === loadRead) loading.value = false
+    loading.value = false
   }
 }
 
@@ -312,7 +295,7 @@ async function submitManual(task) {
       decision: form.decision,
       remarks: form.remarks,
     })
-    message.value = '评阅已保存，学习结果与能力证据已更新。'
+    message.value = '评阅已保存；结果与模块一事实已更新。'
     await loadAll()
   } catch (err) {
     message.value = extractError(err)
@@ -385,7 +368,7 @@ async function resolveDispute(item) {
 async function processDue() {
   try {
     const result = await service.skillReview.processDueRetests({})
-    message.value = `到期 ${result.due} 条，未完成 ${result.missed} 条；仅更新日期状态，不代表学习保持效果。`
+    message.value = `到期 ${result.due} 条，未完成 ${result.missed} 条。${result.note}`
     await loadAll()
   } catch (err) {
     message.value = extractError(err)
@@ -396,35 +379,35 @@ onMounted(loadAll)
 </script>
 
 <style scoped>
-.teacher-review-page { width:min(var(--table-width), calc(100% - var(--space-5))); margin:0 auto; padding:var(--space-4) 0 var(--space-8); }
-.page-header { display:flex; justify-content:space-between; align-items:flex-end; gap:var(--space-2); border-bottom:calc(var(--stroke) * 2) solid var(--text-primary); padding-bottom:var(--space-2); margin-bottom:var(--space-2); }
-.eyebrow { font-size:var(--text-caption); letter-spacing:.16em; text-transform:uppercase; color:var(--primary-color); font-weight: var(--weight-strong); }
-h1 { font-family: var(--font-family); font-size:var(--text-page); line-height:1.1; }
-.subtitle { color:var(--text-secondary); margin-top:var(--space-1); max-width:var(--search-width); }
-.btn { border:var(--stroke) solid var(--border-color); background:var(--bg-light); padding:var(--space-1) var(--space-1); font-weight: var(--weight-strong); cursor:pointer; color:var(--text-primary); }
-.btn-primary { background:var(--text-primary); color:var(--bg-light); }
-.btn-small { padding:calc(var(--space-1) / 2) var(--space-1); font-size:var(--text-caption); }
-.tabs { display:flex; gap:calc(var(--space-1) / 2); flex-wrap:wrap; margin-bottom:var(--space-2); }
-.tabs button { border:var(--stroke) solid var(--border-color); background:var(--bg-light); padding:calc(var(--space-1) / 2) var(--space-1); cursor:pointer; font-weight: var(--weight-strong); }
-.tabs button.active { background:var(--text-primary); color:var(--bg-light); border-color:var(--text-primary); }
-.count { margin-left:calc(var(--space-1) / 2); font-size:var(--text-caption); background:var(--primary-color); color:var(--on-action); padding:0 calc(var(--space-1) / 2); border-radius:var(--radius-control); }
-.panel { background:var(--bg-light); border:var(--stroke) solid var(--border-color); padding:var(--space-2); box-shadow: var(--shadow-raised); }
-.panel h2 { font-family: var(--font-family); font-size:var(--text-card); margin-bottom:var(--space-1); }
-.item { border-top:var(--stroke) solid var(--border-color); padding:var(--space-1) 0; }
-.item-head { display:flex; justify-content:space-between; gap:var(--space-1); align-items:flex-start; }
-.item-actions { display:flex; gap:var(--space-1); align-items:center; }
-.muted { color:var(--text-muted); font-size:var(--text-caption); }
-.small { font-size:var(--text-caption); }
-.grid { display:grid; grid-template-columns:repeat(4, 1fr); gap:var(--space-1); margin:var(--space-1) 0; font-size:var(--text-caption); }
-.label { display:block; font-size:var(--text-caption); color:var(--text-muted); }
-.payload { background:var(--bg-paper-2); padding:var(--space-1); font-size:var(--text-caption); overflow:auto; max-height:var(--content-short-height); }
-.review-form { margin-top:var(--space-1); border:var(--stroke) dashed var(--border-color); padding:var(--space-1); }
-.rubric-row { display:grid; grid-template-columns:var(--row-label-width) var(--space-7) 1fr 1fr; gap:var(--space-1); margin-bottom:calc(var(--space-1) / 2); font-size:var(--text-caption); align-items:center; }
-.rubric-row input, .rubric-row select, .review-actions input, .review-actions select, .batch-form input, .batch-form select { border:var(--stroke) solid var(--border-color); padding:calc(var(--space-1) / 2) calc(var(--space-1) / 2); font:inherit; background:var(--bg-paper); }
-.review-actions { display:flex; gap:var(--space-1); align-items:center; margin-top:var(--space-1); flex-wrap:wrap; }
-.batch-form { display:flex; gap:var(--space-1); flex-wrap:wrap; margin-bottom:var(--space-1); }
-.badge { font-size:var(--text-caption); padding:calc(var(--stroke) * 2) var(--space-1); border:var(--stroke) solid var(--border-color); }
-.message { background:var(--surface-muted); border-left:var(--focus-width) solid var(--primary-color); padding:var(--space-1) var(--space-1); font-size:var(--text-caption); margin-bottom:var(--space-1); }
-.state-box { background:var(--bg-light); border:var(--stroke) solid var(--border-color); padding:var(--space-6); text-align:center; color:var(--text-muted); }
-@media (max-width: 768px) { .grid, .rubric-row { grid-template-columns:1fr; } }
+.teacher-review-page { width: min(1180px, calc(100% - 40px)); margin: 0 auto; padding: 36px 0 72px; }
+.page-header { display: flex; justify-content: space-between; align-items: flex-end; gap: 20px; border-bottom: 2px solid var(--text-primary); padding-bottom: 20px; margin-bottom: 18px; }
+.eyebrow { font-size: 12px; letter-spacing: .16em; text-transform: uppercase; color: var(--primary-color); font-weight: 700; }
+h1 { font-family: "Songti SC", serif; font-size: 38px; line-height: 1.1; }
+.subtitle { color: var(--text-secondary); margin-top: 8px; max-width: 760px; }
+.btn { border: 1px solid var(--border-color); background: var(--bg-light); padding: 8px 12px; font-weight: 600; cursor: pointer; color: var(--text-primary); }
+.btn-primary { background: var(--text-primary); color: var(--bg-light); }
+.btn-small { padding: 5px 10px; font-size: 12px; }
+.tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+.tabs button { border: 1px solid var(--border-color); background: var(--bg-light); padding: 7px 12px; cursor: pointer; font-weight: 600; }
+.tabs button.active { background: var(--text-primary); color: var(--bg-light); border-color: var(--text-primary); }
+.count { margin-left: 6px; font-size: 11px; background: var(--primary-color); color: #fff; padding: 0 6px; border-radius: 8px; }
+.panel { background: var(--bg-light); border: 1px solid var(--border-color); padding: 18px; box-shadow: var(--shadow-md); }
+.panel h2 { font-family: "Songti SC", serif; font-size: 20px; margin-bottom: 10px; }
+.item { border-top: 1px solid var(--border-color); padding: 12px 0; }
+.item-head { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; }
+.item-actions { display: flex; gap: 8px; align-items: center; }
+.muted { color: var(--text-muted); font-size: 12px; }
+.small { font-size: 12px; }
+.grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 8px 0; font-size: 12px; }
+.label { display: block; font-size: 11px; color: var(--text-muted); }
+.payload { background: var(--bg-paper-2); padding: 8px; font-size: 11px; overflow: auto; max-height: 220px; }
+.review-form { margin-top: 10px; border: 1px dashed var(--border-color); padding: 10px; }
+.rubric-row { display: grid; grid-template-columns: 130px 60px 1fr 1fr; gap: 8px; margin-bottom: 6px; font-size: 12px; align-items: center; }
+.rubric-row input, .rubric-row select, .review-actions input, .review-actions select, .batch-form input, .batch-form select { border: 1px solid var(--border-color); padding: 5px 7px; font: inherit; background: var(--bg-paper); }
+.review-actions { display: flex; gap: 8px; align-items: center; margin-top: 8px; flex-wrap: wrap; }
+.batch-form { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+.badge { font-size: 11px; padding: 2px 8px; border: 1px solid var(--border-color); }
+.message { background: rgba(183,53,45,.06); border-left: 3px solid var(--primary-color); padding: 9px 12px; font-size: 13px; margin-bottom: 12px; }
+.state-box { background: var(--bg-light); border: 1px solid var(--border-color); padding: 48px; text-align: center; color: var(--text-muted); }
+@media (max-width: 900px) { .grid, .rubric-row { grid-template-columns: 1fr; } }
 </style>

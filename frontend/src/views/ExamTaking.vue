@@ -1,185 +1,256 @@
 <template>
   <div class="exam-taking-page">
-    <header class="exam-header">
+    <!-- 顶部导航栏 -->
+    <div class="exam-header">
       <div class="header-left">
-        <p class="page-context">{{ names.exams }} · 正式答题</p>
-        <h1 class="exam-title">{{ examInfo.title || '正式测评' }}</h1>
-        <div v-if="!loading && !loadError" class="exam-meta">
-          <span class="exam-type-badge">{{ examType === 'theory' ? '理论考试' : '实战考试' }}</span>
-          <span v-if="questions.length">第 {{ currentQuestionIndex + 1 }} 题 / 共 {{ questions.length }} 题</span>
+        <h1 class="exam-title">{{ examInfo.title }}</h1>
+        <div class="exam-meta">
+          <span v-if="examType === 'theory'" class="exam-type-badge type-theory">理论测试</span>
+          <span v-else class="exam-type-badge type-practice">实战测试</span>
+          <span class="exam-progress">{{ currentQuestionIndex + 1 }} / {{ questions.length }}</span>
         </div>
       </div>
       <div class="header-right">
-        <div v-if="!loading && !loadError" class="timer" :class="{ warning: timeRemaining < 300, danger: timeRemaining < 60 }">
-          <icon-clock-circle aria-hidden="true" />
-          <div>
-            <span class="timer-label">剩余时间</span>
-            <span class="timer-value" role="timer" aria-live="off">{{ formatTime(timeRemaining) }}</span>
-          </div>
-          <span class="timer-warning" role="status">{{ timeRemaining < 60 ? '不足 1 分钟' : timeRemaining < 300 ? '不足 5 分钟' : '' }}</span>
+        <div class="timer" :class="{ 'warning': timeRemaining < 300, 'danger': timeRemaining < 60 }">
+          <i class="bi bi-clock"></i>
+          <span>{{ formatTime(timeRemaining) }}</span>
         </div>
-        <button type="button" class="btn btn-outline" @click="exitExam">退出考试</button>
+        <button
+          v-if="canSubmit"
+          class="btn btn-success"
+          @click="submitExam"
+        >
+          提交考试
+        </button>
+        <button
+          class="btn btn-outline"
+          @click="exitExam"
+        >
+          退出
+        </button>
       </div>
-    </header>
-
-    <!-- 保存/交卷失败必须页面可见；不能只留在内部状态或依赖弹窗提示。 -->
-    <p v-if="submitError" class="exam-notice is-error" role="alert">{{ submitError }}</p>
-    <div v-if="loading" class="page-state" role="status" aria-busy="true">
-      <icon-loading aria-hidden="true" /> 正在读取考试题目与已提交答案…
     </div>
-    <div v-else-if="loadError" class="page-state load-error" role="alert">{{ loadError }}</div>
-    <p v-if="timeoutNotice" class="exam-notice is-error" role="alert">{{ timeoutNotice }}</p>
-    <div v-else-if="!questions.length" class="page-state" role="status">本场考试暂无题目，请联系教师或退出考试。</div>
 
-    <div v-else class="exam-content">
-      <section class="question-section" aria-labelledby="question-heading">
+    <!-- 主内容区 -->
+    <div class="exam-content">
+      <!-- 左侧题目区 -->
+      <div class="question-section">
         <div v-if="currentQuestion" class="question-card">
-          <div class="question-heading">
-            <h2 id="question-heading" class="question-title">第 {{ currentQuestionIndex + 1 }} 题</h2>
-            <span class="question-type-badge">{{ examType === 'practice' ? '实战题' : getQuestionTypeText(currentQuestion.question_detail?.question_type || 'single_choice') }}</span>
-            <span v-if="currentQuestion.points" class="question-score">{{ currentQuestion.points }} 分</span>
+          <!-- 题目类型标签 -->
+          <div class="question-type-badge">
+            {{ getQuestionTypeText(currentQuestion.question_detail?.question_type || 'single_choice') }}
           </div>
-          <div class="question-detail" v-html="formatQuestion(currentQuestion)"></div>
 
+          <!-- 题目内容 -->
+          <div class="question-content">
+            <h2 class="question-text">
+              <span class="question-number">第 {{ currentQuestionIndex + 1 }} 题</span>
+              <span class="question-score" v-if="currentQuestion.points">({{ currentQuestion.points }}分)</span>
+            </h2>
+            <div class="question-detail" v-html="formatQuestion(currentQuestion)"></div>
+          </div>
+
+          <!-- 答案选项/输入区 -->
           <div class="answer-section">
-            <fieldset v-if="examType === 'theory' && currentQuestion.question_detail" class="options-list">
-              <legend class="answer-hint">{{ currentQuestion.question_detail.question_type === 'multiple_choice' ? '请选择所有符合题意的选项' : '请选择一个选项' }}</legend>
-              <button
+            <!-- 理论题选项 -->
+            <div v-if="examType === 'theory' && currentQuestion.question_detail" class="options-list">
+              <div
                 v-for="(option, index) in currentQuestion.question_detail.options"
                 :key="index"
-                type="button"
                 class="option-item"
-                :class="{ selected: isOptionSelected(option) }"
-                :aria-pressed="isOptionSelected(option)"
+                :class="{ 'selected': isOptionSelected(option) }"
                 @click="selectOption(option)"
               >
-                <span class="option-marker">{{ getOptionLabel(index) }}</span>
-                <span class="option-text">{{ option }}</span>
-                <icon-check-circle v-if="isOptionSelected(option)" class="option-check" aria-hidden="true" />
-              </button>
-            </fieldset>
+                <div class="option-marker">{{ getOptionLabel(index) }}</div>
+                <div class="option-text">{{ option }}</div>
+                <div class="option-check">
+                  <i v-if="isOptionSelected(option)" class="bi bi-check-circle-fill"></i>
+                </div>
+              </div>
+            </div>
 
+            <!-- 实战题输入 -->
             <div v-else-if="examType === 'practice' && currentQuestion.challenge" class="practice-answer">
               <div class="practice-info">
-                <span>难度 <strong>{{ getDifficultyText(currentQuestion.challenge_difficulty) }}</strong></span>
-                <span>分值 <strong>{{ currentQuestion.challenge_points || 0 }} 分</strong></span>
+                <div class="info-item">
+                  <span class="info-label">难度:</span>
+                  <span class="info-value" :class="'difficulty-' + (currentQuestion.challenge_difficulty?.toLowerCase() || 'unknown')">
+                    {{ currentQuestion.challenge_difficulty || '未知' }}
+                  </span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">分值:</span>
+                  <span class="info-value">{{ currentQuestion.challenge_points || 0 }} 分</span>
+                </div>
               </div>
-              <label class="input-label" for="exam-flag">Flag 答案</label>
               <div class="flag-input">
+                <label class="input-label">请提交 Flag:</label>
                 <input
-                  id="exam-flag"
                   v-model="currentAnswer"
                   type="text"
-                  class="input"
-                  :disabled="submittingAnswer"
-                  placeholder="请输入 flag，例如 flag{...}"
+                  class="input input-large"
+                  placeholder="请输入 flag，例如: flag{...}"
                   @keyup.enter="submitAnswer"
                 />
-                <button type="button" class="btn btn-primary" @click="submitAnswer" :disabled="!currentAnswer.trim() || submittingAnswer" :aria-busy="submittingAnswer">{{ submittingAnswer ? '正在提交答案…' : '提交答案' }}</button>
+                <button
+                  class="btn btn-primary btn-submit"
+                  @click="submitAnswer"
+                  :disabled="!currentAnswer.trim()"
+                >
+                  提交答案
+                </button>
               </div>
-              <div v-if="submissionResult" class="submission-result" :class="{ success: submissionResult.is_correct, error: !submissionResult.is_correct }" role="status">
-                <icon-check-circle v-if="submissionResult.is_correct" aria-hidden="true" />
-                <icon-close-circle v-else aria-hidden="true" />
+              <div v-if="submissionResult" class="submission-result" :class="{ 'success': submissionResult.is_correct, 'error': !submissionResult.is_correct }">
+                <i :class="submissionResult.is_correct ? 'bi bi-check-circle-fill' : 'bi bi-x-circle-fill'"></i>
                 <span>{{ submissionResult.is_correct ? '答案正确！' : '答案错误，请重试' }}</span>
               </div>
             </div>
           </div>
 
-          <nav class="navigation-buttons" aria-label="切换题目">
-            <button type="button" class="btn btn-outline" @click="prevQuestion" :disabled="currentQuestionIndex === 0">
-              <icon-left aria-hidden="true" /> 上一题
-            </button>
-            <button type="button" class="btn btn-outline" @click="nextQuestion" :disabled="currentQuestionIndex === questions.length - 1">
-              下一题 <icon-right aria-hidden="true" />
-            </button>
-          </nav>
-        </div>
-      </section>
-
-      <aside class="question-nav-section" aria-labelledby="question-nav-heading">
-        <div class="nav-card">
-          <h2 id="question-nav-heading" class="nav-title">题目导航</h2>
-          <div class="nav-legend" aria-hidden="true">
-            <span>描边为当前题</span>
-            <span><icon-check aria-hidden="true" /> 已答</span>
-            <span>空圈为未答</span>
-          </div>
-          <nav class="nav-grid" aria-label="按题号跳转">
+          <!-- 导航按钮 -->
+          <div class="navigation-buttons">
             <button
+              class="btn btn-outline"
+              @click="prevQuestion"
+              :disabled="currentQuestionIndex === 0"
+            >
+              <i class="bi bi-chevron-left"></i>
+              上一题
+            </button>
+            <button
+              class="btn btn-primary"
+              @click="nextQuestion"
+              :disabled="currentQuestionIndex === questions.length - 1"
+            >
+              下一题
+              <i class="bi bi-chevron-right"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 右侧题目导航 -->
+      <div class="question-nav-section">
+        <div class="nav-card">
+          <div class="nav-header">
+            <h3>题目导航</h3>
+            <div class="nav-legend">
+              <span class="legend-item current">当前</span>
+              <span class="legend-item answered">已答</span>
+              <span class="legend-item unanswered">未答</span>
+            </div>
+          </div>
+          <div class="nav-grid">
+            <div
               v-for="(question, index) in questions"
               :key="index"
-              type="button"
               class="nav-item"
-              :class="{ current: index === currentQuestionIndex, answered: isAnswered(index) }"
-              :aria-current="index === currentQuestionIndex ? 'step' : undefined"
-              :aria-label="`第 ${index + 1} 题，${isAnswered(index) ? '已答' : '未答'}${index === currentQuestionIndex ? '，当前题' : ''}`"
+              :class="{
+                'current': index === currentQuestionIndex,
+                'answered': isAnswered(index),
+                'unanswered': !isAnswered(index) && index !== currentQuestionIndex
+              }"
               @click="goToQuestion(index)"
             >
-              <span>{{ index + 1 }}</span>
-              <icon-check v-if="isAnswered(index)" aria-hidden="true" />
-              <span v-else class="unanswered-marker" aria-hidden="true"></span>
-            </button>
-          </nav>
-          <dl class="progress-stats">
-            <div><dt>已答题目</dt><dd>{{ answeredCount }} / {{ questions.length }}</dd></div>
-            <div><dt>正确率</dt><dd>{{ accuracyRate }}%</dd></div>
-          </dl>
+              <span class="nav-number">{{ index + 1 }}</span>
+              <span v-if="isAnswered(index)" class="nav-icon">✓</span>
+            </div>
+          </div>
+
+          <!-- 进度统计 -->
+          <div class="progress-stats">
+            <div class="stat-row">
+              <span class="stat-label">已答题:</span>
+              <span class="stat-value">{{ answeredCount }}/{{ questions.length }}</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">正确率:</span>
+              <span class="stat-value">{{ accuracyRate }}%</span>
+            </div>
+          </div>
+
+          <!-- 快速跳转 -->
           <div class="quick-nav">
-            <button type="button" class="btn btn-outline" @click="goToFirstUnanswered" :disabled="!hasUnanswered">跳转未答</button>
-            <button type="button" class="btn" :class="examType === 'theory' ? 'btn-primary' : 'btn-outline'" @click="submitExam" :disabled="!canSubmit || preparingSubmit" :aria-busy="preparingSubmit">{{ preparingSubmit ? '正在提交答案…' : '提交考试' }}</button>
+            <button
+              class="btn btn-small btn-outline"
+              @click="goToFirstUnanswered"
+              :disabled="!hasUnanswered"
+            >
+              跳转未答
+            </button>
+            <button
+              class="btn btn-small btn-primary"
+              @click="submitExam"
+              :disabled="!canSubmit"
+            >
+              提交考试
+            </button>
           </div>
         </div>
-      </aside>
+      </div>
     </div>
 
-    <ExamTakingDialog :open="showSubmitDialog" title="提交考试" title-id="exam-submit-heading" @close="closeSubmitDialog">
-      <dl class="submit-info">
-        <div><dt>已答题目</dt><dd>{{ answeredCount }} / {{ questions.length }}</dd></div>
-        <div><dt>已用时间</dt><dd>{{ formatTime(elapsedTime) }}</dd></div>
-      </dl>
-      <p v-if="answeredCount < questions.length" class="warning-text">
-        <icon-exclamation-circle aria-hidden="true" />
-        还有 {{ questions.length - answeredCount }} 道题未答，确认提交吗？
-      </p>
-      <template #footer>
-        <button type="button" class="btn btn-outline" autofocus @click="closeSubmitDialog">取消</button>
-        <button type="button" class="btn btn-primary" @click="confirmSubmit" :disabled="submittingExam" :aria-busy="submittingExam">{{ submittingExam ? '正在交卷…' : '确认提交' }}</button>
-      </template>
-    </ExamTakingDialog>
-
-    <ExamTakingDialog :open="showExitDialog" title="退出考试" title-id="exam-exit-heading" @close="closeExitDialog">
-      <p>请选择退出方式。</p>
-      <div class="exit-options">
-        <button type="button" class="exit-option" @click="exitWithoutAbandon">
-          <span class="option-title"><icon-save aria-hidden="true" /> 退出并保留</span>
-          <span class="option-desc">仅保留已提交的答案，尚未提交的选择不会保存</span>
-        </button>
-        <button type="button" class="exit-option danger" @click="abandonAndExit" :disabled="abandoning" :aria-busy="abandoning">
-          <span class="option-title"><icon-exclamation-circle aria-hidden="true" /> {{ abandoning ? '正在放弃考试…' : '放弃考试' }}</span>
-          <span class="option-desc">放弃当前考试，无法恢复</span>
-        </button>
+    <!-- 提交确认对话框 -->
+    <div v-if="showSubmitDialog" class="modal-overlay" @click="closeSubmitDialog">
+      <div class="modal-content" @click.stop>
+        <h3 class="modal-title">提交考试</h3>
+        <div class="modal-body">
+          <div class="submit-info">
+            <div class="info-row">
+              <span class="info-label">已答题目:</span>
+              <span class="info-value">{{ answeredCount }} / {{ questions.length }}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">预计用时:</span>
+              <span class="info-value">{{ formatTime(elapsedTime) }}</span>
+            </div>
+          </div>
+          <div v-if="answeredCount < questions.length" class="warning-text">
+            ⚠️ 还有 {{ questions.length - answeredCount }} 道题未答，确认提交吗？
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline" @click="closeSubmitDialog">取消</button>
+          <button class="btn btn-primary" @click="confirmSubmit">确认提交</button>
+        </div>
       </div>
-      <template #footer>
-        <button type="button" class="btn btn-outline" autofocus @click="closeExitDialog">取消</button>
-      </template>
-    </ExamTakingDialog>
+    </div>
+
+    <!-- 退出确认对话框 -->
+    <div v-if="showExitDialog" class="modal-overlay" @click="closeExitDialog">
+      <div class="modal-content" @click.stop>
+        <h3 class="modal-title">退出考试</h3>
+        <div class="modal-body">
+          <p>选择退出方式：</p>
+          <div class="exit-options">
+            <div class="exit-option" @click="exitWithoutAbandon">
+              <div class="option-title">📝 退出并保留</div>
+              <div class="option-desc">退出考试，稍后可以继续答题</div>
+            </div>
+            <div class="exit-option danger" @click="abandonAndExit">
+              <div class="option-title">⚠️ 放弃考试</div>
+              <div class="option-desc">放弃当前考试，无法恢复</div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline" @click="closeExitDialog">取消</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import api from '@/api'
 import { sanitizeHtml } from '@/utils/sanitize'
-import { names } from '@/shared/navigation/names'
-import { RESULT_PATH, practiceQuestionRef, savedAnswerRef, theoryExamId, theoryQuestionRef } from '@/learning/exams/api.js'
-import ExamTakingDialog from './ExamTakingDialog.vue'
 
 const router = useRouter()
 const route = useRoute()
 
-// recordId 必须随路由变化重新读卷；仍以原服务器考试时间计时，不自造新的开始时间。
-const recordId = computed(() => route.params.id)
+const recordId = route.params.id
 const examType = ref('theory')
 const examInfo = ref({})
 const questions = ref([])
@@ -192,15 +263,6 @@ const showSubmitDialog = ref(false)
 const showExitDialog = ref(false)
 const submissionResult = ref(null)
 const timer = ref(null)
-const loading = ref(true)
-const loadError = ref('')
-const submitError = ref('')
-const timeoutNotice = ref('')
-const submittingAnswer = ref(false)
-const preparingSubmit = ref(false)
-const submittingExam = ref(false)
-const abandoning = ref(false)
-let loadVersion = 0
 
 const currentQuestion = computed(() => questions.value[currentQuestionIndex.value])
 const answeredCount = computed(() => Object.keys(answers.value).length)
@@ -226,12 +288,6 @@ const getQuestionTypeText = (type) => {
   return map[type] || '题目'
 }
 
-// 仅转换展示文案，不更改难度或评分口径。
-const getDifficultyText = (difficulty) => {
-  const labels = { easy: '简单', medium: '中等', hard: '困难', 简单: '简单', 中等: '中等', 困难: '困难' }
-  return labels[String(difficulty || '').toLowerCase()] || '未知'
-}
-
 // 格式化题目内容
 const formatQuestion = (question) => {
   // 理论题
@@ -251,7 +307,7 @@ const isOptionSelected = (option) => {
     return false
   }
   const userAnswer = answers.value[currentQuestion.value.id].user_answer
-  const questionType = currentQuestion.value.question_detail?.question_type || (currentQuestion.value.challenge ? 'practice' : 'single_choice')
+  const questionType = currentQuestion.value.question_detail?.question_type || currentQuestion.value.challenge ? 'practice' : 'single_choice'
 
   if (questionType === 'multiple_choice') {
     return userAnswer.includes(option)
@@ -308,7 +364,6 @@ const prevQuestion = () => {
     currentQuestionIndex.value--
     currentAnswer.value = ''
     submissionResult.value = null
-    submitError.value = ''
   }
 }
 
@@ -318,7 +373,6 @@ const nextQuestion = () => {
     currentQuestionIndex.value++
     currentAnswer.value = ''
     submissionResult.value = null
-    submitError.value = ''
   }
 }
 
@@ -327,7 +381,6 @@ const goToQuestion = (index) => {
   currentQuestionIndex.value = index
   currentAnswer.value = ''
   submissionResult.value = null
-  submitError.value = ''
 }
 
 // 跳转到第一题未答题
@@ -340,47 +393,13 @@ const goToFirstUnanswered = () => {
   }
 }
 
-// 逐题保存理论题的核心字段是试卷题目关联 id（practice）或原题目 id（theory），
-// 结果接口返回的 theory_question/practice_question 是同一口径，不能与关联 id 混用。
-async function saveTheoryAnswers({ onlyUnsaved = false } = {}) {
-  let failures = 0
-  for (const question of questions.value) {
-    const selected = answers.value[question.id]
-    if (!selected) continue
-    if (onlyUnsaved && selected.saved) continue
-    const questionRef = theoryQuestionRef(question)
-    if (questionRef === null) { failures++; continue }
-    try {
-      const result = await api.exams.submitAnswer(recordId.value, {
-        theory_question_id: questionRef,
-        user_answer: selected.user_answer,
-        time_spent: Math.floor(elapsedTime.value),
-      })
-      const next = { ...selected, saved: true }
-      if (result && typeof result.is_correct === 'boolean') next.is_correct = result.is_correct
-      if (result && result.points_earned !== null && result.points_earned !== undefined) next.points_earned = result.points_earned
-      answers.value[question.id] = next
-    } catch {
-      failures++
-    }
-  }
-  return failures
-}
-
 // 提交答案（实战题）
 const submitAnswer = async () => {
-  if (!currentQuestion.value || !currentAnswer.value.trim() || submittingAnswer.value) return
-  const questionRef = practiceQuestionRef(currentQuestion.value)
-  if (questionRef === null) {
-    submitError.value = '本题缺少可保存的题目标识，暂时不能提交；请返回试炼场重新进入。'
-    return
-  }
+  if (!currentQuestion.value || !currentAnswer.value.trim()) return
 
-  submittingAnswer.value = true
-  submitError.value = ''
   try {
-    const result = await api.exams.submitAnswer(recordId.value, {
-      practice_question_id: questionRef,
+    const result = await api.exams.submitAnswer(recordId, {
+      practice_question_id: currentQuestion.value.id,
       user_answer: currentAnswer.value.trim(),
       time_spent: Math.floor(elapsedTime.value),
     })
@@ -390,7 +409,6 @@ const submitAnswer = async () => {
       user_answer: currentAnswer.value.trim(),
       is_correct: result.is_correct,
       points_earned: result.points_earned,
-      saved: true,
     }
 
     if (result.is_correct) {
@@ -406,82 +424,61 @@ const submitAnswer = async () => {
     }
   } catch (error) {
     console.error('提交答案失败:', error)
-    // 保留输入与未答状态：失败的保存不会被当作已保存。
-    submitError.value = '答案尚未保存成功，输入已保留。请检查网络后重试。'
     alert('提交失败，请重试')
-  } finally {
-    submittingAnswer.value = false
   }
 }
 
 // 提交考试
 const submitExam = () => {
   if (examType.value === 'theory') {
-    // 理论题：先逐题保存所有选择，保存失败不进入交卷确认。
+    // 理论题：先提交所有答案，再提交考试
     submitAllTheoryAnswers()
   } else {
-    // 实战题：已提交的 Flag 答案在服务端；直接显示确认对话框。
+    // 实战题：直接显示确认对话框
     showSubmitDialog.value = true
   }
 }
 
 // 提交所有理论题答案
 const submitAllTheoryAnswers = async () => {
-  if (preparingSubmit.value) return
-  preparingSubmit.value = true
-  submitError.value = ''
   try {
-    const failures = await saveTheoryAnswers()
-    if (failures > 0) {
-      submitError.value = `有 ${failures} 道题的选择尚未保存成功，暂不进入交卷。输入已保留，请检查网络后在本题重新选择并提交。`
-      return
-    }
-    showSubmitDialog.value = true
-  } finally {
-    preparingSubmit.value = false
-  }
-}
-
-// 最终交卷：防重复；失败保留对话框与当前答案，不假装已交卷。
-async function finalizeSubmission() {
-  if (submittingExam.value) return
-  submittingExam.value = true
-  submitError.value = ''
-  try {
-    await api.exams.submitExam(recordId.value)
-
-    // 理论考试交卷后由后台开启配对的实战记录。
-    if (examType.value === 'theory') {
-      const record = await api.exams.getExamResult(recordId.value)
-      if (record?.practice_record_id) {
-        router.push(`/exam-taking/${record.practice_record_id}`)
-        return
+    for (const question of questions.value) {
+      if (question.question && answers.value[question.id]) {
+        await api.exams.submitAnswer(recordId, {
+          theory_question_id: question.question,  // 使用实际的题目 ID
+          user_answer: answers.value[question.id].user_answer,
+          time_spent: Math.floor(elapsedTime.value),
+        })
       }
     }
-    router.push(RESULT_PATH(recordId.value))
+    showSubmitDialog.value = true
   } catch (error) {
-    console.error('提交考试失败:', error)
-    submitError.value = '交卷尚未成功，答案仍保留在本页。请检查网络后再次提交。'
+    console.error('提交答案失败:', error)
     alert('提交失败，请重试')
-  } finally {
-    submittingExam.value = false
   }
 }
 
 // 确认提交
 const confirmSubmit = async () => {
-  if (submittingExam.value || preparingSubmit.value) return
-  // 理论题在确认前再核对一遍未保存的选择，避免“确认了但没保存”。
-  if (examType.value === 'theory') {
-    preparingSubmit.value = true
-    let failures = 0
-    try { failures = await saveTheoryAnswers({ onlyUnsaved: true }) } finally { preparingSubmit.value = false }
-    if (failures > 0) {
-      submitError.value = `有 ${failures} 道题的选择尚未保存成功，暂不交卷。请恢复网络后重试。`
-      return
+  try {
+    await api.exams.submitExam(recordId)
+
+    // 检查是否是理论考试，如果是则进入实战考试
+    if (examType.value === 'theory') {
+      const record = await api.exams.getExamResult(recordId)
+      if (record.practice_record_id) {
+        // 进入实战考试
+        router.push(`/exam-taking/${record.practice_record_id}`)
+        return
+      }
     }
+
+    // 跳转到结果页
+    router.push(`/exam-result/${recordId}`)
+  } catch (error) {
+    console.error('提交考试失败:', error)
+    alert('提交失败，请重试')
   }
-  await finalizeSubmission()
 }
 
 // 关闭提交对话框
@@ -494,36 +491,25 @@ const exitExam = () => {
   showExitDialog.value = true
 }
 
-// 退出但不放弃考试：不写入任何答案，已保存的答案由服务端保留。
+// 退出但不放弃考试
 const exitWithoutAbandon = () => {
   closeExitDialog()
   router.push('/exam-center')
 }
 
-// 放弃考试并退出：先确认，再按真实响应重读记录；不把失败当作已放弃。
+// 放弃考试并退出
 const abandonAndExit = async () => {
-  if (abandoning.value) return
-  abandoning.value = true
-  submitError.value = ''
   try {
     await api.exams.startComprehensiveExam({ abandon: true })
-    let status = null
-    try { status = (await api.exams.getExamResult(recordId.value))?.status ?? null } catch { status = null }
-    if (status === 'in_progress') {
-      submitError.value = '后台仍显示本场考试进行中，放弃可能未生效。请重试或返回试炼场确认。'
-      return
-    }
     closeExitDialog()
     router.push('/exam-center')
   } catch (error) {
     console.error('放弃考试失败:', error)
     alert('放弃考试失败')
-  } finally {
-    abandoning.value = false
   }
 }
 
-// 关闭退出对话框；取消确认不写入任何状态。
+// 关闭退出对话框
 const closeExitDialog = () => {
   showExitDialog.value = false
 }
@@ -540,97 +526,102 @@ const formatTime = (seconds) => {
   return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
 }
 
-function resetExamState() {
-  if (timer.value) { clearInterval(timer.value); timer.value = null }
-  examType.value = 'theory'
-  examInfo.value = {}
-  questions.value = []
-  currentQuestionIndex.value = 0
-  answers.value = {}
-  currentAnswer.value = ''
-  timeRemaining.value = 0
-  elapsedTime.value = 0
-  submissionResult.value = null
-  submitError.value = ''
-  timeoutNotice.value = ''
-  loadError.value = ''
-  showSubmitDialog.value = false
-  showExitDialog.value = false
-  loading.value = true
-}
-
-// 加载本场题目、时限与服务端已保存的答案；旧 recordId 的响应不得写入新卷。
+// 加载考试信息
 const loadExamInfo = async () => {
-  const version = ++loadVersion
-  const id = recordId.value
-  loading.value = true
-  loadError.value = ''
+  console.log('开始加载考试信息, recordId:', recordId)
+
   try {
-    const record = await api.exams.getExamResult(id)
-    if (version !== loadVersion) return
-    if (record.status && record.status !== 'in_progress') {
-      router.push(RESULT_PATH(id))
-      return
+    // 添加原始响应日志
+    const rawRecord = await api.exams.getExamResult(recordId)
+    console.log('=== 原始 API 响应 ===')
+    console.log('原始响应数据:', rawRecord)
+    console.log('原始响应 theory_exam:', rawRecord.theory_exam)
+    console.log('原始响应 practice_exam:', rawRecord.practice_exam)
+
+    const record = await api.exams.getExamResult(recordId)
+    console.log('=== axios 拦截器返回的数据 ===')
+    console.log('axios 返回的 record:', record)
+    console.log('record 类型:', typeof record)
+    console.log('record 键值:', Object.keys(record))
+    console.log('record.theory_exam:', record.theory_exam)
+    console.log('record.theory_exam 类型:', typeof record.theory_exam)
+    console.log('record.practice_exam:', record.practice_exam)
+    console.log('record.practice_exam 类型:', typeof record.practice_exam)
+    console.log('record.exam_title:', record.exam_title)
+    console.log('record.exam_type:', record.exam_type)
+
+    if (record.theory_exam) {
+      console.log('✅ 检测到 theory_exam，准备加载理论题目')
+      examType.value = 'theory'
+      examInfo.value = {
+        id: record.theory_exam,
+        title: record.exam_title,
+        duration: 180
+      }
+      console.log('加载理论题目, examId:', record.theory_exam, '类型:', typeof record.theory_exam)
+      questions.value = await api.exams.getTheoryQuestions(record.theory_exam)
+      console.log('理论题目加载成功, 数量:', questions.value.length)
+    } else if (record.practice_exam) {
+      console.log('✅ 检测到 practice_exam，准备加载实战题目')
+      examType.value = 'practice'
+      examInfo.value = {
+        id: record.practice_exam,
+        title: record.exam_title,
+        duration: 180
+      }
+      console.log('加载实战题目, examId:', record.practice_exam, '类型:', typeof record.practice_exam)
+      questions.value = await api.exams.getPracticeQuestions(record.practice_exam)
+      console.log('实战题目加载成功, 数量:', questions.value.length)
+    } else {
+      console.error('❌ 考试记录中没有 theory_exam 或 practice_exam')
+      console.error('record.theory_exam:', record.theory_exam)
+      console.error('record.practice_exam:', record.practice_exam)
+      throw new Error('考试记录无效')
     }
-    const theory = record.theory_exam !== null && record.theory_exam !== undefined && record.theory_exam !== ''
-    const examId = theory ? theoryExamId(record) : (typeof record.practice_exam === 'object' ? record.practice_exam?.id : record.practice_exam)
-    if (examId === null || examId === undefined) throw new Error('考试记录无效')
-    const [exam, items] = await Promise.all([
-      theory ? api.exams.getTheoryExam(examId) : api.exams.getPracticeExam(examId),
-      theory ? api.exams.getTheoryQuestions(examId) : api.exams.getPracticeQuestions(examId),
-    ])
-    if (version !== loadVersion) return
-    const duration = Number(exam.duration)
-    const started = Date.parse(record.start_time)
-    if (!Number.isFinite(duration) || duration <= 0 || !Number.isFinite(started)) {
-      throw new Error('考试时限暂不可用')
-    }
-    examType.value = theory ? 'theory' : 'practice'
-    examInfo.value = { ...exam, title: record.exam_title || exam.title }
-    questions.value = Array.isArray(items) ? items : []
-    elapsedTime.value = Math.max(0, Math.floor((Date.now() - started) / 1000))
-    timeRemaining.value = Math.max(0, duration * 60 - elapsedTime.value)
-    answers.value = {}
-    for (const answer of record.answers || []) {
-      const questionId = theory
-        ? questions.value.find(q => String(theoryQuestionRef(q)) === String(savedAnswerRef(theory, answer)))?.id
-        : savedAnswerRef(theory, answer)
-      if (questionId !== null && questionId !== undefined && questions.value.some(q => q.id === questionId)) {
-        answers.value[questionId] = {
-          user_answer: answer.user_answer,
-          is_correct: answer.is_correct,
-          points_earned: answer.points_earned,
-          saved: true,
+
+    timeRemaining.value = record.theory_exam ? 180 * 60 : (record.practice_exam ? 180 * 60 : 3600)
+
+    // 加载已提交的答案
+    const answersRes = await api.exams.records({ id: recordId })
+    console.log('获取答案记录成功:', answersRes)
+    if (answersRes.results && answersRes.results[0] && answersRes.results[0].answers) {
+      for (const answer of answersRes.results[0].answers) {
+        let questionId = null
+        if (answer.theory_question_id) {
+          const examQuestion = questions.value.find(q => q.question === answer.theory_question_id)
+          if (examQuestion) {
+            questionId = examQuestion.id
+          }
+        } else if (answer.practice_question_id) {
+          questionId = answer.practice_question_id
+        }
+
+        if (questionId) {
+          answers.value[questionId] = {
+            user_answer: answer.user_answer,
+            is_correct: answer.is_correct,
+            points_earned: answer.points_earned,
+          }
         }
       }
     }
+
+    console.log('考试信息加载完成, 题目数量:', questions.value.length)
   } catch (error) {
-    if (version !== loadVersion) return
-    loadError.value = '考试信息暂时未能读取，请返回试炼场重试或联系教师。'
-    alert(loadError.value)
+    console.error('=== 加载考试信息失败 ===')
+    console.error('recordId:', recordId)
+    console.error('Error:', error)
+    console.error('Error response:', error.response)
+    console.error('Error status:', error.response?.status)
+    console.error('Error data:', error.response?.data)
+    console.error('Error message:', error.message)
+    console.error('Error stack:', error.stack)
+
+    // 显示具体错误信息
+    const errorMsg = error.response?.data?.error || error.message || '未知错误'
+    alert(`加载考试信息失败！\n\n错误：${errorMsg}\n\n请重试或联系管理员`)
     router.push('/exam-center')
-  } finally {
-    if (version === loadVersion) loading.value = false
   }
-}
-
-function startTimer() {
-  if (timer.value) clearInterval(timer.value)
-  if (!loadError.value && questions.value.length) timer.value = setInterval(updateTimer, 1000)
-}
-
-// 到时交卷：先处理尚未保存的选择；保存失败时不假交卷，保留输入并明确提示。
-async function handleTimeUp() {
-  if (submittingExam.value || preparingSubmit.value) return
-  if (examType.value === 'theory') {
-    const failures = await saveTheoryAnswers({ onlyUnsaved: true })
-    if (failures > 0) {
-      timeoutNotice.value = `已到时限，但有 ${failures} 道已选答案未能保存。系统不会把未保存的答案当作已交卷；请恢复网络后手动提交。`
-      return
-    }
-  }
-  timeoutNotice.value = '已到时限，正在按服务端已保存的答案交卷。'
-  await finalizeSubmission()
 }
 
 // 更新计时器
@@ -639,32 +630,572 @@ const updateTimer = () => {
     timeRemaining.value--
     elapsedTime.value++
   } else {
-    // 时间到，按真实保存状态交卷（只触发一次）。
+    // 时间到，自动提交
     clearInterval(timer.value)
-    timer.value = null
-    handleTimeUp()
+    confirmSubmit()
   }
 }
 
-watch(recordId, (next, previous) => {
-  if (next === previous) return
-  // 换记录必须重新读卷并丢弃旧响应，不能只靠 mounted 一次加载。
-  loadVersion++
-  resetExamState()
-  loadExamInfo().then(startTimer)
-})
-
 onMounted(async () => {
   await loadExamInfo()
-  startTimer()
+  timer.value = setInterval(updateTimer, 1000)
 })
 
 onUnmounted(() => {
   if (timer.value) {
     clearInterval(timer.value)
-    timer.value = null
   }
 })
 </script>
 
-<style scoped src="./examTaking.css"></style>
+<style scoped>
+.exam-taking-page {
+  min-height: 100vh;
+  background: #f5f5f5;
+}
+
+/* 顶部导航 */
+.exam-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 72px;
+  background: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 32px;
+  z-index: 1000;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.exam-title {
+  font-size: 20px;
+  font-weight: bold;
+  color: #1a1a1a;
+  margin: 0;
+}
+
+.exam-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.exam-type-badge {
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.type-theory {
+  background: #e6f7ff;
+  color: #1890ff;
+}
+
+.type-practice {
+  background: #fff7e6;
+  color: #faad14;
+}
+
+.exam-progress {
+  font-size: 14px;
+  color: #666;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.timer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  font-size: 18px;
+  font-weight: bold;
+  color: #52c41a;
+}
+
+.timer.warning {
+  color: #faad14;
+  animation: pulse 1s infinite;
+}
+
+.timer.danger {
+  color: #ff4d4f;
+  animation: pulse 0.5s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* 主内容区 */
+.exam-content {
+  display: flex;
+  gap: 24px;
+  padding: 96px 32px 32px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.question-section {
+  flex: 1;
+  min-width: 0;
+}
+
+.question-nav-section {
+  width: 320px;
+  flex-shrink: 0;
+}
+
+/* 题目卡片 */
+.question-card {
+  background: white;
+  border-radius: 16px;
+  padding: 32px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+.question-type-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  background: #1890ff;
+  color: white;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  margin-bottom: 24px;
+}
+
+.question-content {
+  margin-bottom: 32px;
+}
+
+.question-text {
+  font-size: 18px;
+  font-weight: bold;
+  color: #1a1a1a;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.question-number {
+  color: #1890ff;
+}
+
+.question-score {
+  color: #999;
+  font-size: 14px;
+  font-weight: normal;
+}
+
+.question-detail {
+  font-size: 16px;
+  color: #333;
+  line-height: 1.8;
+  white-space: pre-wrap;
+}
+
+/* 选项列表 */
+.options-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.option-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px;
+  background: #f8f9fa;
+  border: 2px solid transparent;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.option-item:hover {
+  background: #e9ecef;
+}
+
+.option-item.selected {
+  background: #e6f7ff;
+  border-color: #1890ff;
+}
+
+.option-marker {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #1890ff;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.option-text {
+  flex: 1;
+  font-size: 16px;
+  color: #1a1a1a;
+}
+
+.option-check {
+  font-size: 20px;
+  color: #1890ff;
+}
+
+/* 实战题答题区 */
+.practice-answer {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.practice-info {
+  display: flex;
+  gap: 24px;
+  padding: 16px;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.info-item {
+  display: flex;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.info-label {
+  color: #666;
+}
+
+.info-value {
+  font-weight: 500;
+}
+
+.difficulty-easy { color: #52c41a; }
+.difficulty-medium { color: #faad14; }
+.difficulty-hard { color: #ff4d4f; }
+
+.flag-input {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.input-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #1a1a1a;
+}
+
+.input-large {
+  font-size: 16px;
+  padding: 14px 20px;
+}
+
+.btn-submit {
+  align-self: flex-start;
+}
+
+.submission-result {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 500;
+  animation: fadeIn 0.3s;
+}
+
+.submission-result.success {
+  background: #f6ffed;
+  color: #52c41a;
+}
+
+.submission-result.error {
+  background: #fff2f0;
+  color: #ff4d4f;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* 导航按钮 */
+.navigation-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid #e9ecef;
+}
+
+/* 题目导航卡片 */
+.nav-card {
+  position: sticky;
+  top: 96px;
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+.nav-header {
+  margin-bottom: 20px;
+}
+
+.nav-header h3 {
+  font-size: 18px;
+  font-weight: bold;
+  color: #1a1a1a;
+  margin: 0 0 12px 0;
+}
+
+.nav-legend {
+  display: flex;
+  gap: 16px;
+  font-size: 12px;
+  color: #666;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend-item::before {
+  content: '';
+  width: 12px;
+  height: 12px;
+  border-radius: 4px;
+}
+
+.legend-item.current::before {
+  background: #1890ff;
+}
+
+.legend-item.answered::before {
+  background: #52c41a;
+}
+
+.legend-item.unanswered::before {
+  background: #d9d9d9;
+}
+
+.nav-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.nav-item {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f8f9fa;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 14px;
+  color: #666;
+  transition: all 0.3s;
+  position: relative;
+}
+
+.nav-item:hover {
+  transform: scale(1.05);
+}
+
+.nav-item.current {
+  background: #1890ff;
+  color: white;
+}
+
+.nav-item.answered {
+  background: #52c41a;
+  color: white;
+}
+
+.nav-item.unanswered {
+  background: #f8f9fa;
+  color: #666;
+}
+
+.nav-icon {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  font-size: 10px;
+}
+
+.progress-stats {
+  padding: 16px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.stat-row:last-child {
+  margin-bottom: 0;
+}
+
+.stat-label {
+  color: #666;
+}
+
+.stat-value {
+  font-weight: bold;
+  color: #1a1a1a;
+}
+
+.quick-nav {
+  display: flex;
+  gap: 12px;
+}
+
+.btn-small {
+  flex: 1;
+  padding: 10px 16px;
+  font-size: 14px;
+}
+
+/* 模态框 */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 16px;
+  padding: 32px;
+  width: 90%;
+  max-width: 480px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
+}
+
+.modal-title {
+  font-size: 20px;
+  font-weight: bold;
+  color: #1a1a1a;
+  margin: 0 0 24px 0;
+}
+
+.modal-body {
+  margin-bottom: 24px;
+}
+
+.exit-options {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.exit-option {
+  padding: 16px;
+  background: #f8f9fa;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.exit-option:hover {
+  background: #e9ecef;
+  border-color: #1890ff;
+}
+
+.exit-option.danger {
+  background: #fff2f0;
+  border-color: #ffccc7;
+}
+
+.exit-option.danger:hover {
+  background: #ffccc7;
+  border-color: #ff4d4f;
+}
+
+.option-title {
+  font-weight: bold;
+  color: #1a1a1a;
+  margin-bottom: 4px;
+}
+
+.option-desc {
+  font-size: 14px;
+  color: #666;
+}
+
+.submit-info {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.warning-text {
+  padding: 12px;
+  background: #fff7e6;
+  color: #d46b08;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+</style>

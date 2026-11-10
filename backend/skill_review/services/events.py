@@ -36,9 +36,6 @@ def emit_event(
     extra=None,
 ):
     event_id = event_id or new_event_id()
-    if task and task.validator.get('type') == 'data_lab' and len(event_id) > 64:
-        from data_lab.common import short_id
-        event_id = short_id('module6_event', event_id)
     if len(event_id) > 64:
         # Keep a readable prefix and a full-ID digest within the 64-character field.
         digest = hashlib.sha256(event_id.encode('utf-8')).hexdigest()[:24]

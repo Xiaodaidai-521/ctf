@@ -7,7 +7,7 @@
 
     <div v-if="error" class="mermaid-error">
       <div class="error-header">
-        <span class="error-icon"><AppIcon name="bi-exclamation-octagon" /></span>
+        <span class="error-icon">⚠️</span>
         <span>Mermaid 渲染失败</span>
       </div>
       <pre class="error-code">{{ mermaidCode }}</pre>
@@ -43,7 +43,7 @@
       title="Mermaid 图表"
       :footer="false"
       :width="'90vw'"
-      :body-style="{ padding:'var(--space-2)', overflow: 'auto', maxHeight: '80vh' }"
+      :body-style="{ padding: '16px', overflow: 'auto', maxHeight: '80vh' }"
     >
       <div v-html="svgContent" class="zoom-svg"></div>
     </a-modal>
@@ -139,104 +139,104 @@ onMounted(() => {
 
 <style scoped>
 .mermaid-diagram {
-  position:relative;
-  overflow-x:auto;
-  background:var(--color-bg-1);
-  border:var(--stroke) solid var(--color-border);
-  border-radius:var(--radius-control);
-  min-height:var(--tile-height);
+  position: relative;
+  overflow-x: auto;
+  background: var(--color-bg-1);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  min-height: 120px;
 }
 
 .mermaid-svg-wrapper {
-  padding:var(--space-2);
-  display:flex;
-  justify-content:center;
+  padding: 16px;
+  display: flex;
+  justify-content: center;
 }
 
 .mermaid-svg-wrapper :deep(svg) {
-  max-width:100%;
-  height:auto;
+  max-width: 100%;
+  height: auto;
 }
 
 .mermaid-loading {
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  gap:var(--space-1);
-  padding:var(--space-5) var(--space-2);
-  color:var(--color-text-3);
-  font-size:var(--text-caption);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 40px 16px;
+  color: var(--color-text-3);
+  font-size: 14px;
 }
 
 .loading-spinner {
-  width:var(--space-2);
-  height:var(--space-2);
-  border:calc(var(--stroke) * 2) solid var(--color-fill-3);
-  border-top-color:var(--action);
-  border-radius:50%;
-  animation:spin var(--motion-loop) linear infinite;
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--color-fill-3);
+  border-top-color: rgb(var(--primary-6));
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
 }
 
 @keyframes spin {
-  to { transform:rotate(360deg); }
+  to { transform: rotate(360deg); }
 }
 
 .mermaid-error {
-  padding:var(--space-2);
+  padding: 20px;
 }
 
 .error-header {
-  display:flex;
-  align-items:center;
-  gap:var(--space-1);
-  color:var(--warning);
-  font-weight: var(--weight-medium);
-  margin-bottom:var(--space-1);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: rgb(var(--warning-6));
+  font-weight: 500;
+  margin-bottom: 12px;
 }
 
 .error-icon {
-  font-size:var(--text-card);
+  font-size: 18px;
 }
 
 .error-code {
-  background:var(--color-fill-2);
-  border:var(--stroke) solid var(--color-border);
-  border-radius:var(--radius-control);
-  padding:var(--space-1) var(--space-2);
-  font-size:var(--text-caption);
-  line-height:1.6;
-  overflow-x:auto;
-  white-space:pre-wrap;
-  word-break:break-word;
-  color:var(--color-text-2);
-  margin:0;
+  background: var(--color-fill-2);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  padding: 12px 16px;
+  font-size: 13px;
+  line-height: 1.6;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: var(--color-text-2);
+  margin: 0;
 }
 
 .mermaid-toolbar {
-  position:absolute;
-  top:var(--space-1);
-  right:var(--space-1);
-  display:flex;
-  gap:calc(var(--stroke) * 2);
-  background:var(--color-bg-1);
-  border:var(--stroke) solid var(--color-border);
-  border-radius:var(--radius-control);
-  padding:calc(var(--stroke) * 2);
-  opacity:0;
-  transition:opacity var(--motion-normal);
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  gap: 2px;
+  background: var(--color-bg-1);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  padding: 2px;
+  opacity: 0;
+  transition: opacity 0.2s;
 }
 
 .mermaid-diagram:hover .mermaid-toolbar {
-  opacity:1;
+  opacity: 1;
 }
 
 .zoom-svg {
-  display:flex;
-  justify-content:center;
+  display: flex;
+  justify-content: center;
 }
 
 .zoom-svg :deep(svg) {
-  max-width:100%;
-  height:auto;
+  max-width: 100%;
+  height: auto;
 }
 </style>
