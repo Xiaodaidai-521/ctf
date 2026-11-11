@@ -4,3 +4,8 @@ staged/*.json text eol=lf
 staged/*.jsonl text eol=lf
 # Keep the upstream license bytes exactly as collected.
 staged/licenses/*.txt -text
+staged_legal/*.md text eol=lf
+staged_legal/markdown/*.md text eol=lf
+staged_legal/*.json text eol=lf
+staged_legal/*.jsonl text eol=lf
+staged_legal/licenses/*.txt -text

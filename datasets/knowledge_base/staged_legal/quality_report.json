@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "parser_version": "cn-official-law-1",
+  "accepted": 7,
+  "article_count": 393,
+  "by_document": {
+    "中华人民共和国网络安全法": 81,
+    "中华人民共和国数据安全法": 55,
+    "中华人民共和国个人信息保护法": 74,
+    "网络数据安全管理条例": 64,
+    "关键信息基础设施安全保护条例": 51,
+    "未成年人网络保护条例": 60,
+    "中华人民共和国民法典（隐私权和个人信息保护条款节选）": 8
+  },
+  "documents_sha256": "bf330d6c1a94e0d73e85fd3fb147eab58d971b6b3848d428374ca14e2cd16bfd",
+  "clauses_sha256": "0c983bfb5a0ae2b5edb89a2f20896e1587463053d36c70158b5d74a4da8d3251",
+  "pending_sources": [
+    {
+      "title": "数据出境安全评估办法",
+      "source_url": "https://www.cac.gov.cn/2022-07/07/c_1658811536396503.htm",
+      "status": "not_collected",
+      "reason": "本次访问国家网信办原文页面返回HTTP 403；后续核验官方可访问原文和现行版本。"
+    },
+    {
+      "title": "个人信息出境标准合同办法",
+      "source_url": "https://www.cac.gov.cn/2023-02/24/c_1678884830036813.htm",
+      "status": "not_collected",
+      "reason": "本次访问国家网信办原文页面返回HTTP 403；后续核验官方可访问原文、合同附件和现行版本。"
+    },
+    {
+      "title": "促进和规范数据跨境流动规定",
+      "source_url": "https://www.cac.gov.cn/2024-03/22/c_1712776611775634.htm",
+      "status": "not_collected",
+      "reason": "本次访问国家网信办页面返回HTTP 403；该候选URL的标题尚未核实，不作为已采集来源。"
+    },
+    {
+      "title": "个人信息保护合规审计管理办法",
+      "source_url": "https://www.cac.gov.cn/",
+      "status": "not_collected",
+      "reason": "国家网信办法规栏目返回HTTP 403；原文链接、附件及现行版本待核验。"
+    }
+  ],
+  "review_status": "pending",
+  "published": false,
+  "needs_review": [
+    "待人工审校及课程绑定",
+    "数据库现行性状态仅反映采集时点，后续需复查",
+    "民法典仅节选1032—1039条，完整原始DOCX另存raw"
+  ]
+}
