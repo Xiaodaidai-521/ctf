@@ -121,6 +121,7 @@ class AIMessage(ProtectedModel):
     agent_name = models.CharField(max_length=100, null=True, blank=True)
     provider = models.CharField(max_length=50, null=True, blank=True)
     metadata = models.JSONField(default=dict, blank=True)
+    history_origin = models.JSONField(default=dict, blank=True, editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

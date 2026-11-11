@@ -32,8 +32,8 @@ test('exam history/result deep links map to the record sub-views', () => {
   assert.equal(compatDestination('/exam-result/12'), '/exam-center/result/12')
   assert.equal(compatDestination('/exam-result/12/'), '/exam-center/result/12')
   assert.equal(compatDestination('/exam-result/'), null)
-  assert.match(routerSource, /path: '\/exam-history'[\s\S]*?redirect: to => \(\{ path: '\/exam-center\/history', query: to\.query \}\)/)
-  assert.match(routerSource, /path: '\/exam-result\/:id'[\s\S]*?redirect: to => \(\{ path: `\/exam-center\/result\/\$\{to\.params\.id\}`, query: to\.query \}\)/)
+  assert.match(routerSource, /path: '\/exam-history'[\s\S]*?redirect: to => \(\{ path: '\/exam-center\/history', query: to\.query, hash: to\.hash \}\)/)
+  assert.match(routerSource, /path: '\/exam-result\/:id'[\s\S]*?redirect: to => \(\{ path: `\/exam-center\/result\/\$\{to\.params\.id\}`, query: to\.query, hash: to\.hash \}\)/)
 })
 
 test('/dashboard dispatches by role without sending teachers to student growth', () => {

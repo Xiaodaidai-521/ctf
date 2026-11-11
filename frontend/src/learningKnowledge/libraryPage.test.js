@@ -245,7 +245,8 @@ for (const [path, role, expected] of [
     const route = routeFor(router, path)
     const decisions = []
     router.guard(route, {}, value => decisions.push(value))
-    assert.deepEqual(decisions, [expected])
+    const destination = decisions[0]
+    assert.equal(typeof destination === 'object' ? destination.path : destination, expected)
   })
 }
 

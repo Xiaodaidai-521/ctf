@@ -150,6 +150,7 @@
     <!-- 题目详情悬浮窗 -->
     <ChallengeDetailModal
       v-if="selectedChallenge"
+      :key="selectedChallenge.id"
       :challenge-id="selectedChallenge.id"
       @close="closeChallengeModal"
     />
@@ -157,7 +158,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onDeactivated, onMounted, watch } from 'vue'
 import { useChallengeStore } from '@/store/challenge'
 import { useUserStore } from '@/store/user'
 import { useRouter } from 'vue-router'
@@ -170,6 +171,7 @@ const userStore = useUserStore()
 const router = useRouter()
 
 const selectedChallenge = ref(null)
+onDeactivated(() => { selectedChallenge.value = null })
 const selectedCategory = ref(null)
 const selectedDifficulty = ref(null)
 const selectedStatus = ref(null)

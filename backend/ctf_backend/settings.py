@@ -79,7 +79,13 @@ INSTALLED_APPS = [
     'export_quota',
     'learning_map',
     'skill_review',
+    'teaching_agent',
+    'learning_knowledge',
+    'data_lab',
+    'practical_training',
     'feedback_center',
+    'agent_memory',
+    'evaluation_center',
 ]
 
 
@@ -506,3 +512,11 @@ TUTOR_SPECIALISTS_ENABLED = os.environ.get('TUTOR_SPECIALISTS_ENABLED', 'true').
 TUTOR_CONTEXT_ENABLED = os.environ.get('TUTOR_CONTEXT_ENABLED', 'true').lower() in ('true', '1', 'yes')
 TUTOR_RESOURCE_CACHE_ENABLED = os.environ.get('TUTOR_RESOURCE_CACHE_ENABLED', 'true').lower() in ('true', '1', 'yes')
 TUTOR_METRICS_ENABLED = os.environ.get('TUTOR_METRICS_ENABLED', 'true').lower() in ('true', '1', 'yes')
+
+# Task tutoring has its own page-level wait budget. These operational settings
+# do not select a model provider or bypass the security startup boundary.
+TUTORING_TOTAL_WAIT_SECONDS = min(10.0, float(os.environ.get('TUTORING_TOTAL_WAIT_SECONDS', '10')))
+TUTORING_CIRCUIT_FAILURE_THRESHOLD = int(os.environ.get('TUTORING_CIRCUIT_FAILURE_THRESHOLD', '3'))
+TUTORING_CIRCUIT_PROBE_SECONDS = int(os.environ.get('TUTORING_CIRCUIT_PROBE_SECONDS', '60'))
+TUTORING_CACHE_TTL_SECONDS = int(os.environ.get('TUTORING_CACHE_TTL_SECONDS', '300'))
+TEACHING_AGENT_PROVIDER = os.environ.get('TEACHING_AGENT_PROVIDER', 'default')
