@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "checked_at": "2026-11-11T17:14:08.044494+00:00",
+  "cleaning_status": "passed",
+  "human_review_status": "pending",
+  "owasp_documents": 246,
+  "legal_documents": 7,
+  "legal_articles_compared_to_original": 393,
+  "markdown_documents_compared_to_archive": 246,
+  "code_blocks_preserved": 1233,
+  "replacement_characters": 0,
+  "broken_local_relative_links": 0,
+  "github_blob_image_links": 0,
+  "link_counts": {
+    "link_open": 5009,
+    "image": 132,
+    "fence": 1207,
+    "code_block": 26
+  },
+  "baseline": {
+    "ref": "e696884",
+    "unresolved_links": 8,
+    "github_blob_images": 117,
+    "link_counts": {
+      "link_open": 5009,
+      "image": 132,
+      "fence": 1207,
+      "code_block": 26
+    }
+  },
+  "removed_duplicate_toc": [
+    "中华人民共和国网络安全法",
+    "中华人民共和国数据安全法",
+    "中华人民共和国个人信息保护法"
+  ],
+  "missing_upstream_paths": [],
+  "source_findings": [
+    {
+      "kind": "historical_reference",
+      "title": "Abuse Case Cheat Sheet (Historical)",
+      "note": "上游明确标注历史资料，保留来源，入库前人工决定是否仅作历史参考。"
+    },
+    {
+      "kind": "intentional_payload_control_character",
+      "title": "XSS Filter Evasion Cheat Sheet",
+      "codepoints": [
+        1
+      ],
+      "note": "原始资料中同样存在，正文/代码对比通过；保留教学载荷，不按乱码删除。"
+    }
+  ],
+  "limits": [
+    "外部网站链接未逐一联网验证；固定仓库内文件路径已按原始ZIP核对。",
+    "图片仍通过外部链接显示，未下载为离线图片。",
+    "OWASP资料仍为英文，部分领域及历史资料需要按课程人工筛选。",
+    "官方法规日期与保存的官方元数据一致，未在此次离线检查中重新查询现行性。",
+    "此次是清洗和来源一致性检查，不表示每篇技术结论都经过人工审校。"
+  ]
+}

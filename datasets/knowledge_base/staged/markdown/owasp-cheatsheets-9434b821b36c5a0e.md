@@ -119,7 +119,7 @@ An example of unique ID format can be **ABUSE_CASE_001**.
 
 The following figure provides an overview of the chaining of the different steps involved (from left to right):
 
-![Overview Schema](https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/assets/Abuse_Case_Cheat_Sheet_Overview.png)
+![Overview Schema](https://raw.githubusercontent.com/OWASP/CheatSheetSeries/9c87d0a0e9411de028b9d7eb853872082d6d3382/assets/Abuse_Case_Cheat_Sheet_Overview.png)
 
 ### Proposal
 

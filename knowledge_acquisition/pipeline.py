@@ -1,10 +1,11 @@
-"""Standalone collection and staging. Python standard library only; no app imports."""
+"""Standalone collection and staging with Markdown parsing; no app imports."""
 
 import argparse
 import fnmatch
 import hashlib
 import json
 import re
+import shutil
 import sys
 import time
 import urllib.error
@@ -16,7 +17,7 @@ from pathlib import Path, PurePosixPath
 
 HERE = Path(__file__).resolve().parent
 DEFAULT_DATA = HERE.parent / 'datasets' / 'knowledge_base'
-PARSER_VERSION = 'kb-markdown-1'
+PARSER_VERSION = 'kb-markdown-2'
 MAX_ARCHIVE = 150 * 1024 * 1024
 MAX_DOCUMENT = 4 * 1024 * 1024
 
@@ -32,6 +33,46 @@ def write_json(path, data):
 
 def read_json(path):
     return json.loads(path.read_text(encoding='utf-8'))
+
+
+def publish_bundle(working, destination, backup, data_root):
+    """Keep a backup; support Windows viewers holding the destination directory open."""
+    root = data_root.resolve()
+    for path in (working, destination, backup):
+        path.resolve().relative_to(root)
+        if path.resolve() == root:
+            raise ValueError('Bundle path must stay below the data directory')
+    if not destination.exists():
+        working.rename(destination)
+        return
+    try:
+        destination.rename(backup)
+    except PermissionError:
+        shutil.copytree(destination, backup)
+        expected = {p.relative_to(working) for p in working.rglob('*') if p.is_file()}
+        previous = {p.relative_to(destination) for p in destination.rglob('*') if p.is_file()}
+        for relative in expected:
+            target = destination / relative
+            target.parent.mkdir(parents=True, exist_ok=True)
+            content = (working / relative).read_bytes()
+            if target.exists() and target.read_bytes() == content:
+                continue
+            temporary = target.with_name(target.name + '.kb-update')
+            temporary.write_bytes(content)
+            try:
+                temporary.replace(target)
+            except PermissionError:
+                # Some readers also hold file handles without FILE_SHARE_DELETE.
+                target.write_bytes(content)
+                temporary.unlink()
+        for relative in previous - expected:
+            (destination / relative).unlink()
+        return
+    try:
+        working.rename(destination)
+    except OSError:
+        backup.rename(destination)
+        raise
 
 
 def sources_from(path):
@@ -138,51 +179,115 @@ def collect(source, data_root):
     print(f"Collected {source['id']}: {len(documents)} documents", flush=True)
 
 
-def resolve_link(source, document_path, target):
-    if not target or target.startswith('#') or urllib.parse.urlsplit(target).scheme or target.startswith('//'):
+def resolve_link(source, document_path, target, image=False):
+    if not target or target.startswith('#'):
         return target
-    base = blob_url(source, document_path)
-    if target.startswith('/'):
-        base = f"https://github.com/{source['repository']}/blob/{source['commit']}/"
-        target = target.lstrip('/')
-    return urllib.parse.urljoin(base, target)
+    if not urllib.parse.urlsplit(target).scheme and not target.startswith('//'):
+        base = blob_url(source, document_path)
+        if target.startswith('/'):
+            base = f"https://github.com/{source['repository']}/blob/{source['commit']}/"
+            target = target.lstrip('/')
+        target = urllib.parse.urljoin(base, target)
+    parsed = urllib.parse.urlsplit(target)
+    # GitHub blob pages are HTML; Markdown images need the actual image bytes.
+    if image and parsed.hostname == 'github.com':
+        parts = parsed.path.strip('/').split('/')
+        if len(parts) >= 5 and parts[2] == 'blob':
+            target = urllib.parse.urlunsplit(('https', 'raw.githubusercontent.com',
+                                             '/' + '/'.join(parts[:2] + parts[3:]), parsed.query, parsed.fragment))
+    return target
+
+
+def inline_code_segments(line):
+    """Protect code spans whose closing run matches the opening backtick count."""
+    segments = []
+    position = 0
+    for opening in re.finditer(r'(?<!\\)(`+)', line):
+        if opening.start() < position:
+            continue
+        closing = re.search(r'(?<!`)' + re.escape(opening[1]) + r'(?!`)', line[opening.end():])
+        if closing is None:
+            continue
+        end = opening.end() + closing.end()
+        segments.extend([line[position:opening.start()], line[opening.start():end]])
+        position = end
+    segments.append(line[position:])
+    return segments
+
+
+def rewrite_inline_links(segment, source, document_path, parser):
+    from markdown_it.helpers import parseLinkDestination, parseLinkTitle
+
+    protected = []
+    offset = 0
+    for index, part in enumerate(inline_code_segments(segment)):
+        if index % 2:
+            protected.append((offset, offset + len(part)))
+        offset += len(part)
+    changes = []
+    for match in re.finditer(r'(?<!\\)(!?\[(?:\\.|[^\]\\\n])*\]\()[ \t]*', segment):
+        start = match.end()
+        if any(begin <= match.start() < end or begin <= start < end for begin, end in protected):
+            continue
+        destination = parseLinkDestination(segment, start, len(segment))
+        if not destination.ok:
+            continue
+        end = destination.pos
+        closing = end
+        while closing < len(segment) and segment[closing].isspace():
+            closing += 1
+        if closing < len(segment) and segment[closing] in '\"\'(':
+            title = parseLinkTitle(segment, closing, len(segment))
+            if not title.ok:
+                continue
+            closing = title.pos
+            while closing < len(segment) and segment[closing].isspace():
+                closing += 1
+        if closing >= len(segment) or segment[closing] != ')':
+            continue
+        resolved = resolve_link(source, document_path, destination.str, image=match[1].startswith('!'))
+        if resolved == destination.str:
+            continue
+        resolved = parser.normalizeLink(resolved)
+        if segment[start:start + 1] == '<':
+            resolved = '<' + resolved + '>'
+        changes.append((start, end, resolved))
+    for start, end, resolved in reversed(changes):
+        segment = segment[:start] + resolved + segment[end:]
+    return segment
 
 
 def normalize_markdown(raw, source, document_path):
     """Conservative cleaning: retain HTML examples, inline code, tables and fences."""
+    from markdown_it import MarkdownIt
+
     text = raw.decode('utf-8-sig').replace('\r\n', '\n').replace('\r', '\n')
     lines = text.split('\n')
     if lines and lines[0] == '---':
         end = next((i for i in range(1, len(lines)) if lines[i] in ('---', '...')), None)
         if end is not None:
             lines = lines[end + 1:]
+    parser = MarkdownIt('commonmark')
+    tokens = parser.parse('\n'.join(lines))
+    protected = set()
+    image_refs = set()
+    for token in tokens:
+        if token.type in ('fence', 'code_block', 'html_block') and token.map:
+            protected.update(range(*token.map))
+        for child in token.children or []:
+            if child.type == 'image':
+                image_refs.add(child.attrGet('src'))
     output = []
-    fence = None
-    for line in lines:
-        marker = re.match(r'^ {0,3}(`{3,}|~{3,})', line)
-        if marker:
-            token = marker[1]
-            if fence is None:
-                fence = token
-            elif token[0] == fence[0] and len(token) >= len(fence) and not line[marker.end():].strip():
-                fence = None
+    for index, line in enumerate(lines):
+        if index in protected:
             output.append(line)
             continue
-        if fence is not None or line.startswith(('    ', '\t')):
-            output.append(line)
-            continue
-        # Protect inline code: security examples may themselves contain Markdown syntax.
-        segments = re.split(r'(`+[^`]*`+)', line)
-        for i in range(0, len(segments), 2):
-            segments[i] = re.sub(
-                r'(!?\[[^\]\n]*\]\()([^\s()]+)(\s+"[^"\n]*")?(\))',
-                lambda m: m[1] + resolve_link(source, document_path, m[2]) + (m[3] or '') + m[4],
-                segments[i],
-            )
-        line = ''.join(segments)
+        # Labels can contain inline code; only a link inside a code span is protected.
+        line = rewrite_inline_links(line, source, document_path, parser)
         reference = re.match(r'^( {0,3}\[[^\]]+\]:\s+)(\S+)(.*)$', line)
         if reference:
-            line = reference[1] + resolve_link(source, document_path, reference[2]) + reference[3]
+            line = reference[1] + resolve_link(source, document_path, reference[2],
+                                              image=reference[2] in image_refs) + reference[3]
         if line or not output or output[-1] != '':
             output.append(line)
     return '\n'.join(output).strip('\n') + '\n'
@@ -249,7 +354,7 @@ def clean(sources, data_root, min_chars=300):
                 'license_sha256': sha256(license_bytes),
                 'attribution_text': f"{source['publisher']}; {source['repository']}@{source['commit']}; {blob_url(source, path)}; CC BY-SA 4.0. Cleaned by {PARSER_VERSION}.",
                 'reuse_scope': '按 CC BY-SA 4.0 署名、标注修改，并对改编的资料使用相同许可；代码和第三方示例按原文说明单独核对。',
-                'change_note': 'UTF-8/BOM 和换行规范化、移除开头 front matter、合并正文多余空行、将可识别的相对链接固定到来源版本；保留代码及 HTML 示例。',
+                'change_note': 'UTF-8/BOM 和换行规范化、移除开头 front matter、合并正文多余空行；按Markdown结构保护代码及HTML示例，将正文和列表中的相对链接固定到来源版本，图片使用原始文件链接。',
                 'applicability': source['applicability'], 'parser_version': PARSER_VERSION,
                 'review_status': 'pending', 'published': False,
                 'markdown_path': f'markdown/{record_id}.md',
@@ -289,9 +394,8 @@ def clean(sources, data_root, min_chars=300):
     })
     verify(working)
     staged = data_root / 'staged'
-    if staged.exists():
-        staged.rename(data_root / '.working' / f'previous-{run_id}')
-    working.rename(staged)
+    publish_bundle(working, staged, data_root / '.working' / f'previous-{run_id}', data_root)
+    verify(staged)
     print(json.dumps({'staged': str(staged), 'accepted': len(records), 'rejected': len(rejected),
                       'duplicates': len(duplicates)}, ensure_ascii=False), flush=True)
 

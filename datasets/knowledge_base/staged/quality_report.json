@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "parser_version": "kb-markdown-1",
+  "parser_version": "kb-markdown-2",
   "collected": 254,
   "accepted": 246,
   "rejected": [
@@ -50,7 +50,7 @@
     "owasp-wstg-v4.2": 113,
     "owasp-cheatsheets": 133
   },
-  "documents_sha256": "26a29565a370256a835e3a33f5d9ade52f9ddb062e9ebfb0f7dfca12ca413a68",
+  "documents_sha256": "9b5e9b19c26ddeb2de6fd99a57f51db163163aac9a13a44b79e1e6c7042e2a65",
   "review_status": "pending",
   "published": false,
   "needs_review": [

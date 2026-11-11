@@ -194,7 +194,7 @@ Response:
 
 A tool such as [GraphQL Voyager](https://apis.guru/graphql-voyager/) can be used to get a better understanding of the GraphQL endpoint:
 
-![GraphQL Voyager](https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/12-API_Testing/images/Voyager.png)\
+![GraphQL Voyager](https://raw.githubusercontent.com/OWASP/wstg/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/12-API_Testing/images/Voyager.png)\
 *Figure 12.1-1: GraphQL Voyager*
 
 This tool creates an Entity Relationship Diagram (ERD) representation of the GraphQL schema, allowing you to get a better look into the moving parts of the system you're testing. Extracting information from the drawing allows you to see you can query the Dog table for example. It also shows which properties a Dog has:
@@ -217,10 +217,10 @@ GraphiQL has a documentation section, which uses the data from the schema in ord
 
 Note that in some cases, you will need to set the HTTP headers at the bottom, to include session ID or other mechanism of authentication. This still allows creating multiple "IDEs" with different permissions to verify if there are in fact authorization issues.
 
-![Playground1](https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/12-API_Testing/images/Playground1.png)\
+![Playground1](https://raw.githubusercontent.com/OWASP/wstg/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/12-API_Testing/images/Playground1.png)\
 *Figure 12.1-2: GraphQL Playground High Level API Docs*
 
-![Playground2](https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/12-API_Testing/images/Playground2.png)\
+![Playground2](https://raw.githubusercontent.com/OWASP/wstg/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/12-API_Testing/images/Playground2.png)\
 *Figure 12.1-3: GraphQL Playground API Schema*
 
 You can even download the schemas to use in Voyager.
@@ -235,7 +235,7 @@ Introspection is the first place to look for authorization problems. As noted, a
 
 In the earlier examples, the output of the introspection query shows there is a query called `auth`. This seems like a good place to extract sensitive information such as API tokens, passwords, etc.
 
-![Auth GraphQL Query](https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/12-API_Testing/images/auth1.png)\
+![Auth GraphQL Query](https://raw.githubusercontent.com/OWASP/wstg/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/12-API_Testing/images/auth1.png)\
 *Figure 12.1-4: GraphQL Auth Query API*
 
 Testing the authorization implementation varies from deployment to deployment since each schema will have different sensitive information, and hence, different targets to focus on.

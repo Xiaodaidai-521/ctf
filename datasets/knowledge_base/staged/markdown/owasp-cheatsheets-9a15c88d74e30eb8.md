@@ -13,7 +13,7 @@ On the basis of such questions, the attacker might try to deduce the answers, de
 
 ## Attack vector
 
-![XS Leaks Attack Vector](https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/assets/XS_Attack_Vector.png)
+![XS Leaks Attack Vector](https://raw.githubusercontent.com/OWASP/CheatSheetSeries/9c87d0a0e9411de028b9d7eb853872082d6d3382/assets/XS_Attack_Vector.png)
 
 - The entire attack takes place on the victim's browser side - just like an XSS attack
 - In some cases, the victim must remain on the attacker's site longer for the attack to succeed.
@@ -47,7 +47,7 @@ SameSite cookies are a strong **defense-in-depth** mechanism against **some** cl
 
 ### How do we know that two sites are SameSite?
 
-![XS Leaks eTLD explanation](https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/assets/XS_Leaks_eTLD.png)
+![XS Leaks eTLD explanation](https://raw.githubusercontent.com/OWASP/CheatSheetSeries/9c87d0a0e9411de028b9d7eb853872082d6d3382/assets/XS_Leaks_eTLD.png)
 
 For SameSite cookies, a [site](https://developer.mozilla.org/en-US/docs/Glossary/Site) consists of the scheme and the registrable domain (eTLD+1). The port is not part of the site. For example:
 
@@ -77,7 +77,7 @@ Elements in the DOM can have an ID attribute that is unique within the document.
 
 The browser will automatically focus on an element with a given ID if we append a hash to the URL, e.g. `https://example.com#pro`. What's more, the JavaScript [focus event](https://developer.mozilla.org/en-US/docs/Web/API/Element/focus_event) gets fired. The attacker may try to embed the application in the iframe with specific source on its own controlled page:
 
-![XS-Leaks-ID](https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/assets/XS_Leaks_ID.png)
+![XS-Leaks-ID](https://raw.githubusercontent.com/OWASP/CheatSheetSeries/9c87d0a0e9411de028b9d7eb853872082d6d3382/assets/XS_Leaks_ID.png)
 
 then add listener in main document for [blur event](https://developer.mozilla.org/en-US/docs/Web/API/Element/blur_event) (the opposite of focus). When the victim visits the attackers site, the blur event gets fired. The attacker will be able to conclude that the victim has a pro account.
 
@@ -109,7 +109,7 @@ app.get('/', (req, res) => {
 });
 ```
 
-![XS Leaks Sec-Fetch-Dest](https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/assets/XS_Leaks_Sec_Fetch_Dest.png)
+![XS Leaks Sec-Fetch-Dest](https://raw.githubusercontent.com/OWASP/CheatSheetSeries/9c87d0a0e9411de028b9d7eb853872082d6d3382/assets/XS_Leaks_Sec_Fetch_Dest.png)
 
 If you want to use headers from the Fetch Metadata standard, make sure that your users' browsers support this standard (you can check it [here](https://caniuse.com/?search=sec-fetch)). Also, think about using the appropriate fallback in code if the Sec-Fetch-* header is not included in the request.
 
@@ -234,7 +234,7 @@ window.addEventListener('message', e => {
 
 Information about the number of loaded frames in a window can be a source of leakage. Take for example an application that loads search results into a frame, if the results are empty then the frame does not appear.
 
-![XS-Leaks-Frame-Counting](https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/assets/XS_Leaks_Frame_Counting.png)
+![XS-Leaks-Frame-Counting](https://raw.githubusercontent.com/OWASP/CheatSheetSeries/9c87d0a0e9411de028b9d7eb853872082d6d3382/assets/XS_Leaks_Frame_Counting.png)
 
 An attacker can get information about the number of loaded frames in a window by counting the number of frames in a `window.frames` object.
 
@@ -263,7 +263,7 @@ Browser cache helps to significantly reduce the time it takes for a page to load
 
 The principle is simple, a resource loaded from cache memory will load incomparably faster than from the server.
 
-![XS Leaks Cache Attack](https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/assets/XS_Leaks_Cache_Attack.png)
+![XS Leaks Cache Attack](https://raw.githubusercontent.com/OWASP/CheatSheetSeries/9c87d0a0e9411de028b9d7eb853872082d6d3382/assets/XS_Leaks_Cache_Attack.png)
 
 An attacker can embed a resource on their site that is only accessible to a user with the admin role. Then, using JavaScript, read the load time of a particular resource and, based on this information, deduce whether the resource is in cache or not.
 

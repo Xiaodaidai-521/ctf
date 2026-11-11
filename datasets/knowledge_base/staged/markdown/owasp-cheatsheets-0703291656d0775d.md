@@ -78,7 +78,7 @@ These methods can be used together to provide a greater degree of assurance that
 It is essential to employ good security practices for the reset identifiers (tokens, codes, PINs, etc.). Some points don't apply to the [offline methods](#offline-methods), such as the lifetime restriction. All tokens and codes should be:
 
 - Generated using a [cryptographically secure random number generator](https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/Cryptographic_Storage_Cheat_Sheet.md#secure-random-number-generation).
-    - It is also possible to use JSON Web Tokens (JWTs) in place of random tokens, although this can introduce additional vulnerability, such as those discussed in the [JSON Web Token Cheat Sheet](JSON_Web_Token_Cheat_Sheet.md).
+    - It is also possible to use JSON Web Tokens (JWTs) in place of random tokens, although this can introduce additional vulnerability, such as those discussed in the [JSON Web Token Cheat Sheet](https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/JSON_Web_Token_Cheat_Sheet.md).
 - Long enough to protect against brute-force attacks.
 - Linked to an individual user in the database.
 - Invalidated after they have been used.

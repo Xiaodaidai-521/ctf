@@ -27,12 +27,12 @@ Determine which roles are able to provision users and what sort of accounts they
 
 In WordPress, only a user's name and email address are required to provision the user, as shown below:
 
-![WordPress User Add](https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/03-Identity_Management_Testing/images/Wordpress_useradd.png)\
+![WordPress User Add](https://raw.githubusercontent.com/OWASP/wstg/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/03-Identity_Management_Testing/images/Wordpress_useradd.png)\
 *Figure 4.3.3-1: WordPress User Add*
 
 De-provisioning of users requires the administrator to select the users to be de-provisioned, select Delete from the dropdown menu (circled) and then applying this action. The administrator is then presented with a dialog box asking what to do with the user's posts (delete or transfer them).
 
-![WordPress Auth and Users](https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/03-Identity_Management_Testing/images/Wordpress_authandusers.png)\
+![WordPress Auth and Users](https://raw.githubusercontent.com/OWASP/wstg/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/03-Identity_Management_Testing/images/Wordpress_authandusers.png)\
 *Figure 4.3.3-2: WordPress Auth and Users*
 
 ## Tools

@@ -21,7 +21,7 @@ For authorization and for propagating an authenticated identity between services
 
 In this pattern, each service handles primary authentication itself: it manages identities and credentials, verifies them, and implements the authentication workflows, typically with username/password or API keys. All authentication logic and subject data storage live inside the service, in custom code or built-in libraries. If you have to maintain such a service, the credential handling must follow the [Authentication Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html) and the [Password Storage Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html).
 
-![Service-Level Embedded Authentication](https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/assets/Service_Level_Embedded_Authentication.png)
+![Service-Level Embedded Authentication](https://raw.githubusercontent.com/OWASP/CheatSheetSeries/9c87d0a0e9411de028b9d7eb853872082d6d3382/assets/Service_Level_Embedded_Authentication.png)
 
 ### Pros
 
@@ -43,7 +43,7 @@ In this pattern, each service handles primary authentication itself: it manages 
 
 This pattern addresses key limitations of [Service-Level Embedded Authentication](#service-level-embedded-authentication): fragmented identity management, duplicated credential stores, and lack of SSO. The service no longer verifies credentials directly. Instead, an external Identity Provider (IdP) authenticates the subject and issues authentication proofs; the service verifies these itself and extracts identity attributes for request processing.
 
-![Service-Level Code-Mediated Authentication](https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/assets/Service_Level_Code_Mediated_Authentication.png)
+![Service-Level Code-Mediated Authentication](https://raw.githubusercontent.com/OWASP/CheatSheetSeries/9c87d0a0e9411de028b9d7eb853872082d6d3382/assets/Service_Level_Code_Mediated_Authentication.png)
 
 ### Pros
 
@@ -65,7 +65,7 @@ This pattern addresses key limitations of [Service-Level Embedded Authentication
 
 This pattern builds on the [previous pattern](#service-level-code-mediated-authentication) but moves authentication logic out of the service into a dedicated proxy deployed as a sidecar alongside it. The proxy sits in front of the application, verifies authentication proofs with the Identity Provider (IdP), injects identity context into the request (typically as headers), and forwards it locally to the service.
 
-![Service-Level Proxy-Mediated Authentication](https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/assets/Service_Level_Proxy_Mediated_Authentication.png)
+![Service-Level Proxy-Mediated Authentication](https://raw.githubusercontent.com/OWASP/CheatSheetSeries/9c87d0a0e9411de028b9d7eb853872082d6d3382/assets/Service_Level_Proxy_Mediated_Authentication.png)
 
 ### Pros
 
@@ -87,7 +87,7 @@ This pattern builds on the [previous pattern](#service-level-code-mediated-authe
 
 In this pattern, authentication is handled at the system boundary by a shared component such as an API gateway or ingress proxy. This component authenticates incoming requests from external clients before they reach internal services. It uses [OIDC](https://openid.net/specs/openid-connect-core-1_0.html) or [SAML](https://www.oasis-open.org/standard/saml/) with an identity provider for user authentication, validates [OAuth 2.0](https://www.rfc-editor.org/rfc/rfc6749) access tokens for API access, or uses [mTLS](https://www.rfc-editor.org/rfc/rfc8446) for certificate-based client authentication. It propagates verified identity information, typically via headers, to downstream services.
 
-![Edge-Level Authentication](https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/assets/Edge_Level_Authentication.png)
+![Edge-Level Authentication](https://raw.githubusercontent.com/OWASP/CheatSheetSeries/9c87d0a0e9411de028b9d7eb853872082d6d3382/assets/Edge_Level_Authentication.png)
 
 This consolidates authentication into a single enforcement point and removes per-service authentication handling. It corresponds to the gateway or portal placement of the policy enforcement point described in [NIST SP 800-207 (Zero Trust Architecture)](https://csrc.nist.gov/pubs/sp/800/207/final).
 
@@ -109,7 +109,7 @@ This consolidates authentication into a single enforcement point and removes per
 
 This pattern authenticates peers at the [network layer](https://en.wikipedia.org/wiki/Network_layer) (layer 3), inside the operating system kernel, using cryptographic identities attached to a node or host rather than to an application. Implementations are built on [IPsec](https://www.rfc-editor.org/rfc/rfc6071) or [WireGuard](https://www.wireguard.com/): the identity of a peer is bound to keys configured on each node, and every packet is cryptographically authenticated. Enforcement is transparent to applications, which makes it a good complement for securing traffic between workloads, but not a replacement for application-layer authentication.
 
-![Network-Layer (Node-Level) Authentication](https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/assets/Network_Layer_Authentication.png)
+![Network-Layer (Node-Level) Authentication](https://raw.githubusercontent.com/OWASP/CheatSheetSeries/9c87d0a0e9411de028b9d7eb853872082d6d3382/assets/Network_Layer_Authentication.png)
 
 ### Pros
 

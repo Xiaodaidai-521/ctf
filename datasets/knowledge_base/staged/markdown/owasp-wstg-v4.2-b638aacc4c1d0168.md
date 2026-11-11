@@ -128,5 +128,5 @@ After every change has been approved and tested in the QA environment and deploy
 
 The following figure shows a typical SDLC Testing Workflow.
 
-![Typical SDLC Testing Workflow](https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/3-The_OWASP_Testing_Framework/images/Typical_SDLC_Testing_Workflow.gif)\
+![Typical SDLC Testing Workflow](https://raw.githubusercontent.com/OWASP/wstg/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/3-The_OWASP_Testing_Framework/images/Typical_SDLC_Testing_Workflow.gif)\
  *Figure 3-1: Typical SDLC testing workflow*

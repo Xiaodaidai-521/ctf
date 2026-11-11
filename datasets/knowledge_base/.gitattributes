@@ -9,3 +9,5 @@ staged_legal/markdown/*.md text eol=lf
 staged_legal/*.json text eol=lf
 staged_legal/*.jsonl text eol=lf
 staged_legal/licenses/*.txt -text
+audit/*.json text eol=lf
+audit/*.md text eol=lf

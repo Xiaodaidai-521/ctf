@@ -8,7 +8,7 @@ Each year IBM Security commissions the Ponemon Institute to survey companies aro
 
 In addition to the millions of dollars lost due to breaches the report finds that the **mean time to identify** a breach continues to hover around **200 days**. Clearly our ability to monitor applications and alert on anomalous behavior would improve our time to identify and mitigate an attack against our applications.
 
-![IBM Cost of Data Breach Report 2025](https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/assets/cost-of-breach-2025.png)
+![IBM Cost of Data Breach Report 2025](https://raw.githubusercontent.com/OWASP/CheatSheetSeries/9c87d0a0e9411de028b9d7eb853872082d6d3382/assets/cost-of-breach-2025.png)
 
 > [IBM Cost of a Data Breach Report 2025](https://www.ibm.com/forms/mkt-asset-31c90), Fig.4, pg.12
 

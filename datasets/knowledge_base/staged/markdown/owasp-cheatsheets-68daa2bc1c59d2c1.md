@@ -91,7 +91,7 @@ Meta-tags that attempt to apply the X-Frame-Options directive DO NOT WORK. For e
 - **Multiple options not supported**: There is no way to allow the current site and a third-party site to frame the same response. Browsers only honor one X-Frame-Options header and only one value on that header.
 - **Nested Frames don't work with SAMEORIGIN and ALLOW-FROM**: In the following situation, the `http://framed.invalid/child` frame does not load because ALLOW-FROM applies to the top-level browsing context, not that of the immediate parent. The solution is to use ALLOW-FROM in both the parent and child frames (but this prevents the child frame loading if the `//framed.invalid/parent` page is loaded as the top level document).
 
-![NestedFrames](https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/assets/Clickjacking_Defense_Cheat_Sheet_NestedFrames.png)
+![NestedFrames](https://raw.githubusercontent.com/OWASP/CheatSheetSeries/9c87d0a0e9411de028b9d7eb853872082d6d3382/assets/Clickjacking_Defense_Cheat_Sheet_NestedFrames.png)
 
 - **X-Frame-Options Deprecated** While the X-Frame-Options header is supported by the major browsers, it has been obsoleted in favor of the frame-ancestors directive from the CSP Level 2 specification.
 - **Proxies** Web proxies are notorious for adding and stripping headers. If a web proxy strips the X-Frame-Options header then the site loses its framing protection.

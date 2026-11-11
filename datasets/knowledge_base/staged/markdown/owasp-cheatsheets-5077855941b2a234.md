@@ -22,7 +22,7 @@ when executed, it changes the meaning of the initial intended value.
 
 Now, both the *Calculator* application and the value *test* are displayed:
 
-![CommandInjection](https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/assets/OS_Command_Injection_Defense_Cheat_Sheet_CmdInjection.png)
+![CommandInjection](https://raw.githubusercontent.com/OWASP/CheatSheetSeries/9c87d0a0e9411de028b9d7eb853872082d6d3382/assets/OS_Command_Injection_Defense_Cheat_Sheet_CmdInjection.png)
 
 The problem is exacerbated if the compromised process does not follow the principle of least privileges and attacker-controlled commands end up running with special system privileges that increase the amount of damage.
 

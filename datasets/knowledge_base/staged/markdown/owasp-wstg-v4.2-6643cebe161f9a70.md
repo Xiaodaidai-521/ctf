@@ -36,7 +36,7 @@ Many modern Dynamic Application Security Testing (DAST) tools facilitate the use
 
 The automatic spider is a tool used to automatically discover new resources (URLs) on a particular website. It begins with a list of URLs to visit, called the seeds, which depends on how the Spider is started. While there are a lot of Spidering tools, the following example uses the [Zed Attack Proxy (ZAP)](https://github.com/zaproxy/zaproxy):
 
-![Zed Attack Proxy Screen](https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/01-Information_Gathering/images/OWASPZAPSP.png)\
+![Zed Attack Proxy Screen](https://raw.githubusercontent.com/OWASP/wstg/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/01-Information_Gathering/images/OWASPZAPSP.png)\
 *Figure 4.1.7-1: Zed Attack Proxy Screen*
 
 [ZAP](https://github.com/zaproxy/zaproxy) offers various automatic spidering options, which can leveraged based on the tester's needs:

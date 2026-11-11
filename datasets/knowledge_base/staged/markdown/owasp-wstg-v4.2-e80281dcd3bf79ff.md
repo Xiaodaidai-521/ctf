@@ -78,12 +78,12 @@ OrgName: GitHub, Inc.
 
 The tester visits `subdomain.victim.com` or issues a HTTP GET request which returns a "404 - File not found" response which is a clear indication of the vulnerability.
 
-![GitHub 404 File Not Found response](https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/images/subdomain_takeover_ex1.jpeg)\
+![GitHub 404 File Not Found response](https://raw.githubusercontent.com/OWASP/wstg/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/images/subdomain_takeover_ex1.jpeg)\
 *Figure 4.2.10-1: GitHub 404 File Not Found response*
 
 The tester claims the domain using GitHub Pages:
 
-![GitHub claim domain](https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/images/subdomain_takeover_ex2.jpeg)\
+![GitHub claim domain](https://raw.githubusercontent.com/OWASP/wstg/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/images/subdomain_takeover_ex2.jpeg)\
 *Figure 4.2.10-2: GitHub claim domain*
 
 #### Testing NS Record Subdomain Takeover

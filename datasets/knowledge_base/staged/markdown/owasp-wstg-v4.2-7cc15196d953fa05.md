@@ -27,7 +27,7 @@ public function getFilter($name)
 
 In the getFilter function the `call_user_func($callback, $name)` is vulnerable to SSTI: the `name` parameter is fetched from the HTTP GET request and executed by the server:
 
-![SSTI XVWA Example](https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/07-Input_Validation_Testing/images/SSTI_XVWA.jpeg)\
+![SSTI XVWA Example](https://raw.githubusercontent.com/OWASP/wstg/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/07-Input_Validation_Testing/images/SSTI_XVWA.jpeg)\
 *Figure 4.7.18-1: SSTI XVWA Example*
 
 ### Example - Flask/Jinja2

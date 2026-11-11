@@ -35,9 +35,10 @@ datasets/knowledge_base/
 
 ## 运行
 
-仅需要 Python 3.11+，使用标准库，不安装主项目依赖。在本 worktree 根目录执行：
+需要 Python 3.11+。OWASP 清洗与审计使用本工具自己的 `markdown-it-py` 依赖，法规 DOCX 提取使用标准库；不安装主项目依赖。可在 `knowledge_acquisition/.venv/` 的独立虚拟环境安装。在本 worktree 根目录执行：
 
 ```powershell
+python -m pip install -r knowledge_acquisition/requirements.txt
 python knowledge_acquisition/pipeline.py run
 python knowledge_acquisition/pipeline.py verify
 python -m unittest discover -s knowledge_acquisition/tests -v
@@ -101,3 +102,19 @@ python -X utf8 knowledge_acquisition/legal_pipeline.py verify
 本阶段只在采集分支提交 `knowledge_acquisition/` 和 `datasets/knowledge_base/`。
 用户宣布合并后，先按最新主分支核对候选包和课程元数据，再执行合并；数据入库、课程登记和发布应在对应授权范围内分别执行。
 当前没有自动合并、自动入库、自动推送或定时任务。
+
+## 全量清洗审计
+
+```powershell
+python -X utf8 knowledge_acquisition/audit.py
+```
+
+报告保存在 `datasets/knowledge_base/audit/`。审计与清洗分开执行，直接对照原始仓库 ZIP 和官方 DOCX，而非仅对比本次生成的摘要。
+检查正文与代码/HTML示例是否改变、所有法规条款与原始XML是否逐条相同、固定仓库引用的文件是否存在，以及日期元数据、乱码、残留相对链接和图片链接格式。
+可通过 `--baseline-ref <采集分支提交>` 对比之前的数据包；本次修复审计使用 `e696884` 作为基准。
+
+本次修正8个正文链接、117个图片链接，以及三部核心法律中的重复目录和章/节层级。按CommonMark结构识别代码块、缩进列表和行内代码，保留来源中的技术示例。
+源资料明确标注的历史文档和XSS样例控制字符单独记录，不因匹配到“deprecated”或控制字符而自动删除有意义的教学内容。
+报告只说明清洗和来源一致性结果；英文翻译、课程筛选、外部网页现行性和技术结论人工审校仍待完成。
+
+Windows阅读器占用目录时，生成程序保留旧包备份后逐文件更新，完成后重新校验；不要求关闭整个知识库目录。

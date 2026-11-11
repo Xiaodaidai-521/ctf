@@ -37,7 +37,7 @@ Now, the tester should try to insert a valid user ID and a wrong password and re
 
 > The browser should display a message similar to the following one:
 >
-> ![Authentication Failed](https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/03-Identity_Management_Testing/images/AuthenticationFailed.png)\
+> ![Authentication Failed](https://raw.githubusercontent.com/OWASP/wstg/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/03-Identity_Management_Testing/images/AuthenticationFailed.png)\
 > *Figure 4.3.4-1: Authentication Failed*
 >
 > Unlike any message that reveals the existence of the user like the following:
@@ -52,7 +52,7 @@ Now, the tester should try to insert an invalid user ID and a wrong password and
 
 > If the tester enters a nonexistent user ID, they can receive a message similar to:
 >
-> ![This User is Not Active](https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/03-Identity_Management_Testing/images/Userisnotactive.png)\
+> ![This User is Not Active](https://raw.githubusercontent.com/OWASP/wstg/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/03-Identity_Management_Testing/images/Userisnotactive.png)\
 > *Figure 4.3.4-3: This User is Not Active*
 >
 > or a message like the following one:

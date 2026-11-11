@@ -89,7 +89,7 @@ Include the account's existing credential IDs in `excludeCredentials` when possi
 
 The following diagram summarizes the key checks and which party performs them.
 
-![Registration ceremony sequence diagram](https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/assets/Passkey_Security_Cheat_Sheet_Registration_Ceremony.png)
+![Registration ceremony sequence diagram](https://raw.githubusercontent.com/OWASP/CheatSheetSeries/9c87d0a0e9411de028b9d7eb853872082d6d3382/assets/Passkey_Security_Cheat_Sheet_Registration_Ceremony.png)
 
 Follow the WebAuthn [registration verification procedure](https://www.w3.org/TR/webauthn-3/#sctn-registering-a-new-credential) through the selected library. At minimum, ensure that the server verifies:
 
@@ -134,7 +134,7 @@ Conditional mediation can improve passkey discovery and coexist with password fi
 
 The following diagram summarizes the key checks and which party performs them.
 
-![Authentication ceremony sequence diagram](https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/assets/Passkey_Security_Cheat_Sheet_Authentication_Ceremony.png)
+![Authentication ceremony sequence diagram](https://raw.githubusercontent.com/OWASP/CheatSheetSeries/9c87d0a0e9411de028b9d7eb853872082d6d3382/assets/Passkey_Security_Cheat_Sheet_Authentication_Ceremony.png)
 
 Follow the WebAuthn [assertion verification procedure](https://www.w3.org/TR/webauthn-3/#sctn-verifying-assertion) through the selected library. At minimum, ensure that the server verifies:
 

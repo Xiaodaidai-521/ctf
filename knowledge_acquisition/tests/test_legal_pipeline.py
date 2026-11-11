@@ -38,6 +38,19 @@ def docx(paragraphs):
 
 
 class ParsingTests(unittest.TestCase):
+    def test_repeated_toc_is_removed_and_chapter_section_context_retained(self):
+        paragraphs = ['测试法律', '（通过日期）', '目\u3000录', '第一章\u3000总则',
+                      '第一节\u3000一般规定', '第二章\u3000附则',
+                      '第一章\u3000总则', '第一节\u3000一般规定'] + PARAGRAPHS[2:]
+        text, articles = legal.normalize(SOURCE, paragraphs)
+        self.assertEqual(text.count('## 第一章'), 1)
+        self.assertIn('### 第一节', text)
+        self.assertIn('（通过日期）', text)
+        self.assertNotIn('目\u3000录', text)
+        self.assertEqual(articles[0]['chapter'], '第一章\u3000总则')
+        self.assertEqual(articles[0]['section'], '第一节\u3000一般规定')
+        self.assertEqual(articles[0]['heading_path'], ['第一章\u3000总则', '第一节\u3000一般规定'])
+
     def test_numbers_cover_the_civil_code_range(self):
         for text, expected in [('十', 10), ('八十一', 81), ('一百零一', 101),
                                ('一千零三十二', 1032), ('一千二百六十', 1260)]:

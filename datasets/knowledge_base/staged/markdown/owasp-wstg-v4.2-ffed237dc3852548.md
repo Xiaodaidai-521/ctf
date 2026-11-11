@@ -177,7 +177,7 @@ This vulnerability could be exploited with the following:
 
 When the browser tries to render the CSV content as JavaScript, it fails and leaks the sensitive data:
 
-![JavaScript runtime error message ](https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/11-Client-side_Testing/images/XSSI1.jpeg)\
+![JavaScript runtime error message ](https://raw.githubusercontent.com/OWASP/wstg/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/11-Client-side_Testing/images/XSSI1.jpeg)\
 *Figure 4.11.13-1: JavaScript runtime error message*
 
 ### 5. Sensitive Data Leakage via Prototype Chaining Using `this`

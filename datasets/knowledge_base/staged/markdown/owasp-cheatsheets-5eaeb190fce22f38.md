@@ -53,7 +53,7 @@ protected $middlewareGroups = [
 'http_only' => true,
 ```
 
-- Unless cookies must be shared with subdomains, set `domain` to `null` in `config/session.php` to omit the Domain attribute. This restricts [where the browser sends that cookie](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Set-Cookie#domaindomain-value) to the setting host; it does not prevent sibling subdomains from setting same-name parent-domain cookies. For stronger protection against these cookie collisions, use a [`__Host-` session cookie](Session_Management_Cheat_Sheet.md#cookie-name-prefixes) with `Secure`, `Path=/`, and no Domain attribute on supporting browsers:
+- Unless cookies must be shared with subdomains, set `domain` to `null` in `config/session.php` to omit the Domain attribute. This restricts [where the browser sends that cookie](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Set-Cookie#domaindomain-value) to the setting host; it does not prevent sibling subdomains from setting same-name parent-domain cookies. For stronger protection against these cookie collisions, use a [`__Host-` session cookie](https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/Session_Management_Cheat_Sheet.md#cookie-name-prefixes) with `Secure`, `Path=/`, and no Domain attribute on supporting browsers:
 
 ```php
 'domain' => null,

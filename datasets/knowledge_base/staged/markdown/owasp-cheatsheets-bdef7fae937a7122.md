@@ -12,7 +12,7 @@ Once an authenticated session has been established, the session ID (or token) is
 
 HTTP is a stateless protocol ([RFC 9110, Section 3.3](https://www.rfc-editor.org/rfc/rfc9110#section-3.3)), where each request and response pair is independent of other web interactions. Therefore, in order to introduce the concept of a session, it is required to implement session management capabilities that link both the authentication and access control (or authorization) modules commonly available in web applications:
 
-![SessionDiagram](https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/assets/Session_Management_Cheat_Sheet_Diagram.png)
+![SessionDiagram](https://raw.githubusercontent.com/OWASP/CheatSheetSeries/9c87d0a0e9411de028b9d7eb853872082d6d3382/assets/Session_Management_Cheat_Sheet_Diagram.png)
 
 The session ID or token binds the user authentication credentials (in the form of a user session) to the user HTTP traffic and the appropriate access controls enforced by the web application. The complexity of these three components (authentication, session management, and access control) in modern web applications, plus the fact that its implementation and binding resides on the web developer's hands (as web development frameworks do not provide strict relationships between these modules), makes the implementation of a secure session management module very challenging.
 

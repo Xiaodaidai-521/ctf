@@ -7,6 +7,7 @@ import unittest
 import zipfile
 from copy import deepcopy
 from pathlib import Path
+from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import pipeline
@@ -25,6 +26,29 @@ DOCUMENT = '# SQL testing\n\n' + 'A useful security explanation. ' * 20 + '\n'
 
 
 class MarkdownTests(unittest.TestCase):
+    def test_inline_triple_backticks_do_not_hide_following_links(self):
+        raw = b'```https://example.com/a```\n\n[next](next.md)\n'
+        cleaned = pipeline.normalize_markdown(raw, SOURCE, 'docs/a.md')
+        self.assertIn('```https://example.com/a```', cleaned)
+        self.assertIn(pipeline.blob_url(SOURCE, 'docs/next.md'), cleaned)
+
+    def test_list_links_images_and_balanced_destinations(self):
+        raw = ('- Parent\n    - [nested](../docs/a(b).md)\n\n'
+               '![image](../images/picture.png)\n'
+               '[space](<other file.md>)\n'
+               '`` `[example](unchanged.md)` ``\n').encode()
+        cleaned = pipeline.normalize_markdown(raw, SOURCE, 'docs/a.md')
+        self.assertIn(pipeline.blob_url(SOURCE, 'docs/a(b).md').replace('%28', '(').replace('%29', ')'), cleaned)
+        self.assertIn('https://raw.githubusercontent.com/OWASP/example/' + SOURCE['commit'] + '/images/picture.png', cleaned)
+        self.assertIn('other%20file.md', cleaned)
+        self.assertIn('`` `[example](unchanged.md)` ``', cleaned)
+
+    def test_inline_code_in_link_label_keeps_label_but_resolves_destination(self):
+        raw = b'An `[Authorize]` attribute. [the `__Host-` cookie prefix](Session_Management.md#prefix)\n'
+        cleaned = pipeline.normalize_markdown(raw, SOURCE, 'docs/a.md')
+        self.assertIn('[the `__Host-` cookie prefix]', cleaned)
+        self.assertIn('https://github.com/OWASP/example/blob/' + SOURCE['commit'] + '/docs/Session_Management.md#prefix', cleaned)
+
     def test_code_payloads_and_tables_survive_cleaning(self):
         raw = ('\ufeff---\r\ntitle: source\r\n---\r\n# Heading\r\n\r\n\r\n'
                '|a|b|\r\n|-|-|\r\n<script>alert(1)</script>\r\n'
@@ -54,6 +78,22 @@ class MarkdownTests(unittest.TestCase):
 
 
 class StagingTests(unittest.TestCase):
+    def test_open_windows_directory_is_updated_with_previous_bundle_backed_up(self):
+        self.collect_and_clean()
+        staged = self.root / 'staged'
+        before = (staged / 'documents.jsonl').read_bytes()
+        original_rename = Path.rename
+        def rename(path, target):
+            if path == staged:
+                raise PermissionError('Open directory handle')
+            return original_rename(path, target)
+        with patch.object(Path, 'rename', rename), self.quiet:
+            pipeline.clean([SOURCE], self.root)
+        self.assertEqual(pipeline.verify(staged), 1)
+        backups = list((self.root / '.working').glob('previous-*'))
+        self.assertEqual(len(backups), 1)
+        self.assertEqual((backups[0] / 'documents.jsonl').read_bytes(), before)
+
     def setUp(self):
         self.temporary = tempfile.TemporaryDirectory()
         self.addCleanup(self.temporary.cleanup)

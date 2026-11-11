@@ -70,7 +70,7 @@ For a more complete reference, see the [Mozilla JavaScript guide](https://develo
 
 For example, consider a site that has a welcome notice `Welcome %username%` and a download link.
 
-![XSS Example 1](https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/07-Input_Validation_Testing/images/XSS_Example1.png)\
+![XSS Example 1](https://raw.githubusercontent.com/OWASP/wstg/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/07-Input_Validation_Testing/images/XSS_Example1.png)\
 *Figure 4.7.1-1: XSS Example 1*
 
 The tester must suspect that every data entry point can result in an XSS attack. To analyze it, the tester will play with the user variable and try to trigger the vulnerability.
@@ -83,7 +83,7 @@ http://example.com/index.php?user=<script>alert(123)</script>
 
 If no sanitization is applied this will result in the following popup:
 
-![Alert](https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/07-Input_Validation_Testing/images/Alert.png)\
+![Alert](https://raw.githubusercontent.com/OWASP/wstg/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/07-Input_Validation_Testing/images/Alert.png)\
 *Figure 4.7.1-2: XSS Example 1*
 
 This indicates that there is an XSS vulnerability and it appears that the tester can execute code of his choice in anybody's browser if he clicks on the tester's link.
@@ -98,7 +98,7 @@ http://example.com/index.php?user=<script>window.onload = function() {var AllLin
 
 This produces the following behavior:
 
-![XSS Example 2](https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/07-Input_Validation_Testing/images/XSS_Example2.png)\
+![XSS Example 2](https://raw.githubusercontent.com/OWASP/wstg/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/07-Input_Validation_Testing/images/XSS_Example2.png)\
 *Figure 4.7.1-3: XSS Example 2*
 
 This will cause the user, clicking on the link supplied by the tester, to download the file `malicious.exe` from a site they control.

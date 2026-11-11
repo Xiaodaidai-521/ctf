@@ -13,10 +13,10 @@ from datetime import date, datetime, timezone
 from pathlib import Path
 from xml.etree import ElementTree
 
-from pipeline import DEFAULT_DATA, HERE, read_json, safe_relative, sha256
+from pipeline import DEFAULT_DATA, HERE, publish_bundle, read_json, safe_relative, sha256
 
 BASE = 'https://flk.npc.gov.cn'
-PARSER_VERSION = 'cn-official-law-1'
+PARSER_VERSION = 'cn-official-law-2'
 LICENSE_ID = 'CN-OFFICIAL-LEGAL-TEXT'
 LICENSE_URL = BASE + '/law-search/search/flfgDetails?bbbs=ff808081752b7d430175e4766bab1557'
 LICENSE_NOTE = (
@@ -161,17 +161,24 @@ def paragraphs_from_docx(content):
 def split_articles(paragraphs):
     articles = []
     current = None
-    chapter = []
+    headings = {}
     for paragraph in paragraphs:
         if HEADING.match(paragraph):
             # End the preceding article before the next heading, retaining its original text.
             current = None
-            chapter.append(paragraph)
+            kind = re.search(r'[编章节]', paragraph)[0]
+            levels = ['编', '章', '节']
+            for lower in levels[levels.index(kind) + 1:]:
+                headings.pop(lower, None)
+            headings[kind] = paragraph
             continue
         match = ARTICLE.match(paragraph)
         if match:
             current = {'article_number': chinese_number(match[1]), 'article_label': match[0].strip(),
-                       'chapter': chapter[-1] if chapter else '', 'paragraphs': [paragraph]}
+                       'chapter': headings.get('章', headings.get('编', '')),
+                       'section': headings.get('节', ''),
+                       'heading_path': [headings[kind] for kind in ['编', '章', '节'] if kind in headings],
+                       'paragraphs': [paragraph]}
             articles.append(current)
         elif current is not None:
             current['paragraphs'].append(paragraph)
@@ -180,9 +187,27 @@ def split_articles(paragraphs):
     return articles
 
 
+def remove_duplicate_toc(paragraphs):
+    """Remove only a verified TOC whose first heading repeats before article one."""
+    toc = next((i for i, paragraph in enumerate(paragraphs) if re.sub(r'\s', '', paragraph) == '目录'), None)
+    if toc is None:
+        return paragraphs
+    first_article = next((i for i, paragraph in enumerate(paragraphs) if ARTICLE.match(paragraph)), len(paragraphs))
+    headings = [(i, re.sub(r'\s', '', paragraph)) for i, paragraph in enumerate(paragraphs)
+                if toc < i < first_article and HEADING.match(paragraph)]
+    if not headings:
+        return paragraphs
+    first_heading = headings[0][1]
+    repeated = [i for i, heading in headings[1:] if heading == first_heading]
+    if not repeated:
+        return paragraphs
+    return paragraphs[:toc] + paragraphs[repeated[-1]:]
+
+
 def normalize(source, paragraphs):
     if source['title'] not in '\n'.join(paragraphs[:5]):
         raise ValueError('Official attachment title mismatch')
+    paragraphs = remove_duplicate_toc(paragraphs)
     all_articles = split_articles(paragraphs)
     numbers = [article['article_number'] for article in all_articles]
     if numbers != list(range(1, source['expected_articles'] + 1)):
@@ -199,7 +224,7 @@ def normalize(source, paragraphs):
         elif paragraph == source['title']:
             paragraph = '# ' + paragraph
         elif HEADING.match(paragraph):
-            paragraph = '## ' + paragraph
+            paragraph = ('### ' if re.search(r'^第[^\s]+节', paragraph) else '## ') + paragraph
         lines.append(paragraph)
     return '\n\n'.join(lines) + '\n', articles
 
@@ -241,7 +266,7 @@ def clean(config, data_root):
             'license_sha256': sha256(LICENSE_NOTE),
             'attribution_text': f"{details['zdjgName']}；{source['title']}；版本{source['published_date']}；{source_url}",
             'reuse_scope': '限法律及行政法规官方正文；依据著作权法第五条第一项，保留来源和版本，不扩展至网站其他内容。',
-            'change_note': '从官方DOCX提取段落，保留原文措辞、条号及项号，转换为UTF-8 Markdown；节选范围另行明确标注。',
+            'change_note': '从官方DOCX提取段落，保留原文措辞、条号及项号，移除经重复章标题核验的目录，区分章和节的标题层级；转换为UTF-8 Markdown，节选范围另行明确标注。',
             'applicability': '中国网络与数据安全教学参考，待人工审核和课程绑定。',
             'summary': source['summary'], 'parser_version': PARSER_VERSION,
             'review_status': 'pending', 'published': False, 'markdown_path': 'markdown/' + filename,
@@ -284,9 +309,8 @@ def clean(config, data_root):
     (working / '阅读目录.md').write_bytes(('\n'.join(index) + '\n').encode('utf-8'))
     verify(working)
     destination = data_root / 'staged_legal'
-    if destination.exists():
-        destination.rename(data_root / '.working' / ('previous-legal-' + run_id))
-    working.rename(destination)
+    publish_bundle(working, destination, data_root / '.working' / ('previous-legal-' + run_id), data_root)
+    verify(destination)
     print(f'Staged {len(records)} Chinese legal documents and {len(clauses)} articles', flush=True)
 
 

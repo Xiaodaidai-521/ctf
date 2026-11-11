@@ -21,7 +21,7 @@ The diagrams below illustrate the flow of identity data. Their verification step
 
 The edge passes an external access token to a service that is an intended recipient. Each recipient validates it before use.
 
-![External identity propagation](https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/assets/External_Identity_Propagation.png)
+![External identity propagation](https://raw.githubusercontent.com/OWASP/CheatSheetSeries/9c87d0a0e9411de028b9d7eb853872082d6d3382/assets/External_Identity_Propagation.png)
 
 This is reasonable when services share the token's validation profile and the token is intended for those services. Do not widen token audiences merely to make forwarding work. [Audience restriction](https://www.rfc-editor.org/rfc/rfc9700.html#section-4.10.2) limits the impact of a leaked token; forwarding a bearer token to more services increases the places from which it can leak. Forwarding is not inherently incompatible with Zero Trust, but it does not provide isolation between recipients that accept the same credential.
 
@@ -29,7 +29,7 @@ This is reasonable when services share the token's validation profile and the to
 
 A service extracts user attributes and forwards a JSON object, header, or assertion that it signs itself.
 
-![Simple service-level identity forwarding](https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/assets/Simple_Service_Level_Identity_Forwarding.png)
+![Simple service-level identity forwarding](https://raw.githubusercontent.com/OWASP/CheatSheetSeries/9c87d0a0e9411de028b9d7eb853872082d6d3382/assets/Simple_Service_Level_Identity_Forwarding.png)
 
 Avoid making arbitrary application services identity issuers. An authenticated channel, or a signature made by the forwarding service, can identify the sender and protect transit integrity; neither proves that the sender is entitled to assert a user's identity or privileges. Every service trusted to supply these attributes can misrepresent them. If using a trusted proxy header, remove client-supplied copies, authenticate the proxy, and prevent requests from bypassing it. Prefer an assertion from a designated issuer when context crosses multiple service boundaries.
 
@@ -37,7 +37,7 @@ Avoid making arbitrary application services identity issuers. An authenticated c
 
 A service presents an incoming token to a Security Token Service (STS) and requests a token for a downstream recipient. [RFC 8693](https://www.rfc-editor.org/rfc/rfc8693#section-2) defines this exchange, including subject and actor tokens, requested audiences, and scopes. Authenticate the requesting service to the STS. The STS must authorize the exchange and constrain the issued privileges; requesting a narrower token is not a substitute for issuer-side enforcement.
 
-![Token exchange](https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/assets/Token_Exchange_Based_Identity_Issuance.png)
+![Token exchange](https://raw.githubusercontent.com/OWASP/CheatSheetSeries/9c87d0a0e9411de028b9d7eb853872082d6d3382/assets/Token_Exchange_Based_Identity_Issuance.png)
 
 Use exchange when a downstream call needs a different audience or explicit delegation. Preserve the distinction between the user and the acting service where the policy depends on it. Exchange adds an issuance dependency; plan for STS outages without accepting invalid credentials. RFC 8693 does not require all input credentials to be OAuth access tokens or all issued tokens to be signed JWTs.
 
@@ -45,7 +45,7 @@ Use exchange when a downstream call needs a different audience or explicit deleg
 
 The edge validates the external credential and obtains a normalized internal assertion from a trusted issuer. Internal services validate that assertion instead of implementing each external authentication protocol.
 
-![Protocol-agnostic identity propagation](https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/assets/Protocol_Agnostic_Identity_Propagation.png)
+![Protocol-agnostic identity propagation](https://raw.githubusercontent.com/OWASP/CheatSheetSeries/9c87d0a0e9411de028b9d7eb853872082d6d3382/assets/Protocol_Agnostic_Identity_Propagation.png)
 
 Prefer this approach when several external authentication mechanisms must feed the same internal services. Keep issuance privileges separate from verification privileges, and limit the assertion's recipients and lifetime. Signing protects integrity; it does not hide claims, prevent bearer-token replay, or compensate for a compromised issuer.
 

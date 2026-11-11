@@ -27,7 +27,7 @@ With an mTLS approach, each microservice can legitimately identify who it talks 
 #### Token-based
 
 The token-based approach works at the application layer. A token is a container that may contain the caller ID (microservice ID) and its permissions (scopes). The caller microservice can obtain a signed token by invoking a special security token service using its own service ID and password and then attaches it to every outgoing request, e.g., via HTTP headers. The called microservice can extract the token and validate it online or offline.
-![Signed ID propagation](https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/assets/Token_validation.png)
+![Signed ID propagation](https://raw.githubusercontent.com/OWASP/CheatSheetSeries/9c87d0a0e9411de028b9d7eb853872082d6d3382/assets/Token_validation.png)
 
 Choose token validation based on the required revocation response time, token lifetime, and availability requirements:
 
@@ -35,7 +35,7 @@ Choose token validation based on the required revocation response time, token li
     - The microservice queries the token service. For OAuth, [token introspection](https://www.rfc-editor.org/rfc/rfc7662.html#section-2.2) reports whether a token is active and can reflect revocation known to the authorization server.
     - Network calls add latency and a dependency on the token service's availability. [Caching introspection responses delays detection of revocation](https://www.rfc-editor.org/rfc/rfc7662.html#section-4); bound cache duration to the required freshness and never beyond token expiry.
 2. Local validation:
-    - The microservice validates a signed token using trusted issuer keys and the applicable token profile. For example, [RFC 9068 defines validation for JSON Web Token (JWT) access tokens](https://www.rfc-editor.org/rfc/rfc9068.html#section-4); signature verification alone is insufficient. See [validation at each boundary](Identity_Propagation_Patterns_Cheat_Sheet.md#validation-at-each-boundary).
+    - The microservice validates a signed token using trusted issuer keys and the applicable token profile. For example, [RFC 9068 defines validation for JSON Web Token (JWT) access tokens](https://www.rfc-editor.org/rfc/rfc9068.html#section-4); signature verification alone is insufficient. See [validation at each boundary](https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/Identity_Propagation_Patterns_Cheat_Sheet.md#validation-at-each-boundary).
     - This avoids a per-request introspection call, but local validation alone does not detect server-side revocation before token expiry. Use [token lifetimes or an additional revocation mechanism](https://www.rfc-editor.org/info/rfc7009/#section-3) that meets the required response time.
 
 Neither approach replaces service-level authorization. Reject requests when the required token validation cannot be completed.
@@ -49,7 +49,7 @@ Logging services in microservice-based systems aim to meet the principles of acc
 - Each microservice writes a log message to a local file using standard output (via stdout, stderr).
 - The logging agent periodically pulls log messages and sends (publishes) them to the message broker (e.g., NATS, Apache Kafka).
 - The central logging service subscribes to messages in the message broker, receives them, and processes them.
-![Logging pattern](https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/assets/ms_logging_pattern.png)
+![Logging pattern](https://raw.githubusercontent.com/OWASP/CheatSheetSeries/9c87d0a0e9411de028b9d7eb853872082d6d3382/assets/ms_logging_pattern.png)
 
 High-level recommendations to logging subsystem architecture with its rationales are listed below.
 

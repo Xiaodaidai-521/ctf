@@ -356,7 +356,7 @@ Though Boost is missing from the list, it appears to lack recommendations, addit
 
 In addition to what you should define, defining some macros and undefining others should trigger a security related defect. For example, `-U_FORTIFY_SOURCES` on Linux and `_CRT_SECURE_NO_WARNINGS=1`, `_SCL_SECURE_NO_WARNINGS`, `_ATL_SECURE_NO_WARNINGS` or `STRSAFE_NO_DEPRECATE` on Windows.
 
-![AdditionalPlatformLibraryMacrosTable](https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/assets/C-Based_Toolchain_Hardening_AdditionalPlatformLibraryMacrosTable.png)
+![AdditionalPlatformLibraryMacrosTable](https://raw.githubusercontent.com/OWASP/CheatSheetSeries/9c87d0a0e9411de028b9d7eb853872082d6d3382/assets/C-Based_Toolchain_Hardening_AdditionalPlatformLibraryMacrosTable.png)
 
 a) Be careful with `_GLIBCXX_DEBUG` when using pre-compiled libraries such as Boost from a distribution. There are ABI incompatibilities, and the result will likely be a crash. You will have to compile Boost with `_GLIBCXX_DEBUG` or omit `_GLIBCXX_DEBUG`.
 
@@ -555,7 +555,7 @@ The previous sections concentrated on setting up your project for success. This 
 
 Xcode offers additional [Code Diagnostics](https://developer.apple.com/documentation/code_diagnostics) that can help find memory errors and object use problems. Schemes can be managed through _Products_ menu item, _Scheme_ submenu item, and then _Edit_. From the editor, navigate to the _Diagnostics_ tab. In the figure below, four additional instruments are enabled for the debugging cycle: Scribble guards, Edge guards, Malloc guards, and Zombies.
 
-![XCode2](https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/assets/C-Based_Toolchain_Hardening_XCode2.png)
+![XCode2](https://raw.githubusercontent.com/OWASP/CheatSheetSeries/9c87d0a0e9411de028b9d7eb853872082d6d3382/assets/C-Based_Toolchain_Hardening_XCode2.png)
 
 There is one caveat with using some of the guards: Apple only provides them for the simulator, and not a device. In the past, the guards were available for both devices and simulators.
 
@@ -563,14 +563,14 @@ There is one caveat with using some of the guards: Apple only provides them for 
 
 Visual Studio offers a number of debugging aids for use during development. The aids are called [Managed Debugging Assistants (MDAs)](https://docs.microsoft.com/en-us/dotnet/framework/debug-trace-profile/diagnosing-errors-with-managed-debugging-assistants). You can find the MDAs on the _Debug_ menu, then _Exceptions_ submenu. MDAs allow you to tune your debugging experience by, for example, filtering exceptions for which the debugger should snap. For more details, see Stephen Toub's _[Let The CLR Find Bugs For You With Managed Debugging Assistants](https://docs.microsoft.com/en-us/archive/msdn-magazine/2006/may/let-the-clr-find-bugs-for-you-with-managed-debugging-assistants)_.
 
-![Windows1](https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/assets/C-Based_Toolchain_Hardening_Windows1.png)
+![Windows1](https://raw.githubusercontent.com/OWASP/CheatSheetSeries/9c87d0a0e9411de028b9d7eb853872082d6d3382/assets/C-Based_Toolchain_Hardening_Windows1.png)
 
 Finally, for runtime hardening, Microsoft provides **Windows Defender Exploit Guard** and the **Process Mitigation Management Tool**.  
 [Windows Defender Exploit Guard](https://learn.microsoft.com/en-us/defender-endpoint/exploit-protection) replaces EMET and offers advanced exploit protection features.  
 
 Additionally, the [Process Mitigation Management Tool](https://learn.microsoft.com/en-us/defender-endpoint/customize-exploit-protection) (`ProcessMitigations` module) allows administrators to configure exploit mitigation policies via PowerShell and Group Policy.
 
-![Windows2](https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/assets/C-Based_Toolchain_Hardening_Windows2.png)
+![Windows2](https://raw.githubusercontent.com/OWASP/CheatSheetSeries/9c87d0a0e9411de028b9d7eb853872082d6d3382/assets/C-Based_Toolchain_Hardening_Windows2.png)
 
 ## References
 

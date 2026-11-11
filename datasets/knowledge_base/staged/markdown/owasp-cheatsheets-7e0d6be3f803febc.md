@@ -504,7 +504,7 @@ To achieve this task, you could use the following XSL stylesheet:
 
 Example of the rendering:
 
-![RenderingExample](https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/assets/Authorization_Testing_Automation_AutomationRendering.png)
+![RenderingExample](https://raw.githubusercontent.com/OWASP/CheatSheetSeries/9c87d0a0e9411de028b9d7eb853872082d6d3382/assets/Authorization_Testing_Automation_AutomationRendering.png)
 
 ## Sources of the prototype
 

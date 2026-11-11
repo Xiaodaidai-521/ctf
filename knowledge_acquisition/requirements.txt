@@ -1,0 +1,2 @@
+# Isolated Markdown parsing for cleaning and auditing; no business-app dependencies.
+markdown-it-py==4.2.0

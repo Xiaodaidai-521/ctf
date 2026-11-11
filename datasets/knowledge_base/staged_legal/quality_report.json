@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "parser_version": "cn-official-law-1",
+  "parser_version": "cn-official-law-2",
   "accepted": 7,
   "article_count": 393,
   "by_document": {
@@ -12,8 +12,8 @@
     "未成年人网络保护条例": 60,
     "中华人民共和国民法典（隐私权和个人信息保护条款节选）": 8
   },
-  "documents_sha256": "bf330d6c1a94e0d73e85fd3fb147eab58d971b6b3848d428374ca14e2cd16bfd",
-  "clauses_sha256": "0c983bfb5a0ae2b5edb89a2f20896e1587463053d36c70158b5d74a4da8d3251",
+  "documents_sha256": "29dfed7ec3cba3ef6e7ad9c95c043d9d9d735c70758b860ea5098cd383d71ac8",
+  "clauses_sha256": "fcf086497e356b0a3f002edf245d993bd8cec2927640cfada74dc697d4903d05",
   "pending_sources": [
     {
       "title": "数据出境安全评估办法",

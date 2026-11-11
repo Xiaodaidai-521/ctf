@@ -12,7 +12,7 @@ The IMAP/SMTP Injection technique is more effective if the mail server is not di
 
 An IMAP/SMTP Injection makes it possible to access a mail server which otherwise would not be directly accessible from the Internet. In some cases, these internal systems do not have the same level of infrastructure security and hardening that is applied to the front-end web servers. Therefore, mail server results may be more vulnerable to attacks by end users (see the scheme presented in Figure 1).
 
-![IMAP SMTP Injection](https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/07-Input_Validation_Testing/images/Imap-smtp-injection.png)\
+![IMAP SMTP Injection](https://raw.githubusercontent.com/OWASP/wstg/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/07-Input_Validation_Testing/images/Imap-smtp-injection.png)\
 *Figure 4.7.10-1: Communication with the mail servers using the IMAP/SMTP Injection technique*
 
 Figure 1 depicts the flow of traffic generally seen when using webmail technologies. Step 1 and 2 is the user interacting with the webmail client, whereas step 2 is the tester bypassing the webmail client and interacting with the back-end mail servers directly.

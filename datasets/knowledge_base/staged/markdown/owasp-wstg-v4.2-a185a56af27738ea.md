@@ -77,7 +77,7 @@ Another similar and somewhat more reliable way to determine the current web fram
 
 Consider the following HTTP-request:
 
-![Cakephp HTTP Request](https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/01-Information_Gathering/images/Cakephp_cookie.png)\
+![Cakephp HTTP Request](https://raw.githubusercontent.com/OWASP/wstg/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/01-Information_Gathering/images/Cakephp_cookie.png)\
 *Figure 4.1.8-7: Cakephp HTTP Request*
 
 The cookie `CAKEPHP` has automatically been set, which gives information about the framework being used. A list of common cookie names is presented in [Cookies](#Cookies) section. Limitations still exist in relying on this identification mechanism - it is possible to change the name of cookies. For example, for the selected `CakePHP` framework this could be done via the following configuration (excerpt from `core.php`):
@@ -102,12 +102,12 @@ This technique is based on finding certain patterns in the HTML page source code
 
 From the screenshot below one can easily learn the used framework and its version by the mentioned markers. The comment, specific paths and script variables can all help an attacker to quickly determine an instance of ZK framework.
 
-![ZK Framework Sample](https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/01-Information_Gathering/images/Zk_html_source.png)\
+![ZK Framework Sample](https://raw.githubusercontent.com/OWASP/wstg/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/01-Information_Gathering/images/Zk_html_source.png)\
 *Figure 4.1.8-2: ZK Framework HTML Source Sample*
 
 Frequently such information is positioned in the `<head>` section of HTTP responses, in `<meta>` tags, or at the end of the page. Nevertheless, entire responses should be analyzed since it can be useful for other purposes such as inspection of other useful comments and hidden fields. Sometimes, web developers do not care much about hiding information about the frameworks or components used. It is still possible to stumble upon something like this at the bottom of the page:
 
-![Banshee Bottom Page](https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/01-Information_Gathering/images/Banshee_bottom_page.png)\
+![Banshee Bottom Page](https://raw.githubusercontent.com/OWASP/wstg/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/01-Information_Gathering/images/Banshee_bottom_page.png)\
 *Figure 4.1.8-3: Banshee Bottom Page*
 
 ### Specific Files and Folders
@@ -116,17 +116,17 @@ There is another approach which greatly helps an attacker or tester to identify 
 
 In order to uncover them a technique known as forced browsing or "dirbusting" is used. Dirbusting is brute forcing a target with known folder and filenames and monitoring HTTP-responses to enumerate server content. This information can be used both for finding default files and attacking them, and for fingerprinting the web application. Dirbusting can be done in several ways, the example below shows a successful dirbusting attack against a WordPress-powered target with the help of defined list and intruder functionality of Burp Suite.
 
-![Dirbusting with Burp](https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/01-Information_Gathering/images/Wordpress_dirbusting.png)\
+![Dirbusting with Burp](https://raw.githubusercontent.com/OWASP/wstg/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/01-Information_Gathering/images/Wordpress_dirbusting.png)\
 *Figure 4.1.8-4: Dirbusting with Burp*
 
 We can see that for some WordPress-specific folders (for instance, `/wp-includes/`, `/wp-admin/` and `/wp-content/`) HTTP responses are 403 (Forbidden), 302 (Found, redirection to `wp-login.php`), and 200 (OK) respectively. This is a good indicator that the target is WordPress powered. The same way it is possible to dirbust different application plugin folders and their versions. In the screenshot below one can see a typical CHANGELOG file of a Drupal plugin, which provides information on the application being used and discloses a vulnerable plugin version.
 
-![Drupal Botcha Disclosure](https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/01-Information_Gathering/images/Drupal_botcha_disclosure.png)\
+![Drupal Botcha Disclosure](https://raw.githubusercontent.com/OWASP/wstg/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/01-Information_Gathering/images/Drupal_botcha_disclosure.png)\
 *Figure 4.1.8-5: Drupal Botcha Disclosure*
 
 Tip: before starting with dirbusting, check the `robots.txt` file first. Sometimes application specific folders and other sensitive information can be found there as well. An example of such a `robots.txt` file is presented on a screenshot below.
 
-![Robots Info Disclosure](https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/01-Information_Gathering/images/Robots-info-disclosure.png)\
+![Robots Info Disclosure](https://raw.githubusercontent.com/OWASP/wstg/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/01-Information_Gathering/images/Robots-info-disclosure.png)\
 *Figure 4.1.8-6: Robots Info Disclosure*
 
 Specific files and folders are different for each specific application. If the identified application or component is Open Source there may be value in setting up a temporary installation during penetration tests in order to gain a better understanding of what infrastructure or functionality is presented, and what files might be left on the server. However, several good file lists already exist; one good example is [FuzzDB wordlists of predictable files/folders](https://github.com/fuzzdb-project/fuzzdb).
@@ -151,7 +151,7 @@ Here are some common web file extensions and associated technologies:
 
 As can be seen in the following screenshot the listed file system path points to use of WordPress (`wp-content`). Also testers should be aware that WordPress is PHP based (`functions.php`).
 
-![WordPress Parse error](https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/01-Information_Gathering/images/wp-syntaxerror.png)\
+![WordPress Parse error](https://raw.githubusercontent.com/OWASP/wstg/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/01-Information_Gathering/images/wp-syntaxerror.png)\
 *Figure 4.1.8-7: WordPress Parse Error*
 
 ## Common Identifiers
@@ -237,7 +237,7 @@ Currently one of the best fingerprinting tools on the market. Included in a defa
 
 Sample output is presented on a screenshot below:
 
-![Whatweb Output sample](https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/01-Information_Gathering/images/Whatweb-sample.png)\
+![Whatweb Output sample](https://raw.githubusercontent.com/OWASP/wstg/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/01-Information_Gathering/images/Whatweb-sample.png)\
 *Figure 4.1.8-8: Whatweb Output sample*
 
 ### Wappalyzer
@@ -248,7 +248,7 @@ Wapplyzer is available in multiple usage models, the most popular of which is li
 
 Sample output of a plug-in is presented on a screenshot below.
 
-![Wappalyzer Output for OWASP Website](https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/01-Information_Gathering/images/Owasp-wappalyzer.png)\
+![Wappalyzer Output for OWASP Website](https://raw.githubusercontent.com/OWASP/wstg/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/01-Information_Gathering/images/Owasp-wappalyzer.png)\
 *Figure 4.1.8-9: Wappalyzer Output for OWASP Website*
 
 ## References

@@ -49,7 +49,7 @@ Opening Dev Tools can be accomplished in a number of ways.
 2. Un-check the "Select automatically" checkbox.
 3. Select the user agent from dropdown menu or enter a custom user agent
 
-![User-Agent selection dropdown menu in Google Chrome](https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/6-Appendix/images/f_chrome_devtools_ua_switch.png)\
+![User-Agent selection dropdown menu in Google Chrome](https://raw.githubusercontent.com/OWASP/wstg/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/6-Appendix/images/f_chrome_devtools_ua_switch.png)\
 *Figure 6.F-1: Google Chrome Dev Tools User-Agent Switching Functionality*
 
 ### Mozilla Firefox
@@ -59,7 +59,7 @@ Opening Dev Tools can be accomplished in a number of ways.
 3. Look for `general.useragent.override`, if you can't see this preference, look for one that show a set of radio buttons `Boolean, Number, String` select `String` then click the plus sign `Add` button on the `about:config` page.
 4. Set the value of `general.useragent.override` to whatever [User-Agent](https://developers.whatismybrowser.com/useragents/explore/) you might need.
 
-![User-Agent configuration preference in Mozilla Firefox](https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/6-Appendix/images/f_firefox_ua_switch.png)\
+![User-Agent configuration preference in Mozilla Firefox](https://raw.githubusercontent.com/OWASP/wstg/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/6-Appendix/images/f_firefox_ua_switch.png)\
 *Figure 6.F-2: Mozilla Firefox User-Agent Switching Functionality*
 
 Later click on the garbage can `Delete` button to the right of the `general.useragent.override` preference to remove the override and switch back to the default user agent.
@@ -109,7 +109,7 @@ Later click on the garbage can `Delete` button to the right of the `general.user
 
 > Note: Cookies can be deleted once selected by pressing the `delete` key, or with various options from the right-click context menu.
 
-![Cookie Editing functionality in Mozilla Firefox](https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/6-Appendix/images/f_firefox_cookie_edit.png)\
+![Cookie Editing functionality in Mozilla Firefox](https://raw.githubusercontent.com/OWASP/wstg/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/6-Appendix/images/f_firefox_cookie_edit.png)\
 *Figure 6.F-3: Mozilla Firefox Cookie Editing Functionality*
 
 ## Local Storage Editing
@@ -179,7 +179,7 @@ All major browsers support manipulating CSS leveraging the Dev Tools Console and
 1. On the `Networking` tab in Dev Tools select any URL or request.
 2. In the lower right hand pane select the `Headers` tab.
 
-![Headers View in Google Chrome](https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/6-Appendix/images/f_chrome_devtools_headers.png)\
+![Headers View in Google Chrome](https://raw.githubusercontent.com/OWASP/wstg/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/6-Appendix/images/f_chrome_devtools_headers.png)\
 *Figure 6.F-4: Google Chrome Headers View*
 
 ### Mozilla Firefox
@@ -187,7 +187,7 @@ All major browsers support manipulating CSS leveraging the Dev Tools Console and
 1. On the `Networking` tab in Dev Tools select any URL or request.
 2. In the lower right hand pane select the `Headers` tab.
 
-![Headers View in Mozilla Firefox](https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/6-Appendix/images/f_firefox_devtools_headers.png)\
+![Headers View in Mozilla Firefox](https://raw.githubusercontent.com/OWASP/wstg/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/6-Appendix/images/f_firefox_devtools_headers.png)\
 *Figure 6.F-5: Mozilla Firefox Headers View*
 
 ## Screenshots
@@ -215,14 +215,14 @@ All major browsers support manipulating CSS leveraging the Dev Tools Console and
 1. Navigate to `Network` tab.
 2. In the `Throttle` dropdown select `Offline`.
 
-![Offline Option in Google Chrome](https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/6-Appendix/images/f_chrome_devtools_offline.png)\
+![Offline Option in Google Chrome](https://raw.githubusercontent.com/OWASP/wstg/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/6-Appendix/images/f_chrome_devtools_offline.png)\
 *Figure 6.F-6: Google Chrome Offline Option*
 
 ### Mozilla Firefox
 
 1. From the triple line 'hamburger' (or 'pancake') menu select `Web Developer` and then `Work Offline`.
 
-![Offline Option in Mozilla Firefox](https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/6-Appendix/images/f_firefox_devtools_offline.png)\
+![Offline Option in Mozilla Firefox](https://raw.githubusercontent.com/OWASP/wstg/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/6-Appendix/images/f_firefox_devtools_offline.png)\
 *Figure 6.F-7: Mozilla Firefox Offline Option*
 
 ## Encoding and Decoding
@@ -254,14 +254,14 @@ All major browsers support encoding and decoding strings in various ways leverag
 
 1. Click the `Toggle device toolbar` button or press `ctrl` + `shift` + `m`.
 
-![Responsive Design Mode in Google Chrome](https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/6-Appendix/images/f_chrome_responsive_design_mode.png)\
+![Responsive Design Mode in Google Chrome](https://raw.githubusercontent.com/OWASP/wstg/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/6-Appendix/images/f_chrome_responsive_design_mode.png)\
 *Figure 6.F-8: Google Chrome Responsive Design Mode*
 
 ### Mozilla Firefox
 
 1. Click the `Responsive Design Mode` button or press `ctrl` + `shift` + `m`.
 
-![Responsive Design Mode in Mozilla Firefo](https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/6-Appendix/images/f_firefox_responsive_design_mode.png)\
+![Responsive Design Mode in Mozilla Firefo](https://raw.githubusercontent.com/OWASP/wstg/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/6-Appendix/images/f_firefox_responsive_design_mode.png)\
 *Figure 6.F-9: Mozilla Firefox Responsive Design Mode*
 
 ## References

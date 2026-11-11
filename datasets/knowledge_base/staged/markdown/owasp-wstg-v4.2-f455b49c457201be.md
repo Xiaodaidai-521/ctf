@@ -60,7 +60,7 @@ For example, to find the web content of owasp.org as indexed by a typical search
 site:owasp.org
 ```
 
-![Google Site Operation Search Result Example](https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/01-Information_Gathering/images/Google_site_Operator_Search_Results_Example_20200406.png)\
+![Google Site Operation Search Result Example](https://raw.githubusercontent.com/OWASP/wstg/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/01-Information_Gathering/images/Google_site_Operator_Search_Results_Example_20200406.png)\
 *Figure 4.1.1-1: Google Site Operation Search Result Example*
 
 ### Viewing Cached Content
@@ -73,7 +73,7 @@ To view `owasp.org` as it is cached, the syntax is:
 cache:owasp.org
 ```
 
-![Google Cache Operation Search Result Example](https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/01-Information_Gathering/images/Google_cache_Operator_Search_Results_Example_20200406.png)\
+![Google Cache Operation Search Result Example](https://raw.githubusercontent.com/OWASP/wstg/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/01-Information_Gathering/images/Google_cache_Operator_Search_Results_Example_20200406.png)\
 *Figure 4.1.1-2: Google Cache Operation Search Result Example*
 
 ### Google Hacking, or Dorking
