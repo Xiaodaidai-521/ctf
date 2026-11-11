@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "sources": [
+    {
+      "id": "owasp-wstg-v4.2",
+      "repository": "OWASP/wstg",
+      "ref": "v4.2",
+      "commit": "dd33419e10edb22b78d89325a6c2aad9f184e3a2",
+      "snapshot_date": "2020-12-03",
+      "include": "document/**/*.md",
+      "exclude_names": [
+        "README.md"
+      ],
+      "publisher": "OWASP Foundation / WSTG contributors",
+      "language": "en",
+      "license_id": "CC-BY-SA-4.0",
+      "license_path": "LICENSE",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "applicability": "Web 安全测试方法参考；仅用于授权教学环境。尚未绑定课程、人工审核或发布。",
+      "captured_at": "2026-11-11T16:36:59.255433+00:00",
+      "archive_sha256": "ab877e5c49e38b75546b9f25ab751cb0bcf3abcb927b0af768aec1ec8be92a3c",
+      "license_sha256": "9312b09a6848f26c6046652238ddd6b32ea2124847faed48854c375c5194238d"
+    },
+    {
+      "id": "owasp-cheatsheets",
+      "repository": "OWASP/CheatSheetSeries",
+      "ref": "master",
+      "commit": "9c87d0a0e9411de028b9d7eb853872082d6d3382",
+      "snapshot_date": "2026-11-11",
+      "include": "cheatsheets/*.md",
+      "exclude_names": [],
+      "publisher": "OWASP Foundation / Cheat Sheet Series contributors",
+      "language": "en",
+      "license_id": "CC-BY-SA-4.0",
+      "license_path": "LICENSE.md",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "applicability": "Web 安全设计、防护和数据保护参考；尚未绑定课程、人工审核或发布。",
+      "captured_at": "2026-11-11T16:38:22.340858+00:00",
+      "archive_sha256": "4bb025aca510d44e021ae5d9460eed3c3765b3e118f845894834121c96357e6b",
+      "license_sha256": "2b47ecdd5078e948395bc5980226933854228ff688f10d1dd059208be4956084"
+    }
+  ]
+}

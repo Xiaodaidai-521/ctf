@@ -1,0 +1,184 @@
+# NoSQL Security Cheat Sheet
+
+## Introduction
+
+NoSQL databases (MongoDB, CouchDB, Cassandra etc.) power many modern applications with flexible schemas and horizontal scale.
+This cheat sheet summarizes guidance to reduce risk when using NoSQL systems.
+
+## Threats & Common Failure Modes
+
+- **NoSQL Injection** — Unsafe construction of query objects or query strings from untrusted input.
+- **Exposed Management Interfaces** — Admin GUIs, database ports or REST endpoints exposed to the internet.
+- **Weak/No Authentication & Authorization** — Default open access or excessive privileges for clients.
+- **Insecure Network Exposure** — No TLS, open ports, insufficient network segmentation.
+- **Insecure Defaults** — Default admin accounts, default passwords, unsecured configs.
+- **Poor Access Control Models** — Coarse roles allowing lateral abuse.
+- **Insecure Serialization / Deserialization** — Remote code execution via unsafe object deserialization.
+- **Misconfigured CORS / Public APIs** — APIs accidentally allow cross-origin requests or wide access.
+- **Credential & Secret Leaks** — Hardcoded DB credentials in code, images, CI logs.
+- **Unsafe Backup Exposure** — Backups left unencrypted or publicly accessible.
+- **Supply-chain / Dependency Risks** — Vulnerable drivers, ORMs/ODMs, or plugins.
+
+## Secure-by-Design Principles
+
+- **Treat all input as untrusted** — validate, sanitize, and normalize.
+- **Use least privilege** — narrow roles for users, services, and operators.
+- **Defense in depth** — combine network controls, auth, input validation, and monitoring.
+- **Secure defaults** — change default ports/accounts, enable auth and TLS by default.
+- **Automate secrets & rotation** — vaults and short-lived credentials.
+- **Monitor & audit** — log access and detect anomalies.
+
+## Practical Defenses & Examples
+
+### Prevent NoSQL Injection
+
+**Unsafe (string-based filter building — Node.js / MongoDB):**
+
+```js
+// DANGEROUS: building query from untrusted input
+const q = "{ name: '" + req.query.name + "' }";
+const filter = eval("(" + q + ")"); // NEVER do this
+db.collection('users').find(filter)
+```
+
+**Safe (use driver query objects / parameterization):**
+
+Building a query object does not prevent operator injection when an untrusted value is itself an object. For example, MongoDB interprets `{ name: { $ne: "" } }` as a [not-equal query](https://www.mongodb.com/docs/manual/reference/operator/query/ne/). Validate the expected scalar type before constructing the filter; do not pass client-supplied objects through as field values.
+
+```js
+const name = req.query.name;
+if (typeof name !== 'string') throw new Error("Invalid name");
+const filter = { name };
+db.collection('users').find(filter)
+```
+
+**Additional pattern rejection:**
+
+```js
+// Reject a pattern in the serialized request body.
+if (JSON.stringify(req.body).includes('"$')) throw Error("Invalid input");
+```
+
+This [`JSON.stringify()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify#description) check is a denylist, not an operator allowlist. It also rejects ordinary string values that begin with `$`, and it does not validate allowed fields or their types. Use [field-specific validation](https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/Input_Validation_Cheat_Sheet.md#input-validation-strategies) before building queries.
+
+Notes:
+
+- Do **not** accept raw JSON fragments from the client to execute as queries.
+- Disallow client-controlled query operators (like `$where`, `$regex`, or `$expr`) unless strictly required and validated.
+- For text-based search parameters, use safe driver APIs (e.g., `$text` with controlled input).
+
+### Use Secure Driver / ODM Patterns
+
+- Prefer high-level APIs (ODM/ORM) that build queries safely (e.g., Mongoose, Spring Data, Datastax driver patterns).
+- Avoid `.eval()`-like functionality and raw query execution from untrusted data.
+- Sanitize and validate any raw expressions before passing to the DB.
+
+#### Example — PyMongo safe usage
+
+```python
+from pymongo import MongoClient
+client = MongoClient(uri, tls=True)
+collection = client.mydb.users
+if not isinstance(email_input, str):
+    raise ValueError("Invalid email")
+user = collection.find_one({"email": email_input})
+```
+
+### Example in Java
+
+This example uses the Java driver's [equality filter builder](https://www.mongodb.com/docs/drivers/java/sync/current/builders/filters/) with a string value:
+
+```java
+MongoCollection<Document> collection = this.getCollection();
+Bson expression = Filters.eq("borough", userInput);
+FindIterable<Document> restaurants = collection.find(expression);
+```
+
+### Authentication & Authorization
+
+- **Enable authentication** (do not run databases unauthenticated).
+- Use **role-based access control (RBAC)**, least privilege for service accounts.
+- Use **separate users** for admin/backup/readonly/application.
+- Use identity federation or short-lived credentials when supported (e.g., AWS IAM -> DynamoDB).
+
+For more information please check following cheat sheets:
+
+[Authentication Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html)
+
+[Authorization Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Authorization_Cheat_Sheet.html)
+
+### Network & Transport Security
+
+- **Bind services to internal interfaces**, not `0.0.0.0`.
+- Use **network segmentation / private subnets** and security groups.
+- **Enforce TLS** (in transit encryption) for driver connections and admin consoles.
+- Turn off remote management or restrict it to admin networks/VPNs.
+
+### Configuration Hardening
+
+- Change default ports and disable sample/demo users.
+- Turn off or restrict features that execute code on the server, such as [MongoDB server-side JavaScript](https://www.mongodb.com/docs/drivers/client-libraries-best-practices/#restrict-server-side-javascript-execution).
+- Require TLS for internal replication links where supported.
+
+### Secrets Management
+
+- Do **not** hardcode DB credentials — use a secret manager (Vault, AWS Secrets Manager, Azure Key Vault).
+- Avoid baking credentials into container images or environment variables in CI logs.
+- Rotate credentials regularly and use ephemeral tokens when possible.
+
+### Logging, Monitoring & Auditing
+
+- Enable audit logging (connection attempts, admin actions, failed auth).
+- Send logs to a tamper-evident SIEM.
+- Alert on anomalous patterns (spike in queries, slow queries, large data exports).
+- Monitor for suspicious commands (e.g., admin actions, `$where`, map-reduce jobs).
+
+### Backups & Snapshots
+
+- Encrypt backups at rest and during transfer.
+- Restrict access to backup storage.
+- Sanitize backups for PII as required by policy.
+- Validate restore procedures regularly.
+
+## Quick NoSQL Security Checklist
+
+- Enable authentication & RBAC
+- Enforce TLS for client and node communication
+- Bind DB to internal IPs / use private networks
+- Use least privilege service accounts
+- Disallow client-controlled query operators unless validated
+- Avoid raw query execution / eval on server
+- Store credentials in secret manager & rotate them
+- Harden configs (disable unsafe defaults)
+- Encrypt and secure backups
+- Monitor/audit DB access and admin actions
+- Keep DB and drivers patched
+
+## Do’s and Don’ts
+
+**Do**:
+
+- Use driver query objects rather than building query strings.
+- Validate and whitelist user-supplied fields (columns/keys).
+- Restrict management interfaces and require MFA for admin access.
+- Automate security testing in CI/CD pipelines.
+
+**Don’t**:
+
+- Expose DB ports/admin consoles to the public Internet.
+- Accept raw JSON queries from clients or eval untrusted strings.
+- Use root/admin DB accounts for application connections.
+- Rely only on network controls to protect badly written queries.
+
+## Examples of Dangerous Patterns (brief)
+
+- Accepting client-controlled `$where` expressions executes untrusted JavaScript inside MongoDB and can consume excessive resources. Use standard query operators instead, and [disable server-side scripting](https://www.mongodb.com/docs/drivers/client-libraries-best-practices/#restrict-server-side-javascript-execution) when it is not needed.
+- Concatenating user input into query language strings or shell commands for DB tools.
+- Leaving MongoDB unsecured (no auth) listening on public IP.
+
+## References
+
+- [MongoDB: Security Checklist for Self-Managed Deployments](https://www.mongodb.com/docs/manual/administration/security-checklist/)
+- [Amazon DynamoDB: Preventative Security Best Practices](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/best-practices-security-preventative.html)
+- [WSTG - Testing for NoSQL Injection](https://github.com/OWASP/wstg/blob/master/document/4-Web_Application_Security_Testing/07-Injection/05.6-NoSQL_Injection.md)
+- [No SQL, No Injection?](https://arxiv.org/abs/1506.04082)
