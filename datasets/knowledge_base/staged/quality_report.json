@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "parser_version": "kb-markdown-1",
+  "collected": 254,
+  "accepted": 246,
+  "rejected": [
+    {
+      "source": "owasp-wstg-v4.2",
+      "path": "document/4-Web_Application_Security_Testing/01-Information_Gathering/09-Fingerprint_Web_Application.md",
+      "reason": "redirect_or_retired"
+    },
+    {
+      "source": "owasp-wstg-v4.2",
+      "path": "document/4-Web_Application_Security_Testing/07-Input_Validation_Testing/03-Testing_for_HTTP_Verb_Tampering.md",
+      "reason": "redirect_or_retired"
+    },
+    {
+      "source": "owasp-wstg-v4.2",
+      "path": "document/4-Web_Application_Security_Testing/07-Input_Validation_Testing/13-Testing_for_Buffer_Overflow.md",
+      "reason": "redirect_or_retired"
+    },
+    {
+      "source": "owasp-wstg-v4.2",
+      "path": "document/4-Web_Application_Security_Testing/08-Testing_for_Error_Handling/02-Testing_for_Stack_Traces.md",
+      "reason": "redirect_or_retired"
+    },
+    {
+      "source": "owasp-cheatsheets",
+      "path": "cheatsheets/Access_Control_Cheat_Sheet.md",
+      "reason": "redirect_or_retired"
+    },
+    {
+      "source": "owasp-cheatsheets",
+      "path": "cheatsheets/Injection_Prevention_in_Java_Cheat_Sheet.md",
+      "reason": "redirect_or_retired"
+    },
+    {
+      "source": "owasp-cheatsheets",
+      "path": "cheatsheets/TLS_Cipher_String_Cheat_Sheet.md",
+      "reason": "redirect_or_retired"
+    },
+    {
+      "source": "owasp-cheatsheets",
+      "path": "cheatsheets/Transport_Layer_Protection_Cheat_Sheet.md",
+      "reason": "redirect_or_retired"
+    }
+  ],
+  "duplicates": [],
+  "by_source": {
+    "owasp-wstg-v4.2": 113,
+    "owasp-cheatsheets": 133
+  },
+  "documents_sha256": "26a29565a370256a835e3a33f5d9ade52f9ddb062e9ebfb0f7dfca12ca413a68",
+  "review_status": "pending",
+  "published": false,
+  "needs_review": [
+    "尚未人工审校或绑定课程",
+    "原文发布日期待补充",
+    "英文材料尚未翻译",
+    "第三方示例与代码的独立许可需按原文核对"
+  ]
+}
