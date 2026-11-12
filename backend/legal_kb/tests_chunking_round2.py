@@ -110,7 +110,7 @@ class ChunkingProbeTests(SimpleTestCase):
         self.assertEqual(report, evaluate())
 
 
-@override_settings(EMBEDDING_PROVIDER='local')
+@override_settings(EMBEDDING_PROVIDER='', EMBEDDING_MODEL='local-hash-v1', EMBEDDING_DIMENSION=128)
 class LongArticleIngestionTests(TestCase):
     def test_persisted_subclauses_keep_article_and_hash_identity(self):
         document = LegalDocument.objects.create(

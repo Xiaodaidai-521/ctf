@@ -1,6 +1,7 @@
 """Serializers for legal compliance APIs."""
 
 from rest_framework import serializers
+from data_security.adapters.django.protection_status import ProtectionSerializerMixin
 
 from audit.models import AuditLedgerEntry
 from data_security.adapters.persistence.fields import field_storage_enabled, protect_stored_value
@@ -22,7 +23,7 @@ from .services.consent_service import compute_content_hash
 from .services.data_access import authorized_legal_objects
 
 
-class ProtectedLegalSerializer(serializers.ModelSerializer):
+class ProtectedLegalSerializer(ProtectionSerializerMixin, serializers.ModelSerializer):
     def get_fields(self):
         fields = super().get_fields()
         if field_storage_enabled():
@@ -338,6 +339,11 @@ class ViolationRecordSerializer(serializers.ModelSerializer):
 
 class LegalReportSerializer(ProtectedLegalSerializer):
     """Serializer for legal reports."""
+
+    def to_representation(self, instance):
+        result = super().to_representation(instance)
+        result['export_available'] = False
+        return result
 
     class Meta:
         model = LegalReport

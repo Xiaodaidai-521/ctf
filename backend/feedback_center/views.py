@@ -22,6 +22,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from data_security.contracts import ProtectionError
+from data_security.adapters.django.protection_status import private_file_status
 from data_security.adapters.django.private_files import (
     create_private_share, operation_response, private_file_error, private_file_response, private_files, upload_operation_id,
 )
@@ -109,11 +110,19 @@ def _iso(value):
     return value.isoformat() if value else None
 
 
-def _attachment_payload(attachment, audience):
+def _attachment_payload(attachment, audience, user=None):
     if audience == 'student' and attachment.visibility != constants.VISIBILITY_STUDENT:
         return None
+    protection = {'file': {'storage': 'legacy' if attachment.file else 'unknown'}}
+    owner = private_files('feedback')
+    if user is not None and owner is not None and not isinstance(owner, ProtectionError):
+        inspected = owner.authenticated_reference(user=user, ticket_id=attachment.ticket_id,
+                                                  attachment_id=attachment.attachment_id)
+        references = inspected if isinstance(inspected, ProtectionError) else (('file', *inspected),)
+        protection.update(private_file_status(owner, references))
     return {
         'attachment_id': str(attachment.attachment_id),
+        'protection': protection,
         'original_name': attachment.original_name,
         'content_type': attachment.content_type,
         'size': attachment.size,
@@ -124,10 +133,10 @@ def _attachment_payload(attachment, audience):
     }
 
 
-def _evidence_payload(row, audience):
+def _evidence_payload(row, audience, user=None):
     if audience == 'student' and row.visibility != constants.VISIBILITY_STUDENT:
         return None
-    attachment = _attachment_payload(row.attachment, audience) if row.attachment_id else None
+    attachment = _attachment_payload(row.attachment, audience, user) if row.attachment_id else None
     payload = {
         'evidence_id': str(row.evidence_id),
         'slot': row.slot,
@@ -394,11 +403,11 @@ def _ticket_payload(ticket, audience, request=None):
 
     evidence_rows = ticket.evidence.filter(is_current=True).select_related('attachment').order_by('slot')
     payload['evidence'] = [
-        item for item in (_evidence_payload(row, audience) for row in evidence_rows) if item
+        item for item in (_evidence_payload(row, audience, request.user if request else None) for row in evidence_rows) if item
     ]
     payload['attachments'] = [
         item for item in (
-            _attachment_payload(attachment, audience)
+            _attachment_payload(attachment, audience, request.user if request else None)
             for attachment in ticket.attachments.order_by('-created_at')
         ) if item
     ]
@@ -706,7 +715,7 @@ class FeedbackAttachmentUploadView(APIView):
                 uploaded_by=request.user,
             )
         _log_access(ticket, request.user, 'upload_attachment', allowed=True)
-        result = _attachment_payload(attachment, _audience(request.user))
+        result = _attachment_payload(attachment, _audience(request.user), request.user)
         if operation_id is not None:
             result['operation_id'] = str(operation_id)
         return Response(result, status=status.HTTP_201_CREATED, headers={'Cache-Control': 'no-store'})

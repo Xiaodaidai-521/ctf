@@ -95,9 +95,9 @@ export function useResourceContent(role, service = createContentApi(role), saveF
     if (state.busy) return
     state.busy = true; state.error = ''; state.success = ''
     try {
-      await service.uploadResource(data)
+      const uploaded = await service.uploadResource(data)
       if (!alive) return
-      state.success = '资源已上传，等待管理员审核。'; state.uploadOpen = false
+      state.success = uploaded?.resource?.protection?.file?.storage === 'encrypted' ? '资源文件已加密保存，等待管理员审核。' : '资源已上传，等待管理员审核。'; state.uploadOpen = false
       await refresh()
     } catch (error) { if (alive) state.error = contentError(error, role, '上传资源') }
     finally { if (alive) state.busy = false }

@@ -2,7 +2,7 @@
 import json
 import os
 from pathlib import Path
-import stat
+from .private_permissions import is_private_path
 
 from data_security.contracts import (ContractViolation, Environment, KeyPurpose,
     KeyReference, KeyStatus, ProtectionError, ReasonCode, SecretMaterial)
@@ -20,15 +20,12 @@ class FileKeyResolver:
                 ReasonCode.KEY_UNAVAILABLE)
         require(not self.manifest.is_relative_to(Path(repository_root).resolve()),
                 ReasonCode.KEY_UNAVAILABLE)
-        directory = self.manifest.parent.stat()
-        require(stat.S_ISDIR(directory.st_mode) and directory.st_uid == os.getuid() and
-                stat.S_IMODE(directory.st_mode) == 0o700, ReasonCode.KEY_UNAVAILABLE)
+        require(is_private_path(self.manifest.parent, directory=True), ReasonCode.KEY_UNAVAILABLE)
         self._entries()
 
     def _read(self, path, maximum):
         info = path.lstat()
-        require(stat.S_ISREG(info.st_mode) and info.st_uid == os.getuid() and
-                stat.S_IMODE(info.st_mode) == 0o600 and info.st_size <= maximum,
+        require(is_private_path(path) and info.st_size <= maximum,
                 ReasonCode.KEY_UNAVAILABLE)
         with path.open('rb') as source:
             value = source.read(maximum + 1)

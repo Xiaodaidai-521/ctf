@@ -65,6 +65,9 @@
             <button class="btn btn-secondary btn-large" @click="togglePreview" :disabled="!canPreview">
               {{ showPreview ? '🔽 收起预览' : '👁️ 预览资源' }}
             </button>
+            <ProtectionBadge :status="resource?.protection?.file" label="文件已加密保存" />
+            <ProtectionBadge :status="resource?.protection?.cover_image" label="封面已加密保存" />
+            <router-link :to="{ path: '/profile/exports', query: { resource: resourceId } }">查看导出任务</router-link>
             <div v-if="message" class="download-message" :class="messageType">{{ message }}</div>
 
             <!-- 预览区域 -->
@@ -137,6 +140,7 @@
 </template>
 
 <script setup>
+import ProtectionBadge from '@/shared/privacy/ProtectionBadge.vue'
 import { ref, computed, watch } from 'vue'
 import { marked } from 'marked'
 import DOMPurify from 'dompurify'

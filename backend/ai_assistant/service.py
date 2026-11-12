@@ -1840,6 +1840,7 @@ class MultiAgentChatService:
         challenge_info: Optional[Dict] = None,
         scope: str = 'category',
         limit: int = 5,
+        *, user=None,
     ) -> Dict:
         retrieval = self.search_simple_knowledge(
             query=query,
@@ -1849,7 +1850,7 @@ class MultiAgentChatService:
         )
         result = dict(retrieval)
         keyword_items = result.get('items') or []
-        semantic_items = self._semantic_knowledge_items(query, limit)
+        semantic_items = self._semantic_knowledge_items(query, limit, user=user)
         fused_items = self._merge_knowledge_items(semantic_items, keyword_items, limit)
         result['items'] = fused_items
         # Legacy field counts the indexed-recall channel, not verified semantic matches.
@@ -1910,7 +1911,7 @@ class MultiAgentChatService:
                 break
         return '\n'.join(lines) if added else ''
 
-    def _semantic_knowledge_items(self, query: str, limit: int) -> List[Dict]:
+    def _semantic_knowledge_items(self, query: str, limit: int, *, user=None) -> List[Dict]:
         """Semantic recall over the shared vector store (teaching-safe sources).
 
         Degrades to an empty list (never raises) so the keyword path and the
@@ -1929,6 +1930,7 @@ class MultiAgentChatService:
             return SafeKnowledgeRetrievalService().retrieve(
                 query=text,
                 top_k=max(int(limit or 5), 5),
+                user=user,
             )
         except ContentProtectionError:
             raise

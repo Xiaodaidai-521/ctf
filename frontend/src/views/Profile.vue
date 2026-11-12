@@ -66,6 +66,7 @@
           <!-- 标题栏 -->
           <div class="content-header">
             <h2 class="content-title">{{ currentMenu?.label }}</h2>
+            <nav aria-label="个人数据"><router-link to="/profile/memories">我的 AI 记忆</router-link> · <router-link to="/profile/exports">导出记录</router-link> · <router-link to="/privacy">隐私与数据保护</router-link></nav>
           </div>
 
           <!-- 收藏列表 -->
@@ -259,6 +260,7 @@
                     <div class="persona-kicker">AI 学习画像</div>
                     <h3 class="persona-title">{{ personaLabelText(personaData.persona_label) || '画像生成中' }}</h3>
                     <p class="persona-summary">{{ personaSummary }}</p>
+                    <ProtectionBadge :status="initialReport?.protection?.raw_interview" label="报告中的原始访谈加密保存" />
                   </div>
                   <div class="persona-hero-side">
                     <div class="confidence-ring" :style="{ '--confidence': confidencePercent }">
@@ -493,11 +495,13 @@
 
               <div class="form-group">
                 <label class="form-label">邮箱</label>
+                <p>当前邮箱：{{ userStore.userInfo?.email_display || '未设置' }}</p>
+                <ProtectionBadge :status="userStore.userInfo?.protection?.email" label="邮箱已加密保存" />
                 <input
                   v-model="editForm.email"
                   type="email"
                   class="input"
-                  placeholder="请输入邮箱"
+                  placeholder="填写新邮箱以更换，留空保留当前邮箱"
                 />
               </div>
 
@@ -562,6 +566,8 @@ import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '@/store/user'
 import api from '@/api'
 import AbilityRadarCard from '@/components/AbilityRadarCard.vue'
+import ProtectionBadge from '@/shared/privacy/ProtectionBadge.vue'
+import { profileUpdatePayload } from '@/shared/privacy/presentation.js'
 
 const router = useRouter()
 const route = useRoute()
@@ -687,7 +693,7 @@ const learnedWeaknessItems = computed(() => {
     return (aIndex < 0 ? 999 : aIndex) - (bIndex < 0 ? 999 : bIndex)
   })
 })
-const initialQuestionCount = computed(() => initialReport.value?.raw_interview?.filter((item) => item.answer)?.length || 0)
+const initialQuestionCount = computed(() => initialReport.value?.answered_question_count ?? '待确认')
 const initialConfidencePercent = computed(() => {
   const values = Object.values(initialReportData.value.confidence || {}).map(Number).filter(Number.isFinite)
   return values.length ? Math.round((values.reduce((sum, value) => sum + value, 0) / values.length) * 100) : 0
@@ -865,7 +871,7 @@ const initEditForm = () => {
   editForm.value = {
     username: userStore.userInfo?.username || '',
     nickname: userStore.userInfo?.nickname || '',
-    email: userStore.userInfo?.email || '',
+    email: '',
     team: userStore.userInfo?.team || '',
     class_name: userStore.userInfo?.class_name || '',
     student_id: userStore.userInfo?.student_id || '',
@@ -876,7 +882,7 @@ const initEditForm = () => {
 const handleSave = async () => {
   saving.value = true
   try {
-    const result = await userStore.updateProfile(editForm.value)
+    const result = await userStore.updateProfile(profileUpdatePayload(editForm.value, userStore.userInfo?.email))
     if (result.success) {
       await userStore.fetchProfile()
       alert('保存成功')

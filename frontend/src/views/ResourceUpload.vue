@@ -267,8 +267,8 @@ const handleSubmit = async () => {
       formData.append('cover', selectedCover.value)
     }
 
-    await api.resource.upload(formData)
-    showToastMessage('资源上传成功，等待审核', 'success')
+    const uploaded = await api.resource.upload(formData)
+    showToastMessage(uploaded?.resource?.protection?.file?.storage === 'encrypted' ? '资源文件已加密保存，等待审核' : '资源上传成功，等待审核', 'success')
     
     setTimeout(() => {
       router.push('/resources')

@@ -37,6 +37,7 @@ class SafeKnowledgeRetrievalService:
             settings, 'KNOWLEDGE_RAG_SAFE_SOURCE_TYPES', None
         )
         self.safe_source_types = tuple(configured or DEFAULT_SAFE_SOURCE_TYPES)
+        self._documents_enabled = configured is None or 'document' in configured
 
     def retrieve(
         self,
@@ -50,9 +51,25 @@ class SafeKnowledgeRetrievalService:
         text = str(query or '').strip()
         if not text:
             return []
-        filters = {'source_type': list(self.safe_source_types)}
+        allowed = set(self.safe_source_types) & set(DEFAULT_SAFE_SOURCE_TYPES)
+        # Uploaded documents remain outside the generic student context. A
+        # management caller can recall them under the shared live visibility gate.
+        if (self._documents_enabled and getattr(user, 'is_authenticated', False) and getattr(user, 'is_active', False)
+                and getattr(user, 'role', '') in ('teacher', 'admin')):
+            allowed.add('document')
+        filters = {'source_type': sorted(allowed)}
         if extra_filters:
             filters.update(extra_filters)
+            requested = extra_filters.get('source_type')
+            if requested is not None:
+                requested = {requested} if isinstance(requested, str) else set(requested)
+                allowed &= requested
+                if not allowed:
+                    return []
+        filters['source_type'] = sorted(allowed)
+        if not allowed:
+            return []
+        filters['teaching_safe'] = True
         matches = self.retrieval_service.retrieve(
             query=text,
             top_k=top_k,

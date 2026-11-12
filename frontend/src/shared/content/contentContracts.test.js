@@ -244,7 +244,7 @@ function executeSfc(file, props = {}, globals = {}) {
   const bindingEntries = Object.entries(compileScript(descriptor, { id: 'sfc-runtime' }).bindings)
   const bindings = bindingEntries.filter(([, type]) => type !== 'props').map(([name]) => name)
   const declaredProps = Object.fromEntries(bindingEntries.filter(([, type]) => type === 'props').map(([name]) => [name, undefined]))
-  const registry = Object.fromEntries(['ChallengeFilters', 'ChallengeTable', 'ChallengeEditor', 'ContentPagination', 'ContentAreaNav', 'ResourceSidebar', 'ResourceFilters', 'ResourceReviewList', 'ResourceReviewDialog', 'ResourcePreview', 'ResourceUploadForm', 'ContentDialog', 'AppIcon', 'router-link'].map(name => [name, { name, setup(_, { slots }) { return () => Vue.h('div', {}, [slots.default?.(), slots.footer?.()]) } }]))
+  const registry = Object.fromEntries(['ChallengeFilters', 'ChallengeTable', 'ChallengeEditor', 'ContentPagination', 'ContentAreaNav', 'ResourceSidebar', 'ResourceFilters', 'ResourceReviewList', 'ResourceReviewDialog', 'ResourcePreview', 'ResourceUploadForm', 'ContentDialog', 'AppIcon', 'ProtectionBadge', 'router-link'].map(name => [name, { name, setup(_, { slots }) { return () => Vue.h('div', {}, [slots.default?.(), slots.footer?.()]) } }]))
   const script = descriptor.scriptSetup.content.replace(/^import[\s\S]*?from ['"][^'"]+['"];?\s*/gm, '')
   const state = runInNewContext(`${script}\n;({${bindings}})`, { ...Vue, ...presentation, ...registry, names, defineProps: () => props, defineEmits: () => () => {}, onMounted() {}, onBeforeUnmount() {}, watch() {}, ...globals })
   return { state, component: { setup: () => ({ ...declaredProps, ...props, ...state }), render: Vue.compile(descriptor.template.content), components: registry } }

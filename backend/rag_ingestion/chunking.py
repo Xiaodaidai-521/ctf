@@ -7,6 +7,7 @@ heading metadata. Everything degrades gracefully to the built-in splitter.
 """
 
 import logging
+import re
 from typing import Dict, List
 
 from django.conf import settings
@@ -21,12 +22,14 @@ class StructureAwareChunker:
 
     def __init__(self, chunk_size: int = None, chunk_overlap: int = None):
         self.chunk_size = int(
-            chunk_size or getattr(settings, 'RAG_INGESTION_CHUNK_SIZE', 1000)
+            chunk_size if chunk_size is not None else getattr(settings, 'RAG_INGESTION_CHUNK_SIZE', 800)
         )
         self.chunk_overlap = int(
             chunk_overlap if chunk_overlap is not None
-            else getattr(settings, 'RAG_INGESTION_CHUNK_OVERLAP', 120)
+            else getattr(settings, 'RAG_INGESTION_CHUNK_OVERLAP', 100)
         )
+        from legal_kb.services.chunking_service import ChunkingService
+        ChunkingService.validate_window(self.chunk_size, self.chunk_overlap)
 
     def split(self, text: str, *, metadata: Dict = None) -> List[Chunk]:
         base_metadata = dict(metadata or {})
@@ -58,6 +61,8 @@ class StructureAwareChunker:
             recursive = RecursiveCharacterTextSplitter(
                 chunk_size=self.chunk_size,
                 chunk_overlap=self.chunk_overlap,
+                separators=['。', '！', '？', '；', '!', '?', ';', '\n', '，', '、', ',', ' ', ''],
+                keep_separator='end',
             )
             documents = recursive.split_documents(header_docs)
             chunks = []
@@ -74,7 +79,9 @@ class StructureAwareChunker:
                     metadata=metadata,
                 ))
             chunks = [chunk for chunk in chunks if chunk.text]
-            return chunks or None
+            # Use original-text windows for identical overlap/tail handling in
+            # both backends. Never reconstruct source text from header fragments.
+            return self._split_with_builtin(text, base_metadata) if chunks else None
         except Exception as exc:
             logger.warning(
                 'rag_ingestion_langchain_splitter_failed',
@@ -86,13 +93,42 @@ class StructureAwareChunker:
     def _split_with_builtin(self, text: str, base_metadata: Dict) -> List[Chunk]:
         from legal_kb.services.chunking_service import ChunkingService
 
-        pieces = ChunkingService.split_plain_text(text, max_chars=self.chunk_size)
+        pieces = ChunkingService.split_plain_text(text, max_chars=self.chunk_size, overlap=self.chunk_overlap)
+        headings = []
+        path = []
+        fence = None
+        offset = 0
+        for line in text.splitlines(keepends=True):
+            delimiter = re.match(r'^\s{0,3}(`{3,}|~{3,})', line)
+            if delimiter:
+                marker = delimiter.group(1)
+                if fence is None:
+                    fence = marker
+                elif marker[0] == fence[0] and len(marker) >= len(fence):
+                    fence = None
+            elif fence is None:
+                match = re.match(r'^\s{0,3}(#{1,6})\s+(.+?)\s*$', line)
+                if match:
+                    level = len(match.group(1))
+                    title = re.sub(r'\s+#+\s*$', '', match.group(2))
+                    path = path[:level - 1] + [title]
+                    headings.append((offset, list(path)))
+            offset += len(line)
         chunks = []
+        start = 0
         for piece in pieces:
+            end = start + len(piece.text)
+            preceding = [path for position, path in headings if position <= start]
+            in_window = [path for position, path in headings if start <= position < end]
+            paths = preceding[-1:] + in_window
+            paths = [path for index, path in enumerate(paths) if path not in paths[:index]]
             chunks.append(Chunk(
                 text=piece.text,
                 order=piece.order,
-                title=piece.title,
-                metadata={**base_metadata, 'chunk_key': piece.clause_key},
+                title=paths[0][-1] if paths else piece.title,
+                metadata={**base_metadata, 'chunk_key': piece.clause_key,
+                          'heading_path': paths[0] if paths else [], 'heading_paths': paths,
+                          'chunking_version': ChunkingService.VERSION},
             ))
+            start = end - self.chunk_overlap
         return chunks

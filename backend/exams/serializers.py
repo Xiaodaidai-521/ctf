@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from data_security.adapters.django.protection_status import ProtectionSerializerMixin, summarize
 from django.contrib.auth import get_user_model
 from data_security.adapters.persistence.fields import field_storage_enabled
 from .models import (
@@ -142,7 +143,7 @@ class TheoryExamCreateSerializer(serializers.ModelSerializer):
         return exam
 
 
-class ExamAnswerSerializer(serializers.ModelSerializer):
+class ExamAnswerSerializer(ProtectionSerializerMixin, serializers.ModelSerializer):
     def to_representation(self, instance):
         data = super().to_representation(instance)
         if field_storage_enabled() or instance.security_state != 'legacy-v0':
@@ -167,6 +168,12 @@ class ExamAnswerSerializer(serializers.ModelSerializer):
 
 
 class ExamRecordSerializer(serializers.ModelSerializer):
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        data['protection'] = {'user_answer': summarize(
+            answer['protection']['user_answer'] for answer in data['answers'])}
+        return data
+
     exam_type_display = serializers.CharField(source='get_exam_type_display', read_only=True)
     status_display = serializers.CharField(source='get_status_display', read_only=True)
     user_name = serializers.CharField(source='user.username', read_only=True)

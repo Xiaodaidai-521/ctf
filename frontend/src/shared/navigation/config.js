@@ -72,6 +72,9 @@ export function activeEntry(role, path) {
 }
 export const personalLinks = [
   entry('profile', '个人资料', '/profile', 'icon-user', ['student', 'teacher', 'admin']),
+  entry('memories', '我的 AI 记忆', '/profile/memories', 'icon-message', ['student', 'teacher', 'admin']),
+  entry('exports', '导出记录', '/profile/exports', 'icon-file', ['student', 'teacher', 'admin']),
+  entry('privacy', '隐私与数据保护', '/privacy', 'icon-safe', ['student', 'teacher', 'admin']),
   entry('community', '社区', '/community', 'icon-message', ['student', 'teacher', 'admin']),
   entry('feedback', '反馈', '/feedback', 'icon-edit', ['student']),
 ]

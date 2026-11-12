@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from data_security.contracts import ProtectionError
 from data_security.adapters.django.private_files import private_files
+from data_security.adapters.django.protection_status import private_file_status
 from .models import Resource
 from .validators import validate_cover_image, validate_resource_file
 from users.serializers import UserSerializer
@@ -36,7 +37,14 @@ class ResourceSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         result = super().to_representation(instance)
-        if private_files('resources') is not None:
+        owner = private_files('resources')
+        result['protection'] = {'file': {'storage': 'legacy' if instance.file else 'unknown'},
+                                'cover_image': {'storage': 'legacy' if instance.cover_image else 'empty'}}
+        request = self.context.get('request')
+        if owner is not None and not isinstance(owner, ProtectionError) and request and request.user.is_authenticated:
+            references = owner.authenticated_references(user=request.user, resource_id=instance.pk)
+            result['protection'].update(private_file_status(owner, references))
+        if owner is not None:
             result['cover_image'] = None
         return result
 

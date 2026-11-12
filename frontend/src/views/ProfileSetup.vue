@@ -6,6 +6,7 @@
           <p class="section-kicker">INITIAL LEARNING PROFILE</p>
           <h1>AI 初始学习画像访谈</h1>
           <p>请按真实情况回答。AI 会结合回答内容生成初始画像，后续再由学习数据持续校正。</p>
+          <ProtectionBadge :status="protection?.answers" label="访谈回答加密保存" />
         </div>
         <div class="progress-copy">{{ completed ? '已完成' : `第 ${currentQuestionId} / ${questions.length || 8} 题` }}</div>
       </header>
@@ -80,6 +81,7 @@ import { computed, nextTick, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { Message } from '@arco-design/web-vue'
 import api from '@/api'
+import ProtectionBadge from '@/shared/privacy/ProtectionBadge.vue'
 
 const router = useRouter()
 const conversationRef = ref(null)
@@ -91,6 +93,7 @@ const loading = ref(false)
 const analyzing = ref(false)
 const completed = ref(false)
 const report = ref(null)
+const protection = ref(null)
 
 const visibleQuestions = computed(() => questions.value.filter((item) => item.id <= currentQuestionId.value))
 const progress = computed(() => {
@@ -109,6 +112,7 @@ const loadInterview = async () => {
     const data = await api.studentProfile.onboardingInterview()
     questions.value = data.questions || []
     answers.value = data.answers || {}
+    protection.value = data.protection || null
     completed.value = data.status === 'completed'
     report.value = data.report
     currentQuestionId.value = completed.value ? questions.value.length : Math.min(data.current_question || 1, questions.value.length || 1)
@@ -125,7 +129,6 @@ const submitAnswer = async () => {
   const answer = answerDraft.value.trim()
   if (answer.length < 2 || loading.value || analyzing.value) return
   loading.value = true
-  answers.value = { ...answers.value, [String(currentQuestionId.value)]: answer }
   await scrollToBottom()
   if (currentQuestionId.value === questions.value.length) analyzing.value = true
   try {
@@ -133,11 +136,13 @@ const submitAnswer = async () => {
       question_id: currentQuestionId.value,
       answer,
     })
+    answers.value = { ...answers.value, [String(currentQuestionId.value)]: answer }
+    protection.value = data.protection || null
     if (data.completed) {
       completed.value = true
       report.value = data.report
       answerDraft.value = ''
-      Message.success('初始学习画像与学生报表已保存')
+      Message.success(data.protection?.answers?.storage === 'encrypted' ? '访谈回答已加密保存，初始学习画像已生成。' : '初始学习画像与学生报表已保存')
       await router.replace({ path: '/profile', query: { tab: 'persona' } })
     } else {
       currentQuestionId.value = data.current_question

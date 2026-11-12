@@ -209,6 +209,31 @@ class DjangoResourceExports:
         except (ContractViolation, DatabaseError, KeyError, TypeError, ValueError) as error:
             return self._failure(error, source_ref)
 
+    def describe(self, *, user, source_ref, permission_ref):
+        """Read the same authorized owner binding and authenticate its retained output."""
+        try:
+            owned = self._bound(user=user, source_ref=source_ref, permission_ref=permission_ref)
+            if isinstance(owned, ProtectionError):
+                return owned
+            flow = self.flow_factory(user, owned)
+            record = flow.reports.read(owned.binding)
+            if isinstance(record, ProtectionError):
+                return record
+            result = {'state': 'ready' if record is None else 'unknown',
+                'can_execute': record is None, 'can_download': False,
+                'protection': {'redaction': 'unknown', 'storage': 'unknown'},
+                'expires_at': owned.binding.expires_at.isoformat(), 'network_delivery_confirmed': False}
+            if record is not None:
+                inspected = flow.inspect_delivery(owned.binding)
+                if not isinstance(inspected, ProtectionError):
+                    _, receipt, _, _envelope, _evidence = inspected
+                    result.update(state='generated', can_download=True,
+                        delivered_records=receipt.delivered_records,
+                        protection={'redaction': 'completed', 'storage': 'encrypted'})
+            return result
+        except (ContractViolation, DatabaseError, KeyError, TypeError, ValueError) as error:
+            return self._failure(error, source_ref)
+
     @staticmethod
     def _failure(error, trace):
         code = (error.code if isinstance(error, ContractViolation) else

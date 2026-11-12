@@ -37,6 +37,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/users/', include('users.urls')),
     path('api/data-security/', include('data_security.adapters.django.policy_api')),
+    path('api/data-security/', include('data_security.adapters.django.privacy_api')),
     path('api/data-security/', include('data_security.adapters.django.reveal_api')),
     path('api/data-security/', include('data_security.adapters.django.statistics_api')),
     path('api/data-security/', include('data_security.adapters.django.export_recovery')),

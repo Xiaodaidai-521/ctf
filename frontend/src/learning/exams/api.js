@@ -103,6 +103,7 @@ export function recordView(record) {
     durationSeconds: finiteNumber(record?.time_spent ?? record?.time_spent_seconds ?? record?.duration_seconds),
     correctCount: finiteNumber(record?.correct_count),
     href: record?.id != null ? RESULT_PATH(record.id) : null,
+    protection: record?.protection || null,
   }
 }
 

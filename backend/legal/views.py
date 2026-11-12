@@ -296,28 +296,11 @@ class LegalReportViewSet(LegalScopeMixin, viewsets.ModelViewSet):
     @action(detail=True, methods=['post'])
     def export(self, request, pk=None):
         report = self.get_object()
-        report.status = 'exported'
-        report.save(update_fields=['status', 'updated_at'])
-        AuditEvent.log(
-            category='report_export',
-            summary=f'Legal report exported: {report.title}',
-            user=request.user,
-            request=request,
-            detail={'report_id': report.id},
-        )
-        AuditLedgerService.append_entry(
-            event_category='report_export',
-            object_type='legal.LegalReport',
-            object_id=report.id,
-            actor=request.user,
-            payload={
-                'action': 'export_report',
-                'report_id': report.id,
-                'title': report.title,
-                'status': report.status,
-            },
-        )
-        return Response(self.get_serializer(report).data)
+        # The existing endpoint has no approved artifact generator. Do not invent
+        # a file, grant, or success state outside the controlled-export owner.
+        return Response({'code': 'EXPORT_NOT_AVAILABLE', 'report_id': report.pk,
+            'detail': '报告文件导出尚未开放，当前报告可在系统内查看。'},
+            status=409, headers={'Cache-Control': 'no-store'})
 
 
 class ComplianceAgentRunViewSet(LegalScopeMixin, viewsets.ReadOnlyModelViewSet):

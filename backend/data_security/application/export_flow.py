@@ -155,17 +155,12 @@ class ExportFlow:
                     for a in plan.actions), ReasonCode.POLICY_NOT_APPROVED)
         return policy
 
-    def open_delivery(self, binding, *, attempt_ref):
-        """Open an already delivered table after fresh authorization, not a network ack.
-
-        The trusted boundary supplies the attempt reference and owner bindings.
-        This never opens an upload original or repeats a logical quota operation.
-        """
+    def inspect_delivery(self, binding):
+        """Authenticate retained output without delivery, audit writes, or quota effects."""
         try:
             require(self.crypto is not None and self.read_event is not None and
                     self.object_context is not None, ReasonCode.AUTHORIZATION_DENIED)
             require(binding.environment in ('test', 'evaluation'), ReasonCode.SOURCE_NOT_APPROVED)
-            reference(attempt_ref)
             record = self.reports.read(binding)
             if isinstance(record, ProtectionError):
                 return record
@@ -206,6 +201,23 @@ class ExportFlow:
             require(payload.kind is PayloadKind.BINARY and payload.media_type in (MediaType.CSV, MediaType.XLSX),
                     ReasonCode.UNSUPPORTED_FORMAT)
             require(hashlib.sha256(payload.binary).hexdigest() == record.report.output_hash, ReasonCode.HASH_MISMATCH)
+            return record, receipt, payload, envelope, evidence
+        except ContractViolation as error:
+            return ProtectionError(schema_version=ProtectionError.SCHEMA, code=error.code,
+                                   retryable=False, trace_id=binding.execution_id)
+
+    def open_delivery(self, binding, *, attempt_ref):
+        """Open an already delivered table after fresh authorization, not a network ack.
+
+        The trusted boundary supplies the attempt reference and owner bindings.
+        This never opens an upload original or repeats a logical quota operation.
+        """
+        try:
+            reference(attempt_ref)
+            inspected = self.inspect_delivery(binding)
+            if isinstance(inspected, ProtectionError):
+                return inspected
+            record, receipt, payload, envelope, evidence = inspected
             record_hash = hashlib.sha256(canonical_bytes(record, include_payload=True)).hexdigest()
             with self.uow_factory() as work:
                 previous = self.reports.lock_delivery(binding, record_hash)

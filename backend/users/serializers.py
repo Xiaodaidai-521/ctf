@@ -2,9 +2,10 @@ from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
 from .models import CTFUser
 from data_security.adapters.persistence.fields import field_storage_enabled
+from data_security.adapters.django.protection_status import ProtectionSerializerMixin
 
 
-class UserSerializer(serializers.ModelSerializer):
+class UserSerializer(ProtectionSerializerMixin, serializers.ModelSerializer):
     """用户序列化器"""
     solved_count = serializers.SerializerMethodField()
     role_display = serializers.CharField(source='get_role_display', read_only=True)
@@ -44,6 +45,9 @@ class UserSerializer(serializers.ModelSerializer):
         data = super().to_representation(instance)
         if field_storage_enabled() or instance.security_state != 'legacy-v0':
             data['email'] = '[REDACTED]'
+        state = data['protection']['email']
+        data['email_present'] = state['present']
+        data['email_display'] = ('已隐藏' if state['present'] is not False else '未设置') if data['email'] == '[REDACTED]' else data['email']
         return data
 
     def get_solved_count(self, obj):

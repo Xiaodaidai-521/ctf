@@ -433,11 +433,19 @@ class AIConversationViewSet(viewsets.ModelViewSet):
         class ConversationSerializer(serializers.ModelSerializer):
             messages = serializers.SerializerMethodField()
 
+            def to_representation(self, instance):
+                from data_security.adapters.django.protection_status import summarize
+                data = super().to_representation(instance)
+                data['protection'] = {name: summarize(message['protection'][name] for message in data['messages'])
+                                      for name in ('content', 'metadata')}
+                return data
+
             class Meta:
                 model = AIConversation
                 fields = ['id', 'challenge_id', 'created_at', 'updated_at', 'messages']
 
             def get_messages(self, obj):
+                from data_security.adapters.django.protection_status import protection_for
                 return [
                     {
                         'id': msg.id,
@@ -448,6 +456,7 @@ class AIConversationViewSet(viewsets.ModelViewSet):
                         'provider': msg.provider,
                         'metadata': msg.display_protected('metadata') or {},
                         'created_at': msg.created_at.isoformat(),
+                        'protection': protection_for(msg),
                     }
                     for msg in obj.messages.all().order_by('created_at')
                 ]
@@ -1281,6 +1290,7 @@ def multi_agent_chat_stream(request):
                     challenge_info,
                     knowledge_scope,
                     5,
+                    user=request.user,
                 )
             else:
                 knowledge_package = await sync_to_async(service.build_knowledge_context)(
@@ -1288,6 +1298,7 @@ def multi_agent_chat_stream(request):
                     challenge_info,
                     knowledge_scope,
                     5,
+                    user=request.user,
                 )
         except ContentProtectionError:
             raise

@@ -114,6 +114,7 @@ class LegalKbIngestionService:
                     ),
                     embedding_model='local-hash-v1',
                     embedding_dimension=len(embedding),
+                    index_version=sha256_text(EmbeddingService.LOCAL_VECTOR_SPACE),
                     metadata={
                         **headers['metadata'],
                         'document_id': document.id,
@@ -122,6 +123,7 @@ class LegalKbIngestionService:
                         'vector_model': self.embedding_service.model,
                         'vector_space': self.embedding_service.vector_space,
                         'retrieval_mode': self.embedding_service.retrieval_mode,
+                        'chunking_version': ChunkingService.VERSION,
                     },
                 )
 

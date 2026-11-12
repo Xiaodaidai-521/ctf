@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from data_security.adapters.django.protection_status import protection_for
 from data_security.adapters.persistence.fields import field_storage_enabled, protect_stored_value
 from .models import (
     LearningDirection,
@@ -19,7 +20,9 @@ class LearningDirectionSerializer(serializers.ModelSerializer):
 
 class ProtectedProfileSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
-        return protect_stored_value(super().to_representation(instance))
+        result = protect_stored_value(super().to_representation(instance))
+        result['protection'] = protection_for(instance)
+        return result
 
 
 class LearningPreferenceSerializer(ProtectedProfileSerializer):
@@ -96,6 +99,20 @@ class OnboardingSerializer(serializers.Serializer):
 
 
 class StudentProfileReportSerializer(ProtectedProfileSerializer):
+    answered_question_count = serializers.SerializerMethodField()
+
+    def get_answered_question_count(self, obj):
+        # Expose a count, never the raw snapshot hidden by this serializer.
+        status = protection_for(obj).get('raw_interview', {})
+        if status.get('storage') == 'unknown':
+            return None
+        from data_security.contracts import ContractViolation
+        try:
+            raw = obj.read_protected('raw_interview')
+        except (ContractViolation, RuntimeError, ValueError, TypeError, KeyError):
+            return None
+        return sum(bool(item.get('answer')) for item in raw if isinstance(item, dict)) if isinstance(raw, list) else None
+
     raw_interview = serializers.SerializerMethodField()
 
     def get_raw_interview(self, obj):
@@ -113,6 +130,6 @@ class StudentProfileReportSerializer(ProtectedProfileSerializer):
             'id', 'profile', 'user_id', 'username', 'source_interview',
             'report_type', 'version', 'raw_interview', 'report_data',
             'summary', 'generation_provider', 'generation_status',
-            'input_signature', 'created_at',
+            'input_signature', 'created_at', 'answered_question_count',
         ]
         read_only_fields = fields

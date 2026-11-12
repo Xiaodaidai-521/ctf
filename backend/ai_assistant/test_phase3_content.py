@@ -231,7 +231,12 @@ class ContentBoundaryTests(SimpleTestCase):
                 self.assertTrue(service.uses_remote_provider)
                 self.assertEqual(len(service.embed_text('synthetic text')), 1024)
                 manager.return_value.get_provider.assert_called_once_with(endpoint)
-                handle.embed.assert_called_once_with(['synthetic text'], model=service.model)
+                if endpoint == 'volcano':
+                    handle.embed.assert_called_once_with(
+                        [{'type': 'text', 'text': 'synthetic text'}],
+                        model=EmbeddingService.VISION_MODEL, dimensions=1024)
+                else:
+                    handle.embed.assert_called_once_with(['synthetic text'], model=service.model)
 
     def test_embedding_unknown_provider_is_disabled_not_local_fallback(self):
         from legal_kb.services.embedding_service import EmbeddingService

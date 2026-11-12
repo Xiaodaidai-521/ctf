@@ -8,7 +8,7 @@
     :columns="columns"
     :rows="reports"
     :loading="loading"
-    :row-actions="[{ key: 'export', label: '导出', disabled: (row) => row.status === 'exported' }]"
+    :row-actions="[{ key: 'export', label: '导出', disabled: (row) => !row.export_available }]"
     :actions="[{ key: 'createTask', label: '创建并运行', primary: true }]"
     @refresh="loadData"
     @action="createAndRun"
@@ -26,6 +26,8 @@
           <option value="protocol">协议</option>
         </select>
         <textarea v-model="taskForm.input_text" class="form-textarea" rows="7" placeholder="待分析内容"></textarea>
+        <ProtectionBadge :status="taskProtection?.input_text" label="已提交的分析原文加密保存" />
+        <p>报告文件导出尚未开放。已授权的资源导出可在<router-link to="/profile/exports">导出记录</router-link>中查看。</p>
       </div>
     </template>
   </LegalWorkspace>
@@ -35,9 +37,11 @@
 import { computed, onMounted, ref } from 'vue'
 import api from '@/api'
 import LegalWorkspace from './LegalWorkspace.vue'
+import ProtectionBadge from '@/shared/privacy/ProtectionBadge.vue'
 
 const loading = ref(false)
 const reports = ref([])
+const taskProtection = ref(null)
 const taskForm = ref({ title: '', source_type: 'manual', input_text: '' })
 
 const columns = [
@@ -65,7 +69,9 @@ async function loadData() {
 
 async function createAndRun() {
   if (!taskForm.value.title || !taskForm.value.input_text) return
+  taskProtection.value = null
   const task = await api.legal.createAnalysisTask(taskForm.value)
+  taskProtection.value = task.protection || null
   await api.legal.runAnalysis(task.id)
   taskForm.value = { title: '', source_type: 'manual', input_text: '' }
   await loadData()

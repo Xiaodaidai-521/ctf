@@ -77,6 +77,7 @@
                 <span v-if="item.ref">引用：{{ item.ref }}</span>
               </div>
               <div v-if="item.attachment" class="fb-actions">
+                <ProtectionBadge :status="item.attachment.protection?.file" label="文件已加密保存" />
                 <button class="fb-btn" type="button" @click="download(item.attachment)">
                   下载 {{ item.attachment.original_name }}
                 </button>
@@ -192,6 +193,7 @@
 </template>
 
 <script setup>
+import ProtectionBadge from '@/shared/privacy/ProtectionBadge.vue'
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import service from '@/api'
@@ -292,8 +294,8 @@ async function upload() {
     const formData = new FormData()
     formData.append('file', uploadFile.value)
     formData.append('visibility', uploadVisibility.value)
-    await service.feedback.uploadAttachment(detail.value.feedback_id, formData)
-    message.value = '附件已上传；可在“补充证据”中关联。'
+    const uploaded = await service.feedback.uploadAttachment(detail.value.feedback_id, formData)
+    message.value = uploaded?.protection?.file?.storage === 'encrypted' ? '附件已加密保存；可在“补充证据”中关联。' : '附件已上传；可在“补充证据”中关联。'
     uploadFile.value = null
     await load()
   } catch (err) {

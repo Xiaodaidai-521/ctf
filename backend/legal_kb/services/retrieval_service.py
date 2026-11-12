@@ -14,7 +14,9 @@ from rag_ingestion.registry import get_embedding_service
 
 from ..models import LegalKnowledgeEmbedding, LegalRetrievalLog
 from .embedding_service import EmbeddingService, cosine_similarity
-from .visibility import apply_embedding_visibility
+from .visibility import apply_embedding_visibility, apply_teaching_visibility
+from .lexical_ranking import RANKING_VERSION, rank_chunks
+from .hashing import sha256_text
 
 
 logger = logging.getLogger(__name__)
@@ -38,7 +40,7 @@ class LegalRetrievalService:
         query_embedding = (
             self.embedding_service.embed_text(query)
             if connection.vendor == 'postgresql'
-            else self.embedding_service.embed_local_text(query)
+            else []
         )
         grouped = []
         for filters in groups:
@@ -65,6 +67,8 @@ class LegalRetrievalService:
             # Uploaded-document visibility stays at the shared query layer;
             # anonymous/internal callers cannot see document rows.
             queryset = apply_embedding_visibility(queryset, user)
+            if filters.get('teaching_safe'):
+                queryset = apply_teaching_visibility(queryset)
             results = None
             if connection.vendor == 'postgresql' and len(query_embedding) == 1024:
                 try:
@@ -108,24 +112,59 @@ class LegalRetrievalService:
         )
 
     def _retrieve_portable(self, query, query_embedding, queryset, top_k):
-        """Portable JSON + lexical path for SQLite/offline or pgvector fallback.
+        """Rank every authorized chunk lexically; local hashes are not semantics.
 
-        The stored JSON ``embedding`` is always the 128-dim local vector, so the
-        query must also be embedded locally here. (On PostgreSQL ``retrieve``
-        builds a 1024-dim remote query vector for ANN; reusing it against the
-        128-dim JSON vectors would mismatch and zero every vector score, silently
-        degrading this fallback to lexical-only.)
+        Stream rows without either vector payload. The old insertion-order
+        limit omitted complete source families once the corpus grew past 1000.
         """
-        local_query_embedding = self.embedding_service.embed_local_text(query)
-        pool_items = list(queryset[:1000])
-        return self._fuse(
-            query=query,
-            query_embedding=local_query_embedding,
-            items=pool_items,
-            top_k=top_k,
-            vector_scores=None,
-            apply_threshold=True,
-        )
+        if top_k <= 0 or not str(query or '').strip():
+            return []
+        items = list(queryset.defer('embedding', 'embedding_vector').iterator(chunk_size=256))
+        items = [item for item in items if sha256_text(item.text) == item.text_hash]
+        titles = self._source_titles(items)
+        ranked = rank_chunks(items, query, titles)
+        results = []
+        per_source = {}
+        multiple_sources = len({(item.content_type_id, item.object_id) for item, _, _ in ranked}) > 1
+        for item, lexical_score, coverage in ranked:
+            # Overlapping chunks of one document must not crowd all other
+            # evidence out of a short result list. Object-id queries stay complete.
+            source_key = (item.content_type_id, item.object_id)
+            if multiple_sources and per_source.get(source_key, 0) >= 2 and len(ranked) > top_k:
+                continue
+            per_source[source_key] = per_source.get(source_key, 0) + 1
+            rank = len(results)
+            metadata = {**item.metadata, 'ranking_version': RANKING_VERSION}
+            results.append({
+                'id': item.id, 'source_type': item.source_type, 'object_id': item.object_id,
+                'title': titles.get(item.id) or item.title,
+                'text': item.text,
+                'score': round(coverage, 6), 'lexical_score': round(lexical_score, 6),
+                'rrf_score': round(1 / (int(getattr(settings, 'LEGAL_KB_RRF_K', 60)) + rank), 6),
+                'retrieval': 'lexical', 'vector_space': '', 'metadata': metadata,
+            })
+            if len(results) >= top_k:
+                break
+        # A source may have been withdrawn while a large candidate set ranked.
+        current_ids = set(queryset.filter(pk__in=[row['id'] for row in results]).values_list('pk', flat=True))
+        return [row for row in results if row['id'] in current_ids]
+
+    @staticmethod
+    def _source_titles(items):
+        """Hydrate original document titles in batches, never synthesize context."""
+        from django.contrib.contenttypes.models import ContentType
+        from rag_ingestion.models import DocumentSource
+        from ..models import LegalClause
+        doc_ct = ContentType.objects.get_for_model(DocumentSource).pk
+        clause_ct = ContentType.objects.get_for_model(LegalClause).pk
+        docs = dict(DocumentSource.objects.filter(pk__in={item.object_id for item in items
+            if item.source_type == 'document' and item.content_type_id == doc_ct}).values_list('pk', 'title'))
+        clauses = dict(LegalClause.objects.filter(pk__in={item.object_id for item in items
+            if item.source_type == 'legal_clause' and item.content_type_id == clause_ct})
+            .values_list('pk', 'document__title'))
+        return {item.id: (docs.get(item.object_id, item.title) if item.source_type == 'document'
+                else f'{clauses[item.object_id]} {item.title}' if item.source_type == 'legal_clause'
+                and item.object_id in clauses else item.title) for item in items}
 
     def _lexical_candidate_pool(self, queryset, query, limit):
         """Fetch a bounded lexical candidate set so strong keyword hits survive."""
@@ -224,7 +263,7 @@ class LegalRetrievalService:
         return unique
 
     def _record_results(self, *, query, top_k, filters, results, started, user):
-        results = [protect_rag_fields(item, text_fields=('text',),
+        results = [protect_rag_fields(item, text_fields=('text', 'title'),
                    object_ref=f'rag/retrieval/{item["id"]}', object_version='v1') for item in results]
         filters = protect_rag(filters, object_ref='rag/query-filters', object_version='v1', outlet='rag')
         latency_ms = int((time.perf_counter() - started) * 1000)

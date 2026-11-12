@@ -13,6 +13,7 @@ from .views import (
     LegalRetrieveView,
     LegalTemplateViewSet,
 )
+from .browse import LibraryView, LibraryDetailView
 
 router = DefaultRouter()
 router.register(r'documents', LegalDocumentViewSet, basename='legal-kb-document')
@@ -24,6 +25,8 @@ router.register(r'ingestion-jobs', KbIngestionJobViewSet, basename='legal-kb-ing
 router.register(r'retrieval-logs', LegalRetrievalLogViewSet, basename='legal-kb-retrieval-log')
 
 urlpatterns = [
+    path('library/', LibraryView.as_view(), name='legal-kb-library'),
+    path('library/<str:source_type>/<int:object_id>/', LibraryDetailView.as_view(), name='legal-kb-library-detail'),
     path('', include(router.urls)),
     path('retrieve/', LegalRetrieveView.as_view(), name='legal-kb-retrieve'),
 ]

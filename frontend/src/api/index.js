@@ -23,6 +23,17 @@ api.interceptors.response.use(
 
 
 const service = {
+  privacy: {
+    capabilities: () => api.get('/data-security/privacy/capabilities/'),
+    conversation: id => api.get(`/data-security/privacy/conversations/${id}/`),
+    exports: params => api.get('/data-security/exports/records/', { params }),
+    generateExport: data => api.post('/data-security/exports/resources/execute/', data),
+    downloadExport: data => api.post('/data-security/exports/resources/download/', data, { responseType: 'blob' }),
+  },
+  memory: {
+    list: cursor => api.get('/agent-runtime/memories/' + (cursor ? new URL(cursor, window.location.origin).search : '')),
+    remove: id => api.delete(`/agent-runtime/memories/${id}/`),
+  },
   // 认证相关
   auth: {
     csrf: () => api.get('/users/csrf/'),

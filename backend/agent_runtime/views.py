@@ -4,7 +4,10 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .gateway import AgentGateway
-from .models import AgentRun
+from .models import AgentRun, UserMemory
+from .memory import UserMemoryStore
+from .serializers import UserMemorySerializer
+from data_security.adapters.django.privacy_api import PrivateResponseMixin
 from .serializers import AgentRunSerializer, LearningRunRequestSerializer
 
 
@@ -38,3 +41,23 @@ class AgentRunDetailView(generics.RetrieveAPIView):
 
     def get_queryset(self):
         return AgentRun.objects.filter(user=self.request.user)
+
+
+class UserMemoryListView(PrivateResponseMixin, generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = UserMemorySerializer
+
+    def get_queryset(self):
+        return UserMemory.objects.filter(user=self.request.user).order_by('-updated_at', '-pk')
+
+
+class UserMemoryDetailView(PrivateResponseMixin, generics.RetrieveDestroyAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = UserMemorySerializer
+
+    def get_queryset(self):
+        return UserMemory.objects.filter(user=self.request.user)
+
+    def perform_destroy(self, instance):
+        UserMemoryStore(user=self.request.user).forget(
+            memory_type=instance.memory_type, memory_key=instance.memory_key)

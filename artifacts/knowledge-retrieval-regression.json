@@ -1,0 +1,665 @@
+{
+  "core": {
+    "tests": 46,
+    "passed": 46,
+    "failures": 0,
+    "errors": 0,
+    "log": "artifacts/knowledge-retrieval-core.log"
+  },
+  "expanded_backend": {
+    "tests": 114,
+    "failures_including_subtests": 71,
+    "errors_including_subtests": 54,
+    "skipped": 3,
+    "affected_unique_cases": 33,
+    "failure_families": {
+      "unittest.loader": 1,
+      "legal_kb.tests_browse": 66,
+      "legal_kb.tests_chunking_round2": 41,
+      "rag_ingestion.tests_chunking": 17
+    },
+    "issues": [
+      {
+        "status": "ERROR",
+        "label": "tests_platform_chunking",
+        "test": "unittest.loader._FailedTest.tests_platform_chunking"
+      },
+      {
+        "status": "ERROR",
+        "label": "test_bad_chunk_hash_and_arbitrary_metadata_are_not_projected",
+        "test": "legal_kb.tests_browse.LibraryAPITests.test_bad_chunk_hash_and_arbitrary_metadata_are_not_projected"
+      },
+      {
+        "status": "ERROR",
+        "label": "test_failed_upload_does_not_expose_old_chunks_or_error_metadata",
+        "test": "legal_kb.tests_browse.LibraryAPITests.test_failed_upload_does_not_expose_old_chunks_or_error_metadata"
+      },
+      {
+        "status": "ERROR",
+        "label": "test_pagination_stable_and_does_not_truncate_to_retrieval_top_k",
+        "test": "legal_kb.tests_browse.LibraryAPITests.test_pagination_stable_and_does_not_truncate_to_retrieval_top_k"
+      },
+      {
+        "status": "ERROR",
+        "label": "test_platform_category_filters_cover_resources_and_concepts",
+        "test": "legal_kb.tests_browse.LibraryAPITests.test_platform_category_filters_cover_resources_and_concepts"
+      },
+      {
+        "status": "ERROR",
+        "label": "test_platform_category_filters_cover_resources_and_concepts",
+        "test": "legal_kb.tests_browse.LibraryAPITests.test_platform_category_filters_cover_resources_and_concepts"
+      },
+      {
+        "status": "ERROR",
+        "label": "test_removed_or_unapproved_platform_source_is_not_browsable",
+        "test": "legal_kb.tests_browse.LibraryAPITests.test_removed_or_unapproved_platform_source_is_not_browsable"
+      },
+      {
+        "status": "ERROR",
+        "label": "test_wrong_content_type_is_not_a_platform_index",
+        "test": "legal_kb.tests_browse.LibraryAPITests.test_wrong_content_type_is_not_a_platform_index"
+      },
+      {
+        "status": "ERROR",
+        "label": "test_registered_clause_parent_full_text_cannot_escape",
+        "test": "legal_kb.tests_browse.StudentLibraryContractTests.test_registered_clause_parent_full_text_cannot_escape"
+      },
+      {
+        "status": "ERROR",
+        "label": "test_registered_sources_stay_out_of_staff_legacy_catalogue",
+        "test": "legal_kb.tests_browse.StudentLibraryContractTests.test_registered_sources_stay_out_of_staff_legacy_catalogue"
+      },
+      {
+        "status": "ERROR",
+        "label": "test_persisted_subclauses_keep_article_and_hash_identity",
+        "test": "legal_kb.tests_chunking_round2.LongArticleIngestionTests.test_persisted_subclauses_keep_article_and_hash_identity"
+      },
+      {
+        "status": "ERROR",
+        "label": "test_original_samples_reproduce_v2_and_meet_round2_targets",
+        "test": "legal_kb.tests_chunking_round2.ChunkingProbeTests.test_original_samples_reproduce_v2_and_meet_round2_targets"
+      },
+      {
+        "status": "ERROR",
+        "label": "test_comma_and_enumeration_comma_are_fallback_boundaries",
+        "test": "legal_kb.tests_chunking_round2.TeachingChunkingTests.test_comma_and_enumeration_comma_are_fallback_boundaries"
+      },
+      {
+        "status": "ERROR",
+        "label": "test_comma_and_enumeration_comma_are_fallback_boundaries",
+        "test": "legal_kb.tests_chunking_round2.TeachingChunkingTests.test_comma_and_enumeration_comma_are_fallback_boundaries"
+      },
+      {
+        "status": "ERROR",
+        "label": "test_comma_and_enumeration_comma_are_fallback_boundaries",
+        "test": "legal_kb.tests_chunking_round2.TeachingChunkingTests.test_comma_and_enumeration_comma_are_fallback_boundaries"
+      },
+      {
+        "status": "ERROR",
+        "label": "test_line_start_articles_do_not_split_inline_references",
+        "test": "legal_kb.tests_chunking_round2.TeachingChunkingTests.test_line_start_articles_do_not_split_inline_references"
+      },
+      {
+        "status": "ERROR",
+        "label": "test_no_tail_or_lost_characters_across_window_sizes",
+        "test": "legal_kb.tests_chunking_round2.TeachingChunkingTests.test_no_tail_or_lost_characters_across_window_sizes"
+      },
+      {
+        "status": "ERROR",
+        "label": "test_no_tail_or_lost_characters_across_window_sizes",
+        "test": "legal_kb.tests_chunking_round2.TeachingChunkingTests.test_no_tail_or_lost_characters_across_window_sizes"
+      },
+      {
+        "status": "ERROR",
+        "label": "test_no_tail_or_lost_characters_across_window_sizes",
+        "test": "legal_kb.tests_chunking_round2.TeachingChunkingTests.test_no_tail_or_lost_characters_across_window_sizes"
+      },
+      {
+        "status": "ERROR",
+        "label": "test_no_tail_or_lost_characters_across_window_sizes",
+        "test": "legal_kb.tests_chunking_round2.TeachingChunkingTests.test_no_tail_or_lost_characters_across_window_sizes"
+      },
+      {
+        "status": "ERROR",
+        "label": "test_no_tail_or_lost_characters_across_window_sizes",
+        "test": "legal_kb.tests_chunking_round2.TeachingChunkingTests.test_no_tail_or_lost_characters_across_window_sizes"
+      },
+      {
+        "status": "ERROR",
+        "label": "test_no_tail_or_lost_characters_across_window_sizes",
+        "test": "legal_kb.tests_chunking_round2.TeachingChunkingTests.test_no_tail_or_lost_characters_across_window_sizes"
+      },
+      {
+        "status": "ERROR",
+        "label": "test_no_tail_or_lost_characters_across_window_sizes",
+        "test": "legal_kb.tests_chunking_round2.TeachingChunkingTests.test_no_tail_or_lost_characters_across_window_sizes"
+      },
+      {
+        "status": "ERROR",
+        "label": "test_no_tail_or_lost_characters_across_window_sizes",
+        "test": "legal_kb.tests_chunking_round2.TeachingChunkingTests.test_no_tail_or_lost_characters_across_window_sizes"
+      },
+      {
+        "status": "ERROR",
+        "label": "test_no_tail_or_lost_characters_across_window_sizes",
+        "test": "legal_kb.tests_chunking_round2.TeachingChunkingTests.test_no_tail_or_lost_characters_across_window_sizes"
+      },
+      {
+        "status": "ERROR",
+        "label": "test_no_tail_or_lost_characters_across_window_sizes",
+        "test": "legal_kb.tests_chunking_round2.TeachingChunkingTests.test_no_tail_or_lost_characters_across_window_sizes"
+      },
+      {
+        "status": "ERROR",
+        "label": "test_no_tail_or_lost_characters_across_window_sizes",
+        "test": "legal_kb.tests_chunking_round2.TeachingChunkingTests.test_no_tail_or_lost_characters_across_window_sizes"
+      },
+      {
+        "status": "ERROR",
+        "label": "test_no_tail_or_lost_characters_across_window_sizes",
+        "test": "legal_kb.tests_chunking_round2.TeachingChunkingTests.test_no_tail_or_lost_characters_across_window_sizes"
+      },
+      {
+        "status": "ERROR",
+        "label": "test_no_tail_or_lost_characters_across_window_sizes",
+        "test": "legal_kb.tests_chunking_round2.TeachingChunkingTests.test_no_tail_or_lost_characters_across_window_sizes"
+      },
+      {
+        "status": "ERROR",
+        "label": "test_no_tail_or_lost_characters_across_window_sizes",
+        "test": "legal_kb.tests_chunking_round2.TeachingChunkingTests.test_no_tail_or_lost_characters_across_window_sizes"
+      },
+      {
+        "status": "ERROR",
+        "label": "test_no_tail_or_lost_characters_across_window_sizes",
+        "test": "legal_kb.tests_chunking_round2.TeachingChunkingTests.test_no_tail_or_lost_characters_across_window_sizes"
+      },
+      {
+        "status": "ERROR",
+        "label": "test_no_tail_or_lost_characters_across_window_sizes",
+        "test": "legal_kb.tests_chunking_round2.TeachingChunkingTests.test_no_tail_or_lost_characters_across_window_sizes"
+      },
+      {
+        "status": "ERROR",
+        "label": "test_no_tail_or_lost_characters_across_window_sizes",
+        "test": "legal_kb.tests_chunking_round2.TeachingChunkingTests.test_no_tail_or_lost_characters_across_window_sizes"
+      },
+      {
+        "status": "ERROR",
+        "label": "test_no_tail_or_lost_characters_across_window_sizes",
+        "test": "legal_kb.tests_chunking_round2.TeachingChunkingTests.test_no_tail_or_lost_characters_across_window_sizes"
+      },
+      {
+        "status": "ERROR",
+        "label": "test_no_tail_or_lost_characters_across_window_sizes",
+        "test": "legal_kb.tests_chunking_round2.TeachingChunkingTests.test_no_tail_or_lost_characters_across_window_sizes"
+      },
+      {
+        "status": "ERROR",
+        "label": "test_no_tail_or_lost_characters_across_window_sizes",
+        "test": "legal_kb.tests_chunking_round2.TeachingChunkingTests.test_no_tail_or_lost_characters_across_window_sizes"
+      },
+      {
+        "status": "ERROR",
+        "label": "test_no_tail_or_lost_characters_across_window_sizes",
+        "test": "legal_kb.tests_chunking_round2.TeachingChunkingTests.test_no_tail_or_lost_characters_across_window_sizes"
+      },
+      {
+        "status": "ERROR",
+        "label": "test_no_tail_or_lost_characters_across_window_sizes",
+        "test": "legal_kb.tests_chunking_round2.TeachingChunkingTests.test_no_tail_or_lost_characters_across_window_sizes"
+      },
+      {
+        "status": "ERROR",
+        "label": "test_no_tail_or_lost_characters_across_window_sizes",
+        "test": "legal_kb.tests_chunking_round2.TeachingChunkingTests.test_no_tail_or_lost_characters_across_window_sizes"
+      },
+      {
+        "status": "ERROR",
+        "label": "test_no_tail_or_lost_characters_across_window_sizes",
+        "test": "legal_kb.tests_chunking_round2.TeachingChunkingTests.test_no_tail_or_lost_characters_across_window_sizes"
+      },
+      {
+        "status": "ERROR",
+        "label": "test_sentence_end_wins_over_heading_or_comma",
+        "test": "legal_kb.tests_chunking_round2.TeachingChunkingTests.test_sentence_end_wins_over_heading_or_comma"
+      },
+      {
+        "status": "ERROR",
+        "label": "test_sentence_in_first_half_is_used_before_hard_cut",
+        "test": "legal_kb.tests_chunking_round2.TeachingChunkingTests.test_sentence_in_first_half_is_used_before_hard_cut"
+      },
+      {
+        "status": "ERROR",
+        "label": "test_short_document_is_not_padded_or_dropped",
+        "test": "legal_kb.tests_chunking_round2.TeachingChunkingTests.test_short_document_is_not_padded_or_dropped"
+      },
+      {
+        "status": "ERROR",
+        "label": "test_tail_is_absorbed_with_bounded_tolerance",
+        "test": "legal_kb.tests_chunking_round2.TeachingChunkingTests.test_tail_is_absorbed_with_bounded_tolerance"
+      },
+      {
+        "status": "ERROR",
+        "label": "test_tail_is_absorbed_with_bounded_tolerance",
+        "test": "legal_kb.tests_chunking_round2.TeachingChunkingTests.test_tail_is_absorbed_with_bounded_tolerance"
+      },
+      {
+        "status": "ERROR",
+        "label": "test_tail_is_absorbed_with_bounded_tolerance",
+        "test": "legal_kb.tests_chunking_round2.TeachingChunkingTests.test_tail_is_absorbed_with_bounded_tolerance"
+      },
+      {
+        "status": "ERROR",
+        "label": "test_tail_is_absorbed_with_bounded_tolerance",
+        "test": "legal_kb.tests_chunking_round2.TeachingChunkingTests.test_tail_is_absorbed_with_bounded_tolerance"
+      },
+      {
+        "status": "ERROR",
+        "label": "test_tail_is_absorbed_with_bounded_tolerance",
+        "test": "legal_kb.tests_chunking_round2.TeachingChunkingTests.test_tail_is_absorbed_with_bounded_tolerance"
+      },
+      {
+        "status": "ERROR",
+        "label": "test_tail_is_absorbed_with_bounded_tolerance",
+        "test": "legal_kb.tests_chunking_round2.TeachingChunkingTests.test_tail_is_absorbed_with_bounded_tolerance"
+      },
+      {
+        "status": "ERROR",
+        "label": "test_tail_is_absorbed_with_bounded_tolerance",
+        "test": "legal_kb.tests_chunking_round2.TeachingChunkingTests.test_tail_is_absorbed_with_bounded_tolerance"
+      },
+      {
+        "status": "ERROR",
+        "label": "test_builtin_heading_preserves_csharp_and_strips_only_closing_markers",
+        "test": "rag_ingestion.tests_chunking.StructureAwareChunkingTests.test_builtin_heading_preserves_csharp_and_strips_only_closing_markers"
+      },
+      {
+        "status": "ERROR",
+        "label": "test_default_settings_match_platform_teaching_constants",
+        "test": "rag_ingestion.tests_chunking.StructureAwareChunkingTests.test_default_settings_match_platform_teaching_constants"
+      },
+      {
+        "status": "ERROR",
+        "label": "test_fenced_code_is_not_heading_metadata",
+        "test": "rag_ingestion.tests_chunking.StructureAwareChunkingTests.test_fenced_code_is_not_heading_metadata"
+      },
+      {
+        "status": "ERROR",
+        "label": "test_optional_dependency_missing_uses_builtin",
+        "test": "rag_ingestion.tests_chunking.StructureAwareChunkingTests.test_optional_dependency_missing_uses_builtin"
+      },
+      {
+        "status": "FAIL",
+        "label": "test_browsing_never_invokes_embedding_or_answer_generation",
+        "test": "legal_kb.tests_browse.LibraryAPITests.test_browsing_never_invokes_embedding_or_answer_generation"
+      },
+      {
+        "status": "FAIL",
+        "label": "test_legal_browse_search_and_clause_provenance",
+        "test": "legal_kb.tests_browse.LibraryAPITests.test_legal_browse_search_and_clause_provenance"
+      },
+      {
+        "status": "FAIL",
+        "label": "test_live_upload_visibility_tightening_removes_list_and_detail",
+        "test": "legal_kb.tests_browse.LibraryAPITests.test_live_upload_visibility_tightening_removes_list_and_detail"
+      },
+      {
+        "status": "FAIL",
+        "label": "test_platform_browse_only_indexed_originals_and_keyword_chunk",
+        "test": "legal_kb.tests_browse.LibraryAPITests.test_platform_browse_only_indexed_originals_and_keyword_chunk"
+      },
+      {
+        "status": "FAIL",
+        "label": "test_student_and_anonymous_cannot_use_staff_catalogue_or_detail",
+        "test": "legal_kb.tests_browse.LibraryAPITests.test_student_and_anonymous_cannot_use_staff_catalogue_or_detail"
+      },
+      {
+        "status": "FAIL",
+        "label": "test_student_and_anonymous_cannot_use_staff_catalogue_or_detail",
+        "test": "legal_kb.tests_browse.LibraryAPITests.test_student_and_anonymous_cannot_use_staff_catalogue_or_detail"
+      },
+      {
+        "status": "FAIL",
+        "label": "test_student_and_anonymous_cannot_use_staff_catalogue_or_detail",
+        "test": "legal_kb.tests_browse.LibraryAPITests.test_student_and_anonymous_cannot_use_staff_catalogue_or_detail"
+      },
+      {
+        "status": "FAIL",
+        "label": "test_student_and_anonymous_cannot_use_staff_catalogue_or_detail",
+        "test": "legal_kb.tests_browse.LibraryAPITests.test_student_and_anonymous_cannot_use_staff_catalogue_or_detail"
+      },
+      {
+        "status": "FAIL",
+        "label": "test_student_and_anonymous_cannot_use_staff_catalogue_or_detail",
+        "test": "legal_kb.tests_browse.LibraryAPITests.test_student_and_anonymous_cannot_use_staff_catalogue_or_detail"
+      },
+      {
+        "status": "FAIL",
+        "label": "test_student_and_anonymous_cannot_use_staff_catalogue_or_detail",
+        "test": "legal_kb.tests_browse.LibraryAPITests.test_student_and_anonymous_cannot_use_staff_catalogue_or_detail"
+      },
+      {
+        "status": "FAIL",
+        "label": "test_student_and_anonymous_cannot_use_staff_catalogue_or_detail",
+        "test": "legal_kb.tests_browse.LibraryAPITests.test_student_and_anonymous_cannot_use_staff_catalogue_or_detail"
+      },
+      {
+        "status": "FAIL",
+        "label": "test_student_and_anonymous_cannot_use_staff_catalogue_or_detail",
+        "test": "legal_kb.tests_browse.LibraryAPITests.test_student_and_anonymous_cannot_use_staff_catalogue_or_detail"
+      },
+      {
+        "status": "FAIL",
+        "label": "test_student_and_anonymous_cannot_use_staff_catalogue_or_detail",
+        "test": "legal_kb.tests_browse.LibraryAPITests.test_student_and_anonymous_cannot_use_staff_catalogue_or_detail"
+      },
+      {
+        "status": "FAIL",
+        "label": "test_student_and_anonymous_cannot_use_staff_catalogue_or_detail",
+        "test": "legal_kb.tests_browse.LibraryAPITests.test_student_and_anonymous_cannot_use_staff_catalogue_or_detail"
+      },
+      {
+        "status": "FAIL",
+        "label": "test_student_and_anonymous_cannot_use_staff_catalogue_or_detail",
+        "test": "legal_kb.tests_browse.LibraryAPITests.test_student_and_anonymous_cannot_use_staff_catalogue_or_detail"
+      },
+      {
+        "status": "FAIL",
+        "label": "test_student_and_anonymous_cannot_use_staff_catalogue_or_detail",
+        "test": "legal_kb.tests_browse.LibraryAPITests.test_student_and_anonymous_cannot_use_staff_catalogue_or_detail"
+      },
+      {
+        "status": "FAIL",
+        "label": "test_student_and_anonymous_cannot_use_staff_catalogue_or_detail",
+        "test": "legal_kb.tests_browse.LibraryAPITests.test_student_and_anonymous_cannot_use_staff_catalogue_or_detail"
+      },
+      {
+        "status": "FAIL",
+        "label": "test_student_and_anonymous_cannot_use_staff_catalogue_or_detail",
+        "test": "legal_kb.tests_browse.LibraryAPITests.test_student_and_anonymous_cannot_use_staff_catalogue_or_detail"
+      },
+      {
+        "status": "FAIL",
+        "label": "test_student_and_anonymous_cannot_use_staff_catalogue_or_detail",
+        "test": "legal_kb.tests_browse.LibraryAPITests.test_student_and_anonymous_cannot_use_staff_catalogue_or_detail"
+      },
+      {
+        "status": "FAIL",
+        "label": "test_student_and_anonymous_cannot_use_staff_catalogue_or_detail",
+        "test": "legal_kb.tests_browse.LibraryAPITests.test_student_and_anonymous_cannot_use_staff_catalogue_or_detail"
+      },
+      {
+        "status": "FAIL",
+        "label": "test_student_and_anonymous_cannot_use_staff_catalogue_or_detail",
+        "test": "legal_kb.tests_browse.LibraryAPITests.test_student_and_anonymous_cannot_use_staff_catalogue_or_detail"
+      },
+      {
+        "status": "FAIL",
+        "label": "test_student_and_anonymous_cannot_use_staff_catalogue_or_detail",
+        "test": "legal_kb.tests_browse.LibraryAPITests.test_student_and_anonymous_cannot_use_staff_catalogue_or_detail"
+      },
+      {
+        "status": "FAIL",
+        "label": "test_student_and_anonymous_cannot_use_staff_catalogue_or_detail",
+        "test": "legal_kb.tests_browse.LibraryAPITests.test_student_and_anonymous_cannot_use_staff_catalogue_or_detail"
+      },
+      {
+        "status": "FAIL",
+        "label": "test_student_and_anonymous_cannot_use_staff_catalogue_or_detail",
+        "test": "legal_kb.tests_browse.LibraryAPITests.test_student_and_anonymous_cannot_use_staff_catalogue_or_detail"
+      },
+      {
+        "status": "FAIL",
+        "label": "test_student_and_anonymous_cannot_use_staff_catalogue_or_detail",
+        "test": "legal_kb.tests_browse.LibraryAPITests.test_student_and_anonymous_cannot_use_staff_catalogue_or_detail"
+      },
+      {
+        "status": "FAIL",
+        "label": "test_student_and_anonymous_cannot_use_staff_catalogue_or_detail",
+        "test": "legal_kb.tests_browse.LibraryAPITests.test_student_and_anonymous_cannot_use_staff_catalogue_or_detail"
+      },
+      {
+        "status": "FAIL",
+        "label": "test_student_and_anonymous_cannot_use_staff_catalogue_or_detail",
+        "test": "legal_kb.tests_browse.LibraryAPITests.test_student_and_anonymous_cannot_use_staff_catalogue_or_detail"
+      },
+      {
+        "status": "FAIL",
+        "label": "test_student_and_anonymous_cannot_use_staff_catalogue_or_detail",
+        "test": "legal_kb.tests_browse.LibraryAPITests.test_student_and_anonymous_cannot_use_staff_catalogue_or_detail"
+      },
+      {
+        "status": "FAIL",
+        "label": "test_student_and_anonymous_cannot_use_staff_catalogue_or_detail",
+        "test": "legal_kb.tests_browse.LibraryAPITests.test_student_and_anonymous_cannot_use_staff_catalogue_or_detail"
+      },
+      {
+        "status": "FAIL",
+        "label": "test_student_and_anonymous_cannot_use_staff_catalogue_or_detail",
+        "test": "legal_kb.tests_browse.LibraryAPITests.test_student_and_anonymous_cannot_use_staff_catalogue_or_detail"
+      },
+      {
+        "status": "FAIL",
+        "label": "test_student_and_anonymous_cannot_use_staff_catalogue_or_detail",
+        "test": "legal_kb.tests_browse.LibraryAPITests.test_student_and_anonymous_cannot_use_staff_catalogue_or_detail"
+      },
+      {
+        "status": "FAIL",
+        "label": "test_student_and_anonymous_cannot_use_staff_catalogue_or_detail",
+        "test": "legal_kb.tests_browse.LibraryAPITests.test_student_and_anonymous_cannot_use_staff_catalogue_or_detail"
+      },
+      {
+        "status": "FAIL",
+        "label": "test_student_and_anonymous_cannot_use_staff_catalogue_or_detail",
+        "test": "legal_kb.tests_browse.LibraryAPITests.test_student_and_anonymous_cannot_use_staff_catalogue_or_detail"
+      },
+      {
+        "status": "FAIL",
+        "label": "test_student_and_anonymous_cannot_use_staff_catalogue_or_detail",
+        "test": "legal_kb.tests_browse.LibraryAPITests.test_student_and_anonymous_cannot_use_staff_catalogue_or_detail"
+      },
+      {
+        "status": "FAIL",
+        "label": "test_student_and_anonymous_cannot_use_staff_catalogue_or_detail",
+        "test": "legal_kb.tests_browse.LibraryAPITests.test_student_and_anonymous_cannot_use_staff_catalogue_or_detail"
+      },
+      {
+        "status": "FAIL",
+        "label": "test_student_and_anonymous_cannot_use_staff_catalogue_or_detail",
+        "test": "legal_kb.tests_browse.LibraryAPITests.test_student_and_anonymous_cannot_use_staff_catalogue_or_detail"
+      },
+      {
+        "status": "FAIL",
+        "label": "test_student_and_anonymous_cannot_use_staff_catalogue_or_detail",
+        "test": "legal_kb.tests_browse.LibraryAPITests.test_student_and_anonymous_cannot_use_staff_catalogue_or_detail"
+      },
+      {
+        "status": "FAIL",
+        "label": "test_student_and_anonymous_cannot_use_staff_catalogue_or_detail",
+        "test": "legal_kb.tests_browse.LibraryAPITests.test_student_and_anonymous_cannot_use_staff_catalogue_or_detail"
+      },
+      {
+        "status": "FAIL",
+        "label": "test_student_and_anonymous_cannot_use_staff_catalogue_or_detail",
+        "test": "legal_kb.tests_browse.LibraryAPITests.test_student_and_anonymous_cannot_use_staff_catalogue_or_detail"
+      },
+      {
+        "status": "FAIL",
+        "label": "test_student_and_anonymous_cannot_use_staff_catalogue_or_detail",
+        "test": "legal_kb.tests_browse.LibraryAPITests.test_student_and_anonymous_cannot_use_staff_catalogue_or_detail"
+      },
+      {
+        "status": "FAIL",
+        "label": "test_teacher_and_nonstaff_admin_can_browse_all_catalogue_sources",
+        "test": "legal_kb.tests_browse.LibraryAPITests.test_teacher_and_nonstaff_admin_can_browse_all_catalogue_sources"
+      },
+      {
+        "status": "FAIL",
+        "label": "test_teacher_and_nonstaff_admin_can_browse_all_catalogue_sources",
+        "test": "legal_kb.tests_browse.LibraryAPITests.test_teacher_and_nonstaff_admin_can_browse_all_catalogue_sources"
+      },
+      {
+        "status": "FAIL",
+        "label": "test_teacher_and_nonstaff_admin_can_browse_all_catalogue_sources",
+        "test": "legal_kb.tests_browse.LibraryAPITests.test_teacher_and_nonstaff_admin_can_browse_all_catalogue_sources"
+      },
+      {
+        "status": "FAIL",
+        "label": "test_teacher_and_nonstaff_admin_can_browse_all_catalogue_sources",
+        "test": "legal_kb.tests_browse.LibraryAPITests.test_teacher_and_nonstaff_admin_can_browse_all_catalogue_sources"
+      },
+      {
+        "status": "FAIL",
+        "label": "test_teacher_and_nonstaff_admin_can_browse_all_catalogue_sources",
+        "test": "legal_kb.tests_browse.LibraryAPITests.test_teacher_and_nonstaff_admin_can_browse_all_catalogue_sources"
+      },
+      {
+        "status": "FAIL",
+        "label": "test_teacher_and_nonstaff_admin_can_browse_all_catalogue_sources",
+        "test": "legal_kb.tests_browse.LibraryAPITests.test_teacher_and_nonstaff_admin_can_browse_all_catalogue_sources"
+      },
+      {
+        "status": "FAIL",
+        "label": "test_teacher_and_nonstaff_admin_can_browse_all_catalogue_sources",
+        "test": "legal_kb.tests_browse.LibraryAPITests.test_teacher_and_nonstaff_admin_can_browse_all_catalogue_sources"
+      },
+      {
+        "status": "FAIL",
+        "label": "test_teacher_and_nonstaff_admin_can_browse_all_catalogue_sources",
+        "test": "legal_kb.tests_browse.LibraryAPITests.test_teacher_and_nonstaff_admin_can_browse_all_catalogue_sources"
+      },
+      {
+        "status": "FAIL",
+        "label": "test_teacher_and_nonstaff_admin_can_browse_all_catalogue_sources",
+        "test": "legal_kb.tests_browse.LibraryAPITests.test_teacher_and_nonstaff_admin_can_browse_all_catalogue_sources"
+      },
+      {
+        "status": "FAIL",
+        "label": "test_teacher_and_nonstaff_admin_can_browse_all_catalogue_sources",
+        "test": "legal_kb.tests_browse.LibraryAPITests.test_teacher_and_nonstaff_admin_can_browse_all_catalogue_sources"
+      },
+      {
+        "status": "FAIL",
+        "label": "test_teacher_and_nonstaff_admin_can_browse_all_catalogue_sources",
+        "test": "legal_kb.tests_browse.LibraryAPITests.test_teacher_and_nonstaff_admin_can_browse_all_catalogue_sources"
+      },
+      {
+        "status": "FAIL",
+        "label": "test_teacher_and_nonstaff_admin_can_browse_all_catalogue_sources",
+        "test": "legal_kb.tests_browse.LibraryAPITests.test_teacher_and_nonstaff_admin_can_browse_all_catalogue_sources"
+      },
+      {
+        "status": "FAIL",
+        "label": "test_teacher_and_nonstaff_admin_can_browse_all_catalogue_sources",
+        "test": "legal_kb.tests_browse.LibraryAPITests.test_teacher_and_nonstaff_admin_can_browse_all_catalogue_sources"
+      },
+      {
+        "status": "FAIL",
+        "label": "test_teacher_and_nonstaff_admin_can_browse_all_catalogue_sources",
+        "test": "legal_kb.tests_browse.LibraryAPITests.test_teacher_and_nonstaff_admin_can_browse_all_catalogue_sources"
+      },
+      {
+        "status": "FAIL",
+        "label": "test_teacher_and_nonstaff_admin_can_browse_all_catalogue_sources",
+        "test": "legal_kb.tests_browse.LibraryAPITests.test_teacher_and_nonstaff_admin_can_browse_all_catalogue_sources"
+      },
+      {
+        "status": "FAIL",
+        "label": "test_teacher_and_nonstaff_admin_can_browse_all_catalogue_sources",
+        "test": "legal_kb.tests_browse.LibraryAPITests.test_teacher_and_nonstaff_admin_can_browse_all_catalogue_sources"
+      },
+      {
+        "status": "FAIL",
+        "label": "test_validation_and_read_only_contract",
+        "test": "legal_kb.tests_browse.LibraryAPITests.test_validation_and_read_only_contract"
+      },
+      {
+        "status": "FAIL",
+        "label": "test_long_article_is_split_with_stable_unique_citations",
+        "test": "legal_kb.tests_chunking_round2.TeachingChunkingTests.test_long_article_is_split_with_stable_unique_citations"
+      },
+      {
+        "status": "FAIL",
+        "label": "test_builtin_passes_custom_overlap_including_zero",
+        "test": "rag_ingestion.tests_chunking.StructureAwareChunkingTests.test_builtin_passes_custom_overlap_including_zero"
+      },
+      {
+        "status": "FAIL",
+        "label": "test_builtin_passes_custom_overlap_including_zero",
+        "test": "rag_ingestion.tests_chunking.StructureAwareChunkingTests.test_builtin_passes_custom_overlap_including_zero"
+      },
+      {
+        "status": "FAIL",
+        "label": "test_builtin_passes_custom_overlap_including_zero",
+        "test": "rag_ingestion.tests_chunking.StructureAwareChunkingTests.test_builtin_passes_custom_overlap_including_zero"
+      },
+      {
+        "status": "FAIL",
+        "label": "test_invalid_settings_are_not_silently_replaced_or_backend_dependent",
+        "test": "rag_ingestion.tests_chunking.StructureAwareChunkingTests.test_invalid_settings_are_not_silently_replaced_or_backend_dependent"
+      },
+      {
+        "status": "FAIL",
+        "label": "test_invalid_settings_are_not_silently_replaced_or_backend_dependent",
+        "test": "rag_ingestion.tests_chunking.StructureAwareChunkingTests.test_invalid_settings_are_not_silently_replaced_or_backend_dependent"
+      },
+      {
+        "status": "FAIL",
+        "label": "test_invalid_settings_are_not_silently_replaced_or_backend_dependent",
+        "test": "rag_ingestion.tests_chunking.StructureAwareChunkingTests.test_invalid_settings_are_not_silently_replaced_or_backend_dependent"
+      },
+      {
+        "status": "FAIL",
+        "label": "test_invalid_settings_are_not_silently_replaced_or_backend_dependent",
+        "test": "rag_ingestion.tests_chunking.StructureAwareChunkingTests.test_invalid_settings_are_not_silently_replaced_or_backend_dependent"
+      },
+      {
+        "status": "FAIL",
+        "label": "test_invalid_settings_are_not_silently_replaced_or_backend_dependent",
+        "test": "rag_ingestion.tests_chunking.StructureAwareChunkingTests.test_invalid_settings_are_not_silently_replaced_or_backend_dependent"
+      },
+      {
+        "status": "FAIL",
+        "label": "test_invalid_settings_are_not_silently_replaced_or_backend_dependent",
+        "test": "rag_ingestion.tests_chunking.StructureAwareChunkingTests.test_invalid_settings_are_not_silently_replaced_or_backend_dependent"
+      },
+      {
+        "status": "FAIL",
+        "label": "test_invalid_settings_are_not_silently_replaced_or_backend_dependent",
+        "test": "rag_ingestion.tests_chunking.StructureAwareChunkingTests.test_invalid_settings_are_not_silently_replaced_or_backend_dependent"
+      },
+      {
+        "status": "FAIL",
+        "label": "test_invalid_settings_are_not_silently_replaced_or_backend_dependent",
+        "test": "rag_ingestion.tests_chunking.StructureAwareChunkingTests.test_invalid_settings_are_not_silently_replaced_or_backend_dependent"
+      },
+      {
+        "status": "FAIL",
+        "label": "test_short_header_sections_are_rewindowed_without_losing_heading_context",
+        "test": "rag_ingestion.tests_chunking.StructureAwareChunkingTests.test_short_header_sections_are_rewindowed_without_losing_heading_context"
+      },
+      {
+        "status": "FAIL",
+        "label": "test_short_header_sections_are_rewindowed_without_losing_heading_context",
+        "test": "rag_ingestion.tests_chunking.StructureAwareChunkingTests.test_short_header_sections_are_rewindowed_without_losing_heading_context"
+      }
+    ],
+    "log": "artifacts/knowledge-retrieval-backend.log"
+  },
+  "frontend": {
+    "tests": 95,
+    "passed": 93,
+    "failed": 2,
+    "failures": [
+      "resource entry renders only for teachers/admins: teacher",
+      "resource entry renders only for teachers/admins: admin"
+    ],
+    "log": "artifacts/knowledge-retrieval-frontend.log"
+  },
+  "notes": [
+    "Core cases overlap with expanded backend; do not sum totals.",
+    "Django failure/error counts include subtests and can exceed affected test-case count.",
+    "No PostgreSQL or live remote-model answer quality was evaluated."
+  ]
+}

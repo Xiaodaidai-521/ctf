@@ -23,6 +23,7 @@
     </div>
 
     <p v-if="switchNote" class="switch-note" role="status">{{ switchNote }}</p>
+    <ProtectionBadge :status="sending ? undefined : protection?.content" label="对话内容加密保存" explanation="服务器保存的对话正文采用加密方式保存；尚未提交的输入和本机导出的协作记录需另行保管。" />
     <ChallengeTutoringGuide v-if="challengeContext" :policy="policy" />
     <TeachingProgress class="host-progress" :messages="messages" />
 
@@ -59,6 +60,7 @@
 </template>
 <script setup>
 import { computed, onActivated, onBeforeUnmount, onDeactivated, onMounted, ref, watch } from 'vue'
+import ProtectionBadge from '@/shared/privacy/ProtectionBadge.vue'
 import { createAccountGuard } from '@/shared/state/accountScope.js'
 import { useRouter } from 'vue-router'
 import AppIcon from '@/shared/design/AppIcon.vue'
@@ -100,6 +102,7 @@ const sending = ref(false)
 const error = ref('')
 const context = ref(null)
 const metadata = ref(null)
+const protection = ref(null)
 const switchNote = ref('')
 const streamRef = ref(null)
 const composerRef = ref(null)
@@ -148,7 +151,8 @@ function applySnapshot(snapshot) {
   sending.value = snapshot.sending
   error.value = snapshot.error
   context.value = snapshot.context
-  metadata.value = snapshot.metadata || null
+  metadata.value = snapshot.metadata
+  protection.value = snapshot.protection || null || null
 }
 const unsubscribeSession = session.subscribe(applySnapshot)
 syncAgentAccount(user.userInfo?.id || null)

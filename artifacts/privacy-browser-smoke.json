@@ -1,0 +1,14 @@
+{
+  "passed": 8,
+  "checks": [
+    "Public privacy page loads real capabilities and all seven protection categories",
+    "Real session login succeeds with synthetic account",
+    "Encrypted memory verified with real AEAD; legacy memory does not claim encryption",
+    "Confirmed memory deletion persists through real backend and refresh",
+    "Blank email edit omitted from actual PUT; original encrypted email preserved while nickname updates",
+    "Complete conversation history reports mixed legacy and encrypted state",
+    "Unconfigured controlled export gives unavailable state without generated/encrypted success",
+    "Privacy page fits mobile viewport without body horizontal overflow"
+  ],
+  "pageErrors": []
+}

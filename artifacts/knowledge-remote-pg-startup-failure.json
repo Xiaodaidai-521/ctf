@@ -1,0 +1,25 @@
+{
+  "started_at": "2026-11-12T01:13:11.899324+00:00",
+  "source_database": "D:\\aaa10\\16015478源码\\database\\db.sqlite3",
+  "source_access": "read-only; isolated native PostgreSQL cluster",
+  "postgres_port": 62593,
+  "providers": [],
+  "retrieval": {},
+  "answers": [],
+  "errors": [
+    {
+      "type": "RuntimeError",
+      "code": "postgres command failed: createdb.exe: createdb: error: connection to server at \"127.0.0.1\", port 62593 failed: Connection refused (0x0000274D/10061)\r\n\tIs the server running on that host and accepting TCP/IP connections?\r\n"
+    },
+    {
+      "type": "RuntimeError",
+      "code": "PG_STOP_FAILED"
+    }
+  ],
+  "production_settings_changed": false,
+  "completed": false,
+  "isolated_postgres_stopped": false,
+  "temporary_keys_deleted": true,
+  "isolated_workspace": "C:\\Users\\29681\\AppData\\Local\\Temp\\knowledge-remote-pg-1ojtjgek",
+  "finished_at": "2026-11-12T01:15:30.857636+00:00"
+}

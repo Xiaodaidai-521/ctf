@@ -1,6 +1,7 @@
 from rest_framework import viewsets, status, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from data_security.adapters.django.protection_status import protection_for
 from django.db.models import Q, Count, F
 from django.utils import timezone
 from django.db import transaction
@@ -422,7 +423,8 @@ class ExamRecordViewSet(viewsets.ModelViewSet):
         return Response({
             'is_correct': is_correct,
             'points_earned': points_earned,
-            'answer_id': exam_answer.id
+            'answer_id': exam_answer.id,
+            'protection': protection_for(exam_answer),
         })
 
     @action(detail=True, methods=['get'])

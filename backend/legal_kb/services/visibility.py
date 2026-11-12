@@ -70,10 +70,26 @@ def apply_embedding_visibility(queryset, user):
     allowed = list(allowed_document_visibilities(user))
     document_ct = ContentType.objects.get_for_model(DocumentSource)
     allowed_document_ids = DocumentSource.objects.filter(
-        visibility__in=allowed
+        visibility__in=allowed, status='completed',
     ).values('id')
 
     return queryset.exclude(
         Q(source_type='document')
         & ~Q(content_type=document_ct, object_id__in=allowed_document_ids)
     )
+
+
+def apply_teaching_visibility(queryset):
+    """Document recall never bypasses registered course material gates.
+
+    Course material is delivered by learning_knowledge's Scope gateway instead.
+    Restrict new document recall to successful, unregistered source documents.
+    """
+    from django.contrib.contenttypes.models import ContentType
+    from learning_knowledge.models import Material
+    from rag_ingestion.models import DocumentSource
+
+    doc_ct = ContentType.objects.get_for_model(DocumentSource)
+    registered = Material.objects.filter(source_type='document').values('source_object_id')
+    available = DocumentSource.objects.filter(status='completed').exclude(pk__in=registered).values('pk')
+    return queryset.exclude(Q(source_type='document') & ~Q(content_type=doc_ct, object_id__in=available))

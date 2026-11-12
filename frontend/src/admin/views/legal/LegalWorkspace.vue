@@ -57,6 +57,7 @@
                     {{ formatCell(row, column) }}
                   </span>
                   <span v-else>{{ formatCell(row, column) }}</span>
+                  <template v-if="column.key === 'title'"><ProtectionBadge v-for="(label, field) in protectionLabels" :key="field" :status="row.protection?.[field]" :label="label" /></template>
                 </td>
                 <td v-if="rowActions.length">
                   <button
@@ -92,6 +93,8 @@
 
 <script setup>
 import { computed, ref } from 'vue'
+import ProtectionBadge from '@/shared/privacy/ProtectionBadge.vue'
+const protectionLabels = { input_text: '分析原文加密保存', content: '报告正文加密保存', manual_notes: '人工备注加密保存' }
 
 const props = defineProps({
   title: { type: String, required: true },

@@ -130,7 +130,8 @@ def projection(source_type, obj, user, *, detail=False, query=''):
         'group': group, 'source_type': source_type, 'source_label': label, 'object_id': obj.pk,
         'excerpt': text[start:start + 360],
         'locator': first['locator'] if first else source_locator(source_type, obj),
-        'chunk_count': len(chunks), 'source_url': source_url(getattr(obj, 'source_url', '')),
+        'chunk_count': len(chunks), 'source_url': source_url(getattr(obj, 'source_url', '')
+            or (obj.metadata.get('source_url', '') if isinstance(getattr(obj, 'metadata', None), dict) else '')),
         'source_path': paths.get(source_type, ''), 'status': getattr(obj, 'status', 'indexed'),
     }
     if detail:
