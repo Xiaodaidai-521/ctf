@@ -14,6 +14,7 @@ ENV PYTHONUNBUFFERED=1 \
 RUN apt-get update && apt-get install -y \
     docker.io \
     curl \
+    libmagic1 \
     tzdata \
     && ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
     && echo "Asia/Shanghai" > /etc/timezone \
@@ -33,10 +34,9 @@ RUN mkdir -p logs media staticfiles
 
 # 复制启动脚本
 COPY start.sh /app/start.sh
-RUN chmod +x /app/start.sh
+RUN sed -i 's/\r$//' /app/start.sh && chmod +x /app/start.sh
 
-# 收集静态文件
-RUN python manage.py collectstatic --noinput 2>/dev/null || true
+# Static files are collected at startup after runtime secrets are supplied.
 
 # 暴露端口
 EXPOSE 8000

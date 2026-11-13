@@ -465,6 +465,7 @@ class FeedbackStatusView(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request):
+        gate_state = phase3.contract_payload()
         try:
             tables = set(connection.introspection.table_names())
             skill_review_connected = 'skill_review_verificationresult' in tables
@@ -476,8 +477,8 @@ class FeedbackStatusView(APIView):
             'phase3_contract_version': constants.PHASE3_CONTRACT_VERSION,
             'execution_feedback_open': constants.EXECUTION_FEEDBACK_OPEN,
             'milestone_i_open': constants.MILESTONE_I_OPEN,
-            'candidate_management_enabled': constants.CANDIDATE_MANAGEMENT_ENABLED,
-            'candidate_release_enabled': constants.CANDIDATE_RELEASE_ENABLED,
+            'candidate_management_enabled': gate_state['candidate_management_enabled'],
+            'candidate_release_enabled': gate_state['candidate_release_enabled'],
             'ai_required_for_core': False,
             'production_effects': {
                 'export_triggered': False,

@@ -14,7 +14,7 @@ function pageScript(file, globals, expose) {
   const script = parse(source).descriptor.scriptSetup.content.replace(/^import[\s\S]*?from ['"][^'"]+['"];?\s*/gm, '')
   return runInNewContext(`${script}\n;({ ${expose.join(', ')} })`, {
     ref, computed, watch, nextTick, createHubState, createAccountGuard, accountMemoryStorage,
-    onMounted() {}, onUnmounted() {}, onActivated() {}, onDeactivated() {}, defineExpose() {},
+    onMounted() {}, onUnmounted() {}, onBeforeUnmount() {}, onActivated() {}, onDeactivated() {}, defineExpose() {},
     ...globals,
   })
 }

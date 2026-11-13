@@ -1,0 +1,29 @@
+[
+  [
+    "postgres",
+    6584,
+    "active",
+    "Lock",
+    "object",
+    "0:12:02.026411",
+    "DROP DATABASE \"test_full_audit_rerun_features\""
+  ],
+  [
+    "postgres",
+    40140,
+    "active",
+    "IPC",
+    "ProcSignalBarrier",
+    "0:12:47.286032",
+    "DROP DATABASE \"test_full_audit_rerun_features\""
+  ],
+  [
+    "postgres",
+    41196,
+    "active",
+    "IPC",
+    "ProcSignalBarrier",
+    "0:10:00.833725",
+    "DROP DATABASE \"test_full_audit_rerun_features_legacy_confirmed\""
+  ]
+]

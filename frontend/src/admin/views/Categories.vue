@@ -7,12 +7,13 @@
           <button class="action-btn btn-default" @click="fetchCategories">
             🔄 刷新
           </button>
-          <button class="action-btn btn-primary" @click="showCreateModal = true">
+          <button class="action-btn btn-primary" disabled title="分类写入功能尚未开放">
             ➕ 新增分类
           </button>
         </div>
       </div>
 
+      <p role="status">当前仅支持查看分类。新增、编辑和删除尚未开放。</p>
       <!-- 分类列表 -->
       <div class="category-list">
         <div
@@ -33,10 +34,10 @@
             </div>
           </div>
           <div class="category-actions">
-            <button class="action-btn btn-default" @click="handleEdit(category)">
+            <button class="action-btn btn-default" disabled title="分类写入功能尚未开放">
               ✏️ 编辑
             </button>
-            <button class="action-btn btn-danger" @click="handleDelete(category)">
+            <button class="action-btn btn-danger" disabled title="分类写入功能尚未开放">
               🗑️ 删除
             </button>
           </div>
@@ -154,10 +155,7 @@ const handleSave = async () => {
   }
   saving.value = true
   try {
-    // 这里应该调用更新分类的 API
-    alert('保存成功（需要后端 API 支持）')
-    showEditModal.value = false
-    await fetchCategories()
+    alert('分类修改尚未开放，本次内容未保存。')
   } catch (error) {
     alert('保存失败')
   } finally {
@@ -167,7 +165,7 @@ const handleSave = async () => {
 
 const handleDelete = (category) => {
   if (confirm(`确定要删除分类 ${category.name} 吗？`)) {
-    alert('删除功能需要后端 API 支持')
+    alert('分类删除尚未开放，未删除任何分类。')
   }
 }
 
@@ -178,14 +176,7 @@ const handleCreate = async () => {
   }
   creating.value = true
   try {
-    // 这里应该调用创建分类的 API
-    alert('创建功能需要后端 API 支持')
-    showCreateModal.value = false
-    createForm.value = {
-      name: '',
-      description: ''
-    }
-    await fetchCategories()
+    alert('分类新增尚未开放，本次内容未保存。')
   } catch (error) {
     alert('创建失败')
   } finally {

@@ -1,13 +1,13 @@
 """Structure-aware chunking.
 
-Primary strategy reuses the project's existing ``legal_kb.ChunkingService``
-(zero new dependency). If ``langchain-text-splitters`` (MIT, standalone small
-package) is installed, a Markdown-header-aware splitter is used for richer
-heading metadata. Everything degrades gracefully to the built-in splitter.
+Both the optional LangChain path and the built-in fallback use original-text
+windows from ``legal_kb.ChunkingService`` with the same Markdown heading paths.
+The built-in path does not require any third-party Markdown dependency.
 """
 
 import logging
 import re
+from bisect import bisect_left, bisect_right
 from typing import Dict, List
 
 from django.conf import settings
@@ -19,6 +19,9 @@ logger = logging.getLogger(__name__)
 
 class StructureAwareChunker:
     """Split Markdown/plain text into chunks, preserving heading paths."""
+
+    HEADING = re.compile(r'^ {0,3}(#{1,6})(?:[ \t]+(.*)|[ \t]*)$')
+    FENCE = re.compile(r'^ {0,3}(`{3,}|~{3,})(.*)$')
 
     def __init__(self, chunk_size: int = None, chunk_overlap: int = None):
         self.chunk_size = int(
@@ -90,44 +93,70 @@ class StructureAwareChunker:
             )
             return None
 
+    @classmethod
+    def _markdown_structure(cls, text: str):
+        """Locate heading paths and body spans without rewriting the source."""
+        headings = []
+        body_spans = []
+        stack = []
+        fence = None
+        offset = 0
+        for line in text.splitlines(keepends=True):
+            content = line.rstrip('\r\n')
+            delimiter = cls.FENCE.match(content)
+            is_heading = False
+            if fence is not None:
+                if (delimiter and delimiter.group(1)[0] == fence[0]
+                        and len(delimiter.group(1)) >= len(fence)
+                        and not delimiter.group(2).strip()):
+                    fence = None
+            elif delimiter and (delimiter.group(1)[0] == '~' or '`' not in delimiter.group(2)):
+                fence = delimiter.group(1)
+            else:
+                match = cls.HEADING.match(content)
+                if match:
+                    level = len(match.group(1))
+                    title = re.sub(r'(?:^|[ \t]+)#+[ \t]*$', '', match.group(2) or '').strip()
+                    while stack and stack[-1][0] >= level:
+                        stack.pop()
+                    stack.append((level, title))
+                    headings.append((offset, tuple(title for _, title in stack if title)))
+                    is_heading = True
+            if not is_heading and content.strip():
+                body_spans.append((offset + len(content) - len(content.lstrip()),
+                                   offset + len(content.rstrip())))
+            offset += len(line)
+        return headings, body_spans
+
     def _split_with_builtin(self, text: str, base_metadata: Dict) -> List[Chunk]:
         from legal_kb.services.chunking_service import ChunkingService
 
         pieces = ChunkingService.split_plain_text(text, max_chars=self.chunk_size, overlap=self.chunk_overlap)
-        headings = []
-        path = []
-        fence = None
-        offset = 0
-        for line in text.splitlines(keepends=True):
-            delimiter = re.match(r'^\s{0,3}(`{3,}|~{3,})', line)
-            if delimiter:
-                marker = delimiter.group(1)
-                if fence is None:
-                    fence = marker
-                elif marker[0] == fence[0] and len(marker) >= len(fence):
-                    fence = None
-            elif fence is None:
-                match = re.match(r'^\s{0,3}(#{1,6})\s+(.+?)\s*$', line)
-                if match:
-                    level = len(match.group(1))
-                    title = re.sub(r'\s+#+\s*$', '', match.group(2))
-                    path = path[:level - 1] + [title]
-                    headings.append((offset, list(path)))
-            offset += len(line)
+        headings, body_spans = self._markdown_structure(text)
+        heading_starts = [position for position, _ in headings]
+        body_ends = [end for _, end in body_spans]
         chunks = []
         start = 0
         for piece in pieces:
             end = start + len(piece.text)
-            preceding = [path for position, path in headings if position <= start]
-            in_window = [path for position, path in headings if start <= position < end]
-            paths = preceding[-1:] + in_window
-            paths = [path for index, path in enumerate(paths) if path not in paths[:index]]
+            first_heading = max(0, bisect_right(heading_starts, start) - 1)
+            last_heading = bisect_left(heading_starts, end)
+            paths = list(dict.fromkeys(path for _, path in headings[first_heading:last_heading]))
+
+            # Consecutive parent/child headings describe the first body text.
+            # Keep all crossed sections separately, including the overlap's path.
+            body_index = bisect_right(body_ends, start)
+            position = end - 1
+            if body_index < len(body_spans) and body_spans[body_index][0] < end:
+                position = max(start, body_spans[body_index][0])
+            heading_index = bisect_right(heading_starts, position) - 1
+            heading_path = list(headings[heading_index][1]) if heading_index >= 0 else []
             chunks.append(Chunk(
                 text=piece.text,
                 order=piece.order,
-                title=paths[0][-1] if paths else piece.title,
+                title=heading_path[-1] if heading_path else piece.title,
                 metadata={**base_metadata, 'chunk_key': piece.clause_key,
-                          'heading_path': paths[0] if paths else [], 'heading_paths': paths,
+                          'heading_path': heading_path, 'heading_paths': [list(path) for path in paths],
                           'chunking_version': ChunkingService.VERSION},
             ))
             start = end - self.chunk_overlap

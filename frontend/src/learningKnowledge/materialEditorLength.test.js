@@ -14,7 +14,7 @@ import { names } from '../shared/navigation/names.js'
 import { clearTeachingTransfer, consumeTeachingTransfer, prepareTeachingTransfer, teachingIdentity } from '../shared/knowledge/teachingTransfer.js'
 
 const read = file => readFileSync(new URL(file, import.meta.url), 'utf8')
-const stripImports = source => source.replace(/^import .+ from .+\n/gm, '')
+const stripImports = source => source.replace(/^import .+ from .+\r?\n/gm, '')
 const editorDescriptor = parse(read('./MaterialEditor.vue')).descriptor
 const compiledEditor = compileScript(editorDescriptor, { id: 'material-length-regression' }).content
 const dependencies = { computed, ...editor }

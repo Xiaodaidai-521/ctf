@@ -1,0 +1,948 @@
+{
+  "counts": {
+    "tests": 927,
+    "pass": 800,
+    "fail": 127,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "parsed_failures": 127,
+  "groups": {
+    "src/learning/exams/records.test.js": [
+      "exam routes keep canonical record URLs and old deep links redirect with their query"
+    ],
+    "src/learning/growth/growthWiring.test.js": [
+      "/analytics keeps teacher access but sends students to the analysis section",
+      "radar card delegates missing-score logic to the pure model"
+    ],
+    "src/learning/phase2Journey.test.js": [
+      "back, forward, refresh and bookmarks restore the same student destinations"
+    ],
+    "src/learning/shadowPages.test.js": [
+      "student topic retains all five steps, original write actions, replays and four help levels",
+      "teacher history remains selected-student state history and does not show a previous student after failure",
+      "no active business page still links to moved shadow destinations or deleted exam views"
+    ],
+    "src/shared/content/contentContracts.test.js": [
+      "content SFC contract, scoped tokens and no internal display: ../../admin/views/Challenges.vue",
+      "content SFC contract, scoped tokens and no internal display: ../../admin/views/Resources.vue",
+      "resource preview retains all original metadata, download and review actions stay reachable"
+    ],
+    "src/shared/design/migrationSkins.test.js": [
+      "migrated skin: teacher/CapabilityMapAdmin compiles with scoped token styles",
+      "migrated skin: teacher/SkillReviewAdmin compiles with scoped token styles",
+      "migrated skin: teacher/FeedbackCandidates compiles with scoped token styles",
+      "migrated skin: components/MultiAgent/MultiAgentChat compiles with scoped token styles",
+      "migrated skin: admin/views/legal/LegalWorkspace compiles with scoped token styles",
+      "migrated skin: admin/views/legal/ComplianceAgentCenter compiles with scoped token styles",
+      "migrated skin: admin/views/legal/ComplianceCenter compiles with scoped token styles",
+      "migrated skin: components/AIAssistant compiles with scoped token styles",
+      "migrated skin: components/AITutorChat compiles with scoped token styles",
+      "migrated skin: views/GeneratedContent compiles with scoped token styles",
+      "migrated skin: views/LearningAnalytics compiles with scoped token styles",
+      "migrated skin: views/StudentDashboard compiles with scoped token styles",
+      "migrated skin: components/AbilityRadarCard compiles with scoped token styles",
+      "migrated skin: components/PersonalizedRecommendationCard compiles with scoped token styles",
+      "migrated skin: admin/views/legal/AuditLogs compiles with scoped token styles",
+      "migrated skin: admin/views/legal/ComplianceDashboard compiles with scoped token styles",
+      "migrated skin: admin/views/legal/ComplianceExercises compiles with scoped token styles",
+      "migrated skin: components/AnnouncementBanner compiles with scoped token styles",
+      "migrated skin: components/ArticleCard compiles with scoped token styles",
+      "migrated skin: components/CommentItem compiles with scoped token styles",
+      "migrated skin: components/MermaidDiagram compiles with scoped token styles",
+      "migrated skin: admin/views/Users compiles with scoped token styles",
+      "migrated skin: admin/views/Challenges compiles with scoped token styles",
+      "migrated skin: admin/views/Submissions compiles with scoped token styles",
+      "migrated skin: admin/views/Categories compiles with scoped token styles",
+      "migrated skin: admin/views/Resources compiles with scoped token styles",
+      "migrated skin: admin/views/Articles compiles with scoped token styles",
+      "migrated skin: admin/views/Announcements compiles with scoped token styles",
+      "migrated skin: views/ResourceUpload compiles with scoped token styles",
+      "migrated skin: views/Leaderboard compiles with scoped token styles",
+      "migrated skin: views/ArticleEditor compiles with scoped token styles",
+      "migrated skin: views/ArticleDetail compiles with scoped token styles",
+      "migrated skin: views/Community compiles with scoped token styles",
+      "migrated skin: admin/views/legal/KnowledgeBase compiles with scoped token styles",
+      "all remaining legacy icon names resolve to imported Arco icons, without an unknown fallback",
+      "record presentation does not inherit the feedback definition grid",
+      "legal search cards constrain mobile grid and textarea widths",
+      "learning trend identities have line and point encoding besides color",
+      "canvas colors and typography resolve from live shared tokens"
+    ],
+    "src/shared/design/pageSkins.test.js": [
+      "phase-one skin: Challenges compiles and uses declared tokens",
+      "phase-one skin: Resources compiles and uses declared tokens",
+      "phase-one skin: ExamCenter compiles and uses declared tokens",
+      "phase-one skin: Register compiles and uses declared tokens",
+      "phase-one skin: ProfileSetup compiles and uses declared tokens",
+      "phase-one skin: Profile compiles and uses declared tokens",
+      "phase-one skin: LearningPaths/LearningPathsList compiles and uses declared tokens",
+      "phase-one skin: components/ChallengeCard compiles and uses declared tokens",
+      "phase-one skin: components/ResourceCard compiles and uses declared tokens",
+      "feedback rules stay within the feedback page and retain compact forms"
+    ],
+    "src/shared/design/tokens.test.js": [
+      "compact component CSS targets descendants, never the entire app shell"
+    ],
+    "src/shared/forms/pageCopy.test.js": [
+      "feedback creation preserves all imported original references, versions and evidence",
+      "supplementary feedback evidence preserves imported reference, version, summary and attachment"
+    ],
+    "src/shared/navigation/phase2Destinations.test.js": [
+      "path, module and generated-content routes remain independent and reloadable",
+      "profile persona and resource highlight deep links keep their original sections"
+    ],
+    "src/shared/state/pageFilters.test.js": [
+      "Articles compiles and retains only explicit list controls",
+      "Submissions compiles and retains only explicit list controls",
+      "Announcements compiles and retains only explicit list controls",
+      "governance tasks land at pending articles and the user list loads on mount"
+    ],
+    "src/teacher/candidatePresentation.test.js": [
+      "approval explanations use known reasons with a readable fallback and full record retained",
+      "changed factor import retains exact original submit values without enabling gated flows"
+    ],
+    "src/teacher/feedbackPresentation.test.js": [
+      "FeedbackQueue.vue: Vue script and template compile",
+      "FeedbackDetail.vue: Vue script and template compile",
+      "risk selection traverses all authorised pages independently of queue filters",
+      "partial risk-list failure preserves choices, separates errors and can be retried",
+      "sampling payload preserves selected IDs, original scope and other options",
+      "queue and batch text use semantic titles while preserving internal destinations",
+      "duplicate selector reads beyond the first page and retains all eligible primary feedback",
+      "teacher actions keep all payloads, IDs and optimistic concurrency fields",
+      "detail options relabel destinations without dropping values; evidence forms keep references",
+      "detail resolves names and referral choices, hides references while retaining complete records",
+      "imported owner, review references and verified retest flow through real action wrappers",
+      "reconciliation resolves names sequentially and retries with original IDs",
+      "reconciliation auxiliary failures do not hide retry controls or leak errors"
+    ],
+    "src/teacher/feedback/lengthfix.test.js": [
+      "length fix: ../FeedbackQueue.vue keeps a compilable native disclosure",
+      "sampling disclosure retains every input and write/read action while defaulting closed"
+    ],
+    "src/teacher/feedback/workbench.test.js": [
+      "../FeedbackQueue.vue: workbench pages compile and resolve existing domain API",
+      "../FeedbackCandidates.vue: workbench pages compile and resolve existing domain API",
+      "../FeedbackDetail.vue: workbench pages compile and resolve existing domain API",
+      "../FeedbackReconciliation.vue: workbench pages compile and resolve existing domain API",
+      "queue loading and read failure do not claim zero or no feedback; retry shows real empty",
+      "query status preset is passed on initial read and same-route query changes; invalid query is rejected",
+      "late queue failures cannot replace current data or clear newer loading state",
+      "options and batch failures are independent of successful queue, missing total is unknown not zero",
+      "embedded queue hides duplicated main heading and refresh is a real action, with returned pagination",
+      "candidate registration requires source configuration and retains every imported request field and gates",
+      "report attachment passes real failing, incomplete or insufficient source facts unchanged for server validation",
+      "replacement imports cannot silently submit stale configuration or stale report after a bad file",
+      "candidate imports ignore late files and unmount and repeated clicks send only one immutable payload",
+      "skill review cockpit queries select exact initial and same-route sections while retaining retest and stats",
+      "skill review read failures are not empty queues, retry and late responses remain atomic"
+    ],
+    "src/utils/petAssets.test.js": [
+      "src\\\\utils\\\\petAssets.test.js"
+    ],
+    "src/utils/petRegistry.test.js": [
+      "registry loads every built-in display name and local spritesheet from its manifest"
+    ],
+    "src/views/dashboardCopy.test.js": [
+      "dashboard retains original navigation and complete record downloads with local reflow"
+    ],
+    "src/views/examTaking.test.js": [
+      "both actual SFCs compile; page-scoped external styles use declared tokens and real Arco icons",
+      "keyboard-capable answer buttons and navigation retain single, multiple, judgement and first-unanswered operations",
+      "each theory/practice surface has only one filled main action; states have readable labels",
+      "load failures retain original alert/return behavior without leaking internal server details",
+      "exit choices preserve cancel, return, abandonment API and failure behavior",
+      "page-local native modal synchronizes open/close without owning exam state and keeps keyboard cancel hooks"
+    ],
+    "src/views/generatedContent.test.js": [
+      "page consumes the adapter, reloads on id change, and keeps legacy field access out"
+    ],
+    "src/views/pageStates.test.js": [
+      "challenge failures have independent feedback; failed statistics never become zero",
+      "challenge activity uses only own submissions and orders real records newest first",
+      "guest activity makes no private API call; status filtering and random selection remain functional",
+      "resource failures have a retry state rather than a misleading empty list",
+      "a late resource response cannot replace newer filters or clear their loading state",
+      "pending vs in-progress decide the single primary action from real records",
+      "exam status read failure never asserts there is no ongoing exam",
+      "exam action failures stay readable, release loading and never expose backend error text",
+      "practice pagination renders the actual template with retained local list refs, without unwrap errors"
+    ],
+    "src/views/studentLayoutContracts.test.js": [
+      "home: template/styles compile, student overrides are role-gated and token-only",
+      "dashboard: template/styles compile, student overrides are role-gated and token-only",
+      "dashboard keeps the entire pre-existing teacher CSS and administrator template byte-for-byte",
+      "only the explicit student role receives the dashboard console and new layout; teacher cards remain unchanged",
+      "guest Home uses only public challenges and keeps login/register/path/practice entrances plus empty/retry states",
+      "Guide and dashboard hand typed input and identity to the existing tutor; blank input never launches a conversation",
+      "student progress and memory rates are never synthesized from IDs, missing fields, invalid values or failed requests",
+      "dashboard preserves complete recommendation, review, insight, teaching and article fields and raw-record downloads"
+    ]
+  },
+  "failures": [
+    {
+      "number": 270,
+      "title": "exam routes keep canonical record URLs and old deep links redirect with their query",
+      "location": "src/learning/exams/records.test.js:132:1",
+      "error": "|-"
+    },
+    {
+      "number": 275,
+      "title": "/analytics keeps teacher access but sends students to the analysis section",
+      "location": "src/learning/growth/growthWiring.test.js:22:1",
+      "error": "|-"
+    },
+    {
+      "number": 278,
+      "title": "radar card delegates missing-score logic to the pure model",
+      "location": "src/learning/growth/growthWiring.test.js:49:1",
+      "error": "|-"
+    },
+    {
+      "number": 329,
+      "title": "back, forward, refresh and bookmarks restore the same student destinations",
+      "location": "src/learning/phase2Journey.test.js:90:1",
+      "error": "|-"
+    },
+    {
+      "number": 379,
+      "title": "student topic retains all five steps, original write actions, replays and four help levels",
+      "location": "src/learning/shadowPages.test.js:109:1",
+      "error": "|-"
+    },
+    {
+      "number": 382,
+      "title": "teacher history remains selected-student state history and does not show a previous student after failure",
+      "location": "src/learning/shadowPages.test.js:169:1",
+      "error": "'historyRows is not defined'"
+    },
+    {
+      "number": 389,
+      "title": "no active business page still links to moved shadow destinations or deleted exam views",
+      "location": "src/learning/shadowPages.test.js:303:1",
+      "error": "'/D:/aaa10/16015478%E6%BA%90%E7%A0%81/project-code/frontend/src/views/ExamCenter.vue'"
+    },
+    {
+      "number": 416,
+      "title": "content SFC contract, scoped tokens and no internal display: ../../admin/views/Challenges.vue",
+      "location": "src/shared/content/contentContracts.test.js:228:47",
+      "error": "|-"
+    },
+    {
+      "number": 417,
+      "title": "content SFC contract, scoped tokens and no internal display: ../../admin/views/Resources.vue",
+      "location": "src/shared/content/contentContracts.test.js:228:47",
+      "error": "|-"
+    },
+    {
+      "number": 432,
+      "title": "resource preview retains all original metadata, download and review actions stay reachable",
+      "location": "src/shared/content/contentContracts.test.js:297:1",
+      "error": "|-"
+    },
+    {
+      "number": 434,
+      "title": "migrated skin: teacher/CapabilityMapAdmin compiles with scoped token styles",
+      "location": "src/shared/design/migrationSkins.test.js:30:27",
+      "error": "|-"
+    },
+    {
+      "number": 435,
+      "title": "migrated skin: teacher/SkillReviewAdmin compiles with scoped token styles",
+      "location": "src/shared/design/migrationSkins.test.js:30:27",
+      "error": "|-"
+    },
+    {
+      "number": 436,
+      "title": "migrated skin: teacher/FeedbackCandidates compiles with scoped token styles",
+      "location": "src/shared/design/migrationSkins.test.js:30:27",
+      "error": "|-"
+    },
+    {
+      "number": 442,
+      "title": "migrated skin: components/MultiAgent/MultiAgentChat compiles with scoped token styles",
+      "location": "src/shared/design/migrationSkins.test.js:30:27",
+      "error": "|-"
+    },
+    {
+      "number": 444,
+      "title": "migrated skin: admin/views/legal/LegalWorkspace compiles with scoped token styles",
+      "location": "src/shared/design/migrationSkins.test.js:30:27",
+      "error": "|-"
+    },
+    {
+      "number": 445,
+      "title": "migrated skin: admin/views/legal/ComplianceAgentCenter compiles with scoped token styles",
+      "location": "src/shared/design/migrationSkins.test.js:30:27",
+      "error": "|-"
+    },
+    {
+      "number": 446,
+      "title": "migrated skin: admin/views/legal/ComplianceCenter compiles with scoped token styles",
+      "location": "src/shared/design/migrationSkins.test.js:30:27",
+      "error": "|-"
+    },
+    {
+      "number": 447,
+      "title": "migrated skin: components/AIAssistant compiles with scoped token styles",
+      "location": "src/shared/design/migrationSkins.test.js:30:27",
+      "error": "|-"
+    },
+    {
+      "number": 448,
+      "title": "migrated skin: components/AITutorChat compiles with scoped token styles",
+      "location": "src/shared/design/migrationSkins.test.js:30:27",
+      "error": "|-"
+    },
+    {
+      "number": 450,
+      "title": "migrated skin: views/GeneratedContent compiles with scoped token styles",
+      "location": "src/shared/design/migrationSkins.test.js:30:27",
+      "error": "|-"
+    },
+    {
+      "number": 451,
+      "title": "migrated skin: views/LearningAnalytics compiles with scoped token styles",
+      "location": "src/shared/design/migrationSkins.test.js:30:27",
+      "error": "|-"
+    },
+    {
+      "number": 452,
+      "title": "migrated skin: views/StudentDashboard compiles with scoped token styles",
+      "location": "src/shared/design/migrationSkins.test.js:30:27",
+      "error": "|-"
+    },
+    {
+      "number": 457,
+      "title": "migrated skin: components/AbilityRadarCard compiles with scoped token styles",
+      "location": "src/shared/design/migrationSkins.test.js:30:27",
+      "error": "|-"
+    },
+    {
+      "number": 458,
+      "title": "migrated skin: components/PersonalizedRecommendationCard compiles with scoped token styles",
+      "location": "src/shared/design/migrationSkins.test.js:30:27",
+      "error": "|-"
+    },
+    {
+      "number": 461,
+      "title": "migrated skin: admin/views/legal/AuditLogs compiles with scoped token styles",
+      "location": "src/shared/design/migrationSkins.test.js:30:27",
+      "error": "|-"
+    },
+    {
+      "number": 462,
+      "title": "migrated skin: admin/views/legal/ComplianceDashboard compiles with scoped token styles",
+      "location": "src/shared/design/migrationSkins.test.js:30:27",
+      "error": "|-"
+    },
+    {
+      "number": 463,
+      "title": "migrated skin: admin/views/legal/ComplianceExercises compiles with scoped token styles",
+      "location": "src/shared/design/migrationSkins.test.js:30:27",
+      "error": "|-"
+    },
+    {
+      "number": 464,
+      "title": "migrated skin: components/AnnouncementBanner compiles with scoped token styles",
+      "location": "src/shared/design/migrationSkins.test.js:30:27",
+      "error": "|-"
+    },
+    {
+      "number": 465,
+      "title": "migrated skin: components/ArticleCard compiles with scoped token styles",
+      "location": "src/shared/design/migrationSkins.test.js:30:27",
+      "error": "|-"
+    },
+    {
+      "number": 466,
+      "title": "migrated skin: components/CommentItem compiles with scoped token styles",
+      "location": "src/shared/design/migrationSkins.test.js:30:27",
+      "error": "|-"
+    },
+    {
+      "number": 467,
+      "title": "migrated skin: components/MermaidDiagram compiles with scoped token styles",
+      "location": "src/shared/design/migrationSkins.test.js:30:27",
+      "error": "|-"
+    },
+    {
+      "number": 468,
+      "title": "migrated skin: admin/views/Users compiles with scoped token styles",
+      "location": "src/shared/design/migrationSkins.test.js:30:27",
+      "error": "|-"
+    },
+    {
+      "number": 469,
+      "title": "migrated skin: admin/views/Challenges compiles with scoped token styles",
+      "location": "src/shared/design/migrationSkins.test.js:30:27",
+      "error": "|-"
+    },
+    {
+      "number": 470,
+      "title": "migrated skin: admin/views/Submissions compiles with scoped token styles",
+      "location": "src/shared/design/migrationSkins.test.js:30:27",
+      "error": "|-"
+    },
+    {
+      "number": 471,
+      "title": "migrated skin: admin/views/Categories compiles with scoped token styles",
+      "location": "src/shared/design/migrationSkins.test.js:30:27",
+      "error": "|-"
+    },
+    {
+      "number": 472,
+      "title": "migrated skin: admin/views/Resources compiles with scoped token styles",
+      "location": "src/shared/design/migrationSkins.test.js:30:27",
+      "error": "|-"
+    },
+    {
+      "number": 473,
+      "title": "migrated skin: admin/views/Articles compiles with scoped token styles",
+      "location": "src/shared/design/migrationSkins.test.js:30:27",
+      "error": "|-"
+    },
+    {
+      "number": 474,
+      "title": "migrated skin: admin/views/Announcements compiles with scoped token styles",
+      "location": "src/shared/design/migrationSkins.test.js:30:27",
+      "error": "|-"
+    },
+    {
+      "number": 476,
+      "title": "migrated skin: views/ResourceUpload compiles with scoped token styles",
+      "location": "src/shared/design/migrationSkins.test.js:30:27",
+      "error": "|-"
+    },
+    {
+      "number": 477,
+      "title": "migrated skin: views/Leaderboard compiles with scoped token styles",
+      "location": "src/shared/design/migrationSkins.test.js:30:27",
+      "error": "|-"
+    },
+    {
+      "number": 478,
+      "title": "migrated skin: views/ArticleEditor compiles with scoped token styles",
+      "location": "src/shared/design/migrationSkins.test.js:30:27",
+      "error": "|-"
+    },
+    {
+      "number": 479,
+      "title": "migrated skin: views/ArticleDetail compiles with scoped token styles",
+      "location": "src/shared/design/migrationSkins.test.js:30:27",
+      "error": "|-"
+    },
+    {
+      "number": 480,
+      "title": "migrated skin: views/Community compiles with scoped token styles",
+      "location": "src/shared/design/migrationSkins.test.js:30:27",
+      "error": "|-"
+    },
+    {
+      "number": 482,
+      "title": "migrated skin: admin/views/legal/KnowledgeBase compiles with scoped token styles",
+      "location": "src/shared/design/migrationSkins.test.js:30:27",
+      "error": "|-"
+    },
+    {
+      "number": 486,
+      "title": "all remaining legacy icon names resolve to imported Arco icons, without an unknown fallback",
+      "location": "src/shared/design/migrationSkins.test.js:57:1",
+      "error": "|-"
+    },
+    {
+      "number": 487,
+      "title": "record presentation does not inherit the feedback definition grid",
+      "location": "src/shared/design/migrationSkins.test.js:86:1",
+      "error": "|-"
+    },
+    {
+      "number": 488,
+      "title": "legal search cards constrain mobile grid and textarea widths",
+      "location": "src/shared/design/migrationSkins.test.js:100:1",
+      "error": "|-"
+    },
+    {
+      "number": 489,
+      "title": "learning trend identities have line and point encoding besides color",
+      "location": "src/shared/design/migrationSkins.test.js:109:1",
+      "error": "|-"
+    },
+    {
+      "number": 490,
+      "title": "canvas colors and typography resolve from live shared tokens",
+      "location": "src/shared/design/migrationSkins.test.js:118:1",
+      "error": "|-"
+    },
+    {
+      "number": 491,
+      "title": "phase-one skin: Challenges compiles and uses declared tokens",
+      "location": "src/shared/design/pageSkins.test.js:23:251",
+      "error": "|-"
+    },
+    {
+      "number": 492,
+      "title": "phase-one skin: Resources compiles and uses declared tokens",
+      "location": "src/shared/design/pageSkins.test.js:23:251",
+      "error": "|-"
+    },
+    {
+      "number": 493,
+      "title": "phase-one skin: ExamCenter compiles and uses declared tokens",
+      "location": "src/shared/design/pageSkins.test.js:23:251",
+      "error": "|-"
+    },
+    {
+      "number": 495,
+      "title": "phase-one skin: Register compiles and uses declared tokens",
+      "location": "src/shared/design/pageSkins.test.js:23:251",
+      "error": "|-"
+    },
+    {
+      "number": 496,
+      "title": "phase-one skin: ProfileSetup compiles and uses declared tokens",
+      "location": "src/shared/design/pageSkins.test.js:23:251",
+      "error": "|-"
+    },
+    {
+      "number": 497,
+      "title": "phase-one skin: Profile compiles and uses declared tokens",
+      "location": "src/shared/design/pageSkins.test.js:23:251",
+      "error": "|-"
+    },
+    {
+      "number": 498,
+      "title": "phase-one skin: LearningPaths/LearningPathsList compiles and uses declared tokens",
+      "location": "src/shared/design/pageSkins.test.js:23:251",
+      "error": "|-"
+    },
+    {
+      "number": 508,
+      "title": "phase-one skin: components/ChallengeCard compiles and uses declared tokens",
+      "location": "src/shared/design/pageSkins.test.js:23:251",
+      "error": "|-"
+    },
+    {
+      "number": 509,
+      "title": "phase-one skin: components/ResourceCard compiles and uses declared tokens",
+      "location": "src/shared/design/pageSkins.test.js:23:251",
+      "error": "|-"
+    },
+    {
+      "number": 510,
+      "title": "feedback rules stay within the feedback page and retain compact forms",
+      "location": "src/shared/design/pageSkins.test.js:41:1",
+      "error": "|-"
+    },
+    {
+      "number": 528,
+      "title": "compact component CSS targets descendants, never the entire app shell",
+      "location": "src/shared/design/tokens.test.js:17:1",
+      "error": "|-"
+    },
+    {
+      "number": 540,
+      "title": "feedback creation preserves all imported original references, versions and evidence",
+      "location": "src/shared/forms/pageCopy.test.js:29:1",
+      "error": "'decisionFields is not defined'"
+    },
+    {
+      "number": 541,
+      "title": "supplementary feedback evidence preserves imported reference, version, summary and attachment",
+      "location": "src/shared/forms/pageCopy.test.js:49:1",
+      "error": "'referenceFields is not defined'"
+    },
+    {
+      "number": 585,
+      "title": "path, module and generated-content routes remain independent and reloadable",
+      "location": "src/shared/navigation/phase2Destinations.test.js:85:1",
+      "error": "|-"
+    },
+    {
+      "number": 586,
+      "title": "profile persona and resource highlight deep links keep their original sections",
+      "location": "src/shared/navigation/phase2Destinations.test.js:96:1",
+      "error": "|-"
+    },
+    {
+      "number": 623,
+      "title": "Articles compiles and retains only explicit list controls",
+      "location": "src/shared/state/pageFilters.test.js:31:3",
+      "error": "|-"
+    },
+    {
+      "number": 624,
+      "title": "Submissions compiles and retains only explicit list controls",
+      "location": "src/shared/state/pageFilters.test.js:31:3",
+      "error": "|-"
+    },
+    {
+      "number": 625,
+      "title": "Announcements compiles and retains only explicit list controls",
+      "location": "src/shared/state/pageFilters.test.js:31:3",
+      "error": "|-"
+    },
+    {
+      "number": 626,
+      "title": "governance tasks land at pending articles and the user list loads on mount",
+      "location": "src/shared/state/pageFilters.test.js:42:1",
+      "error": "|-"
+    },
+    {
+      "number": 670,
+      "title": "approval explanations use known reasons with a readable fallback and full record retained",
+      "location": "src/teacher/candidatePresentation.test.js:22:1",
+      "error": "|-"
+    },
+    {
+      "number": 671,
+      "title": "changed factor import retains exact original submit values without enabling gated flows",
+      "location": "src/teacher/candidatePresentation.test.js:29:1",
+      "error": "'importConfiguration is not defined'"
+    },
+    {
+      "number": 680,
+      "title": "FeedbackQueue.vue: Vue script and template compile",
+      "location": "src/teacher/feedbackPresentation.test.js:67:3",
+      "error": "|-"
+    },
+    {
+      "number": 681,
+      "title": "FeedbackDetail.vue: Vue script and template compile",
+      "location": "src/teacher/feedbackPresentation.test.js:67:3",
+      "error": "|-"
+    },
+    {
+      "number": 687,
+      "title": "risk selection traverses all authorised pages independently of queue filters",
+      "location": "src/teacher/feedbackPresentation.test.js:117:1",
+      "error": "'embedded is not defined'"
+    },
+    {
+      "number": 688,
+      "title": "partial risk-list failure preserves choices, separates errors and can be retried",
+      "location": "src/teacher/feedbackPresentation.test.js:135:1",
+      "error": "'embedded is not defined'"
+    },
+    {
+      "number": 689,
+      "title": "sampling payload preserves selected IDs, original scope and other options",
+      "location": "src/teacher/feedbackPresentation.test.js:154:1",
+      "error": "'embedded is not defined'"
+    },
+    {
+      "number": 690,
+      "title": "queue and batch text use semantic titles while preserving internal destinations",
+      "location": "src/teacher/feedbackPresentation.test.js:168:1",
+      "error": "'embedded is not defined'"
+    },
+    {
+      "number": 691,
+      "title": "duplicate selector reads beyond the first page and retains all eligible primary feedback",
+      "location": "src/teacher/feedbackPresentation.test.js:182:1",
+      "error": "'mainTicket is not defined'"
+    },
+    {
+      "number": 692,
+      "title": "teacher actions keep all payloads, IDs and optimistic concurrency fields",
+      "location": "src/teacher/feedbackPresentation.test.js:195:1",
+      "error": "'mainTicket is not defined'"
+    },
+    {
+      "number": 693,
+      "title": "detail options relabel destinations without dropping values; evidence forms keep references",
+      "location": "src/teacher/feedbackPresentation.test.js:222:1",
+      "error": "'mainTicket is not defined'"
+    },
+    {
+      "number": 694,
+      "title": "detail resolves names and referral choices, hides references while retaining complete records",
+      "location": "src/teacher/feedbackPresentation.test.js:243:1",
+      "error": "'mainTicket is not defined'"
+    },
+    {
+      "number": 695,
+      "title": "imported owner, review references and verified retest flow through real action wrappers",
+      "location": "src/teacher/feedbackPresentation.test.js:263:1",
+      "error": "'mainTicket is not defined'"
+    },
+    {
+      "number": 696,
+      "title": "reconciliation resolves names sequentially and retries with original IDs",
+      "location": "src/teacher/feedbackPresentation.test.js:285:1",
+      "error": "'loading is not defined'"
+    },
+    {
+      "number": 697,
+      "title": "reconciliation auxiliary failures do not hide retry controls or leak errors",
+      "location": "src/teacher/feedbackPresentation.test.js:302:1",
+      "error": "'loading is not defined'"
+    },
+    {
+      "number": 699,
+      "title": "length fix: ../FeedbackQueue.vue keeps a compilable native disclosure",
+      "location": "src/teacher/feedback/lengthfix.test.js:24:3",
+      "error": "|-"
+    },
+    {
+      "number": 703,
+      "title": "sampling disclosure retains every input and write/read action while defaulting closed",
+      "location": "src/teacher/feedback/lengthfix.test.js:74:1",
+      "error": "|-"
+    },
+    {
+      "number": 706,
+      "title": "../FeedbackQueue.vue: workbench pages compile and resolve existing domain API",
+      "location": "src/teacher/feedback/workbench.test.js:37:3",
+      "error": "|-"
+    },
+    {
+      "number": 707,
+      "title": "../FeedbackCandidates.vue: workbench pages compile and resolve existing domain API",
+      "location": "src/teacher/feedback/workbench.test.js:37:3",
+      "error": "|-"
+    },
+    {
+      "number": 708,
+      "title": "../FeedbackDetail.vue: workbench pages compile and resolve existing domain API",
+      "location": "src/teacher/feedback/workbench.test.js:37:3",
+      "error": "|-"
+    },
+    {
+      "number": 709,
+      "title": "../FeedbackReconciliation.vue: workbench pages compile and resolve existing domain API",
+      "location": "src/teacher/feedback/workbench.test.js:37:3",
+      "error": "|-"
+    },
+    {
+      "number": 711,
+      "title": "queue loading and read failure do not claim zero or no feedback; retry shows real empty",
+      "location": "src/teacher/feedback/workbench.test.js:65:1",
+      "error": "'embedded is not defined'"
+    },
+    {
+      "number": 712,
+      "title": "query status preset is passed on initial read and same-route query changes; invalid query is rejected",
+      "location": "src/teacher/feedback/workbench.test.js:82:1",
+      "error": "'embedded is not defined'"
+    },
+    {
+      "number": 713,
+      "title": "late queue failures cannot replace current data or clear newer loading state",
+      "location": "src/teacher/feedback/workbench.test.js:95:1",
+      "error": "'embedded is not defined'"
+    },
+    {
+      "number": 714,
+      "title": "options and batch failures are independent of successful queue, missing total is unknown not zero",
+      "location": "src/teacher/feedback/workbench.test.js:110:1",
+      "error": "'embedded is not defined'"
+    },
+    {
+      "number": 715,
+      "title": "embedded queue hides duplicated main heading and refresh is a real action, with returned pagination",
+      "location": "src/teacher/feedback/workbench.test.js:125:1",
+      "error": "'embedded is not defined'"
+    },
+    {
+      "number": 718,
+      "title": "candidate registration requires source configuration and retains every imported request field and gates",
+      "location": "src/teacher/feedback/workbench.test.js:196:1",
+      "error": "'reportImports is not defined'"
+    },
+    {
+      "number": 719,
+      "title": "report attachment passes real failing, incomplete or insufficient source facts unchanged for server validation",
+      "location": "src/teacher/feedback/workbench.test.js:215:1",
+      "error": "'reportImports is not defined'"
+    },
+    {
+      "number": 720,
+      "title": "replacement imports cannot silently submit stale configuration or stale report after a bad file",
+      "location": "src/teacher/feedback/workbench.test.js:235:1",
+      "error": "'reportImports is not defined'"
+    },
+    {
+      "number": 721,
+      "title": "candidate imports ignore late files and unmount and repeated clicks send only one immutable payload",
+      "location": "src/teacher/feedback/workbench.test.js:254:1",
+      "error": "'reportImports is not defined'"
+    },
+    {
+      "number": 722,
+      "title": "skill review cockpit queries select exact initial and same-route sections while retaining retest and stats",
+      "location": "src/teacher/feedback/workbench.test.js:302:1",
+      "error": "'tabPreset is not defined'"
+    },
+    {
+      "number": 723,
+      "title": "skill review read failures are not empty queues, retry and late responses remain atomic",
+      "location": "src/teacher/feedback/workbench.test.js:325:1",
+      "error": "'tabPreset is not defined'"
+    },
+    {
+      "number": 66,
+      "title": "src\\\\utils\\\\petAssets.test.js",
+      "location": "src/utils/petAssets.test.js:1:1",
+      "error": "'test failed'"
+    },
+    {
+      "number": 804,
+      "title": "registry loads every built-in display name and local spritesheet from its manifest",
+      "location": "src/utils/petRegistry.test.js:9:1",
+      "error": "\"ENOENT: no such file or directory, open 'D:\\\\aaa10\\\\16015478源码\\\\project-code\\\\frontend\\\\public\\\\pets\\\\dundun\\\\spritesheet.webp'\""
+    },
+    {
+      "number": 868,
+      "title": "dashboard retains original navigation and complete record downloads with local reflow",
+      "location": "src/views/dashboardCopy.test.js:15:1",
+      "error": "|-"
+    },
+    {
+      "number": 879,
+      "title": "both actual SFCs compile; page-scoped external styles use declared tokens and real Arco icons",
+      "location": "src/views/examTaking.test.js:96:1",
+      "error": "|-"
+    },
+    {
+      "number": 882,
+      "title": "keyboard-capable answer buttons and navigation retain single, multiple, judgement and first-unanswered operations",
+      "location": "src/views/examTaking.test.js:154:1",
+      "error": "|-"
+    },
+    {
+      "number": 886,
+      "title": "each theory/practice surface has only one filled main action; states have readable labels",
+      "location": "src/views/examTaking.test.js:273:1",
+      "error": "|-"
+    },
+    {
+      "number": 887,
+      "title": "load failures retain original alert/return behavior without leaking internal server details",
+      "location": "src/views/examTaking.test.js:299:1",
+      "error": "'The \"string\" argument must be of type string. Received type undefined (undefined)'"
+    },
+    {
+      "number": 890,
+      "title": "exit choices preserve cancel, return, abandonment API and failure behavior",
+      "location": "src/views/examTaking.test.js:347:1",
+      "error": "|-"
+    },
+    {
+      "number": 894,
+      "title": "page-local native modal synchronizes open/close without owning exam state and keeps keyboard cancel hooks",
+      "location": "src/views/examTaking.test.js:419:1",
+      "error": "|-"
+    },
+    {
+      "number": 903,
+      "title": "page consumes the adapter, reloads on id change, and keeps legacy field access out",
+      "location": "src/views/generatedContent.test.js:138:1",
+      "error": "|-"
+    },
+    {
+      "number": 904,
+      "title": "challenge failures have independent feedback; failed statistics never become zero",
+      "location": "src/views/pageStates.test.js:30:1",
+      "error": "'useRouter is not defined'"
+    },
+    {
+      "number": 905,
+      "title": "challenge activity uses only own submissions and orders real records newest first",
+      "location": "src/views/pageStates.test.js:45:1",
+      "error": "'useRouter is not defined'"
+    },
+    {
+      "number": 906,
+      "title": "guest activity makes no private API call; status filtering and random selection remain functional",
+      "location": "src/views/pageStates.test.js:59:1",
+      "error": "'useRouter is not defined'"
+    },
+    {
+      "number": 907,
+      "title": "resource failures have a retry state rather than a misleading empty list",
+      "location": "src/views/pageStates.test.js:81:1",
+      "error": "'listError is not defined'"
+    },
+    {
+      "number": 908,
+      "title": "a late resource response cannot replace newer filters or clear their loading state",
+      "location": "src/views/pageStates.test.js:94:1",
+      "error": "'listError is not defined'"
+    },
+    {
+      "number": 909,
+      "title": "pending vs in-progress decide the single primary action from real records",
+      "location": "src/views/pageStates.test.js:128:1",
+      "error": "'useUserStore is not defined'"
+    },
+    {
+      "number": 910,
+      "title": "exam status read failure never asserts there is no ongoing exam",
+      "location": "src/views/pageStates.test.js:153:1",
+      "error": "'useUserStore is not defined'"
+    },
+    {
+      "number": 911,
+      "title": "exam action failures stay readable, release loading and never expose backend error text",
+      "location": "src/views/pageStates.test.js:162:1",
+      "error": "'useUserStore is not defined'"
+    },
+    {
+      "number": 912,
+      "title": "practice pagination renders the actual template with retained local list refs, without unwrap errors",
+      "location": "src/views/pageStates.test.js:192:1",
+      "error": "'useRouter is not defined'"
+    },
+    {
+      "number": 916,
+      "title": "home: template/styles compile, student overrides are role-gated and token-only",
+      "location": "src/views/studentLayoutContracts.test.js:88:3",
+      "error": "|-"
+    },
+    {
+      "number": 918,
+      "title": "dashboard: template/styles compile, student overrides are role-gated and token-only",
+      "location": "src/views/studentLayoutContracts.test.js:88:3",
+      "error": "|-"
+    },
+    {
+      "number": 919,
+      "title": "dashboard keeps the entire pre-existing teacher CSS and administrator template byte-for-byte",
+      "location": "src/views/studentLayoutContracts.test.js:116:1",
+      "error": "|-"
+    },
+    {
+      "number": 920,
+      "title": "only the explicit student role receives the dashboard console and new layout; teacher cards remain unchanged",
+      "location": "src/views/studentLayoutContracts.test.js:126:1",
+      "error": "|-"
+    },
+    {
+      "number": 921,
+      "title": "guest Home uses only public challenges and keeps login/register/path/practice entrances plus empty/retry states",
+      "location": "src/views/studentLayoutContracts.test.js:141:1",
+      "error": "'instance.state.load is not a function'"
+    },
+    {
+      "number": 924,
+      "title": "Guide and dashboard hand typed input and identity to the existing tutor; blank input never launches a conversation",
+      "location": "src/views/studentLayoutContracts.test.js:195:1",
+      "error": "\"Cannot set properties of undefined (setting 'value')\""
+    },
+    {
+      "number": 925,
+      "title": "student progress and memory rates are never synthesized from IDs, missing fields, invalid values or failed requests",
+      "location": "src/views/studentLayoutContracts.test.js:214:1",
+      "error": "\"Cannot read properties of undefined (reading 'value')\""
+    },
+    {
+      "number": 926,
+      "title": "dashboard preserves complete recommendation, review, insight, teaching and article fields and raw-record downloads",
+      "location": "src/views/studentLayoutContracts.test.js:244:1",
+      "error": "|-"
+    }
+  ]
+}

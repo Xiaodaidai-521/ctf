@@ -13,7 +13,7 @@ from audit.services import AuditLedgerService
 from data_security.adapters.django.rag import RagProtectionError, protect_rag, rag_protection_enabled
 from rag_ingestion.registry import get_embedding_service
 
-from ..permissions import IsLegalKbAdmin
+from ..permissions import IsLegalKbAdmin, require_ingestion_actor
 from ..models import KbIngestionJob, LegalClause, LegalDocument, LegalKnowledgeEmbedding
 from .chunking_service import ChunkingService
 from .embedding_service import EmbeddingService
@@ -24,10 +24,21 @@ class LegalKbIngestionService:
     """Parse a legal document into clauses and embeddings."""
 
     def __init__(self, embedding_service: Optional[EmbeddingService] = None):
-        self.embedding_service = embedding_service if embedding_service is not None else get_embedding_service()
+        self._embedding_service = embedding_service
+
+    @property
+    def embedding_service(self):
+        if self._embedding_service is None:
+            self._embedding_service = get_embedding_service()
+        return self._embedding_service
+
+    @embedding_service.setter
+    def embedding_service(self, value):
+        self._embedding_service = value
 
     def ingest_document(self, document: LegalDocument, actor=None, *, source_chunks=None) -> KbIngestionJob:
         """Create clauses and embedding rows for a legal document."""
+        require_ingestion_actor(actor)
         if rag_protection_enabled() and not IsLegalKbAdmin.allows(actor):
             raise RagProtectionError('RAG_AUTHORIZATION_REQUIRED')
         job = KbIngestionJob.objects.create(

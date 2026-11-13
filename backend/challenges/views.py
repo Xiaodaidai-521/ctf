@@ -7,7 +7,9 @@ from django.conf import settings
 from django.db.models import Min
 from django.http import HttpResponse, StreamingHttpResponse
 from .models import Category, Challenge, ChallengeContainer
-from .serializers import CategorySerializer, ChallengeSerializer, ChallengeListSerializer, SubmissionSerializer
+from .serializers import CategorySerializer, ChallengeSerializer, ChallengeManagementSerializer, ChallengeListSerializer, SubmissionSerializer
+from users.pagination import positive_query_integer
+from users.permissions import is_staff_or_role
 from .container_manager import get_container_manager
 from .container_audit import record_container_audit, record_flag_submission_audit
 from .access import (
@@ -76,6 +78,8 @@ class ChallengeViewSet(viewsets.ModelViewSet):
     def get_serializer_class(self):
         if self.action == 'list':
             return ChallengeListSerializer
+        if self.action in ('create', 'update', 'partial_update'):
+            return ChallengeManagementSerializer
         return ChallengeSerializer
 
     def set_container_access_cookie(self, response, container):
@@ -95,13 +99,15 @@ class ChallengeViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         """支持按分类和难度筛选，管理员可以看到所有题目"""
         # 管理员可以看到所有题目，普通用户只能看到已激活的题目
-        if self.request.user.is_authenticated and self.request.user.is_staff:
+        can_manage = is_staff_or_role(self.request.user, 'teacher', 'admin')
+        if can_manage:
             queryset = Challenge.objects.all()
         else:
             queryset = Challenge.objects.filter(is_active=True)
 
         category_id = self.request.query_params.get('category')
         if category_id:
+            category_id = positive_query_integer(self.request.query_params, 'category', 1)
             queryset = queryset.filter(category_id=category_id)
 
         difficulty = self.request.query_params.get('difficulty')
@@ -110,7 +116,7 @@ class ChallengeViewSet(viewsets.ModelViewSet):
 
         # 支持按状态筛选（管理员专用）
         is_active = self.request.query_params.get('is_active')
-        if is_active is not None and self.request.user.is_authenticated and self.request.user.is_staff:
+        if is_active is not None and can_manage:
             queryset = queryset.filter(is_active=(is_active == 'true'))
 
         return queryset

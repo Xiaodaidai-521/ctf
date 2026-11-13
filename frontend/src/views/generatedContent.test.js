@@ -111,6 +111,16 @@ test('unknown content types keep the original body instead of pretending a layou
   assert.equal(view.hasBody, true)
 })
 
+test('an unscorable question never shifts another answer into the scoreable question', () => {
+  const questions = [
+    { options: ['甲', '乙'], answerIndex: null },
+    { options: ['甲', '乙'], answerIndex: 0 },
+  ]
+  assert.equal(quizResult(questions, { 0: 0 }).correct, 0)
+  assert.equal(quizResult(questions, { 1: 0 }).correct, 1)
+  assert.equal(quizResult(questions, { 1: null }).correct, 0)
+})
+
 test('content failures separate missing/permission/expired/service without backend text', () => {
   const notFound = contentFailure({ response: { status: 404 }, message: 'Request failed' })
   assert.equal(notFound.notFound, true)

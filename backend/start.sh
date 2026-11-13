@@ -24,7 +24,7 @@ python manage.py migrate --noinput
 
 # 收集静态文件
 echo "Collecting static files..."
-python manage.py collectstatic --noinput 2>/dev/null || true
+python manage.py collectstatic --noinput
 
 # No environment-password interpolation or unattended administrator creation.
 # Use the validated user-management entry after explicit authorization.

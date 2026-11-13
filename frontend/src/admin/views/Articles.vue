@@ -30,6 +30,7 @@
         <p>加载中...</p>
       </div>
 
+      <p v-else-if="listError" role="alert">{{ listError }}</p>
       <div v-else-if="articles.length === 0" class="empty-state">
         <div class="empty-icon">📝</div>
         <p>{{ selectedStatus === 'pending' ? '暂无待审核文章' : '暂无文章' }}</p>
@@ -195,11 +196,18 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, onMounted, onBeforeUnmount, watch } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import api from '@/api'
+import { usePageFilters } from '@/shared/state/usePageFilters.js'
+import { createAccountGuard } from '@/shared/state/accountScope.js'
 
-const router = useRouter()
+const guard = createAccountGuard()
+onBeforeUnmount(guard.dispose)
+let listGeneration = 0
+const listError = ref('')
+
+const router = useRouter(), route = useRoute()
 
 const articles = ref([])
 const loading = ref(false)
@@ -207,6 +215,9 @@ const total = ref(0)
 const page = ref(1)
 const pageSize = ref(20)
 const selectedStatus = ref('pending')
+usePageFilters('admin-articles', { selectedStatus, page, pageSize })
+const statuses = ['pending', 'approved', 'rejected', 'all']
+if (statuses.includes(route.query.status)) selectedStatus.value = route.query.status
 
 const statusFilters = [
   { label: '待审核', value: 'pending' },
@@ -232,7 +243,8 @@ const showPreviewModal = ref(false)
 const previewArticle = ref(null)
 
 const fetchArticles = async () => {
-  loading.value = true
+  const reading = ++listGeneration
+  loading.value = true; listError.value = ''
   try {
     const params = {
       page: page.value,
@@ -243,12 +255,13 @@ const fetchArticles = async () => {
     }
 
     const response = await api.article.list(params)
+    if (!guard.current() || reading !== listGeneration) return
     articles.value = response.results || []
     total.value = response.count || 0
   } catch (error) {
-    console.error('获取文章列表失败:', error)
+    if (guard.current() && reading === listGeneration) { articles.value = []; listError.value = '文章列表读取失败，请重试。' }
   } finally {
-    loading.value = false
+    if (guard.current() && reading === listGeneration) loading.value = false
   }
 }
 
@@ -260,6 +273,7 @@ const fetchStatusCounts = async () => {
       api.article.list({ status: 'approved', page: 1, page_size: 1 }),
       api.article.list({ status: 'rejected', page: 1, page_size: 1 })
     ])
+    if (!guard.current()) return
     statusCounts.value = {
       pending: pendingRes.count || 0,
       approved: approvedRes.count || 0,
@@ -315,11 +329,13 @@ const handlePreview = (article) => {
 
 const handleToggleRecommend = async (article) => {
   try {
-    article.is_recommend = !article.is_recommend
+    const nextValue = !article.is_recommend
     await api.article.update(article.id, {
-      is_recommend: article.is_recommend
+      is_recommend: nextValue
     })
-    alert(article.is_recommend ? '已推荐' : '已取消推荐')
+    if (!guard.current()) return
+    article.is_recommend = nextValue
+    alert(nextValue ? '已推荐' : '已取消推荐')
     fetchArticles()
   } catch (error) {
     console.error('操作失败:', error)
@@ -329,11 +345,13 @@ const handleToggleRecommend = async (article) => {
 
 const handleToggleTop = async (article) => {
   try {
-    article.is_top = !article.is_top
+    const nextValue = !article.is_top
     await api.article.update(article.id, {
-      is_top: article.is_top
+      is_top: nextValue
     })
-    alert(article.is_top ? '已置顶' : '已取消置顶')
+    if (!guard.current()) return
+    article.is_top = nextValue
+    alert(nextValue ? '已置顶' : '已取消置顶')
     fetchArticles()
   } catch (error) {
     console.error('操作失败:', error)
@@ -364,6 +382,10 @@ const getStatusText = (status) => {
 
 const formatDate = (dateStr) => dateStr ? new Date(dateStr).toLocaleString('zh-CN') : ''
 
+watch(() => route.query.status, status => {
+  if (!statuses.includes(status)) return
+  selectedStatus.value = status; page.value = 1; fetchArticles()
+})
 onMounted(() => {
   fetchArticles()
   fetchStatusCounts()

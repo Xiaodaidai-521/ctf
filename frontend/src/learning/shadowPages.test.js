@@ -92,7 +92,7 @@ function setup(file, bindings, expose) {
   const source = parse(read(file)).descriptor.scriptSetup.content.replace(/import\s+[\s\S]*?\s+from\s+['"][^'"]+['"];?/g, '')
   const mounts = [], unmounts = [], scope = Vue.effectScope()
   const page = scope.run(() => runInNewContext(`${source}\n;({${expose}})`, {
-    ...Vue, onMounted: fn => mounts.push(fn), onBeforeUnmount: fn => unmounts.push(fn),
+    ...Vue, changelogViews, readableError, onMounted: fn => mounts.push(fn), onBeforeUnmount: fn => unmounts.push(fn),
     crypto: { randomUUID }, document: { getElementById: () => null }, ...bindings,
   }))
   return { page, mount: async () => { for (const fn of mounts) await fn(); await settle() }, destroy: () => { for (const fn of unmounts) fn(); scope.stop() } }

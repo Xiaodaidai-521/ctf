@@ -12,6 +12,7 @@ from django.db import transaction
 from django.db.models import Q
 from .models import CTFUser
 from .permissions import authorized_users
+from .pagination import page_parameters
 from data_security.adapters.persistence.fields import field_storage_enabled
 from data_security.contracts import ContractViolation
 from .serializers import (
@@ -158,17 +159,16 @@ def leaderboard_view(request):
     users = CTFUser.objects.filter(score__gt=0).order_by('-score', '-created_at')
 
     # 分页
-    page = int(request.GET.get('page', 1))
-    page_size = int(request.GET.get('page_size', 50))
+    page, page_size = page_parameters(request.query_params, default_size=50)
     start = (page - 1) * page_size
     end = start + page_size
 
-    paginated_users = users[start:end]
+    paginated_users = list(users[start:end])
 
     serializer = LeaderboardSerializer(
         paginated_users,
         many=True,
-        context={'rank': start + 1}
+        context={'ranks': {user.pk: start + index + 1 for index, user in enumerate(paginated_users)}}
     )
 
     return Response({
@@ -228,8 +228,7 @@ def admin_user_list_view(request):
         users = users.filter(role=role)
 
     # 分页
-    page = int(request.GET.get('page', 1))
-    page_size = int(request.GET.get('page_size', 20))
+    page, page_size = page_parameters(request.query_params)
     start = (page - 1) * page_size
     end = start + page_size
 

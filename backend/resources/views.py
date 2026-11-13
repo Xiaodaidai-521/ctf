@@ -1,9 +1,12 @@
 from rest_framework import generics, status, viewsets, pagination
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from django.db.models import Case, IntegerField, Q, Value, When
 from django.http import FileResponse
+from django.utils import timezone
+from users.permissions import IsAdminRole, IsTeacherOrAdmin
 from data_security.contracts import ProtectionError
 from data_security.adapters.django.private_files import (
     create_private_share, operation_response, private_file_error, private_file_response, private_files, upload_operation_id,
@@ -16,11 +19,21 @@ from .serializers import (
 )
 
 
+def resource_ordering(params):
+    value = params.get('ordering', '-created_at')
+    allowed = {'id', 'title', 'created_at', 'updated_at', 'reviewed_at',
+               'download_count', 'view_count', 'file_size'}
+    field = value[1:] if value.startswith('-') else value
+    if field not in allowed:
+        raise ValidationError({'ordering': '不支持的排序字段。'})
+    return value
+
+
 class ResourceAdminListView(generics.ListAPIView):
     """管理员资源列表（用于审核）"""
     queryset = Resource.objects.all()
     serializer_class = ResourceSerializer
-    permission_classes = [IsAuthenticated, IsAdminUser]
+    permission_classes = [IsAuthenticated, IsAdminRole]
     pagination_class = pagination.PageNumberPagination
 
     def get_queryset(self):
@@ -51,9 +64,7 @@ class ResourceAdminListView(generics.ListAPIView):
             queryset = queryset.filter(category=category)
 
         # 排序
-        ordering = self.request.query_params.get('ordering', '-created_at')
-        if ordering:
-            queryset = queryset.order_by(ordering)
+        queryset = queryset.order_by(resource_ordering(self.request.query_params))
 
         return queryset
 
@@ -95,7 +106,7 @@ class ResourceListView(generics.ListAPIView):
             queryset = (queryset | highlighted).distinct()
         
         # 排序
-        ordering = self.request.query_params.get('ordering', '-created_at')
+        ordering = resource_ordering(self.request.query_params)
         if highlight_resource_ids:
             whens = [
                 When(id=resource_id, then=Value(index))
@@ -190,16 +201,9 @@ class ResourceUploadView(generics.CreateAPIView):
     """资源上传（仅教师和管理员）"""
     queryset = Resource.objects.all()
     serializer_class = ResourceUploadSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsTeacherOrAdmin]
 
     def post(self, request, *args, **kwargs):
-        # 检查用户权限
-        if request.user.role not in ['teacher', 'admin']:
-            return Response(
-                {'error': '只有教师和管理员可以上传资源'},
-                status=status.HTTP_403_FORBIDDEN
-            )
-        
         owner = private_files('resources')
         if isinstance(owner, ProtectionError):
             return private_file_error(owner)
@@ -231,7 +235,7 @@ class ResourceMyListView(generics.ListAPIView):
 
 
 @api_view(['POST'])
-@permission_classes([IsAuthenticated, IsAdminUser])
+@permission_classes([IsAuthenticated, IsAdminRole])
 def resource_review_view(request):
     """资源审核（仅管理员）"""
     serializer = ResourceReviewSerializer(data=request.data)
@@ -249,6 +253,7 @@ def resource_review_view(request):
     resource.status = serializer.validated_data['status']
     resource.reviewer = request.user
     resource.review_comment = serializer.validated_data.get('review_comment', '')
+    resource.reviewed_at = timezone.now()
     resource.save()
     
     return Response({

@@ -279,16 +279,17 @@ class CandidateCreateSerializer(serializers.Serializer):
 class CandidateReportSerializer(serializers.Serializer):
     run_id = serializers.CharField(max_length=128)
     report_id = serializers.CharField(max_length=128)
-    report_version = serializers.CharField(max_length=64)
+    report_version = serializers.CharField(max_length=64, required=False)
     report_digest = serializers.CharField(max_length=64)
-    dataset_version = serializers.CharField(max_length=64, required=False, allow_blank=True, default='')
-    baseline_config_digest = serializers.CharField(max_length=64, required=False, allow_blank=True, default='')
-    candidate_config_digest = serializers.CharField(max_length=64, required=False, allow_blank=True, default='')
+    dataset_version = serializers.CharField(max_length=64, required=False)
+    baseline_config_digest = serializers.CharField(max_length=64, required=False)
+    candidate_config_digest = serializers.CharField(max_length=64, required=False)
     recommendation = serializers.ChoiceField(
         choices=[c[0] for c in constants.REPORT_RECOMMENDATION_CHOICES],
+        required=False,
     )
-    completed = serializers.BooleanField(default=False)
-    missing_cases = serializers.IntegerField(required=False, default=0)
+    completed = serializers.BooleanField(required=False)
+    missing_cases = serializers.IntegerField(required=False, min_value=0)
 
 
 class CandidateApproveSerializer(serializers.Serializer):

@@ -1,0 +1,15 @@
+{
+  "command": [
+    "C:\\Users\\29681\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
+    "-B",
+    "D:\\aaa10\\16015478\u6e90\u7801\\project-code\\backend\\manage.py",
+    "test",
+    "--noinput",
+    "--verbosity",
+    "1"
+  ],
+  "exit_code": 1,
+  "elapsed_seconds": 4698.03,
+  "synthetic_only": true,
+  "test_database": "test_full_audit"
+}

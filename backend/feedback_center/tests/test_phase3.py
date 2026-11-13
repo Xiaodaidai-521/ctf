@@ -24,6 +24,7 @@ from skill_review.tests.test_module6 import (
     make_task,
 )
 from users.models import CTFUser
+from evaluation_center.tests.factories import completed_report
 
 from feedback_center import constants
 from feedback_center.models import (
@@ -208,16 +209,7 @@ class CandidateStateMachineTests(TestCase):
         )
 
     def _pass_report(self, candidate):
-        return {
-            'run_id': 'run-1',
-            'report_id': 'report-1',
-            'report_version': 'v1',
-            'report_digest': 'd' * 64,
-            'recommendation': constants.REPORT_RECOMMENDATION_PASS,
-            'completed': True,
-            'missing_cases': 0,
-            'candidate_config_digest': candidate.config_digest,
-        }
+        return completed_report(candidate)
 
     def test_candidate_rejects_unconfirmed_group(self):
         pending = issue_groups.create_group(
@@ -285,8 +277,7 @@ class CandidateStateMachineTests(TestCase):
     def test_report_without_pass_goes_to_revision(self):
         candidate = self._candidate()
         candidates.submit_for_evaluation(candidate, actor=self.owner)
-        report = self._pass_report(candidate)
-        report['recommendation'] = constants.REPORT_RECOMMENDATION_INSUFFICIENT
+        report = completed_report(candidate, recommendation='insufficient')
         candidates.attach_report(candidate, actor=self.owner, report=report)
         candidates.complete_evaluation(candidate, actor=self.owner)
         candidate.refresh_from_db()

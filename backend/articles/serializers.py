@@ -118,6 +118,7 @@ class CommentSerializer(serializers.ModelSerializer):
             'id', 'article', 'author', 'parent', 'content',
             'like_count', 'is_liked', 'replies', 'created_at'
         ]
+        read_only_fields = ['article', 'parent', 'like_count', 'created_at']
 
     def get_is_liked(self, obj):
         request = self.context.get('request')
@@ -140,6 +141,9 @@ class CommentCreateSerializer(serializers.ModelSerializer):
         # 验证父评论是否属于同一篇文章
         parent = data.get('parent')
         article = data.get('article')
+        from .views import visible_articles
+        if not visible_articles(self.context['request'].user).filter(pk=article.pk).exists():
+            raise serializers.ValidationError({'article': '文章当前不可评论。'})
         if parent and parent.article != article:
             raise serializers.ValidationError('父评论必须属于同一篇文章')
         return data

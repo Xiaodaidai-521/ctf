@@ -17,7 +17,7 @@ from resources.models import Resource
 from rag_ingestion.registry import get_embedding_service
 from data_security.adapters.django.rag import RagProtectionError, protect_rag, rag_protection_enabled
 
-from ..permissions import IsLegalKbAdmin
+from ..permissions import IsLegalKbAdmin, require_ingestion_actor
 from ..models import LegalKnowledgeEmbedding
 from .chunking_service import ChunkingService
 from .embedding_service import EmbeddingService
@@ -45,7 +45,17 @@ class PlatformContentIndexingService:
     }
 
     def __init__(self, embedding_service: EmbeddingService = None):
-        self.embedding_service = embedding_service if embedding_service is not None else get_embedding_service()
+        self._embedding_service = embedding_service
+
+    @property
+    def embedding_service(self):
+        if self._embedding_service is None:
+            self._embedding_service = get_embedding_service()
+        return self._embedding_service
+
+    @embedding_service.setter
+    def embedding_service(self, value):
+        self._embedding_service = value
 
     def index_all(self, *, actor=None) -> List[PlatformIndexingResult]:
         """Index all supported platform content types."""
@@ -221,6 +231,7 @@ class PlatformContentIndexingService:
         text_getter,
         metadata_getter=None,
     ) -> PlatformIndexingResult:
+        require_ingestion_actor(actor)
         if rag_protection_enabled() and not IsLegalKbAdmin.allows(actor):
             raise RagProtectionError('RAG_AUTHORIZATION_REQUIRED')
         content_type = ContentType.objects.get_for_model(queryset.model)

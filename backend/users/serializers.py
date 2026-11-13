@@ -166,7 +166,7 @@ class LeaderboardSerializer(serializers.ModelSerializer):
 
     def get_rank(self, obj):
         """获取排名"""
-        return self.context.get('rank', 0)
+        return self.context.get('ranks', {}).get(obj.pk, self.context.get('rank', 0))
 
     def get_solved_count(self, obj):
         return obj.get_solved_challenges_count()

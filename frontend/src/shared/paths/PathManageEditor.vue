@@ -456,7 +456,7 @@ import { uiSnapshot } from '@/shared/state/retention.js'
 
 import { ref, reactive, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-const props = defineProps({ api: { type: Object, required: true }, managementBase: { type: String, default: '/teacher/learning-paths' }, takeDraft: Function })
+const props = defineProps({ api: { type: Object, required: true }, managementBase: { type: String, default: '/teacher/learning-paths' }, listPath: String, takeDraft: Function })
 const managementApi = props.api
 
 const router = useRouter()
@@ -780,7 +780,7 @@ const confirmDelete = async () => {
 }
 
 const goBack = () => {
-  router.push(props.managementBase)
+  router.push(props.listPath || props.managementBase)
 }
 
 const getModuleTypeLabel = (type) => {

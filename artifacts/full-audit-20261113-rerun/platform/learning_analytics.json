@@ -1,0 +1,33 @@
+{
+  "tests": 22,
+  "passed": [
+    "learning_analytics.test_audit_scheduler.AnalyticsJobRecoveryTests.test_command_does_not_announce_running_job_as_completed",
+    "learning_analytics.test_audit_scheduler.AnalyticsJobRecoveryTests.test_failed_job_can_retry_without_retaining_failed_counters",
+    "learning_analytics.test_audit_scheduler.AnalyticsJobRecoveryTests.test_failed_user_work_rolls_back_and_command_reports_failure",
+    "learning_analytics.test_audit_scheduler.AnalyticsJobRecoveryTests.test_live_job_is_not_reclaimed",
+    "learning_analytics.test_audit_scheduler.AnalyticsJobRecoveryTests.test_stale_job_retries_and_resets_old_progress",
+    "learning_analytics.test_audit_scheduler.AnalyticsJobRecoveryTests.test_superseded_worker_cannot_rebuild_or_overwrite_new_attempt",
+    "learning_analytics.test_events.TeachingEventCompatibilityTests.test_concurrent_duplicate_recovers_after_database_integrity_error",
+    "learning_analytics.test_events.TeachingEventCompatibilityTests.test_legacy_events_without_ids_remain_independent",
+    "learning_analytics.test_events.TeachingEventCompatibilityTests.test_strict_event_write_failure_is_not_reported_as_success",
+    "learning_analytics.test_pipeline.LearningPipelineTests.test_event_batch_is_idempotent_and_rejects_invalid_duration",
+    "learning_analytics.test_pipeline.LearningPipelineTests.test_job_builds_snapshot_and_same_scope_is_idempotent",
+    "learning_analytics.test_pipeline.LearningPipelineTests.test_summary_reads_snapshot_without_triggering_rebuild",
+    "learning_analytics.test_seed_profiles.LearningProfileSeedTests.test_seed_is_idempotent_and_preserves_reference_student",
+    "learning_analytics.test_seed_profiles.LearningProfileSeedTests.test_three_profiles_have_complete_distinct_teacher_summaries",
+    "learning_analytics.tests.TeacherAnalyticsCompatibilityTests.test_admin_is_forbidden_from_teacher_compatibility_routes",
+    "learning_analytics.tests.TeacherAnalyticsCompatibilityTests.test_resource_feedback_detail_route_uses_resource_id_from_path",
+    "learning_analytics.tests.TeacherAnalyticsCompatibilityTests.test_teacher_analytics_compatibility_routes_reuse_existing_data",
+    "learning_analytics.tests.TeacherHandoffAnalyticsTests.test_admin_is_forbidden_from_teacher_endpoints",
+    "learning_analytics.tests.TeacherHandoffAnalyticsTests.test_cleanup_deletes_events_older_than_ninety_days",
+    "learning_analytics.tests.TeacherHandoffAnalyticsTests.test_effect_score_uses_all_five_signals",
+    "learning_analytics.tests.TeacherHandoffAnalyticsTests.test_teacher_can_read_behavior_and_create_proposal",
+    "learning_analytics.test_audit_scheduler.AnalyticsJobOwnershipConcurrencyTests.test_live_user_transaction_blocks_reclaim_even_if_heartbeat_looks_old"
+  ],
+  "failures": [],
+  "errors": [],
+  "skipped": [],
+  "expected_failures": 0,
+  "unexpected_successes": 0,
+  "synthetic_database_only": true
+}

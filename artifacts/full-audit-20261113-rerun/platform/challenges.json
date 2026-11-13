@@ -1,0 +1,50 @@
+{
+  "tests": 35,
+  "passed": [
+    "challenges.test_audit_management.ChallengeManagementAuditTests.test_inactive_challenges_are_hidden_from_students",
+    "challenges.test_audit_management.ChallengeManagementAuditTests.test_invalid_category_is_a_client_error",
+    "challenges.test_audit_management.ChallengeManagementAuditTests.test_invalid_score_and_container_port_are_rejected",
+    "challenges.test_audit_management.ChallengeManagementAuditTests.test_management_can_edit_inactive_challenge_and_replace_flag",
+    "challenges.test_audit_management.ChallengeManagementAuditTests.test_management_create_saves_flag_without_returning_it",
+    "challenges.test_audit_management.ChallengeManagementAuditTests.test_omitted_flag_preserves_answer_and_students_cannot_manage",
+    "challenges.test_audit_management.ChallengeManagementAuditTests.test_scored_challenge_requires_flag_on_create",
+    "challenges.test_juice_shop.JuiceShopTests.test_anonymous_start_identifies_missing_session_without_starting_docker",
+    "challenges.test_juice_shop.JuiceShopTests.test_cleanup_dry_run_does_not_destroy_and_real_run_routes_runtime",
+    "challenges.test_juice_shop.JuiceShopTests.test_cleanup_refuses_unowned_container",
+    "challenges.test_juice_shop.JuiceShopTests.test_direct_url_has_no_platform_access_token",
+    "challenges.test_juice_shop.JuiceShopTests.test_existing_environment_is_not_duplicated",
+    "challenges.test_juice_shop.JuiceShopTests.test_import_is_idempotent_and_practice_cannot_score",
+    "challenges.test_juice_shop.JuiceShopTests.test_missing_container_still_removes_owned_network",
+    "challenges.test_juice_shop.JuiceShopTests.test_missing_docker_returns_actionable_503",
+    "challenges.test_juice_shop.JuiceShopTests.test_permission_failures_are_not_marked_as_missing_login",
+    "challenges.test_juice_shop.JuiceShopTests.test_start_failure_rolls_back_container_and_network",
+    "challenges.tests.ChallengeProxyAccessTests.test_access_url_does_not_include_reusable_token",
+    "challenges.tests.ChallengeProxyAccessTests.test_authenticated_container_action_sets_scoped_http_only_cookie",
+    "challenges.tests.ChallengeProxyAccessTests.test_proxy_accepts_authenticated_owner_without_cookie",
+    "challenges.tests.ChallengeProxyAccessTests.test_proxy_accepts_scoped_cookie",
+    "challenges.tests.ChallengeProxyAccessTests.test_proxy_preserves_safe_request_data_and_filters_sensitive_headers",
+    "challenges.tests.ChallengeProxyAccessTests.test_proxy_rejects_anonymous_request_without_scoped_cookie",
+    "challenges.tests.ChallengeProxyAccessTests.test_proxy_rejects_authenticated_non_owner",
+    "challenges.tests.ChallengeProxyAccessTests.test_proxy_rejects_cookie_for_another_container",
+    "challenges.tests.ChallengeProxyAccessTests.test_proxy_rejects_legacy_query_token",
+    "challenges.tests.ChallengeProxyAccessTests.test_proxy_rejects_unsafe_session_request_without_csrf",
+    "challenges.tests.ComplianceCategoryTests.test_categories_api_exposes_compliance_category",
+    "challenges.tests.ComplianceCategoryTests.test_compliance_category_exists_from_migration",
+    "challenges.tests.ContainerIsolationTests.test_container_start_keeps_isolation_and_resource_limits",
+    "challenges.tests.ContainerRuntimeConfigTests.test_container_audit_writes_event_and_ledger",
+    "challenges.tests.ContainerRuntimeConfigTests.test_container_manager_resolves_image_aliases",
+    "challenges.tests.ContainerRuntimeConfigTests.test_port_pool_uses_settings_range",
+    "challenges.tests.FRPClientManagerSecurityTests.test_sidecar_does_not_start_without_configured_token"
+  ],
+  "failures": [],
+  "errors": [],
+  "skipped": [
+    {
+      "id": "challenges.test_juice_shop.JuiceShopDockerIntegrationTests.test_api_lifecycle_isolation_reset_and_expiration",
+      "reason": "requires the pinned local Docker image"
+    }
+  ],
+  "expected_failures": 0,
+  "unexpected_successes": 0,
+  "synthetic_database_only": true
+}

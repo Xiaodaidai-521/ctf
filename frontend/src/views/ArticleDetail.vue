@@ -149,7 +149,7 @@
               <span>文章 {{ articleCount }}</span>
               <span>粉丝 0</span>
             </div>
-            <button class="follow-btn" @click="handleFollow">+ 关注</button>
+            <button class="follow-btn" disabled title="作者关注功能尚未开放">关注暂未开放</button>
           </div>
         </div>
 
@@ -400,7 +400,7 @@ const handleDeleteComment = async (commentId) => {
 }
 
 const handleFollow = () => {
-  alert('关注功能开发中...')
+  alert('作者关注功能尚未开放。')
 }
 
 const goBack = () => {

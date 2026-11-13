@@ -1,0 +1,66 @@
+[
+  {
+    "path": "backend/challenges/serializers.py",
+    "sha256": "542d76728b9e653c4282b3d0d3ac0677647c9ec85ade7ca1a960e3f1a9c253e3"
+  },
+  {
+    "path": "backend/challenges/views.py",
+    "sha256": "31f97cbcaf5152631d43418fcd8ef65c00d58e4149b54eb63a5db8d5b64c71e2"
+  },
+  {
+    "path": "backend/resources/views.py",
+    "sha256": "dc118f7d995ee402fde7cff9093989e25d24f78920e8212943385c752dc84473"
+  },
+  {
+    "path": "backend/feedback_center/services/candidates.py",
+    "sha256": "697bd31f48b623879666caf95e6399bfa732744fa5db0d63dedad4d4e4a98450"
+  },
+  {
+    "path": "backend/feedback_center/serializers.py",
+    "sha256": "a39074bd6eed725414fc8430baff038255a6444ff944722130752353dfc98907"
+  },
+  {
+    "path": "backend/feedback_center/tests/test_phase3.py",
+    "sha256": "f825670792db020a7b5f71febf8b90fd8f954817e0ba5909cb749f377d04faa5"
+  },
+  {
+    "path": "backend/feedback_center/tests/test_forged_report_repro.py",
+    "sha256": "d4984d373ee0252f009c04e4d47ee4d6753ad5b9709d3b69e676884fca153982"
+  },
+  {
+    "path": "backend/challenges/test_audit_management.py",
+    "sha256": "c3489e82fb8fdf0213a6005cb5d4f356dbbf36eb928aaf7b54ed7b413014028d"
+  },
+  {
+    "path": "backend/resources/test_audit_queries.py",
+    "sha256": "fede4a46ab3f382852f5e937337cec8145ad2d21249ebd54cd2a4aa94f93a443"
+  },
+  {
+    "path": "backend/feedback_center/tests/test_report_integrity.py",
+    "sha256": "85693782b328325b871c01c5dfdc17424fda58c3e0dc8b4af73491b0af766de8"
+  },
+  {
+    "path": "backend/legal_kb/permissions.py",
+    "sha256": "4d79c0a83b9a6a66e86b91fdd38dcc4c77b32e3b92dadddd0ab44a3a54184c48"
+  },
+  {
+    "path": "backend/legal_kb/services/ingestion_service.py",
+    "sha256": "c90f273a47f4d408ba57a1995cac18f20dd61eb5a7e28a0f252855a4d31dbe98"
+  },
+  {
+    "path": "backend/legal_kb/services/platform_indexing_service.py",
+    "sha256": "2d8ce77fa363515b597cf42394f93c70a1898efa05f54873d04467373e247370"
+  },
+  {
+    "path": "backend/legal_kb/management/commands/prepare_legal_kb.py",
+    "sha256": "1464405e0ca103f95a409fad88929511572685079a7d77c07dbb0410f6254e72"
+  },
+  {
+    "path": "backend/legal_kb/management/commands/fetch_official_laws.py",
+    "sha256": "d320f3a0cf8b94e522101e32bfb9403d2eee2611d53376f6354fc050bf655ed9"
+  },
+  {
+    "path": "backend/legal_kb/test_audit_actors.py",
+    "sha256": "0d8143c310c2103096327aed5e85d63b3796dcafb634b223abfb81f64c108425"
+  }
+]

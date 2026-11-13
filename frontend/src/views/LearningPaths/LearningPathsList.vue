@@ -14,7 +14,7 @@
           <i class="bi bi-book"></i>
         </div>
         <div class="stat-content">
-          <div class="stat-value">{{ stats.total }}</div>
+          <div class="stat-value">{{ stats.total ?? '—' }}</div>
           <div class="stat-label">总路径数</div>
         </div>
       </div>
@@ -23,7 +23,7 @@
           <i class="bi bi-people"></i>
         </div>
         <div class="stat-content">
-          <div class="stat-value">{{ stats.enrolled }}</div>
+          <div class="stat-value">{{ stats.enrolled ?? '—' }}</div>
           <div class="stat-label">学习人数</div>
         </div>
       </div>
@@ -67,6 +67,7 @@
       <p>加载中...</p>
     </div>
 
+    <div v-else-if="loadError" class="load-error" role="alert">{{ loadError }} <button @click="loadLearningPaths">重新读取</button></div>
     <div v-else-if="filteredPaths.length === 0" class="empty-state">
       <i class="bi bi-inbox"></i>
       <p>暂无学习路径</p>
@@ -117,22 +118,36 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, reactive, computed, onMounted, onBeforeUnmount, watch } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import api from '@/api'
+import { createAccountGuard } from '@/shared/state/accountScope.js'
 
-const router = useRouter()
+const router = useRouter(), route = useRoute(), guard = createAccountGuard()
+onBeforeUnmount(guard.dispose)
 
 // 数据
 const loading = ref(false)
 const paths = ref([])
-const searchQuery = ref('')
-const filterDifficulty = ref('')
+const searchQuery = ref(typeof route.query.search === 'string' ? route.query.search : '')
+const filterDifficulty = ref(['AP', 'PR', 'EX'].includes(route.query.difficulty) ? route.query.difficulty : '')
+const loadError = ref('')
+let generation = 0
+watch(() => [route.query.search, route.query.difficulty], () => {
+  searchQuery.value = typeof route.query.search === 'string' ? route.query.search : ''
+  filterDifficulty.value = ['AP', 'PR', 'EX'].includes(route.query.difficulty) ? route.query.difficulty : ''
+})
+watch([searchQuery, filterDifficulty], () => {
+  const query = { ...route.query }
+  if (searchQuery.value) query.search = searchQuery.value; else delete query.search
+  if (filterDifficulty.value) query.difficulty = filterDifficulty.value; else delete query.difficulty
+  if (query.search !== route.query.search || query.difficulty !== route.query.difficulty) router.replace({ path: route.path, query, hash: route.hash })
+})
 
 // 统计
 const stats = reactive({
-  total: 0,
-  enrolled: 0,
+  total: null,
+  enrolled: null,
 })
 
 // 计算属性
@@ -142,8 +157,8 @@ const filteredPaths = computed(() => {
   if (searchQuery.value) {
     const query = searchQuery.value.toLowerCase()
     result = result.filter(p => 
-      p.title.toLowerCase().includes(query) ||
-      p.description.toLowerCase().includes(query)
+      String(p.title || '').toLowerCase().includes(query) ||
+      String(p.description || '').toLowerCase().includes(query)
     )
   }
 
@@ -159,18 +174,30 @@ const filteredPaths = computed(() => {
 
 // 方法
 const loadLearningPaths = async () => {
-  loading.value = true
+  const reading = ++generation
+  loading.value = true; loadError.value = ''; stats.total = null; stats.enrolled = null
   try {
-    const res = await api.learningPaths.list()
-    paths.value = res.results || res || []
-
-    // 计算统计
-    stats.total = paths.value.length
-    stats.enrolled = paths.value.reduce((sum, p) => sum + (p.enrollment_count || 0), 0)
-  } catch (error) {
-    console.error('Failed to load learning paths:', error)
+    const all = [], seen = new Set()
+    let page = 1, more = true
+    while (more) {
+      const response = await api.learningPaths.list({ page, page_size: 100 })
+      if (!guard.current() || reading !== generation) return
+      const rows = Array.isArray(response) ? response : response.results
+      if (!Array.isArray(rows)) throw new Error('Invalid list response')
+      const fresh = rows.filter(row => !seen.has(row.id))
+      if (!fresh.length && response.next) throw new Error('Repeated list page')
+      for (const row of fresh) { seen.add(row.id); all.push(row) }
+      more = Boolean(response.next); page++
+    }
+    paths.value = all
+    const published = all.filter(path => path.is_published)
+    stats.total = published.length
+    stats.enrolled = published.every(path => typeof path.enrollment_count === 'number' && Number.isFinite(path.enrollment_count) && path.enrollment_count >= 0)
+      ? published.reduce((sum, path) => sum + path.enrollment_count, 0) : null
+  } catch {
+    if (guard.current() && reading === generation) { paths.value = []; loadError.value = '学习航线读取失败，请重试。' }
   } finally {
-    loading.value = false
+    if (guard.current() && reading === generation) loading.value = false
   }
 }
 

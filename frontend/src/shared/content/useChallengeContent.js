@@ -46,7 +46,7 @@ export function useChallengeContent(role, service = createContentApi(role)) {
     try {
       const detail = await service.challengeDetail(item.id)
       if (!alive || generation !== detailGeneration) return
-      state.form = challengeForm(detail); state.editingId = item.id; state.editor = 'edit'
+      state.form = challengeForm(detail); state.form.flag = ''; state.editingId = item.id; state.editor = 'edit'
     } catch (error) { if (alive && generation === detailGeneration) state.error = contentError(error, role, '读取题目详情') }
     finally { if (alive && generation === detailGeneration) state.detailLoading = false }
   }
@@ -54,10 +54,11 @@ export function useChallengeContent(role, service = createContentApi(role)) {
   async function save() {
     if (state.busy || !state.editor) return
     state.error = ''; state.success = ''
-    if (!state.form.title.trim() || !state.form.flag.trim() || state.form.category == null || !state.form.description.trim()) { state.error = '请填写标题、分类、题目描述和答案。'; return }
+    if (!state.form.title.trim() || (state.editor === 'create' && !state.form.flag.trim()) || state.form.category == null || !state.form.description.trim()) { state.error = state.editor === 'create' ? '请填写标题、分类、题目描述和答案。' : '请填写标题、分类和题目描述。'; return }
     state.busy = true
     try {
       const payload = challengeForm(state.form)
+      if (state.editor === 'edit' && !payload.flag) delete payload.flag
       if (state.editor === 'edit') await service.updateChallenge(state.editingId, payload)
       else await service.createChallenge(payload)
       if (!alive) return

@@ -1,0 +1,181 @@
+{
+  "tests": 927,
+  "pass": 800,
+  "fail": 127,
+  "cancelled": 0,
+  "skipped": 0,
+  "parsedFailures": 127,
+  "groups": {
+    "src/learning/exams/records.test.js": [
+      "exam routes keep canonical record URLs and old deep links redirect with their query"
+    ],
+    "src/learning/growth/growthWiring.test.js": [
+      "/analytics keeps teacher access but sends students to the analysis section",
+      "radar card delegates missing-score logic to the pure model"
+    ],
+    "src/learning/phase2Journey.test.js": [
+      "back, forward, refresh and bookmarks restore the same student destinations"
+    ],
+    "src/learning/shadowPages.test.js": [
+      "student topic retains all five steps, original write actions, replays and four help levels",
+      "teacher history remains selected-student state history and does not show a previous student after failure",
+      "no active business page still links to moved shadow destinations or deleted exam views"
+    ],
+    "src/shared/content/contentContracts.test.js": [
+      "content SFC contract, scoped tokens and no internal display: ../../admin/views/Challenges.vue",
+      "content SFC contract, scoped tokens and no internal display: ../../admin/views/Resources.vue",
+      "resource preview retains all original metadata, download and review actions stay reachable"
+    ],
+    "src/shared/design/migrationSkins.test.js": [
+      "migrated skin: teacher/CapabilityMapAdmin compiles with scoped token styles",
+      "migrated skin: teacher/SkillReviewAdmin compiles with scoped token styles",
+      "migrated skin: teacher/FeedbackCandidates compiles with scoped token styles",
+      "migrated skin: components/MultiAgent/MultiAgentChat compiles with scoped token styles",
+      "migrated skin: admin/views/legal/LegalWorkspace compiles with scoped token styles",
+      "migrated skin: admin/views/legal/ComplianceAgentCenter compiles with scoped token styles",
+      "migrated skin: admin/views/legal/ComplianceCenter compiles with scoped token styles",
+      "migrated skin: components/AIAssistant compiles with scoped token styles",
+      "migrated skin: components/AITutorChat compiles with scoped token styles",
+      "migrated skin: views/GeneratedContent compiles with scoped token styles",
+      "migrated skin: views/LearningAnalytics compiles with scoped token styles",
+      "migrated skin: views/StudentDashboard compiles with scoped token styles",
+      "migrated skin: components/AbilityRadarCard compiles with scoped token styles",
+      "migrated skin: components/PersonalizedRecommendationCard compiles with scoped token styles",
+      "migrated skin: admin/views/legal/AuditLogs compiles with scoped token styles",
+      "migrated skin: admin/views/legal/ComplianceDashboard compiles with scoped token styles",
+      "migrated skin: admin/views/legal/ComplianceExercises compiles with scoped token styles",
+      "migrated skin: components/AnnouncementBanner compiles with scoped token styles",
+      "migrated skin: components/ArticleCard compiles with scoped token styles",
+      "migrated skin: components/CommentItem compiles with scoped token styles",
+      "migrated skin: components/MermaidDiagram compiles with scoped token styles",
+      "migrated skin: admin/views/Users compiles with scoped token styles",
+      "migrated skin: admin/views/Challenges compiles with scoped token styles",
+      "migrated skin: admin/views/Submissions compiles with scoped token styles",
+      "migrated skin: admin/views/Categories compiles with scoped token styles",
+      "migrated skin: admin/views/Resources compiles with scoped token styles",
+      "migrated skin: admin/views/Articles compiles with scoped token styles",
+      "migrated skin: admin/views/Announcements compiles with scoped token styles",
+      "migrated skin: views/ResourceUpload compiles with scoped token styles",
+      "migrated skin: views/Leaderboard compiles with scoped token styles",
+      "migrated skin: views/ArticleEditor compiles with scoped token styles",
+      "migrated skin: views/ArticleDetail compiles with scoped token styles",
+      "migrated skin: views/Community compiles with scoped token styles",
+      "migrated skin: admin/views/legal/KnowledgeBase compiles with scoped token styles",
+      "all remaining legacy icon names resolve to imported Arco icons, without an unknown fallback",
+      "record presentation does not inherit the feedback definition grid",
+      "legal search cards constrain mobile grid and textarea widths",
+      "learning trend identities have line and point encoding besides color",
+      "canvas colors and typography resolve from live shared tokens"
+    ],
+    "src/shared/design/pageSkins.test.js": [
+      "phase-one skin: Challenges compiles and uses declared tokens",
+      "phase-one skin: Resources compiles and uses declared tokens",
+      "phase-one skin: ExamCenter compiles and uses declared tokens",
+      "phase-one skin: Register compiles and uses declared tokens",
+      "phase-one skin: ProfileSetup compiles and uses declared tokens",
+      "phase-one skin: Profile compiles and uses declared tokens",
+      "phase-one skin: LearningPaths/LearningPathsList compiles and uses declared tokens",
+      "phase-one skin: components/ChallengeCard compiles and uses declared tokens",
+      "phase-one skin: components/ResourceCard compiles and uses declared tokens",
+      "feedback rules stay within the feedback page and retain compact forms"
+    ],
+    "src/shared/design/tokens.test.js": [
+      "compact component CSS targets descendants, never the entire app shell"
+    ],
+    "src/shared/forms/pageCopy.test.js": [
+      "feedback creation preserves all imported original references, versions and evidence",
+      "supplementary feedback evidence preserves imported reference, version, summary and attachment"
+    ],
+    "src/shared/navigation/phase2Destinations.test.js": [
+      "path, module and generated-content routes remain independent and reloadable",
+      "profile persona and resource highlight deep links keep their original sections"
+    ],
+    "src/shared/state/pageFilters.test.js": [
+      "Articles compiles and retains only explicit list controls",
+      "Submissions compiles and retains only explicit list controls",
+      "Announcements compiles and retains only explicit list controls",
+      "governance tasks land at pending articles and the user list loads on mount"
+    ],
+    "src/teacher/candidatePresentation.test.js": [
+      "approval explanations use known reasons with a readable fallback and full record retained",
+      "changed factor import retains exact original submit values without enabling gated flows"
+    ],
+    "src/teacher/feedbackPresentation.test.js": [
+      "FeedbackQueue.vue: Vue script and template compile",
+      "FeedbackDetail.vue: Vue script and template compile",
+      "risk selection traverses all authorised pages independently of queue filters",
+      "partial risk-list failure preserves choices, separates errors and can be retried",
+      "sampling payload preserves selected IDs, original scope and other options",
+      "queue and batch text use semantic titles while preserving internal destinations",
+      "duplicate selector reads beyond the first page and retains all eligible primary feedback",
+      "teacher actions keep all payloads, IDs and optimistic concurrency fields",
+      "detail options relabel destinations without dropping values; evidence forms keep references",
+      "detail resolves names and referral choices, hides references while retaining complete records",
+      "imported owner, review references and verified retest flow through real action wrappers",
+      "reconciliation resolves names sequentially and retries with original IDs",
+      "reconciliation auxiliary failures do not hide retry controls or leak errors"
+    ],
+    "src/teacher/feedback/lengthfix.test.js": [
+      "length fix: ../FeedbackQueue.vue keeps a compilable native disclosure",
+      "sampling disclosure retains every input and write/read action while defaulting closed"
+    ],
+    "src/teacher/feedback/workbench.test.js": [
+      "../FeedbackQueue.vue: workbench pages compile and resolve existing domain API",
+      "../FeedbackCandidates.vue: workbench pages compile and resolve existing domain API",
+      "../FeedbackDetail.vue: workbench pages compile and resolve existing domain API",
+      "../FeedbackReconciliation.vue: workbench pages compile and resolve existing domain API",
+      "queue loading and read failure do not claim zero or no feedback; retry shows real empty",
+      "query status preset is passed on initial read and same-route query changes; invalid query is rejected",
+      "late queue failures cannot replace current data or clear newer loading state",
+      "options and batch failures are independent of successful queue, missing total is unknown not zero",
+      "embedded queue hides duplicated main heading and refresh is a real action, with returned pagination",
+      "candidate registration requires source configuration and retains every imported request field and gates",
+      "report attachment passes real failing, incomplete or insufficient source facts unchanged for server validation",
+      "replacement imports cannot silently submit stale configuration or stale report after a bad file",
+      "candidate imports ignore late files and unmount and repeated clicks send only one immutable payload",
+      "skill review cockpit queries select exact initial and same-route sections while retaining retest and stats",
+      "skill review read failures are not empty queues, retry and late responses remain atomic"
+    ],
+    "src/utils/petAssets.test.js": [
+      "src\\utils\\petAssets.test.js"
+    ],
+    "src/utils/petRegistry.test.js": [
+      "registry loads every built-in display name and local spritesheet from its manifest"
+    ],
+    "src/views/dashboardCopy.test.js": [
+      "dashboard retains original navigation and complete record downloads with local reflow"
+    ],
+    "src/views/examTaking.test.js": [
+      "both actual SFCs compile; page-scoped external styles use declared tokens and real Arco icons",
+      "keyboard-capable answer buttons and navigation retain single, multiple, judgement and first-unanswered operations",
+      "each theory/practice surface has only one filled main action; states have readable labels",
+      "load failures retain original alert/return behavior without leaking internal server details",
+      "exit choices preserve cancel, return, abandonment API and failure behavior",
+      "page-local native modal synchronizes open/close without owning exam state and keeps keyboard cancel hooks"
+    ],
+    "src/views/generatedContent.test.js": [
+      "page consumes the adapter, reloads on id change, and keeps legacy field access out"
+    ],
+    "src/views/pageStates.test.js": [
+      "challenge failures have independent feedback; failed statistics never become zero",
+      "challenge activity uses only own submissions and orders real records newest first",
+      "guest activity makes no private API call; status filtering and random selection remain functional",
+      "resource failures have a retry state rather than a misleading empty list",
+      "a late resource response cannot replace newer filters or clear their loading state",
+      "pending vs in-progress decide the single primary action from real records",
+      "exam status read failure never asserts there is no ongoing exam",
+      "exam action failures stay readable, release loading and never expose backend error text",
+      "practice pagination renders the actual template with retained local list refs, without unwrap errors"
+    ],
+    "src/views/studentLayoutContracts.test.js": [
+      "home: template/styles compile, student overrides are role-gated and token-only",
+      "dashboard: template/styles compile, student overrides are role-gated and token-only",
+      "dashboard keeps the entire pre-existing teacher CSS and administrator template byte-for-byte",
+      "only the explicit student role receives the dashboard console and new layout; teacher cards remain unchanged",
+      "guest Home uses only public challenges and keeps login/register/path/practice entrances plus empty/retry states",
+      "Guide and dashboard hand typed input and identity to the existing tutor; blank input never launches a conversation",
+      "student progress and memory rates are never synthesized from IDs, missing fields, invalid values or failed requests",
+      "dashboard preserves complete recommendation, review, insight, teaching and article fields and raw-record downloads"
+    ]
+  }
+}

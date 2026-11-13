@@ -1,0 +1,13 @@
+{
+  "command": [
+    "C:\\Users\\29681\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
+    "-B",
+    "D:\\aaa10\\16015478\u6e90\u7801\\project-code\\backend\\manage.py",
+    "showmigrations",
+    "--plan"
+  ],
+  "exit_code": 0,
+  "elapsed_seconds": 4.47,
+  "synthetic_only": true,
+  "test_database": "test_full_audit"
+}

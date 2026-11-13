@@ -179,6 +179,7 @@ class UserPathProgress(models.Model):
         self.completed_modules = UserModuleProgress.objects.filter(
             user=self.user,
             module__learning_path=self.learning_path,
+            module__is_required=True,
             status='COMPLETED'
         ).count()
         self.total_modules = PathModule.objects.filter(
@@ -187,6 +188,8 @@ class UserPathProgress(models.Model):
         ).count()
         if self.total_modules > 0:
             self.progress_percentage = (self.completed_modules / self.total_modules) * 100
+        else:
+            self.progress_percentage = 0
 
         # 检查是否完成
         if self.completed_modules >= self.total_modules and self.progress_percentage >= 100:

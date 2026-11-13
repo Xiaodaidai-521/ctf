@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # PostgreSQL 鏁版嵁搴撴湇鍔?
   postgres:
@@ -86,7 +84,7 @@ services:
       - ctf-challenge
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/api/"]
+      test: ["CMD", "python", "/app/healthcheck.py"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -107,7 +105,7 @@ services:
     command: /bin/sh -c 'while true; do python manage.py cleanup_containers; sleep 60; done'
     depends_on:
       backend:
-        condition: service_started
+        condition: service_healthy
     networks:
       - ctf-control
     restart: unless-stopped
@@ -136,6 +134,9 @@ services:
       done"
     depends_on:
       postgres:
+        condition: service_healthy
+      backend:
+        # start.sh completes migrations before Gunicorn becomes healthy.
         condition: service_healthy
     networks:
       - ctf-control

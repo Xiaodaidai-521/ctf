@@ -1,0 +1,202 @@
+{
+  "tests": 103,
+  "passed": [
+    "controlled_export.tests.test_api.InternalApiTests.test_execution_requires_trusted_service_authentication",
+    "controlled_export.tests.test_api.InternalApiTests.test_execution_response_exposes_receipt_but_not_private_path",
+    "controlled_export.tests.test_api.ShareApiObligationTests.test_execution_with_active_xlsx_header_fails_without_artifact",
+    "controlled_export.tests.test_api.ShareApiObligationTests.test_full_execute_share_access_and_receipt_flow",
+    "controlled_export.tests.test_api.ShareApiObligationTests.test_share_creation_rejects_expiry_beyond_signed_limit",
+    "controlled_export.tests.test_api.ShareApiObligationTests.test_share_creation_rejects_recipient_outside_signed_binding",
+    "controlled_export.tests.test_execution.ExecutionServiceTests.test_execution_creates_private_artifact_receipt_and_outbox",
+    "controlled_export.tests.test_execution.ExecutionServiceTests.test_same_idempotency_key_and_content_returns_existing_result",
+    "controlled_export.tests.test_execution.ExecutionServiceTests.test_same_idempotency_key_with_different_binding_conflicts",
+    "controlled_export.tests.test_execution.ExecutionServiceTests.test_stale_worker_cannot_overwrite_newer_execution_generation",
+    "controlled_export.tests.test_execution.ExecutionServiceTests.test_switching_idempotency_key_cannot_reconsume_authorization",
+    "controlled_export.tests.test_execution.ExecutionServiceTests.test_transform_failure_never_registers_or_returns_original",
+    "controlled_export.tests.test_sharing.ShareObligationEnforcementTests.test_idempotent_replay_rejects_share_that_violates_obligations",
+    "controlled_export.tests.test_sharing.ShareObligationEnforcementTests.test_invalid_persisted_obligations_fail_closed_everywhere",
+    "controlled_export.tests.test_sharing.ShareObligationEnforcementTests.test_receipt_events_link_obligation_and_keep_full_evidence",
+    "controlled_export.tests.test_sharing.ShareObligationEnforcementTests.test_share_access_denies_share_that_violates_obligations",
+    "controlled_export.tests.test_sharing.ShareObligationEnforcementTests.test_share_creation_accepts_earlier_expiry",
+    "controlled_export.tests.test_sharing.ShareObligationEnforcementTests.test_share_creation_normalizes_recipient_whitespace",
+    "controlled_export.tests.test_sharing.ShareObligationEnforcementTests.test_share_creation_rejects_expiry_beyond_signed_limit",
+    "controlled_export.tests.test_sharing.ShareObligationEnforcementTests.test_share_creation_rejects_recipient_outside_signed_binding",
+    "controlled_export.tests.test_sharing.ShareObligationEnforcementTests.test_token_rotation_denies_share_that_violates_obligations",
+    "controlled_export.tests.test_sharing.ShareObligationEnforcementTests.test_unconsumed_delivery_claims_no_receipt",
+    "controlled_export.tests.test_sharing.SharingServiceTests.test_completed_delivery_requires_evidence",
+    "controlled_export.tests.test_sharing.SharingServiceTests.test_evaluation_execution_cannot_create_share",
+    "controlled_export.tests.test_sharing.SharingServiceTests.test_recipient_token_expiry_and_revocation_are_checked_at_admission",
+    "controlled_export.tests.test_sharing.SharingServiceTests.test_repeated_downloads_receive_distinct_delivery_ids",
+    "controlled_export.tests.test_sharing.SharingServiceTests.test_rotation_invalidates_old_token",
+    "controlled_export.tests.test_sharing.SharingServiceTests.test_stream_exhaustion_is_unknown_until_external_receipt",
+    "controlled_export.tests.test_sharing.SharingServiceTests.test_tampered_artifact_is_denied_and_marked_for_repair",
+    "controlled_export.tests.test_sharing.SharingServiceTests.test_token_is_returned_once_and_replay_requires_rotation",
+    "controlled_export.tests.test_storage_recovery.StorageRecoveryTests.test_finalized_orphan_is_reported_before_optional_cleanup",
+    "controlled_export.tests.test_storage_recovery.StorageRecoveryTests.test_path_traversal_and_absolute_references_are_rejected",
+    "controlled_export.tests.test_authorization.AuthorizationContractTests.test_expired_or_wrong_environment_authorization_is_rejected",
+    "controlled_export.tests.test_authorization.AuthorizationContractTests.test_not_executable_dispositions_are_rejected",
+    "controlled_export.tests.test_authorization.AuthorizationContractTests.test_signed_authorization_is_accepted",
+    "controlled_export.tests.test_authorization.AuthorizationContractTests.test_unknown_mandatory_obligation_is_rejected",
+    "controlled_export.tests.test_authorization.ObligationContractTests.test_bind_recipient_is_required_and_normalized",
+    "controlled_export.tests.test_authorization.ObligationContractTests.test_bind_recipient_rejects_missing_blank_or_extra_parameters",
+    "controlled_export.tests.test_authorization.ObligationContractTests.test_conflicting_bind_recipient_obligations_are_rejected",
+    "controlled_export.tests.test_authorization.ObligationContractTests.test_obligation_version_defaults_to_one_when_omitted",
+    "controlled_export.tests.test_authorization.ObligationContractTests.test_obligation_version_must_be_the_string_one",
+    "controlled_export.tests.test_authorization.ObligationContractTests.test_obligations_without_the_new_types_are_unchanged",
+    "controlled_export.tests.test_authorization.ObligationContractTests.test_receipt_obligation_ids_are_reported",
+    "controlled_export.tests.test_authorization.ObligationContractTests.test_record_receipt_requires_empty_parameters",
+    "controlled_export.tests.test_authorization.ObligationContractTests.test_set_expiry_requires_an_aware_timestamp_and_no_extra_parameters",
+    "controlled_export.tests.test_authorization.ObligationContractTests.test_share_creation_constraints_use_the_earliest_expiry",
+    "controlled_export.tests.test_postgres_concurrency.PostgreSQLLockingTests.test_execution_row_lock_serializes_competing_state_changes",
+    "controlled_export.tests.test_transformations.HeaderFormulaTests.test_csv_formula_like_headers_are_neutralized",
+    "controlled_export.tests.test_transformations.HeaderFormulaTests.test_csv_header_only_file_still_neutralizes",
+    "controlled_export.tests.test_transformations.HeaderFormulaTests.test_csv_rejects_headers_that_collide_after_neutralization",
+    "controlled_export.tests.test_transformations.HeaderFormulaTests.test_xlsx_rejects_active_header_cells",
+    "controlled_export.tests.test_transformations.HeaderFormulaTests.test_xlsx_rejects_active_header_outside_authorized_scope",
+    "controlled_export.tests.test_transformations.HeaderFormulaTests.test_xlsx_rejects_headers_that_collide_after_neutralization",
+    "controlled_export.tests.test_transformations.HeaderFormulaTests.test_xlsx_text_formula_header_is_neutralized_not_written_as_formula",
+    "controlled_export.tests.test_transformations.TransformationTests.test_csv_is_scoped_masked_and_formula_neutralized",
+    "controlled_export.tests.test_transformations.TransformationTests.test_csv_rejects_columns_outside_authorized_scope",
+    "controlled_export.tests.test_transformations.TransformationTests.test_xlsx_is_rebuilt_with_only_selected_content",
+    "controlled_export.tests.test_transformations.TransformationTests.test_xlsx_rejects_hidden_formula_and_hyperlink_channels",
+    "controlled_export.tests.test_phase6_b2_boundaries.ExecutorPrivateBoundaryTests.test_closed_asgi_upload_and_share_do_not_receive_any_body",
+    "controlled_export.tests.test_phase6_b2_boundaries.ExecutorPrivateBoundaryTests.test_configuration_cannot_open_production_or_skip_service_credentials",
+    "controlled_export.tests.test_phase6_b2_boundaries.ExecutorPrivateBoundaryTests.test_enabled_asgi_multipart_is_in_memory_and_reaches_injected_executor",
+    "controlled_export.tests.test_phase6_b2_boundaries.ExecutorPrivateBoundaryTests.test_encrypted_root_cannot_overlap_legacy_storage",
+    "controlled_export.tests.test_phase6_b2_boundaries.ExecutorPrivateBoundaryTests.test_formal_missing_capability_and_legacy_shares_close_before_wsgi_body",
+    "controlled_export.tests.test_phase6_b2_boundaries.ExecutorPrivateBoundaryTests.test_reference_observation_rejects_oversize_body_without_disk_spool",
+    "controlled_export.tests.test_phase6_b2_boundaries.ExecutorPrivateBoundaryTests.test_unbound_baseline_preserves_original_wsgi_and_asgi_applications",
+    "controlled_export.tests.test_phase6_b3_recovery.ExecutorRecoveryInspectionTests.test_legacy_artifact_stays_closed_without_claiming_file_recovery",
+    "controlled_export.tests.test_phase6_b3_recovery.ExecutorRecoveryInspectionTests.test_original_owner_context_and_uuid_field_are_inspected_without_promotion",
+    "controlled_export.tests.test_phase6_b3_recovery.ExecutorRecoveryInspectionTests.test_original_owner_rejects_other_execution_and_changed_context",
+    "controlled_export.tests.test_phase6_b3_recovery.ExecutorRecoveryInspectionTests.test_prepared_missing_ciphertext_and_changed_output_are_rejected",
+    "controlled_export.tests.test_phase6_b3_recovery.ExecutorRecoveryInspectionTests.test_read_only_transaction_is_required_before_owner_inspection",
+    "controlled_export.tests.test_phase6_b3_recovery.ExecutorRecoveryInspectionTests.test_unknown_partial_intention_remains_pending_and_unregistered",
+    "controlled_export.tests.test_phase6_b3_recovery.ExecutorRecoveryWiringTests.test_active_old_key_is_rejected_before_preparation_binding",
+    "controlled_export.tests.test_phase6_b3_recovery.ExecutorRecoveryWiringTests.test_deployment_gate_blocks_all_asgi_routes_before_body_or_owner",
+    "controlled_export.tests.test_phase6_b3_recovery.ExecutorRecoveryWiringTests.test_wsgi_gate_precedes_legacy_and_preparation_owners"
+  ],
+  "failures": [],
+  "errors": [
+    {
+      "id": "controlled_export.tests.test_phase6_b2_http.ExecutorPrivateHTTPTests.test_formal_http_share_and_legacy_delivery_routes_remain_closed",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\tasks\\controlled-export-execution\\controlled_export\\tests\\test_phase6_b2_http.py\", line 44, in setUp\n    start_application()\n  File \"D:\\aaa10\\16015478源码\\project-code\\tasks\\controlled-export-execution\\controlled_export_service\\security_bootstrap.py\", line 99, in start_application\n    require(path.is_absolute() and path == path.resolve() and not path.stat().st_mode & 0o022\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_security\\contracts\\schema.py\", line 36, in require\n    raise ContractViolation(code)\ndata_security.contracts.schema.ContractViolation: AUTHORIZATION_DENIED\n"
+    },
+    {
+      "id": "controlled_export.tests.test_phase6_b2_http.ExecutorPrivateHTTPTests.test_fsync_before_candidate_row_recovers_only_the_retained_intention",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\tasks\\controlled-export-execution\\controlled_export\\tests\\test_phase6_b2_http.py\", line 44, in setUp\n    start_application()\n  File \"D:\\aaa10\\16015478源码\\project-code\\tasks\\controlled-export-execution\\controlled_export_service\\security_bootstrap.py\", line 99, in start_application\n    require(path.is_absolute() and path == path.resolve() and not path.stat().st_mode & 0o022\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_security\\contracts\\schema.py\", line 36, in require\n    raise ContractViolation(code)\ndata_security.contracts.schema.ContractViolation: AUTHORIZATION_DENIED\n"
+    },
+    {
+      "id": "controlled_export.tests.test_phase6_b2_http.ExecutorPrivateHTTPTests.test_http_prepares_ciphertext_and_replay_does_not_publish_or_satisfy_delivery",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\tasks\\controlled-export-execution\\controlled_export\\tests\\test_phase6_b2_http.py\", line 44, in setUp\n    start_application()\n  File \"D:\\aaa10\\16015478源码\\project-code\\tasks\\controlled-export-execution\\controlled_export_service\\security_bootstrap.py\", line 99, in start_application\n    require(path.is_absolute() and path == path.resolve() and not path.stat().st_mode & 0o022\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_security\\contracts\\schema.py\", line 36, in require\n    raise ContractViolation(code)\ndata_security.contracts.schema.ContractViolation: AUTHORIZATION_DENIED\n"
+    },
+    {
+      "id": "controlled_export.tests.test_phase6_b2_http.ExecutorPrivateHTTPTests.test_missing_intention_or_ciphertext_is_unknown_not_zero_effects",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\tasks\\controlled-export-execution\\controlled_export\\tests\\test_phase6_b2_http.py\", line 44, in setUp\n    start_application()\n  File \"D:\\aaa10\\16015478源码\\project-code\\tasks\\controlled-export-execution\\controlled_export_service\\security_bootstrap.py\", line 99, in start_application\n    require(path.is_absolute() and path == path.resolve() and not path.stat().st_mode & 0o022\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_security\\contracts\\schema.py\", line 36, in require\n    raise ContractViolation(code)\ndata_security.contracts.schema.ContractViolation: AUTHORIZATION_DENIED\n"
+    },
+    {
+      "id": "controlled_export.tests.test_phase6_b2_http.ExecutorPrivateHTTPTests.test_observation_and_positive_reconciliation_remain_prepared_not_delivered",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\tasks\\controlled-export-execution\\controlled_export\\tests\\test_phase6_b2_http.py\", line 44, in setUp\n    start_application()\n  File \"D:\\aaa10\\16015478源码\\project-code\\tasks\\controlled-export-execution\\controlled_export_service\\security_bootstrap.py\", line 99, in start_application\n    require(path.is_absolute() and path == path.resolve() and not path.stat().st_mode & 0o022\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_security\\contracts\\schema.py\", line 36, in require\n    raise ContractViolation(code)\ndata_security.contracts.schema.ContractViolation: AUTHORIZATION_DENIED\n"
+    },
+    {
+      "id": "controlled_export.tests.test_phase6_b2_http.ExecutorPrivateHTTPTests.test_ordinary_executor_startup_binds_configuration_and_http_preparation",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\tasks\\controlled-export-execution\\controlled_export\\tests\\test_phase6_b2_http.py\", line 44, in setUp\n    start_application()\n  File \"D:\\aaa10\\16015478源码\\project-code\\tasks\\controlled-export-execution\\controlled_export_service\\security_bootstrap.py\", line 99, in start_application\n    require(path.is_absolute() and path == path.resolve() and not path.stat().st_mode & 0o022\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_security\\contracts\\schema.py\", line 36, in require\n    raise ContractViolation(code)\ndata_security.contracts.schema.ContractViolation: AUTHORIZATION_DENIED\n"
+    },
+    {
+      "id": "controlled_export.tests.test_phase6_b2_http.ExecutorPrivateHTTPTests.test_original_service_ownership_and_reference_only_body_are_required",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\tasks\\controlled-export-execution\\controlled_export\\tests\\test_phase6_b2_http.py\", line 44, in setUp\n    start_application()\n  File \"D:\\aaa10\\16015478源码\\project-code\\tasks\\controlled-export-execution\\controlled_export_service\\security_bootstrap.py\", line 99, in start_application\n    require(path.is_absolute() and path == path.resolve() and not path.stat().st_mode & 0o022\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_security\\contracts\\schema.py\", line 36, in require\n    raise ContractViolation(code)\ndata_security.contracts.schema.ContractViolation: AUTHORIZATION_DENIED\n"
+    },
+    {
+      "id": "controlled_export.tests.test_phase6_b2_http.ExecutorPrivateHTTPTests.test_real_commit_confirmation_loss_is_observable_without_success_promotion",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\tasks\\controlled-export-execution\\controlled_export\\tests\\test_phase6_b2_http.py\", line 44, in setUp\n    start_application()\n  File \"D:\\aaa10\\16015478源码\\project-code\\tasks\\controlled-export-execution\\controlled_export_service\\security_bootstrap.py\", line 99, in start_application\n    require(path.is_absolute() and path == path.resolve() and not path.stat().st_mode & 0o022\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_security\\contracts\\schema.py\", line 36, in require\n    raise ContractViolation(code)\ndata_security.contracts.schema.ContractViolation: AUTHORIZATION_DENIED\n"
+    },
+    {
+      "id": "controlled_export.tests.test_phase6_b3_recovery_pg.ExecutorRestoredPreparationTests.test_changed_owner_context_fails_without_rebinding_the_attempt",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\tasks\\controlled-export-execution\\controlled_export\\tests\\test_phase6_b3_recovery_pg.py\", line 31, in setUp\n    b2.ExecutorPrivateHTTPTests.setUp(self)\n  File \"D:\\aaa10\\16015478源码\\project-code\\tasks\\controlled-export-execution\\controlled_export\\tests\\test_phase6_b2_http.py\", line 44, in setUp\n    start_application()\n  File \"D:\\aaa10\\16015478源码\\project-code\\tasks\\controlled-export-execution\\controlled_export_service\\security_bootstrap.py\", line 99, in start_application\n    require(path.is_absolute() and path == path.resolve() and not path.stat().st_mode & 0o022\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_security\\contracts\\schema.py\", line 36, in require\n    raise ContractViolation(code)\ndata_security.contracts.schema.ContractViolation: AUTHORIZATION_DENIED\n"
+    },
+    {
+      "id": "controlled_export.tests.test_phase6_b3_recovery_pg.ExecutorRestoredPreparationTests.test_damaged_ciphertext_fails_without_reconciliation_or_cleanup",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\tasks\\controlled-export-execution\\controlled_export\\tests\\test_phase6_b3_recovery_pg.py\", line 31, in setUp\n    b2.ExecutorPrivateHTTPTests.setUp(self)\n  File \"D:\\aaa10\\16015478源码\\project-code\\tasks\\controlled-export-execution\\controlled_export\\tests\\test_phase6_b2_http.py\", line 44, in setUp\n    start_application()\n  File \"D:\\aaa10\\16015478源码\\project-code\\tasks\\controlled-export-execution\\controlled_export_service\\security_bootstrap.py\", line 99, in start_application\n    require(path.is_absolute() and path == path.resolve() and not path.stat().st_mode & 0o022\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_security\\contracts\\schema.py\", line 36, in require\n    raise ContractViolation(code)\ndata_security.contracts.schema.ContractViolation: AUTHORIZATION_DENIED\n"
+    },
+    {
+      "id": "controlled_export.tests.test_phase6_b3_recovery_pg.ExecutorRestoredPreparationTests.test_prepared_ciphertext_and_original_intention_are_inspected_without_writes",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\tasks\\controlled-export-execution\\controlled_export\\tests\\test_phase6_b3_recovery_pg.py\", line 31, in setUp\n    b2.ExecutorPrivateHTTPTests.setUp(self)\n  File \"D:\\aaa10\\16015478源码\\project-code\\tasks\\controlled-export-execution\\controlled_export\\tests\\test_phase6_b2_http.py\", line 44, in setUp\n    start_application()\n  File \"D:\\aaa10\\16015478源码\\project-code\\tasks\\controlled-export-execution\\controlled_export_service\\security_bootstrap.py\", line 99, in start_application\n    require(path.is_absolute() and path == path.resolve() and not path.stat().st_mode & 0o022\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_security\\contracts\\schema.py\", line 36, in require\n    raise ContractViolation(code)\ndata_security.contracts.schema.ContractViolation: AUTHORIZATION_DENIED\n"
+    },
+    {
+      "id": "controlled_export.tests.test_phase6_b3_recovery_pg.ExecutorRestoredPreparationTests.test_unknown_registration_loss_remains_unknown_without_adoption",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\tasks\\controlled-export-execution\\controlled_export\\tests\\test_phase6_b3_recovery_pg.py\", line 31, in setUp\n    b2.ExecutorPrivateHTTPTests.setUp(self)\n  File \"D:\\aaa10\\16015478源码\\project-code\\tasks\\controlled-export-execution\\controlled_export\\tests\\test_phase6_b2_http.py\", line 44, in setUp\n    start_application()\n  File \"D:\\aaa10\\16015478源码\\project-code\\tasks\\controlled-export-execution\\controlled_export_service\\security_bootstrap.py\", line 99, in start_application\n    require(path.is_absolute() and path == path.resolve() and not path.stat().st_mode & 0o022\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_security\\contracts\\schema.py\", line 36, in require\n    raise ContractViolation(code)\ndata_security.contracts.schema.ContractViolation: AUTHORIZATION_DENIED\n"
+    },
+    {
+      "id": "controlled_export.tests.test_phase6_private_preparation.PrivateExecutionPreparationTests.test_admission_rejects_invalid_signature_production_missing_limits_and_outer_transaction",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\tasks\\controlled-export-execution\\controlled_export\\tests\\test_phase6_private_preparation.py\", line 47, in setUp\n    keys = FileKeyResolver(manifest_path=config[\"key_manifest\"], environment=Environment.EVALUATION,\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_security\\adapters\\keys.py\", line 23, in __init__\n    require(is_private_path(self.manifest.parent, directory=True), ReasonCode.KEY_UNAVAILABLE)\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_security\\contracts\\schema.py\", line 36, in require\n    raise ContractViolation(code)\ndata_security.contracts.schema.ContractViolation: KEY_UNAVAILABLE\n"
+    },
+    {
+      "id": "controlled_export.tests.test_phase6_private_preparation.PrivateExecutionPreparationTests.test_changed_fence_cannot_register_private_preparation",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\tasks\\controlled-export-execution\\controlled_export\\tests\\test_phase6_private_preparation.py\", line 47, in setUp\n    keys = FileKeyResolver(manifest_path=config[\"key_manifest\"], environment=Environment.EVALUATION,\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_security\\adapters\\keys.py\", line 23, in __init__\n    require(is_private_path(self.manifest.parent, directory=True), ReasonCode.KEY_UNAVAILABLE)\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_security\\contracts\\schema.py\", line 36, in require\n    raise ContractViolation(code)\ndata_security.contracts.schema.ContractViolation: KEY_UNAVAILABLE\n"
+    },
+    {
+      "id": "controlled_export.tests.test_phase6_private_preparation.PrivateExecutionPreparationTests.test_committed_preparation_survives_real_commit_confirmation_loss",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\tasks\\controlled-export-execution\\controlled_export\\tests\\test_phase6_private_preparation.py\", line 47, in setUp\n    keys = FileKeyResolver(manifest_path=config[\"key_manifest\"], environment=Environment.EVALUATION,\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_security\\adapters\\keys.py\", line 23, in __init__\n    require(is_private_path(self.manifest.parent, directory=True), ReasonCode.KEY_UNAVAILABLE)\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_security\\contracts\\schema.py\", line 36, in require\n    raise ContractViolation(code)\ndata_security.contracts.schema.ContractViolation: KEY_UNAVAILABLE\n"
+    },
+    {
+      "id": "controlled_export.tests.test_phase6_private_preparation.PrivateExecutionPreparationTests.test_expired_legacy_attempt_preserves_original_failure_semantics",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\tasks\\controlled-export-execution\\controlled_export\\tests\\test_phase6_private_preparation.py\", line 47, in setUp\n    keys = FileKeyResolver(manifest_path=config[\"key_manifest\"], environment=Environment.EVALUATION,\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_security\\adapters\\keys.py\", line 23, in __init__\n    require(is_private_path(self.manifest.parent, directory=True), ReasonCode.KEY_UNAVAILABLE)\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_security\\contracts\\schema.py\", line 36, in require\n    raise ContractViolation(code)\ndata_security.contracts.schema.ContractViolation: KEY_UNAVAILABLE\n"
+    },
+    {
+      "id": "controlled_export.tests.test_phase6_private_preparation.PrivateExecutionPreparationTests.test_expired_private_attempt_keeps_unknown_and_ciphertext",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\tasks\\controlled-export-execution\\controlled_export\\tests\\test_phase6_private_preparation.py\", line 47, in setUp\n    keys = FileKeyResolver(manifest_path=config[\"key_manifest\"], environment=Environment.EVALUATION,\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_security\\adapters\\keys.py\", line 23, in __init__\n    require(is_private_path(self.manifest.parent, directory=True), ReasonCode.KEY_UNAVAILABLE)\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_security\\contracts\\schema.py\", line 36, in require\n    raise ContractViolation(code)\ndata_security.contracts.schema.ContractViolation: KEY_UNAVAILABLE\n"
+    },
+    {
+      "id": "controlled_export.tests.test_phase6_private_preparation.PrivateExecutionPreparationTests.test_expiry_after_preparation_keeps_unpublished_ciphertext",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\tasks\\controlled-export-execution\\controlled_export\\tests\\test_phase6_private_preparation.py\", line 47, in setUp\n    keys = FileKeyResolver(manifest_path=config[\"key_manifest\"], environment=Environment.EVALUATION,\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_security\\adapters\\keys.py\", line 23, in __init__\n    require(is_private_path(self.manifest.parent, directory=True), ReasonCode.KEY_UNAVAILABLE)\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_security\\contracts\\schema.py\", line 36, in require\n    raise ContractViolation(code)\ndata_security.contracts.schema.ContractViolation: KEY_UNAVAILABLE\n"
+    },
+    {
+      "id": "controlled_export.tests.test_phase6_private_preparation.PrivateExecutionPreparationTests.test_key_refusal_preserves_attempt_identity_without_success",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\tasks\\controlled-export-execution\\controlled_export\\tests\\test_phase6_private_preparation.py\", line 47, in setUp\n    keys = FileKeyResolver(manifest_path=config[\"key_manifest\"], environment=Environment.EVALUATION,\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_security\\adapters\\keys.py\", line 23, in __init__\n    require(is_private_path(self.manifest.parent, directory=True), ReasonCode.KEY_UNAVAILABLE)\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_security\\contracts\\schema.py\", line 36, in require\n    raise ContractViolation(code)\ndata_security.contracts.schema.ContractViolation: KEY_UNAVAILABLE\n"
+    },
+    {
+      "id": "controlled_export.tests.test_phase6_private_preparation.PrivateExecutionPreparationTests.test_lost_preparation_confirmation_keeps_unknown_and_never_retries",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\tasks\\controlled-export-execution\\controlled_export\\tests\\test_phase6_private_preparation.py\", line 47, in setUp\n    keys = FileKeyResolver(manifest_path=config[\"key_manifest\"], environment=Environment.EVALUATION,\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_security\\adapters\\keys.py\", line 23, in __init__\n    require(is_private_path(self.manifest.parent, directory=True), ReasonCode.KEY_UNAVAILABLE)\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_security\\contracts\\schema.py\", line 36, in require\n    raise ContractViolation(code)\ndata_security.contracts.schema.ContractViolation: KEY_UNAVAILABLE\n"
+    },
+    {
+      "id": "controlled_export.tests.test_phase6_private_preparation.PrivateExecutionPreparationTests.test_private_preparation_persists_encrypted_candidate_without_delivery",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\tasks\\controlled-export-execution\\controlled_export\\tests\\test_phase6_private_preparation.py\", line 47, in setUp\n    keys = FileKeyResolver(manifest_path=config[\"key_manifest\"], environment=Environment.EVALUATION,\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_security\\adapters\\keys.py\", line 23, in __init__\n    require(is_private_path(self.manifest.parent, directory=True), ReasonCode.KEY_UNAVAILABLE)\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_security\\contracts\\schema.py\", line 36, in require\n    raise ContractViolation(code)\ndata_security.contracts.schema.ContractViolation: KEY_UNAVAILABLE\n"
+    },
+    {
+      "id": "controlled_export.tests.test_phase6_private_preparation.PrivateExecutionPreparationTests.test_project_limit_and_legacy_mode_cannot_rebind_the_request",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\tasks\\controlled-export-execution\\controlled_export\\tests\\test_phase6_private_preparation.py\", line 47, in setUp\n    keys = FileKeyResolver(manifest_path=config[\"key_manifest\"], environment=Environment.EVALUATION,\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_security\\adapters\\keys.py\", line 23, in __init__\n    require(is_private_path(self.manifest.parent, directory=True), ReasonCode.KEY_UNAVAILABLE)\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_security\\contracts\\schema.py\", line 36, in require\n    raise ContractViolation(code)\ndata_security.contracts.schema.ContractViolation: KEY_UNAVAILABLE\n"
+    },
+    {
+      "id": "controlled_export.tests.test_phase6_private_preparation.PrivateExecutionPreparationTests.test_replay_preserves_candidate_and_does_not_prepare_again",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\tasks\\controlled-export-execution\\controlled_export\\tests\\test_phase6_private_preparation.py\", line 47, in setUp\n    keys = FileKeyResolver(manifest_path=config[\"key_manifest\"], environment=Environment.EVALUATION,\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_security\\adapters\\keys.py\", line 23, in __init__\n    require(is_private_path(self.manifest.parent, directory=True), ReasonCode.KEY_UNAVAILABLE)\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_security\\contracts\\schema.py\", line 36, in require\n    raise ContractViolation(code)\ndata_security.contracts.schema.ContractViolation: KEY_UNAVAILABLE\n"
+    },
+    {
+      "id": "controlled_export.tests.test_phase6_private_preparation.PrivateExecutionPreparationTests.test_stricter_executor_limits_cannot_be_bypassed",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\tasks\\controlled-export-execution\\controlled_export\\tests\\test_phase6_private_preparation.py\", line 47, in setUp\n    keys = FileKeyResolver(manifest_path=config[\"key_manifest\"], environment=Environment.EVALUATION,\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_security\\adapters\\keys.py\", line 23, in __init__\n    require(is_private_path(self.manifest.parent, directory=True), ReasonCode.KEY_UNAVAILABLE)\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_security\\contracts\\schema.py\", line 36, in require\n    raise ContractViolation(code)\ndata_security.contracts.schema.ContractViolation: KEY_UNAVAILABLE\n"
+    },
+    {
+      "id": "controlled_export.tests.test_phase6_private_preparation.PrivateExecutionPreparationTests.test_wrong_preparation_state_cannot_create_an_artifact",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\tasks\\controlled-export-execution\\controlled_export\\tests\\test_phase6_private_preparation.py\", line 47, in setUp\n    keys = FileKeyResolver(manifest_path=config[\"key_manifest\"], environment=Environment.EVALUATION,\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_security\\adapters\\keys.py\", line 23, in __init__\n    require(is_private_path(self.manifest.parent, directory=True), ReasonCode.KEY_UNAVAILABLE)\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_security\\contracts\\schema.py\", line 36, in require\n    raise ContractViolation(code)\ndata_security.contracts.schema.ContractViolation: KEY_UNAVAILABLE\n"
+    },
+    {
+      "id": "controlled_export.tests.test_phase6_b2_boundaries.ExecutorPrivateBoundaryTests.test_config_composes_only_preparation_and_observation_without_io",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\tasks\\controlled-export-execution\\controlled_export\\tests\\test_phase6_b2_boundaries.py\", line 51, in test_config_composes_only_preparation_and_observation_without_io\n    start_application()\n  File \"D:\\aaa10\\16015478源码\\project-code\\tasks\\controlled-export-execution\\controlled_export_service\\security_bootstrap.py\", line 99, in start_application\n    require(path.is_absolute() and path == path.resolve() and not path.stat().st_mode & 0o022\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_security\\contracts\\schema.py\", line 36, in require\n    raise ContractViolation(code)\ndata_security.contracts.schema.ContractViolation: AUTHORIZATION_DENIED\n"
+    },
+    {
+      "id": "controlled_export.tests.test_phase6_b3_recovery.ExecutorRecoveryInspectionTests.test_offline_factory_does_not_inspect_tables_or_enable_preparation",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\tasks\\controlled-export-execution\\controlled_export\\tests\\test_phase6_b3_recovery.py\", line 209, in test_offline_factory_does_not_inspect_tables_or_enable_preparation\n    flow = assemble_recovery(backups=backup, crypto=self.store.crypto, project_ref='ctf', limits=BASELINE_LIMITS)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\tasks\\controlled-export-execution\\controlled_export_service\\security_bootstrap.py\", line 83, in assemble_recovery\n    store = DjangoPrivateStore(root=backups.private_root, crypto=crypto, environment=Environment.EVALUATION)\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_security\\adapters\\persistence\\private_store.py\", line 28, in __init__\n    require(stat.S_ISDIR(info.st_mode) and info.st_uid == os.getuid() and not info.st_mode & 0o077,\n                                                          ^^^^^^^^^\nAttributeError: module 'os' has no attribute 'getuid'. Did you mean: 'getpid'?\n"
+    },
+    {
+      "id": "controlled_export.tests.test_phase6_b3_recovery.ExecutorRecoveryWiringTests.test_explicit_retained_keys_are_injected_without_changing_active_write_key",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\tasks\\controlled-export-execution\\controlled_export\\tests\\test_phase6_b3_recovery.py\", line 64, in test_explicit_retained_keys_are_injected_without_changing_active_write_key\n    self.configure()\n  File \"D:\\aaa10\\16015478源码\\project-code\\tasks\\controlled-export-execution\\controlled_export\\tests\\test_phase6_b3_recovery.py\", line 61, in configure\n    start_application()\n  File \"D:\\aaa10\\16015478源码\\project-code\\tasks\\controlled-export-execution\\controlled_export_service\\security_bootstrap.py\", line 99, in start_application\n    require(path.is_absolute() and path == path.resolve() and not path.stat().st_mode & 0o022\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_security\\contracts\\schema.py\", line 36, in require\n    raise ContractViolation(code)\ndata_security.contracts.schema.ContractViolation: AUTHORIZATION_DENIED\n"
+    },
+    {
+      "id": "controlled_export.tests.test_phase6_b3_recovery.ExecutorRecoveryWiringTests.test_v1_configuration_still_has_no_retained_keys_or_recovery_opt_in",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\tasks\\controlled-export-execution\\controlled_export\\tests\\test_phase6_b3_recovery.py\", line 72, in test_v1_configuration_still_has_no_retained_keys_or_recovery_opt_in\n    self.configure()\n  File \"D:\\aaa10\\16015478源码\\project-code\\tasks\\controlled-export-execution\\controlled_export\\tests\\test_phase6_b3_recovery.py\", line 61, in configure\n    start_application()\n  File \"D:\\aaa10\\16015478源码\\project-code\\tasks\\controlled-export-execution\\controlled_export_service\\security_bootstrap.py\", line 99, in start_application\n    require(path.is_absolute() and path == path.resolve() and not path.stat().st_mode & 0o022\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_security\\contracts\\schema.py\", line 36, in require\n    raise ContractViolation(code)\ndata_security.contracts.schema.ContractViolation: AUTHORIZATION_DENIED\n"
+    }
+  ],
+  "skipped": [],
+  "expected_failures": 0,
+  "unexpected_successes": 0,
+  "synthetic_database_only": true
+}

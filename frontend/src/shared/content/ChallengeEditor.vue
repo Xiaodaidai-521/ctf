@@ -6,7 +6,7 @@
       <label>难度<select v-model="form.difficulty" :disabled="busy"><option v-for="item in difficulties" :key="item.value" :value="item.value">{{ item.label }}</option></select></label>
       <label>分数<input v-model.number="form.score" type="number" required min="0" :disabled="busy" /></label>
       <label class="full-width">题目描述<textarea v-model="form.description" rows="6" required :disabled="busy" placeholder="请输入题目描述"></textarea></label>
-      <label class="full-width">答案（Flag）<input v-model="form.flag" required :disabled="busy" placeholder="请输入题目答案" /><small v-if="mode === 'edit' && !form.flag">当前未提供原答案，保存前请核对并填写答案。</small><small>答案暂不能在这里确认是否保存，请联系管理员核对后再安排学生练习。</small></label>
+      <label class="full-width">{{ mode === 'edit' ? '替换答案（Flag，留空保留原答案）' : '答案（Flag）' }}<input v-model="form.flag" type="password" autocomplete="new-password" :required="mode === 'create'" :disabled="busy" :placeholder="mode === 'edit' ? '仅在需要替换答案时填写' : '请输入题目答案'" /><small v-if="mode === 'edit'">原答案不读取到页面；留空保存保留原答案。</small><small>保存后请用真实提交核对答案是否生效，再安排学生练习。</small></label>
       <label class="full-width">提示<textarea v-model="form.hint" rows="3" :disabled="busy" placeholder="请输入分级提示（可选）"></textarea></label>
       <label>状态<select v-model="form.is_active" :disabled="busy"><option :value="true">已激活</option><option :value="false">未激活</option></select></label>
       <h3 class="full-width">练习环境设置</h3>

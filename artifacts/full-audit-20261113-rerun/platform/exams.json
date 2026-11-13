@@ -1,0 +1,26 @@
+{
+  "tests": 15,
+  "passed": [
+    "exams.test_audit_regressions.ExamBoundaryRegressionTests.test_admin_generates_correctly_typed_questions_and_replaces_old_set",
+    "exams.test_audit_regressions.ExamBoundaryRegressionTests.test_admin_role_without_staff_flag_can_manage_exams",
+    "exams.test_audit_regressions.ExamBoundaryRegressionTests.test_anonymous_can_read_only_published_exam_lists",
+    "exams.test_audit_regressions.ExamBoundaryRegressionTests.test_answer_validator_rejects_two_question_ids_and_negative_duration",
+    "exams.test_audit_regressions.ExamBoundaryRegressionTests.test_comprehensive_exam_is_paired_private_and_starts_practice_after_theory",
+    "exams.test_audit_regressions.ExamBoundaryRegressionTests.test_exam_creation_binds_authenticated_admin",
+    "exams.test_audit_regressions.ExamBoundaryRegressionTests.test_expired_exam_rejects_new_answers_but_can_settle_saved_answers",
+    "exams.test_audit_regressions.ExamBoundaryRegressionTests.test_insufficient_practice_pool_does_not_leave_partial_theory_exam",
+    "exams.test_audit_regressions.ExamBoundaryRegressionTests.test_non_started_record_cannot_submit_or_answer",
+    "exams.test_audit_regressions.ExamBoundaryRegressionTests.test_practice_correct_answer_is_saved_with_request_metadata",
+    "exams.test_audit_regressions.ExamBoundaryRegressionTests.test_published_exam_rejects_duplicate_start_and_excess_attempts",
+    "exams.test_audit_regressions.ExamBoundaryRegressionTests.test_question_generation_requires_admin",
+    "exams.test_audit_regressions.ExamBoundaryRegressionTests.test_record_creation_rejects_unpublished_or_mismatched_exam",
+    "exams.test_audit_regressions.ExamBoundaryRegressionTests.test_score_and_owner_cannot_be_overwritten_by_record_patch",
+    "exams.test_audit_regressions.ExamBoundaryRegressionTests.test_student_cannot_read_answer_explanations_from_question_endpoints"
+  ],
+  "failures": [],
+  "errors": [],
+  "skipped": [],
+  "expected_failures": 0,
+  "unexpected_successes": 0,
+  "synthetic_database_only": true
+}

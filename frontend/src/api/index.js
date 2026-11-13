@@ -23,6 +23,18 @@ api.interceptors.response.use(
 
 
 const service = {
+  dataSecurity: {
+    policies: () => api.get('/data-security/policies/'),
+    preview: (sampleCase) => api.post('/data-security/preview/', { case: sampleCase }),
+    revealRequests: (params) => api.get('/data-security/reveal-requests/', { params }),
+    revealSource: (params) => api.get('/data-security/reveal-source/', { params }),
+    createRevealRequest: (data) => api.post('/data-security/reveal-requests/', data),
+    decideRevealRequest: (id, action) => {
+      if (!['approve', 'reject', 'revoke'].includes(action)) return Promise.reject(new Error('不支持的审批操作'))
+      return api.post(`/data-security/reveal-requests/${encodeURIComponent(id)}/${action}/`, {})
+    },
+    statistics: (params) => api.get('/data-security/stats/', { params }),
+  },
   privacy: {
     capabilities: () => api.get('/data-security/privacy/capabilities/'),
     conversation: id => api.get(`/data-security/privacy/conversations/${id}/`),
@@ -55,7 +67,7 @@ const service = {
 
   // 题目相关
   challenge: {
-    getCategories: () => api.get('/challenges/categories/'),
+    getCategories: (params) => api.get('/challenges/categories/', { params }),
     getChallenges: (params) => api.get('/challenges/challenges/', { params }),
     getChallengeDetail: (id) => api.get(`/challenges/challenge/${id}/`),
     submitFlag: (id, flag) => api.post(`/challenges/challenges/${id}/submit/`, {

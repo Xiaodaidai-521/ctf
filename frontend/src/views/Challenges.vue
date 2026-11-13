@@ -89,8 +89,11 @@
             </div>
           </div>
 
+          <p v-if="categoriesError" role="alert">{{ categoriesError }} <button @click="fetchCategories">重读分类</button></p>
           <!-- 题目列表 -->
-          <div class="challenges-grid" v-if="filteredChallenges.length > 0">
+          <p v-if="listLoading" role="status">正在读取题目…</p>
+          <p v-else-if="listError" role="alert">{{ listError }} <button @click="fetchChallenges">重新读取题目</button></p>
+          <div class="challenges-grid" v-else-if="filteredChallenges.length > 0">
             <ChallengeCard
               v-for="challenge in filteredChallenges"
               :key="challenge.id"
@@ -102,8 +105,11 @@
             <div class="empty-icon">📭</div>
             <p class="empty-text">暂无符合条件的题目</p>
           </div>
+          <div v-if="!listLoading && !listError && hasMore" class="load-more">
+            <button :disabled="loadingMore" @click="loadMore">加载更多题目（已显示 {{ loadedChallenges.length }} / {{ totalCount }}）</button>
+            <p v-if="loadMoreError" role="alert">{{ loadMoreError }}</p>
+          </div>
         </div>
-
         <!-- 右侧边栏 -->
         <div class="challenges-sidebar">
           <div class="sidebar-card sidebar-card-dark">
@@ -112,18 +118,19 @@
               <span>LIVE</span>
             </div>
             <h3 class="sidebar-title">解题统计</h3>
+            <p v-if="statsError" role="alert">{{ statsError }} <button @click="fetchSubmissionStats">重读统计</button></p>
             <div v-if="userStore.isAuthenticated">
               <div class="stat-row">
                 <span class="stat-label">我的积分</span>
-                <span class="stat-value">{{ userStore.userInfo?.score || 0 }}</span>
+                <span class="stat-value">{{ userStore.userInfo?.score ?? '—' }}</span>
               </div>
               <div class="stat-row">
                 <span class="stat-label">已解决题目</span>
-                <span class="stat-value">{{ solvedCount }}</span>
+                <span class="stat-value">{{ solvedCount ?? '—' }}</span>
               </div>
               <div class="stat-row">
                 <span class="stat-label">总提交次数</span>
-                <span class="stat-value">{{ submissionStats.total_submissions || 0 }}</span>
+                <span class="stat-value">{{ submissionStats?.total_submissions ?? '—' }}</span>
               </div>
             </div>
             <div v-else>
@@ -135,11 +142,14 @@
           </div>
 
           <div class="sidebar-card">
-            <h3 class="sidebar-title">实时动态</h3>
+            <h3 class="sidebar-title">本人最近提交</h3>
+            <p v-if="activitiesLoading" role="status">正在读取提交…</p>
+            <p v-else-if="activitiesError" role="alert">{{ activitiesError }} <button @click="fetchRecentActivities">重读提交</button></p>
+            <p v-else-if="recentActivities.length === 0">暂无可展示的本人提交</p>
             <div class="activity-list">
               <div v-for="(activity, index) in recentActivities" :key="index" class="activity-item">
-                <span class="activity-time">{{ activity.time }}</span>
-                <span class="activity-text">{{ activity.text }}</span>
+                <span class="activity-time">{{ activity.created_at ? new Date(activity.created_at).toLocaleString('zh-CN') : '—' }}</span>
+                <span class="activity-text">{{ activity.challenge_title }} · {{ activity.is_correct === true ? '正确' : activity.is_correct === false ? '错误' : '状态待确认' }}</span>
               </div>
             </div>
           </div>
@@ -158,17 +168,17 @@
 </template>
 
 <script setup>
-import { ref, computed, onDeactivated, onMounted, watch } from 'vue'
+import { ref, computed, onDeactivated, onMounted, onUnmounted, watch } from 'vue'
 import { useChallengeStore } from '@/store/challenge'
 import { useUserStore } from '@/store/user'
-import { useRouter } from 'vue-router'
 import ChallengeCard from '@/components/ChallengeCard.vue'
 import ChallengeDetailModal from '@/components/ChallengeDetailModal.vue'
 import api from '@/api'
+import { createAccountGuard } from '@/shared/state/accountScope.js'
 
 const challengeStore = useChallengeStore()
 const userStore = useUserStore()
-const router = useRouter()
+
 
 const selectedChallenge = ref(null)
 onDeactivated(() => { selectedChallenge.value = null })
@@ -183,18 +193,17 @@ const difficulties = [
   { label: '专家', value: 'expert' }
 ]
 
-const submissionStats = ref({})
-
-const recentActivities = ref([
-  { time: '10分钟前', text: 'user1 解决了 hello_world' },
-  { time: '25分钟前', text: 'user2 解决了 base64_decode' },
-  { time: '1小时前', text: 'user3 解决了 misc_forensics' },
-  { time: '2小时前', text: 'user4 解决了 simple_login' },
-  { time: '3小时前', text: 'user5 解决了 steganography' }
-])
-
+const guard = createAccountGuard()
+onUnmounted(guard.dispose)
+const submissionStats = ref(null)
+const recentActivities = ref([])
+const listError = ref(''), categoriesError = ref(''), statsError = ref(''), activitiesError = ref('')
+const listLoading = ref(true), activitiesLoading = ref(false), loadingMore = ref(false), loadMoreError = ref('')
+const loadedChallenges = ref([]), totalCount = ref(null), nextPage = ref(2)
+let generation = 0
+const hasMore = computed(() => totalCount.value !== null && loadedChallenges.value.length < totalCount.value)
 const filteredChallenges = computed(() => {
-  let challenges = challengeStore.challenges
+  let challenges = loadedChallenges.value
 
   // 只在前端筛选状态，分类和难度通过 API 参数筛选
   if (selectedStatus.value) {
@@ -208,37 +217,70 @@ const filteredChallenges = computed(() => {
   return challenges
 })
 
-const solvedCount = computed(() => {
-  return challengeStore.challenges.filter(c => c.is_solved).length
+const solvedCount = computed(() => submissionStats.value?.solved_challenges ?? null)
+const listParams = () => ({
+  ...(selectedCategory.value ? { category: selectedCategory.value } : {}),
+  ...(selectedDifficulty.value ? { difficulty: selectedDifficulty.value } : {}),
 })
-
 const fetchChallenges = async () => {
+  const reading = ++generation
+  listLoading.value = true; loadingMore.value = false; listError.value = ''; loadMoreError.value = ''; loadedChallenges.value = []; totalCount.value = null
   try {
-    const params = {}
-    if (selectedCategory.value) {
-      params.category = selectedCategory.value
-    }
-    if (selectedDifficulty.value) {
-      params.difficulty = selectedDifficulty.value
-    }
-    await challengeStore.fetchChallenges(params)
-  } catch (error) {
-    console.error('获取题目失败:', error)
+    const response = await challengeStore.fetchChallenges({ ...listParams(), page: 1 })
+    if (!guard.current() || reading !== generation) return
+    loadedChallenges.value = Array.isArray(response) ? response : response?.results || challengeStore.challenges || []
+    totalCount.value = Number.isFinite(response?.count) ? response.count : null
+    nextPage.value = 2
+  } catch {
+    if (guard.current() && reading === generation) listError.value = '题目列表读取失败，请重试。'
+  } finally {
+    if (guard.current() && reading === generation) listLoading.value = false
   }
 }
-
+const loadMore = async () => {
+  if (loadingMore.value || !hasMore.value) return
+  const reading = generation
+  loadingMore.value = true; loadMoreError.value = ''
+  try {
+    const response = await api.challenge.getChallenges({ ...listParams(), page: nextPage.value })
+    if (!guard.current() || reading !== generation) return
+    const rows = Array.isArray(response) ? response : response.results || []
+    const seen = new Set(loadedChallenges.value.map(row => row.id))
+    loadedChallenges.value.push(...rows.filter(row => !seen.has(row.id)))
+    nextPage.value++
+  } catch {
+    if (guard.current() && reading === generation) loadMoreError.value = '更多题目读取失败，请重试。'
+  } finally {
+    if (guard.current() && reading === generation) loadingMore.value = false
+  }
+}
+const fetchCategories = async () => {
+  categoriesError.value = ''
+  try { await challengeStore.fetchCategories() }
+  catch { if (guard.current()) categoriesError.value = '题目分类读取失败，请重试。' }
+}
 const fetchSubmissionStats = async () => {
-  if (userStore.isAuthenticated) {
-    try {
-      submissionStats.value = await api.submission.stats()
-    } catch (error) {
-      console.error('获取统计失败:', error)
-    }
-  }
+  submissionStats.value = null; statsError.value = ''
+  if (!userStore.isAuthenticated) return
+  try {
+    const response = await api.submission.stats()
+    if (guard.current()) submissionStats.value = response
+  } catch { if (guard.current()) statsError.value = '解题统计读取失败，请重试。' }
 }
-
+const fetchRecentActivities = async () => {
+  recentActivities.value = []; activitiesError.value = ''
+  if (!userStore.isAuthenticated) return
+  activitiesLoading.value = true
+  try {
+    const response = await api.submission.mySubmissions()
+    if (!guard.current()) return
+    const rows = Array.isArray(response) ? response : response.results || []
+    recentActivities.value = rows.slice().sort((a, b) => Date.parse(b.created_at) - Date.parse(a.created_at)).slice(0, 5)
+  } catch { if (guard.current()) activitiesError.value = '本人提交记录读取失败，请重试。' }
+  finally { if (guard.current()) activitiesLoading.value = false }
+}
 const handleRandom = () => {
-  if (filteredChallenges.value.length === 0) return
+  if (listLoading.value || listError.value || filteredChallenges.value.length === 0) return
   const randomChallenge = filteredChallenges.value[
     Math.floor(Math.random() * filteredChallenges.value.length)
   ]
@@ -253,15 +295,15 @@ const closeChallengeModal = () => {
   selectedChallenge.value = null
 }
 
-watch([selectedCategory, selectedDifficulty, selectedStatus], () => {
+watch([selectedCategory, selectedDifficulty], () => {
   fetchChallenges()
 })
 
 onMounted(async () => {
   await Promise.all([
-    challengeStore.fetchCategories(),
+    fetchCategories(),
     fetchChallenges(),
-    fetchSubmissionStats()
+    fetchSubmissionStats(), fetchRecentActivities()
   ])
 })
 </script>

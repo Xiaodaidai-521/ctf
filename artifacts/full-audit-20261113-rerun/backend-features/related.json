@@ -1,0 +1,177 @@
+{
+  "tests": 107,
+  "passed": [
+    "challenges.tests.ChallengeProxyAccessTests.test_access_url_does_not_include_reusable_token",
+    "challenges.tests.ChallengeProxyAccessTests.test_authenticated_container_action_sets_scoped_http_only_cookie",
+    "challenges.tests.ChallengeProxyAccessTests.test_proxy_accepts_authenticated_owner_without_cookie",
+    "challenges.tests.ChallengeProxyAccessTests.test_proxy_accepts_scoped_cookie",
+    "challenges.tests.ChallengeProxyAccessTests.test_proxy_preserves_safe_request_data_and_filters_sensitive_headers",
+    "challenges.tests.ChallengeProxyAccessTests.test_proxy_rejects_anonymous_request_without_scoped_cookie",
+    "challenges.tests.ChallengeProxyAccessTests.test_proxy_rejects_authenticated_non_owner",
+    "challenges.tests.ChallengeProxyAccessTests.test_proxy_rejects_cookie_for_another_container",
+    "challenges.tests.ChallengeProxyAccessTests.test_proxy_rejects_legacy_query_token",
+    "challenges.tests.ChallengeProxyAccessTests.test_proxy_rejects_unsafe_session_request_without_csrf",
+    "challenges.tests.ComplianceCategoryTests.test_categories_api_exposes_compliance_category",
+    "challenges.tests.ComplianceCategoryTests.test_compliance_category_exists_from_migration",
+    "challenges.tests.ContainerIsolationTests.test_container_start_keeps_isolation_and_resource_limits",
+    "challenges.tests.ContainerRuntimeConfigTests.test_container_audit_writes_event_and_ledger",
+    "challenges.tests.ContainerRuntimeConfigTests.test_container_manager_resolves_image_aliases",
+    "challenges.tests.ContainerRuntimeConfigTests.test_port_pool_uses_settings_range",
+    "challenges.tests.FRPClientManagerSecurityTests.test_sidecar_does_not_start_without_configured_token",
+    "challenges.test_juice_shop.JuiceShopTests.test_anonymous_start_identifies_missing_session_without_starting_docker",
+    "challenges.test_juice_shop.JuiceShopTests.test_cleanup_dry_run_does_not_destroy_and_real_run_routes_runtime",
+    "challenges.test_juice_shop.JuiceShopTests.test_cleanup_refuses_unowned_container",
+    "challenges.test_juice_shop.JuiceShopTests.test_direct_url_has_no_platform_access_token",
+    "challenges.test_juice_shop.JuiceShopTests.test_existing_environment_is_not_duplicated",
+    "challenges.test_juice_shop.JuiceShopTests.test_import_is_idempotent_and_practice_cannot_score",
+    "challenges.test_juice_shop.JuiceShopTests.test_missing_container_still_removes_owned_network",
+    "challenges.test_juice_shop.JuiceShopTests.test_missing_docker_returns_actionable_503",
+    "challenges.test_juice_shop.JuiceShopTests.test_permission_failures_are_not_marked_as_missing_login",
+    "challenges.test_juice_shop.JuiceShopTests.test_start_failure_rolls_back_container_and_network",
+    "resources.tests.AIResourceTypeTests.test_ai_resource_type_serializes_display_label",
+    "resources.tests.ResourceAgentCacheTests.test_no_matched_resource_is_cached_as_empty_without_fabrication",
+    "resources.tests.ResourceAgentCacheTests.test_resource_cache_switch_bypasses_cache_read_and_write",
+    "resources.tests.ResourceAgentCacheTests.test_second_same_student_knowledge_point_uses_cache_without_rag",
+    "resources.tests.ResourceAgentCacheTests.test_student_level_changes_resource_ordering",
+    "resources.tests.ResourceDownloadAccessTests.test_download_is_attachment_with_nosniff",
+    "resources.tests.ResourceDownloadAccessTests.test_download_requires_authentication",
+    "resources.tests.ResourceDownloadAccessTests.test_reserved_download_requires_matching_highlight",
+    "resources.tests.ResourceUploadValidationTests.test_accepts_mp4_video_with_matching_content_type",
+    "resources.tests.ResourceUploadValidationTests.test_accepts_utf8_text_with_matching_content_type",
+    "resources.tests.ResourceUploadValidationTests.test_accepts_verified_cover_image",
+    "resources.tests.ResourceUploadValidationTests.test_rejects_disallowed_extension",
+    "resources.tests.ResourceUploadValidationTests.test_rejects_file_larger_than_configured_limit",
+    "resources.tests.ResourceUploadValidationTests.test_rejects_invalid_cover_image",
+    "resources.tests.ResourceUploadValidationTests.test_rejects_invalid_zip_content",
+    "resources.tests.ResourceUploadValidationTests.test_rejects_mismatched_content_type",
+    "resources.tests.ResourceUploadValidationTests.test_rejects_script_content_in_text_upload",
+    "resources.tests.ResourceUploadValidationTests.test_rejects_zip_that_expands_beyond_limit",
+    "resources.tests.ResourceVisibilityTests.test_highlight_resource_temporarily_exposes_approved_reserved_resource_first",
+    "resources.tests.ResourceVisibilityTests.test_highlight_resources_temporarily_exposes_multiple_reserved_resources_first",
+    "resources.tests.ResourceVisibilityTests.test_reserved_resource_detail_requires_matching_highlight",
+    "resources.tests.ResourceVisibilityTests.test_reserved_resources_are_hidden_from_public_resource_center_but_available_to_resource_agent",
+    "resources.tests.ResourceVisibilityTests.test_resource_agent_resource_entry_targets_highlight_and_preserves_ai_resource_type",
+    "legal_kb.tests_write_permissions.LegalWritePermissionTests.test_prepare_rebuild_fetch_and_platform_index_commands_are_not_api_routes",
+    "legal_kb.tests_write_permissions.LegalWritePermissionTests.test_readonly_jobs_embeddings_and_logs_have_no_write_action",
+    "legal_kb.tests_write_permissions.LegalWritePermissionTests.test_student_denied_all_legal_crud_families_and_methods",
+    "legal_kb.tests_write_permissions.LegalWritePermissionTests.test_student_ingest_denied_without_job_or_embedding",
+    "legal_kb.tests_write_permissions.PlatformWriteBoundaryTests.test_community_create_update_delete_contract_does_not_write_index",
+    "legal_kb.tests_write_permissions.PlatformWriteBoundaryTests.test_student_denied_concept_and_challenge_crud",
+    "legal_kb.tests_write_permissions.PlatformWriteBoundaryTests.test_student_denied_resource_upload_review_and_article_review",
+    "legal_kb.tests_write_permissions.PlatformWriteBoundaryTests.test_student_interactions_and_resource_signal_do_not_index",
+    "legal_kb.tests_write_permissions.PlatformWriteBoundaryTests.test_teacher_concept_and_resource_create_do_not_implicitly_index",
+    "articles.test_audit_regressions.CommunityBoundaryRegressionTests.test_admin_can_review_pending_articles",
+    "articles.test_audit_regressions.CommunityBoundaryRegressionTests.test_anonymous_personal_lists_require_authentication",
+    "articles.test_audit_regressions.CommunityBoundaryRegressionTests.test_author_can_read_and_edit_own_pending_article",
+    "articles.test_audit_regressions.CommunityBoundaryRegressionTests.test_comment_cannot_be_added_to_another_authors_unpublished_article",
+    "articles.test_audit_regressions.CommunityBoundaryRegressionTests.test_comment_cannot_be_reparented_or_moved_to_another_article",
+    "articles.test_audit_regressions.CommunityBoundaryRegressionTests.test_invalid_article_query_is_a_client_error",
+    "articles.test_audit_regressions.CommunityBoundaryRegressionTests.test_other_user_cannot_update_comment",
+    "articles.test_audit_regressions.CommunityBoundaryRegressionTests.test_status_filter_cannot_reveal_unpublished_articles",
+    "articles.test_audit_regressions.CommunityBoundaryRegressionTests.test_withdrawn_favorite_and_comments_are_hidden_from_other_users",
+    "exams.test_audit_regressions.ExamBoundaryRegressionTests.test_admin_generates_correctly_typed_questions_and_replaces_old_set",
+    "exams.test_audit_regressions.ExamBoundaryRegressionTests.test_admin_role_without_staff_flag_can_manage_exams",
+    "exams.test_audit_regressions.ExamBoundaryRegressionTests.test_anonymous_can_read_only_published_exam_lists",
+    "exams.test_audit_regressions.ExamBoundaryRegressionTests.test_answer_validator_rejects_two_question_ids_and_negative_duration",
+    "exams.test_audit_regressions.ExamBoundaryRegressionTests.test_comprehensive_exam_is_paired_private_and_starts_practice_after_theory",
+    "exams.test_audit_regressions.ExamBoundaryRegressionTests.test_exam_creation_binds_authenticated_admin",
+    "exams.test_audit_regressions.ExamBoundaryRegressionTests.test_expired_exam_rejects_new_answers_but_can_settle_saved_answers",
+    "exams.test_audit_regressions.ExamBoundaryRegressionTests.test_insufficient_practice_pool_does_not_leave_partial_theory_exam",
+    "exams.test_audit_regressions.ExamBoundaryRegressionTests.test_non_started_record_cannot_submit_or_answer",
+    "exams.test_audit_regressions.ExamBoundaryRegressionTests.test_practice_correct_answer_is_saved_with_request_metadata",
+    "exams.test_audit_regressions.ExamBoundaryRegressionTests.test_published_exam_rejects_duplicate_start_and_excess_attempts",
+    "exams.test_audit_regressions.ExamBoundaryRegressionTests.test_question_generation_requires_admin",
+    "exams.test_audit_regressions.ExamBoundaryRegressionTests.test_record_creation_rejects_unpublished_or_mismatched_exam",
+    "exams.test_audit_regressions.ExamBoundaryRegressionTests.test_score_and_owner_cannot_be_overwritten_by_record_patch",
+    "exams.test_audit_regressions.ExamBoundaryRegressionTests.test_student_cannot_read_answer_explanations_from_question_endpoints",
+    "learning_paths.test_audit_regressions.PathManagementRegressionTests.test_anonymous_progress_requires_authentication",
+    "learning_paths.test_audit_regressions.PathManagementRegressionTests.test_legacy_lab_attempt_uses_server_flag_check_and_model_contract",
+    "learning_paths.test_audit_regressions.PathManagementRegressionTests.test_locked_module_cannot_skip_start_and_completed_retry_is_idempotent",
+    "learning_paths.test_audit_regressions.PathManagementRegressionTests.test_progress_counts_only_required_modules",
+    "learning_paths.test_audit_regressions.PathManagementRegressionTests.test_recommendations_require_registered_published_module_links",
+    "learning_paths.test_audit_regressions.PathManagementRegressionTests.test_student_cannot_create_paths_or_modules",
+    "learning_paths.test_audit_regressions.PathManagementRegressionTests.test_teacher_can_manage_draft_but_students_cannot_read_it",
+    "learning_paths.test_audit_regressions.PathManagementRegressionTests.test_teacher_creates_and_updates_path_and_module_with_model_fields",
+    "users.test_audit_regressions.UserListRegressionTests.test_invalid_pagination_is_a_client_error",
+    "users.test_audit_regressions.UserListRegressionTests.test_leaderboard_ranks_continue_across_pages",
+    "users.test_audit_regressions.UserListRegressionTests.test_page_size_is_bounded",
+    "feedback_center.tests.test_audit_status.FeedbackStatusRegressionTests.test_status_agrees_with_actual_phase3_gates"
+  ],
+  "failures": [
+    {
+      "id": "legal_kb.tests_write_permissions.LegalWritePermissionTests.test_prepare_command_denies_student_before_seed_or_import",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\legal_kb\\tests_write_permissions.py\", line 138, in test_prepare_command_denies_student_before_seed_or_import\n    with self.assertRaises(CommandError):\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: CommandError not raised\n"
+    },
+    {
+      "id": "legal_kb.tests_write_permissions.LegalWritePermissionTests.test_registered_document_still_cannot_be_reingested_by_teacher",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\legal_kb\\tests_write_permissions.py\", line 125, in test_registered_document_still_cannot_be_reingested_by_teacher\n    self.assertEqual(self.client.post(f'/api/legal-kb/documents/{self.document.pk}/ingest/').status_code, 404)\nAssertionError: 403 != 404\n"
+    },
+    {
+      "id": "legal_kb.tests_write_permissions.LegalWritePermissionTests.test_teacher_and_admin_ingest_success (role='teacher')",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\legal_kb\\tests_write_permissions.py\", line 92, in test_teacher_and_admin_ingest_success\n    self.assertEqual(response.status_code, 201, response.data)\nAssertionError: 403 != 201 : {'detail': ErrorDetail(string='您没有执行该操作的权限。', code='permission_denied')}\n"
+    },
+    {
+      "id": "legal_kb.tests_write_permissions.LegalWritePermissionTests.test_teacher_and_admin_ingest_success",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\legal_kb\\tests_write_permissions.py\", line 95, in test_teacher_and_admin_ingest_success\n    self.assertEqual(KbIngestionJob.objects.count(), 2)\nAssertionError: 0 != 2\n"
+    },
+    {
+      "id": "legal_kb.tests_write_permissions.LegalWritePermissionTests.test_teacher_can_create_update_patch_delete_all_legal_families (family='templates')",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\legal_kb\\tests_write_permissions.py\", line 70, in test_teacher_can_create_update_patch_delete_all_legal_families\n    self.assertEqual(response.status_code, 201, response.data)\nAssertionError: 403 != 201 : {'detail': ErrorDetail(string='您没有执行该操作的权限。', code='permission_denied')}\n"
+    },
+    {
+      "id": "legal_kb.tests_write_permissions.LegalWritePermissionTests.test_teacher_can_create_update_patch_delete_all_legal_families (family='cases')",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\legal_kb\\tests_write_permissions.py\", line 70, in test_teacher_can_create_update_patch_delete_all_legal_families\n    self.assertEqual(response.status_code, 201, response.data)\nAssertionError: 403 != 201 : {'detail': ErrorDetail(string='您没有执行该操作的权限。', code='permission_denied')}\n"
+    },
+    {
+      "id": "legal_kb.tests_write_permissions.LegalWritePermissionTests.test_teacher_can_create_update_patch_delete_all_legal_families (family='clauses')",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\legal_kb\\tests_write_permissions.py\", line 70, in test_teacher_can_create_update_patch_delete_all_legal_families\n    self.assertEqual(response.status_code, 201, response.data)\nAssertionError: 403 != 201 : {'detail': ErrorDetail(string='您没有执行该操作的权限。', code='permission_denied')}\n"
+    },
+    {
+      "id": "legal_kb.tests_write_permissions.LegalWritePermissionTests.test_teacher_can_create_update_patch_delete_all_legal_families (family='documents')",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\legal_kb\\tests_write_permissions.py\", line 70, in test_teacher_can_create_update_patch_delete_all_legal_families\n    self.assertEqual(response.status_code, 201, response.data)\nAssertionError: 403 != 201 : {'detail': ErrorDetail(string='您没有执行该操作的权限。', code='permission_denied')}\n"
+    }
+  ],
+  "errors": [
+    {
+      "id": "legal_kb.tests_write_permissions.LegalWritePermissionTests.test_fetch_command_denies_student_before_network_or_files",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\legal_kb\\tests_write_permissions.py\", line 160, in test_fetch_command_denies_student_before_network_or_files\n    call_command('fetch_official_laws', actor=self.student.username, stdout=io.StringIO())\n  File \"D:\\aaa10\\16015478源码\\project-code\\.state\\full-audit-20261113\\venv\\Lib\\site-packages\\django\\core\\management\\__init__.py\", line 195, in call_command\n    return command.execute(*args, **defaults)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\.state\\full-audit-20261113\\venv\\Lib\\site-packages\\django\\core\\management\\base.py\", line 464, in execute\n    output = self.handle(*args, **options)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\legal_kb\\management\\commands\\fetch_official_laws.py\", line 98, in handle\n    json.dumps(payload, ensure_ascii=False, indent=2),\n    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\29681\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\json\\__init__.py\", line 238, in dumps\n    **kw).encode(obj)\n          ^^^^^^^^^^^\n  File \"C:\\Users\\29681\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\json\\encoder.py\", line 202, in encode\n    chunks = list(chunks)\n             ^^^^^^^^^^^^\n  File \"C:\\Users\\29681\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\json\\encoder.py\", line 439, in _iterencode\n    o = _default(o)\n        ^^^^^^^^^^^\n  File \"C:\\Users\\29681\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\json\\encoder.py\", line 180, in default\n    raise TypeError(f'Object of type {o.__class__.__name__} '\nTypeError: Object of type MagicMock is not JSON serializable\n"
+    },
+    {
+      "id": "legal_kb.tests_write_permissions.LegalWritePermissionTests.test_fetch_command_teacher_imports_with_mocked_official_source",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\legal_kb\\tests_write_permissions.py\", line 172, in test_fetch_command_teacher_imports_with_mocked_official_source\n    call_command('fetch_official_laws', actor=self.teacher.username, query=['Synthetic law'],\n  File \"D:\\aaa10\\16015478源码\\project-code\\.state\\full-audit-20261113\\venv\\Lib\\site-packages\\django\\core\\management\\__init__.py\", line 195, in call_command\n    return command.execute(*args, **defaults)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\.state\\full-audit-20261113\\venv\\Lib\\site-packages\\django\\core\\management\\base.py\", line 464, in execute\n    output = self.handle(*args, **options)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\legal_kb\\management\\commands\\fetch_official_laws.py\", line 106, in handle\n    job = LegalKbIngestionService().ingest_document(document, actor=actor)\n          ^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\legal_kb\\services\\ingestion_service.py\", line 27, in __init__\n    self.embedding_service = embedding_service if embedding_service is not None else get_embedding_service()\n                                                                                     ^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\rag_ingestion\\registry.py\", line 28, in get_embedding_service\n    return _embedding_factory(**options)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\legal_kb\\services\\embedding_service.py\", line 40, in __init__\n    raise RuntimeError('EMBEDDING_PROVIDER_DISABLED')\nRuntimeError: EMBEDDING_PROVIDER_DISABLED\n"
+    },
+    {
+      "id": "legal_kb.tests_write_permissions.LegalWritePermissionTests.test_legal_service_denies_explicit_student_before_job_write",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\legal_kb\\tests_write_permissions.py\", line 131, in test_legal_service_denies_explicit_student_before_job_write\n    LegalKbIngestionService().ingest_document(self.document, actor=self.student)\n    ^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\legal_kb\\services\\ingestion_service.py\", line 27, in __init__\n    self.embedding_service = embedding_service if embedding_service is not None else get_embedding_service()\n                                                                                     ^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\rag_ingestion\\registry.py\", line 28, in get_embedding_service\n    return _embedding_factory(**options)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\legal_kb\\services\\embedding_service.py\", line 40, in __init__\n    raise RuntimeError('EMBEDDING_PROVIDER_DISABLED')\nRuntimeError: EMBEDDING_PROVIDER_DISABLED\n"
+    },
+    {
+      "id": "legal_kb.tests_write_permissions.LegalWritePermissionTests.test_prepare_teacher_imports_and_indexes_local_law",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\legal_kb\\tests_write_permissions.py\", line 150, in test_prepare_teacher_imports_and_indexes_local_law\n    call_command('prepare_legal_kb', actor=self.teacher.username, laws_only=True,\n  File \"D:\\aaa10\\16015478源码\\project-code\\.state\\full-audit-20261113\\venv\\Lib\\site-packages\\django\\core\\management\\__init__.py\", line 195, in call_command\n    return command.execute(*args, **defaults)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\.state\\full-audit-20261113\\venv\\Lib\\site-packages\\django\\core\\management\\base.py\", line 464, in execute\n    output = self.handle(*args, **options)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\legal_kb\\management\\commands\\prepare_legal_kb.py\", line 109, in handle\n    self._import_laws(options.get('laws_dir'), actor=actor)\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\legal_kb\\management\\commands\\prepare_legal_kb.py\", line 177, in _import_laws\n    LegalKbIngestionService().ingest_document(document, actor=actor)\n    ^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\legal_kb\\services\\ingestion_service.py\", line 27, in __init__\n    self.embedding_service = embedding_service if embedding_service is not None else get_embedding_service()\n                                                                                     ^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\rag_ingestion\\registry.py\", line 28, in get_embedding_service\n    return _embedding_factory(**options)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\legal_kb\\services\\embedding_service.py\", line 40, in __init__\n    raise RuntimeError('EMBEDDING_PROVIDER_DISABLED')\nRuntimeError: EMBEDDING_PROVIDER_DISABLED\n"
+    },
+    {
+      "id": "legal_kb.tests_write_permissions.LegalWritePermissionTests.test_rebuild_denies_student_and_keeps_teacher_success",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\legal_kb\\tests_write_permissions.py\", line 179, in test_rebuild_denies_student_and_keeps_teacher_success\n    LegalKbIngestionService().ingest_document(self.document, actor=self.teacher)\n    ^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\legal_kb\\services\\ingestion_service.py\", line 27, in __init__\n    self.embedding_service = embedding_service if embedding_service is not None else get_embedding_service()\n                                                                                     ^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\rag_ingestion\\registry.py\", line 28, in get_embedding_service\n    return _embedding_factory(**options)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\legal_kb\\services\\embedding_service.py\", line 40, in __init__\n    raise RuntimeError('EMBEDDING_PROVIDER_DISABLED')\nRuntimeError: EMBEDDING_PROVIDER_DISABLED\n"
+    },
+    {
+      "id": "legal_kb.tests_write_permissions.LegalWritePermissionTests.test_teacher_and_admin_ingest_success (role='admin')",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\legal_kb\\tests_write_permissions.py\", line 91, in test_teacher_and_admin_ingest_success\n    response = self.client.post(f'/api/legal-kb/documents/{self.document.pk}/ingest/')\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\.state\\full-audit-20261113\\venv\\Lib\\site-packages\\rest_framework\\test.py\", line 299, in post\n    response = super().post(\n               ^^^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\.state\\full-audit-20261113\\venv\\Lib\\site-packages\\rest_framework\\test.py\", line 213, in post\n    return self.generic('POST', path, data, content_type, **extra)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\.state\\full-audit-20261113\\venv\\Lib\\site-packages\\rest_framework\\test.py\", line 237, in generic\n    return super().generic(\n           ^^^^^^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\.state\\full-audit-20261113\\venv\\Lib\\site-packages\\django\\test\\client.py\", line 671, in generic\n    return self.request(**r)\n           ^^^^^^^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\.state\\full-audit-20261113\\venv\\Lib\\site-packages\\rest_framework\\test.py\", line 289, in request\n    return super().request(**kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\.state\\full-audit-20261113\\venv\\Lib\\site-packages\\rest_framework\\test.py\", line 241, in request\n    request = super().request(**kwargs)\n              ^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\.state\\full-audit-20261113\\venv\\Lib\\site-packages\\django\\test\\client.py\", line 1087, in request\n    self.check_exception(response)\n  File \"D:\\aaa10\\16015478源码\\project-code\\.state\\full-audit-20261113\\venv\\Lib\\site-packages\\django\\test\\client.py\", line 802, in check_exception\n    raise exc_value\n  File \"D:\\aaa10\\16015478源码\\project-code\\.state\\full-audit-20261113\\venv\\Lib\\site-packages\\django\\core\\handlers\\exception.py\", line 55, in inner\n    response = get_response(request)\n               ^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\.state\\full-audit-20261113\\venv\\Lib\\site-packages\\django\\core\\handlers\\base.py\", line 198, in _get_response\n    response = wrapped_callback(request, *callback_args, **callback_kwargs)\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\.state\\full-audit-20261113\\venv\\Lib\\site-packages\\django\\views\\decorators\\csrf.py\", line 65, in _view_wrapper\n    return view_func(request, *args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\.state\\full-audit-20261113\\venv\\Lib\\site-packages\\rest_framework\\viewsets.py\", line 125, in view\n    return self.dispatch(request, *args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\.state\\full-audit-20261113\\venv\\Lib\\site-packages\\rest_framework\\views.py\", line 515, in dispatch\n    response = self.handle_exception(exc)\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\.state\\full-audit-20261113\\venv\\Lib\\site-packages\\rest_framework\\views.py\", line 475, in handle_exception\n    self.raise_uncaught_exception(exc)\n  File \"D:\\aaa10\\16015478源码\\project-code\\.state\\full-audit-20261113\\venv\\Lib\\site-packages\\rest_framework\\views.py\", line 486, in raise_uncaught_exception\n    raise exc\n  File \"D:\\aaa10\\16015478源码\\project-code\\.state\\full-audit-20261113\\venv\\Lib\\site-packages\\rest_framework\\views.py\", line 512, in dispatch\n    response = handler(request, *args, **kwargs)\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\legal_kb\\views.py\", line 54, in ingest\n    job = LegalKbIngestionService().ingest_document(document, actor=request.user)\n          ^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\legal_kb\\services\\ingestion_service.py\", line 27, in __init__\n    self.embedding_service = embedding_service if embedding_service is not None else get_embedding_service()\n                                                                                     ^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\rag_ingestion\\registry.py\", line 28, in get_embedding_service\n    return _embedding_factory(**options)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\legal_kb\\services\\embedding_service.py\", line 40, in __init__\n    raise RuntimeError('EMBEDDING_PROVIDER_DISABLED')\nRuntimeError: EMBEDDING_PROVIDER_DISABLED\n"
+    },
+    {
+      "id": "legal_kb.tests_write_permissions.PlatformWriteBoundaryTests.test_student_cannot_index_any_platform_source_even_with_local_provider",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\legal_kb\\tests_write_permissions.py\", line 213, in test_student_cannot_index_any_platform_source_even_with_local_provider\n    indexer = PlatformContentIndexingService()\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\legal_kb\\services\\platform_indexing_service.py\", line 48, in __init__\n    self.embedding_service = embedding_service if embedding_service is not None else get_embedding_service()\n                                                                                     ^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\rag_ingestion\\registry.py\", line 28, in get_embedding_service\n    return _embedding_factory(**options)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\legal_kb\\services\\embedding_service.py\", line 40, in __init__\n    raise RuntimeError('EMBEDDING_PROVIDER_DISABLED')\nRuntimeError: EMBEDDING_PROVIDER_DISABLED\n"
+    },
+    {
+      "id": "legal_kb.tests_write_permissions.PlatformWriteBoundaryTests.test_teacher_explicitly_indexes_articles_resources_and_concepts",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\legal_kb\\tests_write_permissions.py\", line 224, in test_teacher_explicitly_indexes_articles_resources_and_concepts\n    indexer = PlatformContentIndexingService()\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\legal_kb\\services\\platform_indexing_service.py\", line 48, in __init__\n    self.embedding_service = embedding_service if embedding_service is not None else get_embedding_service()\n                                                                                     ^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\rag_ingestion\\registry.py\", line 28, in get_embedding_service\n    return _embedding_factory(**options)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\legal_kb\\services\\embedding_service.py\", line 40, in __init__\n    raise RuntimeError('EMBEDDING_PROVIDER_DISABLED')\nRuntimeError: EMBEDDING_PROVIDER_DISABLED\n"
+    }
+  ],
+  "skipped": [
+    {
+      "id": "challenges.test_juice_shop.JuiceShopDockerIntegrationTests.test_api_lifecycle_isolation_reset_and_expiration",
+      "reason": "requires the pinned local Docker image"
+    }
+  ],
+  "expected_failures": 0,
+  "unexpected_successes": 0,
+  "synthetic_database_only": true
+}

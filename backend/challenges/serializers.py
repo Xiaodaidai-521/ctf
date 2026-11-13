@@ -122,6 +122,29 @@ class ChallengeSerializer(serializers.ModelSerializer):
         return ChallengeResourceGuidanceSerializer(relations, many=True).data
 
 
+class ChallengeManagementSerializer(ChallengeSerializer):
+    """Accept answers only for authorized writes; never include them in responses."""
+
+    flag = serializers.CharField(write_only=True, required=False, allow_blank=True, max_length=200)
+    score = serializers.IntegerField(min_value=0)
+    redirect_port = serializers.IntegerField(required=False, allow_null=True, min_value=1, max_value=65535)
+
+    class Meta(ChallengeSerializer.Meta):
+        fields = [*ChallengeSerializer.Meta.fields, 'flag']
+
+    def validate(self, attrs):
+        mode = attrs.get('submission_mode', self.instance.submission_mode if self.instance else 'flag')
+        requires_answer = self.instance is None or (
+            mode == 'flag' and self.instance.submission_mode != 'flag'
+        )
+        if mode == 'flag' and (
+            (requires_answer and not attrs.get('flag', '').strip())
+            or ('flag' in attrs and not attrs['flag'].strip())
+        ):
+            raise serializers.ValidationError({'flag': 'Flag 计分题必须配置非空答案。'})
+        return attrs
+
+
 class ChallengeListSerializer(serializers.ModelSerializer):
     """Challenge list serializer."""
 

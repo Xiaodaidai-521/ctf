@@ -114,15 +114,20 @@ test('challenge create/edit save all original fields, preserve failed form and o
   fail = false; await page.save()
   assert.equal(page.state.editor, null); assert.match(page.state.success, /已保存/)
   assert.deepEqual(Object.keys(writes[1]), presentation.challengeFields)
-  await page.edit({ id: 5 }); await page.save()
+  await page.edit({ id: 5 }); page.state.form.flag = 'flag{replacement}'; await page.save()
   assert.equal(writes[2].id, 5); assert.deepEqual(Object.keys(writes[2].data), presentation.challengeFields)
+  assert.equal(writes[2].data.flag, 'flag{replacement}')
   page.create(); assert.equal(page.state.form.title, ''); assert.equal(page.state.form.is_active, true)
 })
-test('missing answer is not fabricated; all original fields stay editable', async () => {
-  const page = challenge('admin', { challengeDetail: async () => ({ id: 5, title: '原题', category: 3, description: '内容' }) })
+test('editing without a replacement retains the server answer; creation still requires an answer', async () => {
+  const writes = []
+  const page = challenge('admin', { challengeDetail: async () => ({ id: 5, title: '原题', category: 3, description: '内容' }), updateChallenge: async (id, payload) => writes.push({ id, payload }), challenges: async () => list() })
   await page.edit({ id: 5 })
   assert.equal(page.state.form.flag, ''); assert.equal(Object.keys(page.state.form).length, 11)
-  await page.save(); assert.match(page.state.error, /答案/); assert.equal(page.state.editor, 'edit')
+  await page.save(); assert.equal(page.state.error, ''); assert.equal(page.state.editor, null)
+  assert.equal(writes[0].id, 5); assert.equal(Object.hasOwn(writes[0].payload, 'flag'), false)
+  page.create(); Object.assign(page.state.form, validForm(), { flag: '' }); await page.save()
+  assert.match(page.state.error, /答案/); assert.equal(page.state.editor, 'create'); assert.equal(writes.length, 1)
 })
 test('challenge deletion is confirmed, refreshes, corrects last-row page and preserves failure feedback', async () => {
   const calls = []; let fail = false
@@ -265,7 +270,7 @@ test('real shared challenge form renders every original field in create and edit
     const html = await renderToString(Vue.createSSRApp(view.component))
     for (const label of ['标题', '分类', '难度', '分数', '题目描述', '答案', '提示', '状态', '环境镜像', '服务端口', '访问方式']) assert.ok(html.includes(label), label)
     assert.ok(html.includes('flag{teacher}')); assert.ok(html.includes('课程分类'))
-    assert.ok(html.includes('答案暂不能在这里确认是否保存'))
+    assert.ok(html.includes('真实提交核对答案是否生效'))
   }
 })
 test('shared upload form emits complete multipart data including the real optional cover field', () => {

@@ -23,6 +23,14 @@ class TheoryQuestionSerializer(serializers.ModelSerializer):
     category_display = serializers.CharField(source='get_category_display', read_only=True)
     difficulty_display = serializers.CharField(source='get_difficulty_display', read_only=True)
 
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        request = self.context.get('request')
+        user = request.user if request else None
+        if not user or not user.is_authenticated or not (user.is_staff or user.role in ('teacher', 'admin')):
+            data.pop('explanation', None)
+        return data
+
     class Meta:
         model = TheoryQuestion
         fields = [
@@ -51,7 +59,7 @@ class TheoryQuestionCreateSerializer(serializers.ModelSerializer):
 class PracticeExamQuestionSerializer(serializers.ModelSerializer):
     challenge_title = serializers.CharField(source='challenge.title', read_only=True)
     challenge_difficulty = serializers.CharField(source='challenge.difficulty', read_only=True)
-    challenge_points = serializers.IntegerField(source='challenge.points', read_only=True)
+    challenge_points = serializers.IntegerField(source='challenge.score', read_only=True)
     challenge_description = serializers.CharField(source='challenge.description', read_only=True)
 
     class Meta:
@@ -84,7 +92,7 @@ class PracticeExamCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = PracticeExam
         fields = [
-            'title', 'description', 'status',
+            'id', 'title', 'description', 'status',
             'duration', 'total_points', 'easy_count', 'medium_count', 'hard_count'
         ]
 
@@ -123,7 +131,7 @@ class TheoryExamCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = TheoryExam
         fields = [
-            'title', 'description', 'status',
+            'id', 'title', 'description', 'status',
             'duration', 'total_points', 'random_order', 'pass_score', 'max_attempts', 'question_ids'
         ]
 
@@ -235,8 +243,23 @@ class ExamRecordSerializer(serializers.ModelSerializer):
 class ExamRecordCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = ExamRecord
-        fields = ['exam_type', 'theory_exam', 'practice_exam']
+        fields = ['id', 'exam_type', 'theory_exam', 'practice_exam']
 
+    def validate(self, attrs):
+        theory = attrs.get('theory_exam')
+        practice = attrs.get('practice_exam')
+        exam = theory if attrs['exam_type'] == 'theory' else practice
+        if exam is None or (theory is not None and practice is not None):
+            raise serializers.ValidationError('考试类型必须对应唯一的考试。')
+        if exam.status != 'published':
+            raise serializers.ValidationError('考试尚未发布，不能开始。')
+        student = self.context['request'].user
+        records = ExamRecord.objects.filter(user=student, theory_exam=theory, practice_exam=practice)
+        if records.filter(status__in=('pending', 'in_progress')).exists():
+            raise serializers.ValidationError('这场考试已经开始，请继续已有的考试。')
+        if theory and (theory.max_attempts <= 0 or records.count() >= theory.max_attempts):
+            raise serializers.ValidationError('已达到这场考试的最大尝试次数。')
+        return attrs
     def create(self, validated_data):
         validated_data['user'] = self.context['request'].user
         validated_data['status'] = 'in_progress'
@@ -269,8 +292,3 @@ class SubmitAnswerSerializer(serializers.Serializer):
         if attrs.get('time_spent', 0) < 0:
             raise serializers.ValidationError({'time_spent': 'Must be non-negative.'})
         return attrs
-
-    def validate(self, data):
-        if not data.get('theory_question_id') and not data.get('practice_question_id'):
-            raise serializers.ValidationError("必须提供题目ID")
-        return data

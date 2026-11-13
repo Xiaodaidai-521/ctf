@@ -1,0 +1,12 @@
+{
+  "tests": 1,
+  "passed": [
+    "exams.test_audit_regressions.ExamBoundaryRegressionTests.test_admin_role_without_staff_flag_can_manage_exams"
+  ],
+  "failures": [],
+  "errors": [],
+  "skipped": [],
+  "expected_failures": 0,
+  "unexpected_successes": 0,
+  "synthetic_database_only": true
+}

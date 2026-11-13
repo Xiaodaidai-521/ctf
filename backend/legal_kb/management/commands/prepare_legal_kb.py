@@ -9,6 +9,7 @@ from django.db import connection
 
 from challenges.models import Category as ChallengeCategory, Challenge
 from legal_kb.models import LegalDocument
+from legal_kb.permissions import require_ingestion_actor
 from legal_kb.services.hashing import sha256_text
 from legal_kb.services.ingestion_service import LegalKbIngestionService
 from legal_kb.services.platform_indexing_service import PlatformContentIndexingService
@@ -130,9 +131,14 @@ class Command(BaseCommand):
             return None
         User = get_user_model()
         try:
-            return User.objects.get(username=username)
+            actor = User.objects.get(username=username)
         except User.DoesNotExist as exc:
             raise CommandError(f'Actor user not found: {username}') from exc
+        try:
+            require_ingestion_actor(actor)
+        except ValueError as exc:
+            raise CommandError(str(exc)) from exc
+        return actor
 
     def _import_laws(self, laws_dir, *, actor=None):
         if not laws_dir:

@@ -1,0 +1,32 @@
+{
+  "scope": "isolated test-only native DLLs; Python wrapper remains python-magic==0.4.27",
+  "source": "PyPI python-magic-standalone==0.4.29 unofficial ABI wheel",
+  "wheel_sha256": "ee9767392b66d0d63bc2ec6c79930308585f5b5bcb7f749eb7b68fa1e5bbdfc2",
+  "dll_directory": "D:\\aaa10\\16015478\u6e90\u7801\\project-code\\.state\\full-audit-20261113\\native-magic\\dll",
+  "files": [
+    {
+      "name": "libiconv-2.dll",
+      "sha256": "94ec68fb8d342b6c91b6b48a8d95092819cdcd006a7166e0b68062f946afd08a"
+    },
+    {
+      "name": "libintl-8.dll",
+      "sha256": "0e5a178731e6be6d115442a6ade3df7f03265cd1fc4338f8b6f86a8001cbf582"
+    },
+    {
+      "name": "libmagic-1.dll",
+      "sha256": "f128f4cd623a5c52de59b1d5561b0892a7da0ed9957027ca39ef9419b8e64a43"
+    },
+    {
+      "name": "libsystre-0.dll",
+      "sha256": "f933efd15c898dd2040e21f15801e3c7dc186f5b2cee353c9747afc9e5b54000"
+    },
+    {
+      "name": "libtre-5.dll",
+      "sha256": "1014afb8649e6eba839748cc0ad5dc542249df831ee483f7a93e465e223f7bae"
+    },
+    {
+      "name": "magic.mgc",
+      "sha256": "1a98967ddb2a9ef80f9dd1a3f1fa3bebc4991741878a512310f0d434428de85e"
+    }
+  ]
+}

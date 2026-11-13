@@ -7,6 +7,7 @@
         <p class="page-subtitle">把文档、视频、报告、压缩包和 AI 学习辅助资料整理成可检索的训练资料索引。</p>
       </div>
       <div class="header-actions">
+        <router-link to="/resources/topics/data-security" class="btn btn-secondary">数据安全实验</router-link>
         <router-link v-if="isTeacherOrAdmin" class="btn btn-secondary"
           :to="userStore.userInfo?.role === 'teacher' ? '/teacher/knowledge' : '/admin/legal/kb'">
           {{ userStore.userInfo?.role === 'teacher' ? names.knowledge : names.foundation }}
@@ -77,6 +78,10 @@
       <p>加载资源中...</p>
     </div>
 
+    <div v-else-if="listError" class="empty-state" role="alert">
+      <p>{{ listError }}</p>
+      <button class="btn btn-secondary" type="button" @click="fetchResources">重试读取资源</button>
+    </div>
     <div v-else-if="resources.length === 0" class="empty-state">
       <div class="empty-icon">📦</div>
       <h3>暂无资源</h3>
@@ -92,7 +97,7 @@
       />
     </div>
 
-    <div class="pagination" v-if="totalPages > 1">
+    <div class="pagination" v-if="!loading && !listError && totalPages > 1">
       <button
         class="page-btn"
         :disabled="currentPage === 1"
@@ -123,7 +128,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '@/store/user'
 import { names } from '@/shared/navigation/names'
@@ -143,9 +148,12 @@ const userStore = useUserStore()
 
 const resources = ref([])
 const loading = ref(false)
+const listError = ref('')
+let alive = true, resourceRead = 0
+onUnmounted(() => { alive = false; ++resourceRead })
 const currentPage = ref(1)
 const pageSize = ref(12)
-const total = ref(0)
+const total = ref(null)
 const searchQuery = ref('')
 const selectedType = ref('')
 const selectedCategory = ref('')
@@ -195,7 +203,10 @@ const isTeacherOrAdmin = computed(() => {
 const totalPages = computed(() => Math.ceil(total.value / pageSize.value))
 
 const fetchResources = async () => {
+  if (!alive) return
+  const read = ++resourceRead
   loading.value = true
+  listError.value = ''
   try {
     const params = {
       page: currentPage.value,
@@ -209,13 +220,14 @@ const fetchResources = async () => {
     if (currentHighlightResourceIds.value.length) params.highlight_resources = currentHighlightResourceIds.value.join(',')
 
     const data = await api.resource.list(params)
-    resources.value = data.results || []
-    total.value = data.count || 0
+    if (!alive || read !== resourceRead) return
+    if (!Array.isArray(data.results)) throw new Error('Incomplete resource response')
+    resources.value = data.results
+    total.value = typeof data.count === 'number' && Number.isFinite(data.count) && data.count >= 0 ? data.count : null
   } catch (error) {
-    console.error('获取资源列表失败:', error)
-    resources.value = []
+    if (alive && read === resourceRead) listError.value = '资源列表读取失败，请重试。'
   } finally {
-    loading.value = false
+    if (alive && read === resourceRead) loading.value = false
   }
 }
 

@@ -114,6 +114,7 @@
 
       <section class="panel">
         <h2>学生证据与推荐</h2>
+        <p v-if="studentError" role="alert">{{ studentError }}</p>
         <div v-if="!studentMap" class="muted">输入学生 ID 后加载。</div>
         <template v-else>
           <div class="student-head">
@@ -158,11 +159,11 @@
           <div class="changelog">
             <h3>最近路径变更</h3>
             <p v-if="!changelog.length" class="muted">暂无变更。</p>
-            <div v-for="item in changelog" :key="item.created_at + item.reason" class="change-row">
-              <span class="mono">{{ item.capability_id || '—' }}</span>
-              <span>{{ item.from_state || '—' }} → {{ item.to_state }}</span>
+            <div v-for="(item, index) in historyRows" :key="index" class="change-row">
+              <span class="mono">{{ item.title }}</span>
+              <span>{{ item.from }} → {{ item.to }}</span>
               <span class="mono small">{{ item.reason }}</span>
-              <span class="muted small">{{ formatDate(item.created_at) }}</span>
+              <span class="muted small">{{ item.timeLabel }}</span>
             </div>
           </div>
         </template>
@@ -210,8 +211,10 @@
 </template>
 
 <script setup>
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, onBeforeUnmount, reactive, ref, watch } from 'vue'
 import service from '@/api'
+
+import { readableError } from '@/views/DataLab/errors.js'
 import { useUserStore } from '@/store/user'
 
 const userStore = useUserStore()
@@ -224,6 +227,18 @@ const deliveryItems = ref([])
 const studentMap = ref(null)
 const studentRecommendations = ref(null)
 const changelog = ref([])
+const stateLabels = { assisted_pass: '受助通过', independent: '已有独立证据', needs_diagnosis: '待诊断', retest_pending: '待复测', needs_practice: '待加强', unknown: '状态未知' }
+const historyRows = computed(() => changelog.value.map(item => ({
+  title: item.capability_title || '能力状态变化',
+  from: item.from_state_label || stateLabels[item.from_state] || '未记录',
+  to: item.to_state_label || stateLabels[item.to_state] || '状态未知',
+  reason: item.reason_label || (item.reason === 'retest_independent_pass' ? '复测独立通过' : '原因待核对'),
+  timeLabel: formatDate(item.created_at),
+})))
+const studentError = ref('')
+let studentGeneration = 0, alive = true
+onBeforeUnmount(() => { alive = false; ++studentGeneration; studentMap.value = null; studentRecommendations.value = null; changelog.value = [] })
+watch(() => [userStore.userInfo?.id, userStore.userInfo?.role], () => { ++studentGeneration; studentMap.value = null; studentRecommendations.value = null; changelog.value = [] })
 const loadingCatalog = ref(false)
 const message = ref('')
 const submittingAdjustment = ref(false)
@@ -272,12 +287,11 @@ async function loadCatalog() {
 }
 
 async function loadStudent() {
-  message.value = ''
+  const reading = ++studentGeneration
+  studentError.value = ''; message.value = ''
+  studentMap.value = null; studentRecommendations.value = null; changelog.value = []
   const id = Number(studentId.value)
-  if (!id) {
-    message.value = '请先填写学生 ID。'
-    return
-  }
+  if (!Number.isSafeInteger(id) || id <= 0) { studentError.value = '请先填写有效学生 ID。'; return }
   try {
     const params = { version: catalogVersion.value }
     const [map, recommendations, logs] = await Promise.all([
@@ -285,11 +299,10 @@ async function loadStudent() {
       service.learningMap.studentRecommendations(id, params),
       service.learningMap.studentChangelog(id, params),
     ])
-    studentMap.value = map
-    studentRecommendations.value = recommendations
-    changelog.value = logs.items || []
-  } catch (err) {
-    message.value = extractError(err)
+    if (!alive || reading !== studentGeneration || id !== Number(studentId.value)) return
+    studentMap.value = map; studentRecommendations.value = recommendations; changelog.value = logs.items || []
+  } catch (error) {
+    if (alive && reading === studentGeneration) studentError.value = error?.response?.status === 403 ? '当前账号无权查看该学生资料。' : readableError(error, '学生资料读取失败，请重试。')
   }
 }
 

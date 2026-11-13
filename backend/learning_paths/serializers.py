@@ -1,6 +1,8 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from django.db.models import Q
+from django.utils.text import slugify
+from uuid import uuid4
 from .models import (
     LearningPath, PathModule, ModuleLab, UserPathProgress, UserModuleProgress,
     UserLabProgress, LabAttempt, KnowledgeConcept, ConceptRelation, ConceptResource,
@@ -20,7 +22,7 @@ class LearningPathListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = LearningPath
-        fields = ['id', 'title', 'description', 'difficulty', 'estimated_hours',
+        fields = ['id', 'title', 'slug', 'description', 'difficulty', 'estimated_hours',
                  'total_modules', 'total_labs', 'enrollment_count', 'color', 'order', 'is_published',
                  'created_at', 'updated_at', 'modules']
         read_only_fields = ['created_at', 'updated_at']
@@ -73,7 +75,7 @@ class ModuleLabSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ModuleLab
-        fields = ['id', 'order', 'is_optional', 'lab_title', 'lab_description',
+        fields = ['id', 'lab', 'order', 'is_optional', 'lab_title', 'lab_description',
                  'lab_difficulty', 'lab_score']
 
 
@@ -86,7 +88,7 @@ class LearningPathDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = LearningPath
-        fields = ['id', 'title', 'description', 'difficulty', 'estimated_hours',
+        fields = ['id', 'title', 'slug', 'description', 'difficulty', 'estimated_hours',
                  'total_modules', 'total_labs', 'enrollment_count', 'color', 'order', 'is_published',
                  'created_at', 'updated_at', 'modules']
         read_only_fields = ['created_at', 'updated_at']
@@ -109,8 +111,14 @@ class LearningPathCreateSerializer(serializers.ModelSerializer):
     """学习路径创建序列化器"""
     class Meta:
         model = LearningPath
-        fields = ['title', 'description', 'difficulty', 'estimated_hours',
-                 'color', 'order', 'is_active']
+        fields = ['id', 'title', 'slug', 'description', 'difficulty', 'estimated_hours',
+                 'color', 'order', 'is_published']
+        extra_kwargs = {'slug': {'required': False}}
+
+    def create(self, validated_data):
+        if not validated_data.get('slug'):
+            validated_data['slug'] = f"{slugify(validated_data['title'])[:180] or 'path'}-{uuid4().hex[:12]}"
+        return super().create(validated_data)
 
 
 class PathModuleCreateSerializer(serializers.ModelSerializer):
@@ -118,17 +126,33 @@ class PathModuleCreateSerializer(serializers.ModelSerializer):
     requires = serializers.PrimaryKeyRelatedField(
         many=True,
         queryset=PathModule.objects.all(),
-        write_only=True,
+        source='requires_modules',
         required=False
     )
 
     class Meta:
         model = PathModule
-        fields = ['title', 'description', 'module_type', 'order', 'is_required',
-                 'theory_content', 'theory_url', 'estimated_minutes', 'requires']
+        fields = ['id', 'learning_path', 'parent_module', 'title', 'description', 'module_type', 'order', 'is_required',
+                 'content', 'estimated_minutes', 'requires']
+
+    def validate(self, attrs):
+        path = attrs.get('learning_path') or (self.instance.learning_path if self.instance else None)
+        parent = attrs.get('parent_module', self.instance.parent_module if self.instance else None)
+        if parent and parent.learning_path_id != path.pk:
+            raise serializers.ValidationError({'parent_module': '父模块必须属于同一条学习路径。'})
+        seen = {self.instance.pk} if self.instance else set()
+        while parent is not None:
+            if parent.pk in seen:
+                raise serializers.ValidationError({'parent_module': '模块层级不能形成循环。'})
+            seen.add(parent.pk)
+            parent = parent.parent_module
+        for module in attrs.get('requires_modules', []):
+            if module.learning_path_id != path.pk or (self.instance and module.pk == self.instance.pk):
+                raise serializers.ValidationError({'requires': '前置模块必须属于同一路径，且不能是自身。'})
+        return attrs
 
     def create(self, validated_data):
-        requires_data = validated_data.pop('requires', [])
+        requires_data = validated_data.pop('requires_modules', [])
         module = PathModule.objects.create(**validated_data)
         if requires_data:
             module.requires_modules.set(requires_data)
@@ -196,7 +220,7 @@ class UserLabProgressSerializer(serializers.ModelSerializer):
     """用户实验进度序列化器"""
     lab_title = serializers.CharField(source='lab.title', read_only=True)
     lab_difficulty = serializers.CharField(source='lab.difficulty', read_only=True)
-    lab_points = serializers.IntegerField(source='lab.points', read_only=True)
+    lab_points = serializers.IntegerField(source='lab.score', read_only=True)
     status_display = serializers.CharField(source='get_status_display', read_only=True)
     attempts_count = serializers.SerializerMethodField()
 
@@ -310,14 +334,11 @@ class ResourceRecommendationSerializer(serializers.ModelSerializer):
 
 class LabAttemptSerializer(serializers.ModelSerializer):
     """实验尝试序列化器"""
-    lab_title = serializers.CharField(source='lab_progress.lab.title', read_only=True)
-    lab_difficulty = serializers.CharField(source='lab_progress.lab.difficulty', read_only=True)
+    lab_title = serializers.CharField(source='lab.title', read_only=True)
+    lab_difficulty = serializers.CharField(source='lab.difficulty', read_only=True)
+    is_correct = serializers.BooleanField(source='success', read_only=True)
 
     class Meta:
         model = LabAttempt
-        fields = ['id', 'lab_progress', 'lab_title', 'lab_difficulty', 'answer',
-                 'is_correct', 'attempt_number', 'created_at', 'updated_at']
-        read_only_fields = ['created_at', 'updated_at']
-        extra_kwargs = {
-            'answer': {'write_only': True}  # 答案不应该在前端暴露
-        }
+        fields = ['id', 'lab', 'lab_title', 'lab_difficulty', 'is_correct', 'success', 'timestamp']
+        read_only_fields = fields

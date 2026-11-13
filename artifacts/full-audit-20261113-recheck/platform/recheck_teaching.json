@@ -1,0 +1,39 @@
+{
+  "tests": 15,
+  "passed": [
+    "teaching_agent.tests.test_api_failures.APITutoringFailureTests.test_disconnect_rate_limit_quota_circuit_and_recovery_probe",
+    "teaching_agent.tests.test_api_failures.APITutoringFailureTests.test_success_call_facts_permission_aware_cache_and_withdrawal",
+    "teaching_agent.tests.test_api_failures.APITutoringFailureTests.test_timeout_cancels_falls_back_and_late_response_is_isolated",
+    "teaching_agent.tests.test_api_failures.APITutoringFailureTests.test_unauthorized_tool_suggestion_is_rejected_before_display",
+    "teaching_agent.tests.test_context_permissions.TrustedContextPermissionTests.test_behavior_event_is_idempotent_and_conflicts",
+    "teaching_agent.tests.test_context_permissions.TrustedContextPermissionTests.test_run_uses_server_context_and_sanitized_materials",
+    "teaching_agent.tests.test_context_permissions.TrustedContextPermissionTests.test_unknown_model_suggested_tool_is_rejected",
+    "teaching_agent.tests.test_hints_state.HintStateAndAnalysisTests.test_four_level_unlock_and_request_display_are_separate",
+    "teaching_agent.tests.test_hints_state.HintStateAndAnalysisTests.test_pause_resume_survives_fresh_client_and_is_idempotent",
+    "teaching_agent.tests.test_hints_state.HintStateAndAnalysisTests.test_ticket_ownership_teacher_help_and_static_analysis_authorization",
+    "teaching_agent.tests.test_no_ai_flow.NoAICoreFlowTests.test_claim_material_practice_verify_progress_and_retest_without_ai"
+  ],
+  "failures": [
+    {
+      "id": "teaching_agent.tests.test_api_failures.APITutoringFailureTests.test_task_bound_legacy_chat_is_redirected_before_old_cache_or_stream",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\teaching_agent\\tests\\test_api_failures.py\", line 237, in test_task_bound_legacy_chat_is_redirected_before_old_cache_or_stream\n    self.assertEqual(response.status_code, 409)\nAssertionError: 200 != 409\n"
+    },
+    {
+      "id": "teaching_agent.tests.test_context_permissions.KnowledgePackIsolationTests.test_student_knowledge_pack_never_contains_standard_solution",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\teaching_agent\\tests\\test_context_permissions.py\", line 200, in test_student_knowledge_pack_never_contains_standard_solution\n    self.assertNotIn('TEACHER-STANDARD-SOLUTION-SECRET', payload['context_text'])\nAssertionError: 'TEACHER-STANDARD-SOLUTION-SECRET' unexpectedly found in '【题目解法知识包】\\n题目：Synthetic challenge\\n分类：m2-web\\n难度：easy\\n题面：Safe public description\\n提示：public hint\\n核心知识点：题面信息提取, 实验验证, 结果复盘\\n\\n一、题目目标\\n围绕题面给出的目标，建立“输入点 -> 现象 -> 原理 -> 可复现步骤 -> 结果验证”的完整链路。\\n\\n二、题面信息提取\\n1. 记录题目标题、分类、难度、描述和提示中的关键词，先判断最可能考察的知识点。\\n2. 确认是否有容器地址、附件、源码、接口、登录态、管理员访问或脚本触发条件。\\n3. 区分题面要求的是“解释原理”“构造 payload”“写脚本”“调试程序”还是“提交某个结果”。\\n4. 把每一步请求、输入、输出、状态码、报错、页面变化或程序行为记录下来，避免凭感觉跳步。\\n\\n解题主线：按题面目标建立可验证的解题链路。\\n\\n三、详细解法步骤\\n1. 先复述题面目标，确认要拿到什么信息、验证什么漏洞或完成什么利用。\\n2. 提取题面关键词、入口、参数、响应特征、附件或容器访问方式。\\n3. 用最小验证动作确认漏洞/知识点存在，不直接猜答案。\\n4. 逐步扩大验证：观察差异、构造 payload/脚本、记录成功与失败现象。\\n5. 最后整理可复现步骤、关键原理、常见坑和防护建议；不要直接泄露 flag。\\n\\n四、验证计划\\n1. 先做最小无害验证，确认输入是否可控、输出是否可见、响应是否稳定。\\n2. 每次只改变一个变量，例如参数值、请求头、编码方式、payload 结构或运行参数。\\n3. 对比成功和失败样例，找出真正导致差异的条件。\\n4. 把最终步骤整理成别人能复现的顺序：准备环境、触发条件、关键输入、观察结果。\\n\\n五、解法落地路径\\n1. 从题面关键词推断知识点，再用最小实验验证推断是否成立。\\n2. 确认关键入口后，构造逐步增强的 payload 或脚本，而不是一次性上复杂方案。\\n3. 成功后回头解释为什么有效：输入落点、解析规则、信任边界、算法性质或内存布局。\\n4. 最后输出关键步骤、验证证据和注意事项；敏感结果只描述获取路径，不在知识包中硬编码。\\n\\n六、失败排查\\n1. 如果没有回显，检查输入是否到达目标位置，必要时换成更明显的探针字符串。\\n2. 如果 payload 无效，先判断是语法错误、上下文错误、过滤拦截、编码问题还是权限/状态问题。\\n3. 如果现象不稳定，重复请求并记录时间、缓存、会话、随机 token 或环境重置影响。\\n4. 如果方向不确定，回到题面关键词、提示和分类，不要在多个技术栈之间盲目横跳。\\n\\n七、需要保留的证据\\n1. 关键请求/命令/脚本片段。\\n2. 成功与失败对比现象。\\n3. 能解释漏洞或机制成立的响应头、页面输出、日志、调试信息或程序状态。\\n4. 最终复现步骤和防护建议。\\n\\n八、防护与修复思路\\n1. 校验输入来源和格式，避免把用户输入当作可信代码、查询、路径、请求头或控制流。\\n2. 对输出做上下文相关编码，对敏感接口做鉴权和最小暴露。\\n3. 为关键行为增加日志、测试用例和异常处理，避免修复后出现回归。\\n\\n九、延伸练习\\n1. 把本题抽象成一个通用知识点卡片：触发条件、验证方法、典型错误、修复方式。\\n2. 为同类题准备一组最小 payload/脚本模板，并标注适用前提。\\n3. 复盘本题中最容易误判的一步，下次优先验证这一点。\\n\\n十、多智能体分工\\n- 分析师视角：拆题面、列关键词、判断所属知识点、给出主线解题路线。\\n- 安全专家视角：解释漏洞/机制原理、攻击面、风险边界和防护建议。\\n- 开发专家视角：给出可执行验证步骤、命令、脚本结构或 payload 演进。\\n- 测试专家视角：列出验证用例、边界条件、失败排查和复现实验记录。\\n- 小黑本地AI视角：综合以上智能体观点，输出最终清晰解法摘要、步骤清单和注意事项。\\n\\n【本题标准解题思路】\\nTEACHER-STANDARD-SOLUTION-SECRET\\n说明：以上内容用于讲解解题路线，不用于直接泄露 flag。\\n\\n以下是平台知识库检索结果。回答题目解答、题目编号或题目名称相关问题时，必须优先基于这些资料回答。\\n请把题目知识点、解题思路、验证方法和下一步操作讲清楚；不要直接泄露 flag 或内部预设答案。\\n如果资料不足，请明确说明“当前知识库没有足够资料”，再给出可验证的通用分析路径，不要编造。\\n1. [题目] Synthetic challenge\\n   分类：m2-web\\n   检索方式：关键词匹配\\n   摘要：一道面向easy阶段的m2-web练习题，核心目标是围绕“Synthetic challenge”所涉及的知识点完成分析与利用。Safe public description public hint\\n   链接：/challenge/1'\n"
+    },
+    {
+      "id": "teaching_agent.tests.test_context_permissions.TrustedContextPermissionTests.test_direct_solution_api_never_returns_teacher_answer",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\teaching_agent\\tests\\test_context_permissions.py\", line 136, in test_direct_solution_api_never_returns_teacher_answer\n    self.assertEqual(response.status_code, 403)\nAssertionError: 200 != 403\n"
+    },
+    {
+      "id": "teaching_agent.tests.test_context_permissions.TrustedContextPermissionTests.test_other_student_cannot_access_attempt_run_or_stream",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\teaching_agent\\tests\\test_context_permissions.py\", line 107, in test_other_student_cannot_access_attempt_run_or_stream\n    self.assertEqual(stream.status_code, 403)\nAssertionError: 200 != 403\n"
+    }
+  ],
+  "errors": [],
+  "skipped": [],
+  "expected_failures": 0,
+  "unexpected_successes": 0,
+  "synthetic_database_only": true
+}

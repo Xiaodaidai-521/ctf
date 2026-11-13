@@ -43,6 +43,7 @@ def pipeline_fixture(kind, fmt):
         with zipfile.ZipFile(output) as source, zipfile.ZipFile(fixed, 'w', zipfile.ZIP_DEFLATED) as archive:
             for name in sorted(source.namelist()):
                 info = zipfile.ZipInfo(name, (2000, 1, 1, 0, 0, 0))
+                info.create_system = 3
                 info.compress_type = zipfile.ZIP_DEFLATED
                 data = source.read(name)
                 if name == 'docProps/core.xml':

@@ -71,6 +71,7 @@ function examPage(exams = {}) {
 }
 async function html(harness) {
   const app = Vue.createSSRApp({ setup: () => harness.page, render: harness.Page.render })
+  app.component('RouterLink', { props: ['to'], template: '<a :href="to"><slot /></a>' })
   for (const [key, icon] of Object.entries(icons)) if (key.startsWith('Icon')) app.component(key, icon)
   return renderToString(app)
 }
@@ -296,15 +297,16 @@ test('each theory/practice surface has only one filled main action; states have 
   assert.match(await html(loading), /本场考试暂无题目/)
 })
 
-test('load failures retain original alert/return behavior without leaking internal server details', async () => {
+test('load failures keep the current record available for retry and a return link without leaking internal server details', async () => {
   const harness = examPage({ getExamResult: async () => { throw Error('INTERNAL_SQL_DETAIL') } })
   await harness.page.loadExamInfo()
   assert.equal(harness.page.loading.value, false)
-  assert.match(harness.alerts[0], /试炼场重试/)
-  assert.doesNotMatch(harness.alerts[0], /INTERNAL_SQL_DETAIL/)
-  assert.deepEqual(harness.routes, ['/exam-center'])
+  assert.match(harness.page.loadError.value, /重新进入考试/)
+  assert.doesNotMatch(harness.page.loadError.value, /INTERNAL_SQL_DETAIL/)
+  assert.deepEqual(harness.routes, [])
   const rendered = await html(harness)
   assert.match(rendered, /class="page-state load-error" role="alert"/)
+  assert.match(rendered, /href="\/exam-center"/)
   assert.doesNotMatch(rendered, /INTERNAL_SQL_DETAIL/)
 })
 
@@ -346,7 +348,7 @@ test('confirmed submission preserves result routes and failed final submission l
 
 test('exit choices preserve cancel, return, abandonment API and failure behavior', async () => {
   const calls = []
-  const harness = ready(examPage({ startComprehensiveExam: async payload => calls.push(plain(payload)) }))
+  const harness = ready(examPage({ startComprehensiveExam: async payload => calls.push(plain(payload)), getExamResult: async () => ({ status: 'abandoned' }) }))
   harness.page.exitExam()
   assert.equal(harness.page.showExitDialog.value, true)
   assert.match(await html(harness), /仅保留已提交的答案，尚未提交的选择不会保存/)

@@ -35,6 +35,7 @@
         <p>加载中...</p>
       </div>
 
+      <p v-else-if="listError" role="alert">{{ listError }}</p>
       <div v-else-if="announcements.length === 0" class="empty-state">
         <div class="empty-icon">📢</div>
         <p>暂无公告</p>
@@ -173,8 +174,15 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onBeforeUnmount, watch } from 'vue'
 import api from '@/api'
+import { usePageFilters } from '@/shared/state/usePageFilters.js'
+import { createAccountGuard } from '@/shared/state/accountScope.js'
+
+const guard = createAccountGuard()
+onBeforeUnmount(guard.dispose)
+let listGeneration = 0
+const listError = ref('')
 
 const announcements = ref([])
 const loading = ref(false)
@@ -185,6 +193,7 @@ const filters = ref({
   priority: '',
 })
 
+usePageFilters('admin-announcements', { filters })
 const showEditorModal = ref(false)
 const isEdit = ref(false)
 
@@ -198,18 +207,20 @@ const formData = ref({
 })
 
 const fetchAnnouncements = async () => {
-  loading.value = true
+  const reading = ++listGeneration
+  loading.value = true; listError.value = ''
   try {
     const params = {}
     if (filters.value.status) params.status = filters.value.status
     if (filters.value.priority) params.priority = filters.value.priority
 
     const response = await api.announcement.list(params)
+    if (!guard.current() || reading !== listGeneration) return
     announcements.value = response.results || []
   } catch (error) {
-    console.error('获取公告列表失败:', error)
+    if (guard.current() && reading === listGeneration) { announcements.value = []; listError.value = '公告列表读取失败，请重试。' }
   } finally {
-    loading.value = false
+    if (guard.current() && reading === listGeneration) loading.value = false
   }
 }
 

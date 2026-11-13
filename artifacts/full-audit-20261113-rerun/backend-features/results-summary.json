@@ -1,0 +1,134 @@
+[
+  {
+    "label": "before",
+    "tests": 10,
+    "passed": 3,
+    "failed_tests": 7,
+    "failure_entries": 15,
+    "error_entries": 3,
+    "skipped": 0,
+    "failed_test_ids": [
+      "challenges.test_audit_management.ChallengeManagementAuditTests.test_invalid_category_is_a_client_error",
+      "challenges.test_audit_management.ChallengeManagementAuditTests.test_invalid_score_and_container_port_are_rejected",
+      "challenges.test_audit_management.ChallengeManagementAuditTests.test_management_can_edit_inactive_challenge_and_replace_flag",
+      "challenges.test_audit_management.ChallengeManagementAuditTests.test_management_create_saves_flag_without_returning_it",
+      "challenges.test_audit_management.ChallengeManagementAuditTests.test_scored_challenge_requires_flag_on_create",
+      "resources.test_audit_queries.ResourceQueryAuditTests.test_invalid_resource_ordering_is_a_client_error",
+      "resources.test_audit_queries.ResourceQueryAuditTests.test_role_administrator_can_review_and_records_review_time"
+    ]
+  },
+  {
+    "label": "report-before",
+    "tests": 11,
+    "passed": 4,
+    "failed_tests": 7,
+    "failure_entries": 6,
+    "error_entries": 1,
+    "skipped": 0,
+    "failed_test_ids": [
+      "feedback_center.tests.test_report_integrity.CandidateReportIntegrityTests.test_activation_rechecks_report_payload_integrity",
+      "feedback_center.tests.test_report_integrity.CandidateReportIntegrityTests.test_activation_rechecks_task_scope",
+      "feedback_center.tests.test_report_integrity.CandidateReportIntegrityTests.test_approval_rechecks_persistent_report_existence",
+      "feedback_center.tests.test_report_integrity.CandidateReportIntegrityTests.test_complete_evaluation_rechecks_stored_report",
+      "feedback_center.tests.test_report_integrity.CandidateReportIntegrityTests.test_fabricated_report_without_candidate_digest_is_rejected",
+      "feedback_center.tests.test_report_integrity.CandidateReportIntegrityTests.test_minimal_real_reference_is_canonicalized_by_server",
+      "feedback_center.tests.test_report_integrity.CandidateReportIntegrityTests.test_modified_real_report_conclusion_is_rejected"
+    ]
+  },
+  {
+    "label": "after",
+    "tests": 107,
+    "passed": 107,
+    "failed_tests": 0,
+    "failure_entries": 0,
+    "error_entries": 0,
+    "skipped": 0,
+    "failed_test_ids": []
+  },
+  {
+    "label": "related",
+    "tests": 107,
+    "passed": 95,
+    "failed_tests": 11,
+    "failure_entries": 8,
+    "error_entries": 8,
+    "skipped": 1,
+    "failed_test_ids": [
+      "legal_kb.tests_write_permissions.LegalWritePermissionTests.test_fetch_command_denies_student_before_network_or_files",
+      "legal_kb.tests_write_permissions.LegalWritePermissionTests.test_fetch_command_teacher_imports_with_mocked_official_source",
+      "legal_kb.tests_write_permissions.LegalWritePermissionTests.test_legal_service_denies_explicit_student_before_job_write",
+      "legal_kb.tests_write_permissions.LegalWritePermissionTests.test_prepare_command_denies_student_before_seed_or_import",
+      "legal_kb.tests_write_permissions.LegalWritePermissionTests.test_prepare_teacher_imports_and_indexes_local_law",
+      "legal_kb.tests_write_permissions.LegalWritePermissionTests.test_rebuild_denies_student_and_keeps_teacher_success",
+      "legal_kb.tests_write_permissions.LegalWritePermissionTests.test_registered_document_still_cannot_be_reingested_by_teacher",
+      "legal_kb.tests_write_permissions.LegalWritePermissionTests.test_teacher_and_admin_ingest_success",
+      "legal_kb.tests_write_permissions.LegalWritePermissionTests.test_teacher_can_create_update_patch_delete_all_legal_families",
+      "legal_kb.tests_write_permissions.PlatformWriteBoundaryTests.test_student_cannot_index_any_platform_source_even_with_local_provider",
+      "legal_kb.tests_write_permissions.PlatformWriteBoundaryTests.test_teacher_explicitly_indexes_articles_resources_and_concepts"
+    ]
+  },
+  {
+    "label": "actors-before",
+    "tests": 6,
+    "passed": 1,
+    "failed_tests": 5,
+    "failure_entries": 3,
+    "error_entries": 2,
+    "skipped": 0,
+    "failed_test_ids": [
+      "legal_kb.test_audit_actors.LegalActorAuditTests.test_fetch_rejects_student_before_network_or_cache_creation",
+      "legal_kb.test_audit_actors.LegalActorAuditTests.test_inactive_teacher_is_rejected",
+      "legal_kb.test_audit_actors.LegalActorAuditTests.test_ingestion_rejects_student_before_embedding_factory_or_job",
+      "legal_kb.test_audit_actors.LegalActorAuditTests.test_platform_index_rejects_student_before_embedding_factory",
+      "legal_kb.test_audit_actors.LegalActorAuditTests.test_prepare_rejects_explicit_student_before_seed_or_indexing"
+    ]
+  },
+  {
+    "label": "actors-after",
+    "tests": 54,
+    "passed": 46,
+    "failed_tests": 8,
+    "failure_entries": 7,
+    "error_entries": 8,
+    "skipped": 0,
+    "failed_test_ids": [
+      "legal_kb.tests_write_permissions.LegalWritePermissionTests.test_fetch_command_teacher_imports_with_mocked_official_source",
+      "legal_kb.tests_write_permissions.LegalWritePermissionTests.test_prepare_teacher_imports_and_indexes_local_law",
+      "legal_kb.tests_write_permissions.LegalWritePermissionTests.test_rebuild_denies_student_and_keeps_teacher_success",
+      "legal_kb.tests_write_permissions.LegalWritePermissionTests.test_registered_document_still_cannot_be_reingested_by_teacher",
+      "legal_kb.tests_write_permissions.LegalWritePermissionTests.test_teacher_and_admin_ingest_success",
+      "legal_kb.tests_write_permissions.LegalWritePermissionTests.test_teacher_can_create_update_patch_delete_all_legal_families",
+      "legal_kb.tests_write_permissions.PlatformWriteBoundaryTests.test_student_cannot_index_any_platform_source_even_with_local_provider",
+      "legal_kb.tests_write_permissions.PlatformWriteBoundaryTests.test_teacher_explicitly_indexes_articles_resources_and_concepts"
+    ]
+  },
+  {
+    "label": "final",
+    "tests": 141,
+    "passed": 141,
+    "failed_tests": 0,
+    "failure_entries": 0,
+    "error_entries": 0,
+    "skipped": 0,
+    "failed_test_ids": []
+  },
+  {
+    "label": "legacy-confirmed",
+    "tests": 20,
+    "passed": 12,
+    "failed_tests": 8,
+    "failure_entries": 7,
+    "error_entries": 8,
+    "skipped": 0,
+    "failed_test_ids": [
+      "legal_kb.tests_write_permissions.LegalWritePermissionTests.test_fetch_command_teacher_imports_with_mocked_official_source",
+      "legal_kb.tests_write_permissions.LegalWritePermissionTests.test_prepare_teacher_imports_and_indexes_local_law",
+      "legal_kb.tests_write_permissions.LegalWritePermissionTests.test_rebuild_denies_student_and_keeps_teacher_success",
+      "legal_kb.tests_write_permissions.LegalWritePermissionTests.test_registered_document_still_cannot_be_reingested_by_teacher",
+      "legal_kb.tests_write_permissions.LegalWritePermissionTests.test_teacher_and_admin_ingest_success",
+      "legal_kb.tests_write_permissions.LegalWritePermissionTests.test_teacher_can_create_update_patch_delete_all_legal_families",
+      "legal_kb.tests_write_permissions.PlatformWriteBoundaryTests.test_student_cannot_index_any_platform_source_even_with_local_provider",
+      "legal_kb.tests_write_permissions.PlatformWriteBoundaryTests.test_teacher_explicitly_indexes_articles_resources_and_concepts"
+    ]
+  }
+]

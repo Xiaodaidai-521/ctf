@@ -3,10 +3,9 @@
     <div class="fb-header">
       <div>
         <span class="fb-eyebrow">模块七 · 教师处理</span>
-        <h1 class="fb-title">{{ detail ? `${detail.category_label} · ${detail.issue_type_label}` : '反馈处理' }}</h1>
+        <h1 class="fb-title">{{ detail ? feedbackTitle(detail) : '反馈处理' }}</h1>
         <p class="fb-sub" v-if="detail">
-          反馈 ID：<span class="fb-badge fb-badge-muted">{{ detail.feedback_id }}</span>
-          学生：{{ detail.student_name }} · 工单版本：{{ detail.version }} · 状态：{{ detail.status_label }}
+          学生：{{ detail.student_name }} · 工单版本：{{ detail.version }} · 状态：{{ feedbackLabel('status', detail.status) }}
         </p>
       </div>
       <div class="fb-actions">
@@ -23,23 +22,23 @@
 
     <div v-if="error" class="fb-error">{{ error }}</div>
     <div v-if="message" class="fb-success">{{ message }}</div>
-    <div v-if="!detail" class="fb-empty">正在读取反馈详情...</div>
+    <div v-if="!detail && !error" class="fb-empty">正在读取反馈详情...</div>
 
-    <template v-else>
+    <template v-if="detail">
       <div class="fb-grid">
         <section class="fb-panel">
           <h2>工单摘要</h2>
-          <div class="fb-row"><span>状态</span><strong>{{ detail.status_label }}</strong></div>
-          <div class="fb-row"><span>学生/提交人</span><strong>{{ detail.student_name }} / {{ detail.submitter_name }}（{{ detail.submitter_role }}）</strong></div>
-          <div class="fb-row"><span>目录/任务</span><strong>{{ detail.catalog_version || '—' }} · {{ detail.task_key || '—' }}@{{ detail.task_version || '—' }}</strong></div>
-          <div class="fb-row"><span>尝试</span><strong>{{ detail.attempt_id || detail.attempt_ref || '未映射' }}</strong></div>
-          <div class="fb-row"><span>能力/知识点</span><strong>{{ detail.capability_id || '—' }} / {{ detail.knowledge_point_id || '—' }}</strong></div>
-          <div class="fb-row"><span>处理去向</span><strong>{{ detail.handling_destination_label }}</strong></div>
-          <div class="fb-row"><span>责任人</span><strong>{{ detail.owner_name || '未分配' }}（{{ detail.owner_role_label }}）</strong></div>
+          <div class="fb-row"><span>状态</span><strong>{{ feedbackLabel('status', detail.status) }}</strong></div>
+          <div class="fb-row"><span>学生/提交人</span><strong>{{ detail.student_name }} / {{ detail.submitter_name }}（{{ feedbackLabel('role', detail.submitter_role) }}）</strong></div>
+          <div class="fb-row"><span>目录/任务</span><strong>{{ detail.task_title || '已关联任务' }} · {{ detail.task_version || '版本未提供' }}</strong></div>
+          <div class="fb-row"><span>尝试</span><strong>{{ detail.attempt_id || detail.attempt_ref ? '已关联练习，完整记录可下载核对' : '未关联' }}</strong></div>
+          <div class="fb-row"><span>能力/知识点</span><strong>{{ detail.capability_title || '能力标题未提供' }} / {{ detail.knowledge_point_name || '知识点名称未提供' }}</strong></div>
+          <div class="fb-row"><span>处理去向</span><strong>{{ feedbackLabel('destination', detail.handling_destination) }}</strong></div>
+          <div class="fb-row"><span>责任人</span><strong>{{ detail.owner_name || '未分配' }}（{{ feedbackLabel('owner', detail.owner_role) }}）</strong></div>
           <div class="fb-row"><span>证据/映射</span><strong>{{ detail.evidence_complete ? '完整' : '缺证' }} / {{ detail.mapping_complete ? '完整' : '未映射' }}</strong></div>
           <div class="fb-row"><span>候选依据</span><strong>{{ detail.candidate_eligible ? '满足' : '不满足' }}</strong></div>
-          <div class="fb-row"><span>教学效果</span><strong>{{ detail.effect_status_label }}</strong></div>
-          <div class="fb-row"><span>重复记录</span><strong>{{ detail.duplicate_of || '否' }}（{{ detail.duplicate_count }} 条重复）</strong></div>
+          <div class="fb-row"><span>教学效果</span><strong>{{ feedbackLabel('effect', detail.effect_status) }}</strong></div>
+          <div class="fb-row"><span>重复记录</span><strong>{{ detail.duplicate_of ? feedbackTitle(mainTicket) : '否' }}（{{ detail.duplicate_count }} 条重复）</strong></div>
 
           <h3>具体争议</h3>
           <p class="fb-pre">{{ detail.dispute }}</p>
@@ -55,7 +54,7 @@
           </div>
           <div v-if="detail.missing_mapping?.length" class="fb-missing">
             <strong>未映射字段</strong>
-            <ul><li v-for="field in detail.missing_mapping" :key="field">{{ field }}</li></ul>
+            <ul><li v-for="field in detail.missing_mapping" :key="field">{{ feedbackLabel('mapping', field) }}</li></ul>
           </div>
         </section>
 
@@ -65,17 +64,17 @@
           <div v-else class="fb-list">
             <article v-for="item in detail.evidence" :key="item.evidence_id" class="fb-card">
               <div class="fb-card-head">
-                <strong>{{ item.slot_label }}</strong>
+                <strong>{{ feedbackLabel('slot', item.slot) }}</strong>
                 <span class="fb-badge" :class="item.status === 'provided' ? 'fb-badge-ok' : 'fb-badge-warn'">
-                  {{ item.status_label }}
+                  {{ feedbackLabel('evidence', item.status) }}
                 </span>
               </div>
               <p class="fb-muted">{{ item.summary || '—' }}</p>
               <div class="fb-meta">
-                <span>引用：{{ item.ref || '—' }}</span>
+                <span>引用：{{ item.ref ? '已关联，完整记录可下载核对' : '未提供' }}</span>
                 <span>版本：{{ item.version || '—' }}</span>
-                <span>来源：{{ item.source_label }}</span>
-                <span>可见：{{ item.visibility_label }}</span>
+                <span>来源：{{ feedbackLabel('source', item.source) }}</span>
+                <span>可见：{{ feedbackLabel('visibility', item.visibility) }}</span>
               </div>
               <div v-if="item.attachment" class="fb-actions">
                 <button class="fb-btn" type="button" @click="download(item.attachment)">下载 {{ item.attachment.original_name }}</button>
@@ -84,9 +83,9 @@
           </div>
 
           <h3>原始判定摘要</h3>
-          <pre class="fb-pre">{{ pretty(detail.original_decision_snapshot) }}</pre>
+          <RecordView :value="detail.original_decision_snapshot" title="原始判定完整记录" />
           <h3>提交时上下文</h3>
-          <pre class="fb-pre">{{ pretty(detail.context_snapshot) }}</pre>
+          <RecordView :value="detail.context_snapshot" title="提交时上下文完整记录" />
         </section>
       </div>
 
@@ -94,13 +93,13 @@
         <h2>人工处理动作</h2>
         <p class="fb-muted">每个动作都需要当前工单版本，服务端会拒绝并发覆盖。理由、证据和责任人会写入追加动作记录。</p>
 
-        <details class="fb-card" style="margin-bottom: 10px;">
+        <details class="fb-card">
           <summary><strong>认领 / 分配</strong></summary>
           <div class="fb-actions">
             <button class="fb-btn fb-btn-primary" type="button" @click="run('claim', { reason: '负责人认领待办。' })">认领给自己</button>
           </div>
-          <div class="fb-form-grid" style="margin-top: 10px;">
-            <label>管理员分配给用户 ID<input v-model="actionForms.assign.owner_id" class="fb-input" /></label>
+          <div class="fb-form-grid">
+            <ReferenceImport :model-value="actionForms.assign" :fields="ownerFields" title="分配负责人" @update:model-value="Object.assign(actionForms.assign, $event)" />
             <label>责任角色
               <select v-model="actionForms.assign.owner_role" class="fb-select">
                 <option v-for="item in options.owner_roles" :key="item.value" :value="item.value">{{ item.label }}</option>
@@ -109,11 +108,11 @@
             <label class="fb-full">理由<textarea v-model="actionForms.assign.reason" class="fb-textarea" rows="2"></textarea></label>
           </div>
           <div class="fb-actions">
-            <button class="fb-btn" type="button" @click="run('assign', actionForms.assign)">分配</button>
+            <button class="fb-btn" type="button" @click="submitAssign">分配</button>
           </div>
         </details>
 
-        <details class="fb-card" style="margin-bottom: 10px;">
+        <details class="fb-card">
           <summary><strong>登记冲突 / 影响 / 新颖性</strong></summary>
           <div class="fb-form-grid">
             <label>影响
@@ -132,18 +131,18 @@
           <div class="fb-actions"><button class="fb-btn" type="button" @click="run('triage', actionForms.triage)">保存优先级</button></div>
         </details>
 
-        <details class="fb-card" style="margin-bottom: 10px;">
+        <details class="fb-card">
           <summary><strong>要求补证</strong></summary>
           <p class="fb-muted">只选择确实缺失的必需证据；补证责任人、期限和理由会保留。</p>
           <div class="fb-missing" v-if="detail.missing_evidence?.length">
-            <label v-for="slot in detail.missing_evidence" :key="slot" class="fb-check" style="display:flex; margin: 4px 0;">
+            <label v-for="slot in detail.missing_evidence" :key="slot" class="fb-check">
               <input v-model="selectedMissing" type="checkbox" :value="slot" />
               {{ slotLabel(slot) }}
             </label>
           </div>
           <div v-else class="fb-muted">当前没有缺失证据槽。</div>
           <div class="fb-form-grid">
-            <label>补证责任人 ID<input v-model="actionForms.request.owner_id" class="fb-input" /></label>
+            <ReferenceImport :model-value="actionForms.request" :fields="ownerFields" title="补证负责人" @update:model-value="Object.assign(actionForms.request, $event)" />
             <label>期限<input v-model="actionForms.request.due_at" class="fb-input" placeholder="2026-11-01T18:00:00+08:00" /></label>
             <label class="fb-full">理由<textarea v-model="actionForms.request.reason" class="fb-textarea" rows="2"></textarea></label>
           </div>
@@ -152,7 +151,7 @@
           </div>
         </details>
 
-        <details class="fb-card" style="margin-bottom: 10px;">
+        <details class="fb-card">
           <summary><strong>确认 / 驳回</strong></summary>
           <div class="fb-form-grid">
             <label>处理去向
@@ -165,7 +164,7 @@
                 <option v-for="item in options.owner_roles" :key="item.value" :value="item.value">{{ item.label }}</option>
               </select>
             </label>
-            <label class="fb-full">引用证据（逗号分隔）<input v-model="actionForms.confirm.evidence_refs" class="fb-input" /></label>
+            <ReferenceImport :model-value="{ evidence_refs: splitRefs(actionForms.confirm.evidence_refs) }" :fields="evidenceFields" title="确认依据" @update:model-value="Object.assign(actionForms.confirm, $event)" />
             <label class="fb-full">确认理由<textarea v-model="actionForms.confirm.reason" class="fb-textarea" rows="2"></textarea></label>
             <label class="fb-full">驳回理由<textarea v-model="actionForms.reject.reason" class="fb-textarea" rows="2"></textarea></label>
           </div>
@@ -175,7 +174,7 @@
           </div>
         </details>
 
-        <details class="fb-card" style="margin-bottom: 10px;">
+        <details class="fb-card">
           <summary><strong>追加复核更正</strong></summary>
           <p class="fb-muted">只追加新结论，原复核人、理由、时间和原始判定保留。</p>
           <div class="fb-form-grid">
@@ -193,7 +192,7 @@
           </div>
         </details>
 
-        <details class="fb-card" style="margin-bottom: 10px;">
+        <details class="fb-card">
           <summary><strong>开始人工处理</strong></summary>
           <div class="fb-form-grid">
             <label>处理动作<input v-model="actionForms.handling.handling_action" class="fb-input" placeholder="补充解释 / 安排审核任务 / 转交" /></label>
@@ -209,14 +208,14 @@
           </div>
         </details>
 
-        <details class="fb-card" style="margin-bottom: 10px;">
+        <details class="fb-card">
           <summary><strong>转交 / 接收确认</strong></summary>
           <p class="fb-muted">评分争议必须转模块六；目录/推荐问题转模块一；技术故障转平台维护。接收方确认前不能标记已处理。</p>
           <div class="fb-form-grid">
             <label>转交去向
               <select v-model="actionForms.refer.destination" class="fb-select">
-                <option value="module6">模块六</option>
-                <option value="module1">模块一</option>
+                <option value="module6">核验与评分复核</option>
+                <option value="module1">目录与推荐维护</option>
                 <option value="course_material">课程材料</option>
                 <option value="platform">平台维护</option>
               </select>
@@ -227,12 +226,12 @@
           <div class="fb-actions">
             <button class="fb-btn" type="button" @click="run('refer', { destination: actionForms.refer.destination, reason: actionForms.refer.reason, external_ref: actionForms.refer.external_ref })">登记转交</button>
           </div>
-          <div v-if="pendingReferrals.length" class="fb-form-grid" style="margin-top: 10px;">
+          <div v-if="pendingReferrals.length" class="fb-form-grid">
             <label>待确认转交
               <select v-model="actionForms.ack.referral_id" class="fb-select">
                 <option value="">请选择</option>
                 <option v-for="referral in pendingReferrals" :key="referral.referral_id" :value="referral.referral_id">
-                  {{ referral.destination_label }} · {{ referral.referral_id }}
+                  {{ feedbackLabel('destination', referral.destination) }} · {{ feedbackDate(referral.created_at) }}
                 </option>
               </select>
             </label>
@@ -245,7 +244,7 @@
           </div>
         </details>
 
-        <details class="fb-card" style="margin-bottom: 10px;">
+        <details class="fb-card">
           <summary><strong>标记已处理 / 登记教学效果</strong></summary>
           <p class="fb-muted">所有转交必须已确认接收才能标记已处理。教学效果单独登记，不随工单关闭自动变成“已验证”。</p>
           <div class="fb-form-grid">
@@ -254,27 +253,26 @@
           <div class="fb-actions">
             <button class="fb-btn fb-btn-primary" type="button" @click="run('handle', { handling_note: actionForms.handle.handling_note })">标记已处理</button>
           </div>
-          <div class="fb-form-grid" style="margin-top: 10px;">
+          <div class="fb-form-grid">
             <label>教学效果
               <select v-model="actionForms.effect.effect_status" class="fb-select">
                 <option v-for="item in options.effect_statuses" :key="item.value" :value="item.value">{{ item.label }}</option>
               </select>
             </label>
-            <label>复测事实 ID<input v-model="actionForms.effect.retest_fact_ref" class="fb-input" /></label>
-            <label>复测尝试 ID<input v-model="actionForms.effect.retest_attempt_ref" class="fb-input" /></label>
+            <ReferenceImport :model-value="actionForms.effect" :fields="retestFields" title="复测核验对照" @update:model-value="Object.assign(actionForms.effect, $event)" />
             <label class="fb-full">效果说明<textarea v-model="actionForms.effect.effect_note" class="fb-textarea" rows="2"></textarea></label>
           </div>
           <div class="fb-actions">
-            <button class="fb-btn" type="button" @click="run('set_effect', actionForms.effect)">登记教学效果</button>
+            <button class="fb-btn" type="button" @click="submitEffect">登记教学效果</button>
           </div>
         </details>
 
-        <details class="fb-card" style="margin-bottom: 10px;">
+        <details class="fb-card">
           <summary><strong>重开 / 内部备注 / 重复处理</strong></summary>
           <div class="fb-form-grid">
             <label class="fb-full">重开理由<textarea v-model="actionForms.reopen.reason" class="fb-textarea" rows="2"></textarea></label>
             <label class="fb-full">内部备注（仅教师可见）<textarea v-model="actionForms.note.reason" class="fb-textarea" rows="2"></textarea></label>
-            <label>主记录反馈 ID<input v-model="actionForms.duplicate.main_ticket_id" class="fb-input" /></label>
+            <label>主反馈<select v-model="actionForms.duplicate.main_ticket_id" class="fb-select"><option value="">请选择</option><option v-for="ticket in duplicateTickets" :key="ticket.feedback_id" :value="ticket.feedback_id">{{ feedbackTitle(ticket) }}</option></select></label><button class="fb-btn" type="button" :disabled="duplicateLoading" @click="loadDuplicateTickets">读取可选主反馈</button><p v-if="duplicateError" class="fb-error">{{ duplicateError }}</p>
             <label class="fb-full">重复处理理由<textarea v-model="actionForms.duplicate.reason" class="fb-textarea" rows="2"></textarea></label>
           </div>
           <div class="fb-actions">
@@ -309,12 +307,12 @@
         <div v-else class="fb-list">
           <article v-for="referral in detail.referrals" :key="referral.referral_id" class="fb-card">
             <div class="fb-card-head">
-              <strong>{{ referral.destination_label }}</strong>
-              <span class="fb-badge" :class="referral.status === 'acknowledged' ? 'fb-badge-ok' : 'fb-badge-warn'">{{ referral.status_label }}</span>
+              <strong>{{ feedbackLabel('destination', referral.destination) }}</strong>
+              <span class="fb-badge" :class="referral.status === 'acknowledged' ? 'fb-badge-ok' : 'fb-badge-warn'">{{ feedbackLabel('referral', referral.status) }}</span>
             </div>
             <p class="fb-muted">{{ referral.note || '—' }}</p>
             <div class="fb-meta">
-              <span>接收引用：{{ referral.external_ref || '—' }}</span>
+              <span>接收引用：{{ referral.external_ref ? '已关联，完整记录可下载核对' : '未提供' }}</span>
               <span>{{ formatDate(referral.created_at) }}</span>
             </div>
           </article>
@@ -324,22 +322,34 @@
         <div class="fb-actions">
           <button class="fb-btn" type="button" @click="retryEvents">重试待同步事件</button>
         </div>
-        <pre class="fb-pre">{{ pretty(detail.reconciliation) }}</pre>
+        <p v-for="item in detail.reconciliation?.items" :key="item.action_id">{{ feedbackLabel('action', item.action) }} · {{ feedbackLabel('event', item.event_type) }} · {{ reconciliationNote(item) }}</p><RecordView :value="detail" title="反馈完整记录" />
       </section>
     </template>
   </div>
 </template>
 
 <script setup>
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, onBeforeUnmount, reactive, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import service from '@/api'
+import service from './feedback/api.js'
+import { feedbackLabel, feedbackOptions, feedbackDate, feedbackTitle, feedbackError, nextFeedbackPage, mergeFeedbackItems, reconciliationNote } from './feedbackPresentation.js'
+import ReferenceImport from '../shared/forms/ReferenceImport.vue'
+import RecordView from '../shared/forms/RecordView.vue'
 
 const route = useRoute()
 const detail = ref(null)
 const error = ref('')
 const message = ref('')
 const selectedMissing = ref([])
+const mainTicket = ref(null), mainTicketError = ref('')
+const duplicateTickets = ref([]), duplicateLoading = ref(false), duplicateLoaded = ref(false), duplicateError = ref('')
+const ownerCandidates = ref([]), studentRetests = ref([]), busy = ref(false)
+const ownerFields = [{ key: 'owner_id', label: '负责人', type: 'number' }]
+const evidenceFields = [{ key: 'evidence_refs', label: '证据关联', type: 'list' }]
+const externalFields = [{ key: 'external_ref', label: '接收方关联', type: 'text' }]
+const retestFields = [{ key: 'retest_fact_ref', label: '复测核验关联', type: 'text' }, { key: 'retest_attempt_ref', label: '复测练习关联', type: 'text' }]
+let alive = true, loadRead = 0, duplicateRead = 0, mainRead = 0
+onBeforeUnmount(() => { alive = false; ++loadRead; ++duplicateRead; ++mainRead })
 const options = reactive({
   categories: [],
   conditional_slots: [],
@@ -369,102 +379,66 @@ const actionForms = reactive({
 
 const pendingReferrals = computed(() => (detail.value?.referrals || []).filter((item) => item.status === 'pending_ack'))
 
-function slotLabel(slot) {
-  const category = options.categories.find((item) => item.value === detail.value?.category)
-  const all = [...(category?.required_slots || [])]
-  const conditional = options.conditional_slots.find(
-    (item) => item.category === detail.value?.category && item.issue_type === detail.value?.issue_type,
-  )
-  if (conditional) all.push(...conditional.slots)
-  return all.find((item) => item.slot === slot)?.label || slot
+function slotLabel(slot) { return feedbackLabel('slot', slot) }
+function splitRefs(value) { return Array.isArray(value) ? [...value] : String(value || '').split(',').map(item => item.trim()).filter(Boolean) }
+function formatDate(value) { return feedbackDate(value) }
+async function loadMainTicket() {
+  const read = ++mainRead, id = detail.value?.duplicate_of
+  mainTicket.value = null; mainTicketError.value = ''
+  if (!id) return
+  try { const result = await service.feedback.teacherDetail(id); if (alive && read === mainRead) mainTicket.value = result }
+  catch (err) { if (alive && read === mainRead) mainTicketError.value = feedbackError(err, '主反馈标题读取失败，请重试。') }
 }
-
-function splitRefs(value) {
-  return String(value || '')
-    .split(',')
-    .map((item) => item.trim())
-    .filter(Boolean)
-}
-
-function pretty(value) {
-  if (value === undefined || value === null) return '—'
+async function loadDuplicateTickets() {
+  if (!alive || !detail.value) return
+  const read = ++duplicateRead, student = detail.value.student_id, currentId = detail.value.feedback_id
+  duplicateLoading.value = true; duplicateLoaded.value = false; duplicateError.value = ''
   try {
-    return JSON.stringify(value, null, 2)
-  } catch {
-    return String(value)
-  }
+    let page = 1, rows = []
+    while (page !== null) { if (page > 10000) throw new Error('Too many pages'); const res = await service.feedback.teacherQueue({ page, page_size: 100 }); if (!alive || read !== duplicateRead) return; if (!Array.isArray(res.items)) throw new Error('Incomplete response'); rows = mergeFeedbackItems(rows, res.items); const next = nextFeedbackPage(res); if (next !== null && next <= page) throw new Error('Invalid pagination'); page = next }
+    duplicateTickets.value = rows.filter(item => item.feedback_id !== currentId && item.student_id === student && !item.duplicate_of && item.status !== 'duplicate'); duplicateLoaded.value = true
+  } catch (err) { if (alive && read === duplicateRead) duplicateError.value = feedbackError(err, '可选主反馈尚未全部读取，请重试。') }
+  finally { if (alive && read === duplicateRead) duplicateLoading.value = false }
 }
-
-function formatDate(value) {
-  return value ? new Date(value).toLocaleString('zh-CN') : '—'
-}
-
 async function load() {
-  error.value = ''
+  if (!alive) return
+  const read = ++loadRead, id = route.params.id
+  error.value = ''; ++duplicateRead; ++mainRead
   try {
-    const [detailRes, optionsRes] = await Promise.all([
-      service.feedback.teacherDetail(route.params.id),
-      service.feedback.options(),
-    ])
+    const [detailRes, optionsRes] = await Promise.all([service.feedback.teacherDetail(id), service.feedback.options()])
+    if (!alive || read !== loadRead || route.params.id !== id) return
     detail.value = detailRes
     Object.assign(options, optionsRes)
+    for (const [key, kind] of Object.entries({ categories: 'category', destinations: 'destination', owner_roles: 'owner', impact_levels: 'impact', novelty: 'novelty', effect_statuses: 'effect' })) options[key] = feedbackOptions(optionsRes[key] || [], kind)
     selectedMissing.value = [...(detailRes.missing_evidence || [])]
-    if (!actionForms.confirm.handling_destination) {
-      actionForms.confirm.handling_destination = detailRes.handling_destination || 'unassigned'
-    }
-    if (!actionForms.handling.handling_destination) {
-      actionForms.handling.handling_destination = detailRes.handling_destination || 'unassigned'
-    }
+    if (!actionForms.confirm.handling_destination) actionForms.confirm.handling_destination = detailRes.handling_destination || 'unassigned'
+    if (!actionForms.handling.handling_destination) actionForms.handling.handling_destination = detailRes.handling_destination || 'unassigned'
     if (!actionForms.confirm.owner_role) actionForms.confirm.owner_role = detailRes.owner_role || 'teacher'
-    if (!actionForms.ack.referral_id && pendingReferrals.value.length) {
-      actionForms.ack.referral_id = pendingReferrals.value[0].referral_id
-    }
-  } catch (err) {
-    error.value = err.response?.data?.detail || '加载反馈详情失败。'
-  }
+    if (!actionForms.ack.referral_id && pendingReferrals.value.length) actionForms.ack.referral_id = pendingReferrals.value[0].referral_id
+    await loadMainTicket()
+  } catch (err) { if (alive && read === loadRead) { detail.value = null; error.value = feedbackError(err, '加载反馈详情失败，请重试。') } }
 }
-
 async function run(action, payload = {}) {
-  error.value = ''
-  message.value = ''
+  if (!alive || busy.value || !detail.value) return
+  const id = detail.value.feedback_id, routeId = route.params.id
+  error.value = ''; message.value = ''; busy.value = true
+  const request = JSON.parse(JSON.stringify({ action, expected_version: detail.value.version, ...payload }))
   try {
-    const res = await service.feedback.teacherAction(detail.value.feedback_id, {
-      action,
-      expected_version: detail.value.version,
-      ...payload,
-    })
-    detail.value = res
-    message.value = `动作已记录：${action}；当前状态：${res.status_label}。`
+    const res = await service.feedback.teacherAction(id, request)
+    if (!alive || route.params.id !== routeId) return
+    detail.value = res; message.value = `${feedbackLabel('action', action)}已记录；${feedbackLabel('status', res.status)}。`
     selectedMissing.value = [...(res.missing_evidence || [])]
     await load()
-  } catch (err) {
-    const data = err.response?.data
-    error.value = data?.detail
-      || (data && typeof data === 'object' ? JSON.stringify(data) : '处理动作失败。')
-  }
+  } catch (err) { if (alive && route.params.id === routeId) error.value = feedbackError(err, '处理动作失败，请核对后重试。') }
+  finally { if (alive) busy.value = false }
 }
-
+function submitAssign() { return run('assign', { ...actionForms.assign }) }
+function submitEffect() { return run('set_effect', { ...actionForms.effect }) }
 function requestEvidence() {
-  if (!selectedMissing.value.length) {
-    error.value = '请选择需要补充的证据槽。'
-    return
-  }
-  run('request_evidence', {
-    missing_slots: selectedMissing.value,
-    due_at: actionForms.request.due_at || null,
-    owner_id: actionForms.request.owner_id || null,
-    reason: actionForms.request.reason,
-  })
+  if (!selectedMissing.value.length) { error.value = '请选择需要补充的证据。'; return }
+  return run('request_evidence', { missing_slots: [...selectedMissing.value], due_at: actionForms.request.due_at || null, owner_id: actionForms.request.owner_id || null, reason: actionForms.request.reason })
 }
-
-function confirmTicket() {
-  run('confirm', {
-    reason: actionForms.confirm.reason,
-    handling_destination: actionForms.confirm.handling_destination,
-    owner_role: actionForms.confirm.owner_role,
-    evidence_refs: splitRefs(actionForms.confirm.evidence_refs),
-  })
-}
+function confirmTicket() { return run('confirm', { reason: actionForms.confirm.reason, handling_destination: actionForms.confirm.handling_destination, owner_role: actionForms.confirm.owner_role, evidence_refs: splitRefs(actionForms.confirm.evidence_refs) }) }
 
 async function retryEvents() {
   error.value = ''
@@ -474,7 +448,7 @@ async function retryEvents() {
     message.value = '事件同步重试完成；请查看核对结果。'
     await load()
   } catch (err) {
-    error.value = err.response?.data?.detail || '事件同步重试失败。'
+    error.value = feedbackError(err, '事件同步重试失败，请重试。')
   }
 }
 
@@ -490,11 +464,12 @@ async function download(attachment) {
     link.remove()
     window.URL.revokeObjectURL(url)
   } catch (err) {
-    error.value = err.response?.data?.detail || '下载附件失败。'
+    error.value = feedbackError(err, '下载附件失败，请重试。')
   }
 }
 
+watch(() => route.params.id, () => { detail.value = null; mainTicket.value = null; duplicateTickets.value = []; selectedMissing.value = []; for (const form of Object.values(actionForms)) for (const key of Object.keys(form)) if (key.includes('ref') || key.includes('owner_id') || key === 'main_ticket_id') form[key] = ''; void load() })
 onMounted(load)
 </script>
 
-<style src="@/assets/feedback.css"></style>
+<style scoped src="../shared/feedback/page.css"></style>

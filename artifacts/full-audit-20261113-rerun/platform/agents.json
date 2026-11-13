@@ -1,0 +1,24 @@
+{
+  "tests": 13,
+  "passed": [
+    "agents.context.test_shared_context.SharedTeachingContextTests.test_bounds_history_resources_weak_points_rag_and_sensitive_fields",
+    "agents.context.test_shared_context.SharedTeachingContextTests.test_profile_adapter_failure_is_empty",
+    "agents.context.test_shared_context.SharedTeachingContextTests.test_profile_adapter_returns_only_teaching_fields",
+    "agents.router.tests.TutorAgentRouterTests.test_empty_and_non_string_input_never_raise",
+    "agents.router.tests.TutorAgentRouterTests.test_routes_are_deterministic_and_share_the_execution_plan",
+    "agents.specialists.test_tutor_executor.TutorSpecialistExecutorTests.test_agent_exception_is_structured_and_does_not_abort",
+    "agents.specialists.test_tutor_executor.TutorSpecialistExecutorTests.test_every_task_uses_the_canonical_execution_matrix",
+    "agents.specialists.test_tutor_executor.TutorSpecialistExecutorTests.test_structured_agents_fill_expected_sections",
+    "agents.specialists.test_tutor_executor.TutorSpecialistExecutorTests.test_study_strategy_empty_and_normal_data",
+    "agents.context.tests.TeachingContextTests.test_builder_maps_specialist_results_to_standard_sections",
+    "agents.context.tests.TeachingContextTests.test_context_sanitizes_non_json_values",
+    "agents.context.tests.TeachingContextTests.test_empty_context_returns_default_json_shape",
+    "agents.specialists.tests.SpecialistAgentExecutorTeachingContextTests.test_executor_writes_structured_results_into_teaching_context"
+  ],
+  "failures": [],
+  "errors": [],
+  "skipped": [],
+  "expected_failures": 0,
+  "unexpected_successes": 0,
+  "synthetic_database_only": true
+}

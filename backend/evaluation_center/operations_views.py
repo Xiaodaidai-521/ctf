@@ -63,7 +63,9 @@ class TodoSyncView(OperationsView):
 class ReceiptView(OperationsView):
     def get(self, request):
         StrictSerializer(data=request.query_params).is_valid(raise_exception=True)
-        receipts = ProjectionReceipt.objects.exclude(payload__student_id__in=excluded_student_ids())
+        # JSON keys and integer subqueries have different types on PostgreSQL.
+        # Concrete values are adapted by Django to the JSON key's type.
+        receipts = ProjectionReceipt.objects.exclude(payload__student_id__in=list(excluded_student_ids()))
         return Response({'receipts': list(receipts.order_by('pk').values('notice_key', 'payload', 'created_at'))})
 
     def post(self, request):

@@ -101,9 +101,10 @@ export function contentView(source) {
 export function quizResult(questions, answers) {
   const list = Array.isArray(questions) ? questions : []
   const scorable = list.filter(question => question.answerIndex !== null)
-  const correct = scorable.filter((question, index) => {
+  const correct = scorable.filter(question => {
     const qi = list.indexOf(question)
-    return Number(answers?.[qi] ?? answers?.[index]) === question.answerIndex
+    const answer = answers?.[qi]
+    return answer !== null && answer !== undefined && Number(answer) === question.answerIndex
   }).length
   if (!list.length) return { scorable: 0, correct: 0, label: '本测验暂未提供题目。' }
   if (!scorable.length) return { scorable: 0, correct: 0, label: '本测验没有可判定的答案，暂不计分；题目内容仍可阅读。' }

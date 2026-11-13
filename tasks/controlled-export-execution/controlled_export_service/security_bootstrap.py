@@ -93,10 +93,11 @@ def start_application():
     if not settings.CONTROLLED_EXPORT_PRIVATE_CONFIG:
         return
     from data_security.adapters.keys import FileKeyResolver
+    from data_security.adapters.private_permissions import is_private_path
     from data_security.application.crypto_service import CryptoService
 
     path = Path(settings.CONTROLLED_EXPORT_PRIVATE_CONFIG)
-    require(path.is_absolute() and path == path.resolve() and not path.stat().st_mode & 0o022
+    require(path.is_absolute() and path == path.resolve() and is_private_path(path)
             and path.stat().st_size <= 65536, ReasonCode.AUTHORIZATION_DENIED)
     config = json.loads(path.read_bytes())
     require(type(config) is dict, ReasonCode.INVALID_TYPE)

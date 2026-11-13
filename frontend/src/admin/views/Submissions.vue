@@ -33,6 +33,7 @@
         </button>
       </div>
 
+      <p v-if="listError" role="alert">{{ listError }}</p>
       <!-- 提交记录列表 -->
       <div class="table-container" style="overflow-x: auto;">
         <table class="admin-table">
@@ -85,7 +86,7 @@
           </tbody>
         </table>
 
-        <div v-if="submissions.length === 0" class="empty-state">
+        <div v-if="!listError && submissions.length === 0" class="empty-state">
           <div class="empty-icon">📭</div>
           <p>暂无提交记录</p>
         </div>
@@ -135,8 +136,15 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
 import api from '@/api'
+import { usePageFilters } from '@/shared/state/usePageFilters.js'
+import { createAccountGuard } from '@/shared/state/accountScope.js'
+
+const guard = createAccountGuard()
+onBeforeUnmount(guard.dispose)
+let listGeneration = 0
+const listError = ref('')
 
 const submissions = ref([])
 const total = ref(0)
@@ -145,6 +153,7 @@ const page = ref(1)
 const pageSize = ref(20)
 const searchKeyword = ref('')
 const filterStatus = ref('')
+usePageFilters('admin-submissions', { searchKeyword, filterStatus, page, pageSize })
 
 const stats = computed(() => {
   const correct = submissions.value.filter(s => s.is_correct).length
@@ -154,6 +163,8 @@ const stats = computed(() => {
 })
 
 const fetchSubmissions = async () => {
+  const reading = ++listGeneration
+  listError.value = ''
   try {
     const params = {
       page: page.value,
@@ -164,11 +175,12 @@ const fetchSubmissions = async () => {
       params.is_correct = filterStatus.value
     }
     const response = await api.submission.allSubmissions(params)
+    if (!guard.current() || reading !== listGeneration) return
     submissions.value = response.results
     total.value = response.total
     totalPages.value = response.total_pages
   } catch (error) {
-    console.error('获取提交记录失败:', error)
+    if (guard.current() && reading === listGeneration) { submissions.value = []; listError.value = '提交记录读取失败，请重试。' }
   }
 }
 

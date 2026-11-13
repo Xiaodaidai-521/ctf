@@ -1,0 +1,31 @@
+{
+  "tests": 12,
+  "passed": [
+    "tools.data_security.test_phase6_plaintext_scan.PlaintextInventoryTests.test_corrupt_or_over_budget_archive_is_incomplete_not_a_zero_hit_success",
+    "tools.data_security.test_phase6_plaintext_scan.PlaintextInventoryTests.test_encoded_literals_and_filename_are_not_silently_ignored",
+    "tools.data_security.test_phase6_plaintext_scan.PlaintextInventoryTests.test_gzip_expansion_and_pdf_members_are_not_counted_as_complete",
+    "tools.data_security.test_phase6_plaintext_scan.PlaintextInventoryTests.test_hit_across_chunk_boundary_is_reported_without_value_or_snippet",
+    "tools.data_security.test_phase6_plaintext_scan.PlaintextInventoryTests.test_marker_and_target_configuration_are_validated_without_echoing_values",
+    "tools.data_security.test_phase6_plaintext_scan.PlaintextInventoryTests.test_missing_category_missing_path_and_symlink_cannot_pass",
+    "tools.data_security.test_phase6_plaintext_scan.PlaintextInventoryTests.test_runtime_categories_and_file_hashes_are_explicit_not_inferred",
+    "tools.data_security.test_phase6_plaintext_scan.PlaintextInventoryTests.test_symlink_roots_and_noncanonical_targets_are_not_followed",
+    "tools.data_security.test_phase6_plaintext_scan.PlaintextInventoryTests.test_utf16_big_endian_and_json_escaped_originals_are_checked",
+    "tools.data_security.test_phase6_plaintext_scan.PlaintextInventoryTests.test_visual_and_nested_encoded_content_remain_unscanned_even_with_zero_literal_hits",
+    "tools.data_security.test_phase6_plaintext_scan.PlaintextInventoryTests.test_zip_and_gzip_members_are_scanned_without_extraction"
+  ],
+  "failures": [
+    {
+      "id": "tools.data_security.test_phase4_evidence.BackupReceiptTests.test_log_hash_binds_exact_output_and_preserves_exit_code (exit_code=0)",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\tools\\data_security\\test_phase4_evidence.py\", line 42, in test_log_hash_binds_exact_output_and_preserves_exit_code\n    self.assertEqual(log.stat().st_mode & 0o777, 0o600)\nAssertionError: 438 != 384\n"
+    },
+    {
+      "id": "tools.data_security.test_phase4_evidence.BackupReceiptTests.test_log_hash_binds_exact_output_and_preserves_exit_code (exit_code=1)",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\tools\\data_security\\test_phase4_evidence.py\", line 42, in test_log_hash_binds_exact_output_and_preserves_exit_code\n    self.assertEqual(log.stat().st_mode & 0o777, 0o600)\nAssertionError: 438 != 384\n"
+    }
+  ],
+  "errors": [],
+  "skipped": [],
+  "expected_failures": 0,
+  "unexpected_successes": 0,
+  "synthetic_database_only": true
+}

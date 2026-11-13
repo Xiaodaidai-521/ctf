@@ -561,7 +561,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '@/store/user'
 import api from '@/api'
@@ -573,7 +573,15 @@ const router = useRouter()
 const route = useRoute()
 const userStore = useUserStore()
 
-const activeTab = ref(route.query.tab === 'persona' ? 'persona' : 'solved')
+const PROFILE_TABS = ['favorites', 'solved', 'progress', 'submissions', 'persona', 'profile']
+const tabFromQuery = value => (PROFILE_TABS.includes(value) ? value : 'solved')
+const activeTab = ref(tabFromQuery(route.query.tab))
+watch(() => route.query.tab, value => { activeTab.value = tabFromQuery(value) })
+watch(activeTab, value => {
+  if (tabFromQuery(route.query.tab) === value) return
+  const query = { ...route.query, tab: value }
+  router.replace({ path: '/profile', query })
+})
 const submissions = ref([])
 const favorites = ref([])
 const solvedChallenges = ref([])
@@ -779,7 +787,8 @@ const editForm = ref({
 
 const fetchSubmissions = async () => {
   try {
-    submissions.value = await api.submission.mySubmissions()
+    const response = await api.submission.mySubmissions()
+    submissions.value = Array.isArray(response) ? response : (response?.results || [])
   } catch (error) {
     console.error('获取提交记录失败:', error)
   }
@@ -823,7 +832,7 @@ const fetchLearningPaths = async () => {
     // 处理响应数据，确保是数组
     const pathsArray = Array.isArray(paths) ? paths : (paths.results || [])
     learningPaths.value = pathsArray.map(path => ({
-      id: path.id,
+      id: typeof path.learning_path === 'object' ? path.learning_path?.id : path.learning_path,
       title: path.path_title,
       progress: path.progress_percentage || 0,
       completed_modules: path.completed_modules || 0,
@@ -919,7 +928,7 @@ const handleTrackPath = (path) => {
 
 const handleChallengeClick = (challenge) => {
   // 跳转到题目详情页
-  router.push(`/challenges/${challenge.id}`)
+  router.push(`/challenge/${challenge.id}`)
 }
 
 onMounted(async () => {

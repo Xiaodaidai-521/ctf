@@ -1,6 +1,6 @@
 # 模块七：分类型反馈与系统改进（首期）
 
-状态：**首期代码实现完成，隔离测试通过；真实模块六/模块八联调、候选审批发布与里程碑 I 执行反馈尚未接入。**
+状态：**首期流程与第三阶段问题组、候选、可信评测报告绑定、审批、发布、观察和回退已实现。第三阶段写入与发布默认关闭；真实跨模块业务联调和里程碑 I 执行反馈仍待验收。**
 
 本目录（Django app `feedback_center`）实现操作方案第一阶段的核心可验证部分：
 
@@ -13,7 +13,7 @@
 - 可复现的随机抽查批次（范围、总体摘要、随机种子、入选原因）
 - 受控附件上传/下载与访问审计
 - 统一 `LearningEvent` 事件关联、失败待重试与事件核对页
-- 第三阶段问题组/候选/审批/发布/观察/回退的接口契约（**未启用**）
+- 第三阶段问题组/候选/审批/发布/观察/回退及可信评测报告绑定（**已实现，默认未启用**）
 
 首期**不会**触发实际导出、生产配额或生产策略修改；执行反馈入口保持关闭，等待独立里程碑 I。反馈“已处理”不等于“新规则已生效”，也不等于“教学效果已验证”。
 
@@ -29,7 +29,8 @@
 | `backend/feedback_center/services/events.py` | 确定性事件 ID、outbox 同步、重试、内容不一致检测 |
 | `backend/feedback_center/services/sampling.py` | 确定性随机抽查批次 |
 | `backend/feedback_center/services/reconciliation.py` | 事件核对队列与重试 |
-| `backend/feedback_center/services/phase3.py` | 第三阶段接口契约（只读，未启用） |
+| `backend/feedback_center/services/phase3.py` | 第三阶段接口契约与动态开关状态 |
+| `backend/feedback_center/services/issue_groups.py` / `candidates.py` | 问题组、候选状态机、报告核验、审批、发布、观察和回退 |
 | `backend/feedback_center/views.py` / `urls.py` | 学生、教师、核对、抽查、第三阶段契约接口 |
 | `frontend/src/views/Feedback/` | 学生反馈中心与详情 |
 | `frontend/src/teacher/FeedbackQueue.vue` | 教师待办 + 随机抽查 |
@@ -119,8 +120,8 @@ npm run build
 | GET | `teacher/sampling-batches/<batch_id>/` | 批次明细与入选原因 |
 | GET | `teacher/reconciliation/` | 事件核对队列 |
 | POST | `teacher/reconciliation/retry/` | 重试待同步事件；可带 `ticket_id` |
-| GET | `teacher/phase3/contracts/` | 第三阶段接口契约（`enabled=false`） |
-| POST | `teacher/phase3/candidates/` | 固定返回 `409 phase3_not_enabled` |
+| GET | `teacher/phase3/contracts/` | 第三阶段接口契约，返回实际配置的开关状态 |
+| POST | `teacher/phase3/candidates/` | 创建候选；默认关闭时返回 `phase3_write_disabled` |
 
 教师动作（`action` 字段）：
 
@@ -187,9 +188,9 @@ npm run build
 ## 9. 首期明确未完成/未接通
 
 - **模块六 HTTP 层**：`skill_review` 已具备模型、迁移和 HTTP 入口；模块七读取 `learning_map.VerificationFact` 和统一 `LearningEvent`，并在扩展表可用时只读读取 `skill_review` 的帮助记录、当前核验结果和复测安排。真实跨模块业务联调（教师处理、评分争议接收、复测回传）仍需联合验收。
-- **模块八评测报告**：第三阶段契约已定义 `run_id/report_id/report_version/report_digest`，但未实现报告导入、逐例差异或审批联动。
+- **模块八评测报告**：已实现真实运行/报告引用导入、摘要与逐例完整性核验、审批和发布关口重验。真实模型效果及正式业务数据验收仍需单独开展。
 - **模块一目录/推荐发布**：目录/推荐问题可转模块一，但模块七不修改目录、推荐规则或任务版本。
-- **候选管理/审批/发布/回退**：未启用；`POST teacher/phase3/candidates/` 固定返回 `409 phase3_not_enabled`。
+- **候选管理/审批/发布/回退**：已实现；`FEEDBACK_PHASE3_ENABLED` 控制写入，`FEEDBACK_PHASE3_RELEASE_ENABLED` 控制生效与回退，两者默认关闭。启用范围、评测报告和发布审核需要明确配置。
 - **里程碑 I 执行反馈**：执行反馈入口关闭；`involves_actual_execution=true` 返回 `409 milestone_i_not_open`，不落库。
 - **真实生产 PostgreSQL**：本轮在 SQLite 隔离测试与默认 settings 测试通过；生产 PG 仍需重跑迁移、并发和权限验收。
 - **浏览器端人工验收**：已完成本地浏览器冒烟：学生登录并提交反馈、教师待办/详情/认领/确认/开始处理/标记已处理、事件核对显示 5 条事件全部关联；未做生产环境多账号并发验收。
