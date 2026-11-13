@@ -113,10 +113,24 @@ def main():
     parser.add_argument('--workers', type=int, default=4)
     parser.add_argument('--reuse-workspace', type=Path, help='Reuse only a cluster previously created by this script.')
     parser.add_argument('--env-file', type=Path, default=ROOT/'.env')
+    parser.add_argument('--probe-only', action='store_true',
+                        help='Only check PostgreSQL/pgvector and one request per configured provider; skip corpus embedding and quality evaluation.')
     parser.add_argument('--postgres-tests', action='store_true', help='Run synthetic ANN regressions on a separate test database.')
     args = parser.parse_args()
+    if args.probe_only and args.postgres_tests:
+        parser.error('--probe-only cannot be combined with --postgres-tests')
     from dotenv import dotenv_values
     operational = dotenv_values(args.env_file)
+    if (operational.get('EMBEDDING_PROVIDER') or '').strip().lower() not in ('qwen', 'dashscope'):
+        parser.error('This evaluator requires EMBEDDING_PROVIDER=qwen (or dashscope).')
+    if not (operational.get('EMBEDDING_MODEL') or '').strip():
+        parser.error('EMBEDDING_MODEL is required.')
+    try:
+        configured_dimension = int(operational.get('EMBEDDING_DIMENSION') or '0')
+    except ValueError:
+        parser.error('EMBEDDING_DIMENSION must be 1024.')
+    if configured_dimension != 1024:
+        parser.error('EMBEDDING_DIMENSION must be 1024.')
     os.environ.pop('DATA_SECURITY_CONFIG', None)
     os.environ.pop('DATABASE_URL', None)
     os.environ.update(SECRET_KEY='isolated-remote-pg-evaluation-framework-key-20261112',
@@ -130,7 +144,9 @@ def main():
         port = sock.getsockname()[1]
     os.environ['DB_PORT'] = str(port)
     report = {'started_at': datetime.now(timezone.utc).isoformat(), 'source_database': str(args.database.resolve()),
-        'source_access': 'read-only; isolated native PostgreSQL cluster', 'postgres_port': port,
+        'source_access': ('not accessed; isolated native PostgreSQL cluster' if args.probe_only
+                          else 'read-only; isolated native PostgreSQL cluster'), 'postgres_port': port,
+        'evaluation_mode': 'probe_only' if args.probe_only else 'full',
         'providers': [], 'retrieval': {}, 'answers': [], 'errors': [], 'production_settings_changed': False}
     workspace = args.reuse_workspace.resolve() if args.reuse_workspace else Path(tempfile.mkdtemp(prefix='knowledge-remote-pg-')).resolve()
     if args.reuse_workspace and (not workspace.name.startswith('knowledge-remote-pg-') or not (workspace/'pgdata/PG_VERSION').exists()):
@@ -185,36 +201,37 @@ def main():
         admin = get_user_model().objects.get_or_create(username='evaluation-admin', defaults={'role':'admin','is_staff':True})[0]
         teacher = get_user_model().objects.get_or_create(username='evaluation-teacher', defaults={'role':'teacher'})[0]
         student = get_user_model().objects.get_or_create(username='evaluation-student', defaults={'role':'student'})[0]
-        with closing(sqlite3.connect(args.database.resolve().as_uri()+'?mode=ro', uri=True)) as source:
-            source.row_factory = sqlite3.Row
-            ctypes = {row['id']: ContentType.objects.get(app_label=row['app_label'], model=row['model']).pk
-                      for row in source.execute('SELECT * FROM django_content_type')}
-            for model in (DocumentSource, LegalDocument, LegalClause, LegalKnowledgeEmbedding):
-                if args.reuse_workspace:
-                    continue
-                instances = []
-                for raw in source.execute('SELECT * FROM '+model._meta.db_table):
-                    values = {}
-                    for field in model._meta.concrete_fields:
-                        value = raw[field.column]
-                        if isinstance(field, JSONField) and value is not None:
-                            value = json.loads(value)
-                        if field.column in ('uploaded_by_id', 'created_by_id'):
-                            value = None
-                        if field.column == 'content_type_id':
-                            value = ctypes[value]
-                        values[field.attname] = value
-                    instances.append(model(**values))
-                model.objects.bulk_create(instances, batch_size=100)
-        docs = dict(DocumentSource.objects.values_list('pk', 'title'))
-        clauses = {row.pk: row for row in LegalClause.objects.select_related('document')}
-        mapping = json.loads((ROOT/'artifacts/knowledge-import.json').read_text(encoding='utf-8'))
-        imported_ids = {row['document_id'] for row in mapping['owasp_documents']}
-        law_ids = {row['corpus_id']: row['document_id'] for row in mapping['legal_documents']}
-        golden = json.loads((ROOT/'artifacts/knowledge-retrieval-evaluation.json').read_text(encoding='utf-8'))['queries']
-        rows = list(LegalKnowledgeEmbedding.objects.order_by('id'))
-        report['corpus'] = {'all_chunks': len(rows), 'public_remote_chunks': sum(
-            row.source_type == 'legal_clause' or row.source_type == 'document' and row.object_id in imported_ids for row in rows)}
+        if not args.probe_only:
+            with closing(sqlite3.connect(args.database.resolve().as_uri()+'?mode=ro', uri=True)) as source:
+                source.row_factory = sqlite3.Row
+                ctypes = {row['id']: ContentType.objects.get(app_label=row['app_label'], model=row['model']).pk
+                          for row in source.execute('SELECT * FROM django_content_type')}
+                for model in (DocumentSource, LegalDocument, LegalClause, LegalKnowledgeEmbedding):
+                    if args.reuse_workspace:
+                        continue
+                    instances = []
+                    for raw in source.execute('SELECT * FROM '+model._meta.db_table):
+                        values = {}
+                        for field in model._meta.concrete_fields:
+                            value = raw[field.column]
+                            if isinstance(field, JSONField) and value is not None:
+                                value = json.loads(value)
+                            if field.column in ('uploaded_by_id', 'created_by_id'):
+                                value = None
+                            if field.column == 'content_type_id':
+                                value = ctypes[value]
+                            values[field.attname] = value
+                        instances.append(model(**values))
+                    model.objects.bulk_create(instances, batch_size=100)
+            docs = dict(DocumentSource.objects.values_list('pk', 'title'))
+            clauses = {row.pk: row for row in LegalClause.objects.select_related('document')}
+            mapping = json.loads((ROOT/'artifacts/knowledge-import.json').read_text(encoding='utf-8'))
+            imported_ids = {row['document_id'] for row in mapping['owasp_documents']}
+            law_ids = {row['corpus_id']: row['document_id'] for row in mapping['legal_documents']}
+            golden = json.loads((ROOT/'artifacts/knowledge-retrieval-evaluation.json').read_text(encoding='utf-8'))['queries']
+            rows = list(LegalKnowledgeEmbedding.objects.order_by('id'))
+            report['corpus'] = {'all_chunks': len(rows), 'public_remote_chunks': sum(
+                row.source_type == 'legal_clause' or row.source_type == 'document' and row.object_id in imported_ids for row in rows)}
         report['initial_index'] = {'remote_vectors': LegalKnowledgeEmbedding.objects.exclude(embedding_vector=None).count()}
         try:
             EmbeddingService().embed_text('SQL injection prevention')
@@ -273,6 +290,8 @@ def main():
                 if name == 'qwen':
                     vector = embedder.embed_text('SQL injection prevention')
                     detail = {'dimension': len(vector), 'finite': all(__import__('math').isfinite(v) for v in vector)}
+                    if not embedder.uses_remote_provider or embedder.provider != 'qwen' or len(vector) != 1024 or not detail['finite']:
+                        raise RuntimeError('REAL_EMBEDDING_PROBE_INVALID')
                 else:
                     answer = asyncio.run(handle.chat([Message('user', '仅回复：连接成功')], temperature=0, max_tokens=256))
                     detail = {'content': answer.content, 'usage': answer.usage}
@@ -287,6 +306,15 @@ def main():
         remote_available = any(r['provider']=='qwen' and r['status']=='success' for r in report['providers'])
         if not remote_available:
             report['errors'].append({'type':'RuntimeError','code':'REAL_EMBEDDING_PROBE_FAILED'})
+        if args.probe_only:
+            report['completed'] = remote_available and all(
+                result['status'] in ('success', 'not_configured') for result in report['providers'])
+            report['remote_probe_succeeded'] = report['completed']
+            report['remote_quality_evaluated'] = False
+            report['status'] = 'complete_probe' if report['completed'] else 'partial_probe_failed'
+            print('Probe-only finished; corpus embedding and quality evaluation were skipped.', flush=True)
+            save()
+            return 0 if report['completed'] else 1
         print('Embedding public merged corpus...', flush=True)
         selected = [row for row in rows if remote_available and row.embedding_vector is None and
                     (row.source_type=='legal_clause' or row.source_type=='document' and row.object_id in imported_ids)]
@@ -451,6 +479,7 @@ def main():
                 report['isolated_postgres_stopped'] = True
             except Exception as error:
                 report['isolated_postgres_stopped'] = False
+                report['completed'] = False
                 report['errors'].append({'type':type(error).__name__,'code':'PG_STOP_FAILED'})
         # Preserve isolated nonsecret DB/cache for diagnosis; destroy credential files.
         for path in keydir.iterdir():
@@ -461,6 +490,8 @@ def main():
         report['isolated_workspace'] = str(workspace)
         report['finished_at'] = datetime.now(timezone.utc).isoformat()
         save()
+        if report.get('isolated_postgres_stopped') is False:
+            raise RuntimeError('PG_STOP_FAILED')
     return 0 if report.get('completed') else 1
 
 
