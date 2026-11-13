@@ -6,7 +6,6 @@ import AppIcon from './shared/design/AppIcon.vue'
 import ArcoVue from '@arco-design/web-vue'
 import ArcoIcon from '@arco-design/web-vue/es/icon'
 import '@arco-design/web-vue/dist/arco.css'
-import 'bootstrap-icons/font/bootstrap-icons.css'
 import './assets/styles/main.css'
 
 const app = createApp(App)

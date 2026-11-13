@@ -7,7 +7,7 @@
     <p v-if="loading" role="status">正在核对导出任务…</p><p v-else-if="!items.length && !error">暂无可使用的导出任务。导出范围与相关授权准备完成后，任务会显示在这里。</p>
     <article v-for="item in items" :key="item.id" class="export-item">
       <h2>{{ item.title }}</h2><p>{{ exportStateLabel(item.state) }} · 有效至 {{ new Date(item.expires_at).toLocaleString() }}</p>
-      <template v-if="exportConfirmed(item)"><p>✓ 导出内容已完成脱敏处理</p><p>✓ 服务器保存的导出文件已加密</p></template>
+      <template v-if="exportConfirmed(item)"><p><AppIcon name="bi-check-circle" /> 导出内容已完成脱敏处理</p><p><AppIcon name="bi-check-circle" /> 服务器保存的导出文件已加密</p></template>
       <p v-else>导出保护状态待确认。</p>
       <button v-if="item.can_execute" type="button" :disabled="busy || loading" @click="selected = item">生成导出文件</button>
       <button v-if="exportConfirmed(item)" type="button" :disabled="busy || loading" @click="download(item)">下载文件</button>

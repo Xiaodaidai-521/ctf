@@ -9,7 +9,7 @@ import { parseReferenceFile } from './referenceFile.js'
 
 const read = file => readFileSync(new URL(`../../${file}`, import.meta.url), 'utf8')
 const plain = value => JSON.parse(JSON.stringify(value))
-const pages = ['teacher/SkillReviewAdmin.vue', 'teacher/CapabilityMapAdmin.vue', 'teacher/LearningEffectAnalysis.vue', 'teacher/FeedbackCandidates.vue', 'views/Feedback/FeedbackCenter.vue', 'views/Feedback/FeedbackDetail.vue', 'views/DataLab/DataLab.vue', 'views/DataLab/DataLabTeacher.vue', 'components/MultiAgent/MultiAgentChat.vue', 'admin/views/legal/ProtocolSigning.vue', 'admin/views/legal/ComplianceReports.vue', 'admin/views/legal/ComplianceExercises.vue', 'admin/views/legal/KnowledgeBase.vue', 'admin/views/legal/ComplianceCenter.vue']
+const pages = ['teacher/SkillReviewAdmin.vue', 'teacher/CapabilityMapAdmin.vue', 'teacher/LearningEffectAnalysis.vue', 'teacher/FeedbackCandidates.vue', 'views/Feedback/FeedbackCenter.vue', 'views/Feedback/FeedbackDetail.vue', 'views/DataLab/DataLab.vue', 'views/DataLab/DataLabTeacher.vue', 'components/MultiAgent/legacy/LegacyMultiAgentChat.vue', 'admin/views/legal/ProtocolSigning.vue', 'admin/views/legal/ComplianceReports.vue', 'admin/views/legal/ComplianceExercises.vue', 'admin/foundation/FoundationLibrary.vue', 'admin/views/legal/ComplianceCenter.vue']
 test('all copy-cleanup pages compile without changing their submit-side contracts', () => {
   for (const file of pages) {
     const { descriptor, errors } = parse(read(file))

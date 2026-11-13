@@ -12,19 +12,19 @@ const pages = [
   'teacher/CapabilityMapAdmin', 'teacher/SkillReviewAdmin', 'teacher/FeedbackCandidates',
   'teacher/TeacherLearningDashboard', 'teacher/LearningEffectAnalysis',
   'views/LearningMap/CapabilityMap', 'views/LearningMap/ChangeLog', 'views/DataLab/DataLab',
-  'components/MultiAgent/MultiAgentChat', 'views/MultiAgent/MultiAgentView',
+  'components/MultiAgent/legacy/LegacyMultiAgentChat', 'views/MultiAgent/MultiAgentView',
   'admin/views/legal/LegalWorkspace', 'admin/views/legal/ComplianceAgentCenter', 'admin/views/legal/ComplianceCenter',
-  'components/AIAssistant', 'components/AITutorChat', 'views/ChallengeDetail', 'views/GeneratedContent',
+  'learning/agent/components/TutorDrawer', 'learning/agent/components/TutorHost', 'views/ChallengeDetail', 'views/GeneratedContent',
   'views/LearningAnalytics', 'views/StudentDashboard', 'learningKnowledge/KnowledgeLibrary',
   'learningKnowledge/KnowledgeConceptSource', 'admin/views/StudentLearning', 'admin/views/LearningScores',
-  'components/AbilityRadarCard', 'components/PersonalizedRecommendationCard',
+  'components/AbilityRadarCard', 'learning/practice/components/PathRecommendations',
   'teacher/TeacherChallengePanel', 'teacher/TeacherResourcePanel', 'admin/views/legal/AuditLogs',
-  'admin/views/legal/ComplianceDashboard', 'admin/views/legal/ComplianceExercises',
-  'components/AnnouncementBanner', 'components/ArticleCard', 'components/CommentItem', 'components/MermaidDiagram',
+  'shared/learning/TrendChart', 'admin/views/legal/ComplianceExercises',
+  'shared/layout/MessageCenter', 'components/ArticleCard', 'components/CommentItem', 'components/MermaidDiagram',
   'admin/views/Users', 'admin/views/Challenges', 'admin/views/Submissions', 'admin/views/Categories',
   'admin/views/Resources', 'admin/views/Articles', 'admin/views/Announcements', 'admin/views/Dashboard',
-  'views/ResourceUpload', 'views/Leaderboard', 'views/ArticleEditor', 'views/ArticleDetail', 'views/Community',
-  'components/KnowledgeMap', 'admin/views/legal/KnowledgeBase', 'shared/design/AppIcon', 'shared/forms/ReferenceImport', 'shared/forms/RecordView',
+  'views/ResourceUpload', 'learning/growth/components/MasteryOverview', 'views/ArticleEditor', 'views/ArticleDetail', 'views/Community',
+  'learning/growth/components/LearningActivity', 'admin/foundation/FoundationLibrary', 'shared/design/AppIcon', 'shared/forms/ReferenceImport', 'shared/forms/RecordView',
 ]
 
 for (const page of pages) test(`migrated skin: ${page} compiles with scoped token styles`, () => {
@@ -97,13 +97,15 @@ test('record presentation does not inherit the feedback definition grid', () => 
   assert.doesNotMatch(feedback, /record-view/)
 })
 
-test('legal search cards constrain mobile grid and textarea widths', () => {
+test('legal search and foundation cards constrain mobile grid and search widths', () => {
   const workspace = readFileSync(new URL('../../admin/views/legal/LegalWorkspace.vue', import.meta.url), 'utf8')
-  const page = readFileSync(new URL('../../admin/views/legal/KnowledgeBase.vue', import.meta.url), 'utf8')
+  const page = readFileSync(new URL('../../learningKnowledge/KnowledgeLibrary.vue', import.meta.url), 'utf8')
   assert.match(workspace, /@media \(max-width: 768px\)[\s\S]*\.content-grid[\s\S]*grid-template-columns:minmax\(0, 1fr\)/)
   assert.match(workspace, /\.content-grid > \.page-card\s*\{\s*min-width:0/)
   assert.match(workspace, /\.page-header\s*\{\s*flex-direction:column;\s*align-items:stretch/)
-  assert.match(page, /\.form-textarea\s*\{\s*width: 100%;\s*max-width: 100%;\s*min-width: 0;\s*box-sizing: border-box/)
+  assert.match(page, /\.library-content-split\s*\{\s*grid-template-columns:minmax\(0, 1fr\)/)
+  assert.match(page, /\.library-result-list\s*\{\s*min-width:0/)
+  assert.match(page, /\.library-search\s*\{[^}]*flex-wrap:wrap/)
 })
 
 test('learning trend identities have line and point encoding besides color', () => {
@@ -134,7 +136,7 @@ test('canvas colors and typography resolve from live shared tokens', () => {
     if (original) globalThis.getComputedStyle = original
     else delete globalThis.getComputedStyle
   }
-  for (const page of ['components/AbilityRadarCard', 'views/LearningAnalytics', 'admin/views/legal/ComplianceDashboard', 'components/KnowledgeMap']) {
+  for (const page of ['components/AbilityRadarCard', 'views/LearningAnalytics', 'shared/learning/TrendChart', 'learning/growth/components/LearningActivity']) {
     const { descriptor } = parse(readFileSync(new URL(`${page}.vue`, root), 'utf8'))
     assert.doesNotMatch(descriptor.scriptSetup.content, /#[\da-f]{3,8}\b|rgba?\([\d.,\s]+\)/i)
     assert.match(descriptor.scriptSetup.content, /chartTokens/)

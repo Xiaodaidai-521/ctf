@@ -5,17 +5,17 @@
         <h3 class="page-title">提交记录</h3>
         <div class="page-actions">
           <button class="action-btn btn-default" @click="fetchSubmissions">
-            🔄 刷新
+            <AppIcon name="bi-arrow-clockwise" /> 刷新
           </button>
           <button class="action-btn btn-success" @click="exportData">
-            📥 导出
+            <AppIcon name="bi-download" /> 导出
           </button>
         </div>
       </div>
 
       <!-- 筛选栏 -->
-      <div class="filter-bar" style="margin-bottom: 20px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
-        <select v-model="filterStatus" class="form-select" style="width: 120px;">
+      <div class="filter-bar" style="margin-bottom:var(--space-2); display:flex; gap:var(--space-1); align-items:center; flex-wrap:wrap;">
+        <select v-model="filterStatus" class="form-select" style="width:var(--row-label-width);">
           <option value="">全部状态</option>
           <option value="true">正确</option>
           <option value="false">错误</option>
@@ -25,17 +25,17 @@
           type="text"
           class="form-input"
           placeholder="搜索用户名或题目..."
-          style="flex: 1; max-width: 300px;"
+          style="flex:1; max-width:var(--menu-width);"
           @keyup.enter="fetchSubmissions"
         />
         <button class="action-btn btn-primary" @click="fetchSubmissions">
-          🔍 搜索
+          <AppIcon name="bi-search" /> 搜索
         </button>
       </div>
 
       <p v-if="listError" role="alert">{{ listError }}</p>
       <!-- 提交记录列表 -->
-      <div class="table-container" style="overflow-x: auto;">
+      <div class="table-container" style="overflow-x:auto;">
         <table class="admin-table">
           <thead>
             <tr>
@@ -54,17 +54,17 @@
             <tr v-for="submission in submissions" :key="submission.id">
               <td>{{ submission.id }}</td>
               <td>
-                <div style="display: flex; align-items: center; gap: 8px;">
+                <div style="display:flex; align-items:center; gap:var(--space-1);">
                   <div class="user-avatar-small">{{ submission.username.charAt(0) }}</div>
                   <div>
-                    <div style="font-weight: 500;">{{ submission.username }}</div>
-                    <div style="font-size: 12px; color: var(--text-secondary);">{{ submission.user_nickname || '未设置昵称' }}</div>
+                    <div style="font-weight: var(--weight-medium);">{{ submission.username }}</div>
+                    <div style="font-size:var(--text-caption); color:var(--text-secondary);">{{ submission.user_nickname || '未设置昵称' }}</div>
                   </div>
                 </div>
               </td>
               <td>
-                <div style="font-size: 13px;">{{ submission.user_team || '无团队' }}</div>
-                <div style="font-size: 12px; color: var(--admin-primary-color); font-weight: 500;">{{ submission.user_score }}分</div>
+                <div style="font-size:var(--text-caption);">{{ submission.user_team || '无团队' }}</div>
+                <div style="font-size:var(--text-caption); color:var(--admin-primary-color); font-weight: var(--weight-medium);">{{ submission.user_score }}分</div>
               </td>
               <td>
                 <strong>{{ submission.challenge_title }}</strong>
@@ -87,24 +87,24 @@
         </table>
 
         <div v-if="!listError && submissions.length === 0" class="empty-state">
-          <div class="empty-icon">📭</div>
+          <div class="empty-icon"><AppIcon name="bi-inbox" /></div>
           <p>暂无提交记录</p>
         </div>
       </div>
 
       <!-- 分页 -->
-      <div class="pagination" style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--admin-border-color);">
+      <div class="pagination" style="display:flex; justify-content:space-between; align-items:center; margin-top:var(--space-2); padding-top:var(--space-2); border-top:var(--stroke) solid var(--admin-border-color);">
         <div class="pagination-info">
           共 {{ total }} 条记录，每页 {{ pageSize }} 条，第 {{ page }} / {{ totalPages }} 页
         </div>
-        <div class="pagination-controls" style="display: flex; gap: 8px; align-items: center;">
+        <div class="pagination-controls" style="display:flex; gap:var(--space-1); align-items:center;">
           <button class="action-btn btn-default" @click="changePage(page - 1)" :disabled="page === 1">
             上一页
           </button>
           <button class="action-btn btn-default" @click="changePage(1)" :disabled="page === 1">
             1
           </button>
-          <span v-if="totalPages > 1" style="padding: 0 4px;">...</span>
+          <span v-if="totalPages > 1" style="padding:0 calc(var(--space-1) / 2);">...</span>
           <button class="action-btn btn-default" @click="changePage(totalPages)" :disabled="page === totalPages">
             {{ totalPages }}
           </button>
@@ -115,19 +115,19 @@
       </div>
 
       <!-- 统计摘要 -->
-      <div class="stats-summary" style="margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--admin-border-color);">
-        <div style="display: flex; gap: 32px;">
+      <div class="stats-summary" style="margin-top:var(--space-3); padding-top:var(--space-3); border-top:var(--stroke) solid var(--admin-border-color);">
+        <div style="display:flex; gap:var(--space-4);">
           <div>
-            <div style="font-size: 24px; font-weight: bold; color: #52c41a;">{{ stats.correct }}</div>
-            <div style="font-size: 13px; color: var(--text-secondary);">正确提交</div>
+            <div style="font-size:var(--text-section); font-weight:bold; color:var(--ink-secondary);">{{ stats.correct }}</div>
+            <div style="font-size:var(--text-caption); color:var(--text-secondary);">正确提交</div>
           </div>
           <div>
-            <div style="font-size: 24px; font-weight: bold; color: #ff4d4f;">{{ stats.wrong }}</div>
-            <div style="font-size: 13px; color: var(--text-secondary);">错误提交</div>
+            <div style="font-size:var(--text-section); font-weight:bold; color:var(--ink-muted);">{{ stats.wrong }}</div>
+            <div style="font-size:var(--text-caption); color:var(--text-secondary);">错误提交</div>
           </div>
           <div>
-            <div style="font-size: 24px; font-weight: bold; color: var(--admin-primary-color);">{{ stats.rate }}%</div>
-            <div style="font-size: 13px; color: var(--text-secondary);">正确率</div>
+            <div style="font-size:var(--text-section); font-weight:bold; color:var(--admin-primary-color);">{{ stats.rate }}%</div>
+            <div style="font-size:var(--text-caption); color:var(--text-secondary);">正确率</div>
           </div>
         </div>
       </div>
@@ -227,44 +227,45 @@ onMounted(() => {
 })
 </script>
 
+<style scoped src="../assets/admin.css"></style>
+
 <style scoped>
-@import '../assets/admin.css';
 
 .user-avatar-small {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: var(--admin-primary-color);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-size: 12px;
-  font-weight: bold;
+  width:var(--space-4);
+  height:var(--space-4);
+  border-radius:50%;
+  background:var(--admin-primary-color);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:var(--on-action);
+  font-size:var(--text-caption);
+  font-weight:bold;
 }
 
 .flag-code {
-  padding: 2px 6px;
-  background: #f5f5f5;
-  border-radius: 3px;
-  font-family: 'Courier New', monospace;
-  font-size: 12px;
-  color: var(--text-primary);
-  max-width: 200px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  display: inline-block;
+  padding:calc(var(--stroke) * 2) calc(var(--space-1) / 2);
+  background:var(--surface);
+  border-radius:var(--radius-control);
+  font-family:'Courier New', monospace;
+  font-size:var(--text-caption);
+  color:var(--text-primary);
+  max-width:var(--row-value-width);
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  display:inline-block;
 }
 
 .empty-state {
-  text-align: center;
-  padding: 60px 20px;
-  color: var(--text-secondary);
+  text-align:center;
+  padding:var(--space-7) var(--space-2);
+  color:var(--text-secondary);
 }
 
 .empty-icon {
-  font-size: 64px;
-  margin-bottom: 16px;
+  font-size:var(--text-page);
+  margin-bottom:var(--space-2);
 }
 </style>

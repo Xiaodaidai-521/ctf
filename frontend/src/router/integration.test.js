@@ -7,6 +7,7 @@ import { guardDestination, pageTitle, canOpen } from '../shared/navigation/acces
 import { entriesFor, searchEntries } from '../shared/navigation/config.js'
 import { teachingDestination, feedbackCandidateDestination } from '../shared/navigation/phase3.js'
 import { shadowDestination } from '../learning/shadowRoutes.js'
+import { loginReturnDestination } from '../shared/navigation/returnTarget.js'
 
 const source = readFileSync(new URL('./index.js', import.meta.url), 'utf8')
 const plain = value => JSON.parse(JSON.stringify(value))
@@ -106,4 +107,23 @@ test('new staff entries deny other roles and require login for guests', async ()
     await student.push(path)
     assert.equal(student.currentRoute.value.path, '/access-denied')
   }
+})
+
+test('protected deep links survive login and still enforce the final role boundary', async () => {
+  for (const path of ['/guide', '/learning-paths/7/modules/8', '/challenge/7', '/knowledge']) {
+    const target = `${path}?tag=a&tag=b#selected-item`
+    const guest = routerFor('guest')
+    await guest.push(target)
+    assert.equal(guest.currentRoute.value.path, '/login')
+    assert.equal(guest.currentRoute.value.query.redirect, target)
+    const role = path === '/knowledge' ? 'teacher' : 'student'
+    const authenticated = routerFor(role)
+    await authenticated.replace(loginReturnDestination(guest.currentRoute.value.query.redirect, authenticated, role, canOpen))
+    assert.equal(authenticated.currentRoute.value.path, path === '/knowledge' ? '/teacher/knowledge' : path)
+    assert.deepEqual(plain(authenticated.currentRoute.value.query), { tag: ['a', 'b'] })
+    assert.equal(authenticated.currentRoute.value.hash, '#selected-item')
+  }
+  const student = routerFor('student')
+  await student.push(loginReturnDestination('/admin/users', student, 'student', canOpen))
+  assert.equal(student.currentRoute.value.path, '/guide')
 })

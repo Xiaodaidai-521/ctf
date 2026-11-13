@@ -1,34 +1,36 @@
 <template>
   <section v-if="role" class="resource-workbench" aria-label="学习工作台">
     <button class="workbench-card dashboard-card" @click="goDashboard">
-      <span class="workbench-kicker">{{ role === 'student' ? 'PERSONAL LEARNING' : 'RESOURCE OPERATIONS' }}</span>
-      <i class="bi bi-graph-up-arrow card-icon"></i>
+
+      <icon-bar-chart class="card-icon" />
       <strong>{{ dashboardTitle }}</strong>
       <span class="dashboard-summary">{{ summary }}</span>
       <span class="dashboard-stat"><b>{{ primary }}</b>{{ primaryLabel }}<b>{{ secondary }}</b>{{ secondaryLabel }}</span>
-      <span class="card-action">查看完整{{ role === 'student' ? '分析' : '看板' }} <i class="bi bi-arrow-right"></i></span>
+      <span class="card-action">查看完整{{ role === 'student' ? '分析' : '看板' }} <icon-arrow-right /></span>
     </button>
 
     <div class="workbench-links">
       <button class="workbench-card link-card" @click="goPath">
-        <i class="bi bi-signpost-split card-icon"></i>
-        <span class="workbench-kicker">LEARNING PATH</span>
-        <strong>{{ role === 'student' ? '学习路径' : '学习路径管理' }}</strong>
+        <icon-branch class="card-icon" />
+
+        <strong>{{ role === 'student' ? names.paths : `${names.paths}管理` }}</strong>
         <small>{{ pathSummary }}</small>
-        <span class="card-action">进入 <i class="bi bi-arrow-right"></i></span>
+        <span class="card-action">进入 <icon-arrow-right /></span>
       </button>
       <button class="workbench-card link-card" @click="goResources">
-        <i class="bi bi-folder2-open card-icon"></i>
-        <span class="workbench-kicker">RESOURCE CENTER</span>
-        <strong>{{ role === 'student' ? '资源中心' : role === 'teacher' ? '教学资源中心' : '资源审核中心' }}</strong>
+        <icon-folder class="card-icon" />
+
+        <strong>{{ role === 'student' ? names.resources : names.resourceReview }}</strong>
         <small>{{ resourceSummary }}</small>
-        <span class="card-action">{{ role === 'student' ? '浏览资源' : '进入工作区' }} <i class="bi bi-arrow-right"></i></span>
+        <span class="card-action">{{ role === 'student' ? '浏览资源' : '进入工作区' }} <icon-arrow-right /></span>
       </button>
     </div>
   </section>
 </template>
 
 <script setup>
+import { names, renameCopy } from '@/shared/navigation/names'
+
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/store/user'
@@ -52,7 +54,7 @@ const focusCategory = computed(() => {
     .sort(([, left], [, right]) => Number(left) - Number(right))[0]?.[0]
   return categoryMap[weakest] || ''
 })
-const dashboardTitle = computed(() => role.value === 'student' ? '学习概览' : role.value === 'teacher' ? '教学概览' : '资源概览')
+const dashboardTitle = computed(() => role.value === 'student' ? `${names.growth} · 学习进度` : role.value === 'teacher' ? names.teacher : names.admin)
 const summary = computed(() => role.value === 'student'
   ? (plan.value.summary || '系统结合你的学习记录，生成下一步学习建议。')
   : role.value === 'teacher' ? `已汇总 ${students.value.length} 名学生的学习状态，便于安排教学资源。` : `已汇总 ${students.value.length} 名学生的资源与学习数据。`)
@@ -61,8 +63,8 @@ const primaryLabel = computed(() => role.value === 'student' ? ' 条进行中的
 const secondary = computed(() => role.value === 'student' ? `${Math.round(paths.value.reduce((total, item) => total + (item.progress_percentage || 0), 0) / Math.max(paths.value.length, 1))}%` : lowCount.value)
 const secondaryLabel = computed(() => role.value === 'student' ? ' 平均完成度' : ' 项重点关注')
 const pathSummary = computed(() => role.value === 'student'
-  ? (currentPath.value ? `${currentPath.value.path_title} · 已完成 ${currentPath.value.completed_modules || 0}/${currentPath.value.total_modules || 0} 个模块` : '从一条学习路径开始，逐步完成安全训练。')
-  : `已发布 ${paths.value.length} 条学习路径，可继续维护课程结构。`)
+  ? (currentPath.value ? `${currentPath.value.path_title} · 已完成 ${currentPath.value.completed_modules || 0}/${currentPath.value.total_modules || 0} 个模块` : renameCopy('从一条学习路径开始，逐步完成安全训练。'))
+  : `已发布 ${paths.value.length} 条${names.paths}，可继续维护课程结构。`)
 const resourceSummary = computed(() => role.value === 'student'
   ? (focusCategory.value ? `已为你定位 ${focusCategory.value} 相关训练资料。` : '按学习目标搜索和筛选训练资料。')
   : role.value === 'teacher' ? '进入资源审核与教学资料工作区。' : '处理资源审核与运营管理工作。')

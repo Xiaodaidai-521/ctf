@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { loginUrl } from '../shared/navigation/returnTarget.js'
 
 const api = axios.create({
   baseURL: '/api',
@@ -13,8 +14,9 @@ api.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401 || error.response?.data?.code === 'authentication_required') {
       localStorage.removeItem('userInfo')
-      if (window.location.pathname !== '/login') {
-        window.location.href = '/login'
+      if (!/^\/(?:login|register)\/?$/i.test(window.location.pathname)) {
+        const { pathname, search, hash } = window.location
+        window.location.href = loginUrl(`${pathname}${search || ''}${hash || ''}`)
       }
     }
     return Promise.reject(error)

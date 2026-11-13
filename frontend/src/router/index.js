@@ -649,7 +649,7 @@ router.beforeEach((to, from, next) => {
   const title = pageTitle(to, userStore.userInfo?.role)
   document.title = title ? `${title} - 智航` : '智航'
   const destination = guardDestination(to, userStore)
-  if (to.name === 'KnowledgeLibrary' && destination && !['/login', '/access-denied'].includes(destination)) {
+  if (to.name === 'KnowledgeLibrary' && typeof destination === 'string' && !['/login', '/access-denied'].includes(destination)) {
     next({ path: destination, query: to.query, hash: to.hash })
   } else {
     next(destination)

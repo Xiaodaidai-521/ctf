@@ -1,0 +1,1164 @@
+{
+  "checkedAt": "2026-11-13T04:35:10.173Z",
+  "baseURL": "http://127.0.0.1:5176",
+  "apiMode": "All /api/ requests intercepted with deterministic browser-only fixtures; no real login or writes.",
+  "checks": [
+    {
+      "name": "guest-home-desktop",
+      "passed": true,
+      "title": "从理解原理，到独立完成一次安全练习。",
+      "navigation": [
+        "/guide",
+        "/challenges",
+        "/resources",
+        "/dashboard"
+      ],
+      "refreshed": true,
+      "layout": {
+        "viewport": 1666,
+        "document": 1666,
+        "body": 1666,
+        "overflowing": []
+      },
+      "screenshot": "D:\\aaa10\\16015478源码\\project-code\\artifacts\\frontend-replacement-home-desktop.png"
+    },
+    {
+      "name": "guest-home-mobile",
+      "passed": true,
+      "title": "从理解原理，到独立完成一次安全练习。",
+      "navigation": [
+        "/guide",
+        "/challenges",
+        "/resources",
+        "/dashboard"
+      ],
+      "refreshed": true,
+      "layout": {
+        "viewport": 390,
+        "document": 390,
+        "body": 390,
+        "overflowing": []
+      },
+      "screenshot": "D:\\aaa10\\16015478源码\\project-code\\artifacts\\frontend-replacement-home-mobile.png"
+    },
+    {
+      "name": "home-primary-cta-login-return",
+      "passed": true,
+      "destination": "/guide"
+    },
+    {
+      "name": "home-featured-card-mouse-and-keyboard",
+      "passed": true,
+      "destination": "/login?redirect=/challenge/7",
+      "mouse": true,
+      "keyboard": true
+    },
+    {
+      "name": "deep-link-login-return:/learning-paths/7",
+      "passed": true,
+      "target": "/learning-paths/7?tab=modules&tag=a&tag=b#chapter-2",
+      "refreshedBeforeLogin": true,
+      "refreshedAfterLogin": true
+    },
+    {
+      "name": "deep-link-login-return:/challenge/7",
+      "passed": true,
+      "target": "/challenge/7?tab=hints&tag=a&tag=b#hint-2",
+      "refreshedBeforeLogin": true,
+      "refreshedAfterLogin": true
+    },
+    {
+      "name": "role-root-and-denial:student",
+      "passed": true,
+      "role": "student",
+      "rootLanding": "/guide",
+      "forbiddenTarget": "/teacher/materials",
+      "deniedLanding": "/access-denied"
+    },
+    {
+      "name": "role-root-and-denial:teacher",
+      "passed": true,
+      "role": "teacher",
+      "rootLanding": "/teacher",
+      "forbiddenTarget": "/admin/users",
+      "deniedLanding": "/access-denied"
+    },
+    {
+      "name": "role-root-and-denial:admin",
+      "passed": true,
+      "role": "admin",
+      "rootLanding": "/admin/dashboard",
+      "forbiddenTarget": "/teacher",
+      "deniedLanding": "/access-denied"
+    },
+    {
+      "name": "legacy-student-deep-links",
+      "passed": true,
+      "outcomes": [
+        {
+          "source": "/exam-history",
+          "destination": "/exam-center/history?window=30&tag=a&tag=b#record"
+        },
+        {
+          "source": "/exam-result/7",
+          "destination": "/exam-center/result/7?window=30&tag=a&tag=b#record"
+        },
+        {
+          "source": "/analytics",
+          "destination": "/dashboard?window=30&tag=a&tag=b&section=activity#record"
+        },
+        {
+          "source": "/my-results",
+          "destination": "/dashboard?window=30&tag=a&tag=b&section=results#record"
+        }
+      ]
+    },
+    {
+      "name": "untrusted-login-return-falls-back",
+      "passed": true,
+      "requested": "https://example.invalid/",
+      "destination": "/guide"
+    }
+  ],
+  "screenshots": [
+    {
+      "size": "desktop",
+      "path": "D:\\aaa10\\16015478源码\\project-code\\artifacts\\frontend-replacement-home-desktop.png",
+      "viewport": {
+        "width": 1666,
+        "height": 960
+      }
+    },
+    {
+      "size": "mobile",
+      "path": "D:\\aaa10\\16015478源码\\project-code\\artifacts\\frontend-replacement-home-mobile.png",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      }
+    }
+  ],
+  "console": [
+    {
+      "scenario": "guest-home-desktop",
+      "type": "warning",
+      "message": "[Vue Router warn]: The `next()` callback in navigation guards is deprecated. Return the value instead of calling `next(value)`.",
+      "url": "http://127.0.0.1:5176/"
+    },
+    {
+      "scenario": "guest-home-desktop",
+      "type": "warning",
+      "message": "[Vue Router warn]: The `next()` callback in navigation guards is deprecated. Return the value instead of calling `next(value)`.",
+      "url": "http://127.0.0.1:5176/"
+    },
+    {
+      "scenario": "guest-home-mobile",
+      "type": "warning",
+      "message": "[Vue Router warn]: The `next()` callback in navigation guards is deprecated. Return the value instead of calling `next(value)`.",
+      "url": "http://127.0.0.1:5176/"
+    },
+    {
+      "scenario": "guest-home-mobile",
+      "type": "warning",
+      "message": "[Vue Router warn]: The `next()` callback in navigation guards is deprecated. Return the value instead of calling `next(value)`.",
+      "url": "http://127.0.0.1:5176/"
+    },
+    {
+      "scenario": "home-primary-cta-login-return",
+      "type": "warning",
+      "message": "[Vue Router warn]: The `next()` callback in navigation guards is deprecated. Return the value instead of calling `next(value)`.",
+      "url": "http://127.0.0.1:5176/"
+    },
+    {
+      "scenario": "home-primary-cta-login-return",
+      "type": "warning",
+      "message": "[Vue Router warn]: The `next()` callback in navigation guards is deprecated. Return the value instead of calling `next(value)`.",
+      "url": "http://127.0.0.1:5176/"
+    },
+    {
+      "scenario": "home-primary-cta-login-return",
+      "type": "warning",
+      "message": "[Vue Router warn]: The `next()` callback in navigation guards is deprecated. Return the value instead of calling `next(value)`.",
+      "url": "http://127.0.0.1:5176/"
+    },
+    {
+      "scenario": "home-primary-cta-login-return",
+      "type": "warning",
+      "message": "[Vue Router warn]: The `next()` callback in navigation guards is deprecated. Return the value instead of calling `next(value)`.",
+      "url": "http://127.0.0.1:5176/login?redirect=/guide"
+    },
+    {
+      "scenario": "home-featured-card-mouse-and-keyboard",
+      "type": "warning",
+      "message": "[Vue Router warn]: The `next()` callback in navigation guards is deprecated. Return the value instead of calling `next(value)`.",
+      "url": "http://127.0.0.1:5176/"
+    },
+    {
+      "scenario": "home-featured-card-mouse-and-keyboard",
+      "type": "warning",
+      "message": "[Vue Router warn]: The `next()` callback in navigation guards is deprecated. Return the value instead of calling `next(value)`.",
+      "url": "http://127.0.0.1:5176/"
+    },
+    {
+      "scenario": "home-featured-card-mouse-and-keyboard",
+      "type": "warning",
+      "message": "[Vue Router warn]: The `next()` callback in navigation guards is deprecated. Return the value instead of calling `next(value)`.",
+      "url": "http://127.0.0.1:5176/"
+    },
+    {
+      "scenario": "home-featured-card-mouse-and-keyboard",
+      "type": "warning",
+      "message": "[Vue Router warn]: The `next()` callback in navigation guards is deprecated. Return the value instead of calling `next(value)`.",
+      "url": "http://127.0.0.1:5176/"
+    },
+    {
+      "scenario": "home-featured-card-mouse-and-keyboard",
+      "type": "warning",
+      "message": "[Vue Router warn]: The `next()` callback in navigation guards is deprecated. Return the value instead of calling `next(value)`.",
+      "url": "http://127.0.0.1:5176/"
+    },
+    {
+      "scenario": "home-featured-card-mouse-and-keyboard",
+      "type": "warning",
+      "message": "[Vue Router warn]: The `next()` callback in navigation guards is deprecated. Return the value instead of calling `next(value)`.",
+      "url": "http://127.0.0.1:5176/"
+    },
+    {
+      "scenario": "deep-link-login-return:/learning-paths/7",
+      "type": "warning",
+      "message": "[Vue Router warn]: The `next()` callback in navigation guards is deprecated. Return the value instead of calling `next(value)`.",
+      "url": "http://127.0.0.1:5176/learning-paths/7?tab=modules&tag=a&tag=b#chapter-2"
+    },
+    {
+      "scenario": "deep-link-login-return:/learning-paths/7",
+      "type": "warning",
+      "message": "[Vue Router warn]: The `next()` callback in navigation guards is deprecated. Return the value instead of calling `next(value)`.",
+      "url": "http://127.0.0.1:5176/learning-paths/7?tab=modules&tag=a&tag=b#chapter-2"
+    },
+    {
+      "scenario": "deep-link-login-return:/learning-paths/7",
+      "type": "warning",
+      "message": "[Vue Router warn]: The `next()` callback in navigation guards is deprecated. Return the value instead of calling `next(value)`.",
+      "url": "http://127.0.0.1:5176/login?redirect=/learning-paths/7?tab=modules%26tag=a%26tag=b%23chapter-2"
+    },
+    {
+      "scenario": "deep-link-login-return:/learning-paths/7",
+      "type": "warning",
+      "message": "[Vue Router warn]: The `next()` callback in navigation guards is deprecated. Return the value instead of calling `next(value)`.",
+      "url": "http://127.0.0.1:5176/login?redirect=/learning-paths/7?tab=modules%26tag=a%26tag=b%23chapter-2"
+    },
+    {
+      "scenario": "deep-link-login-return:/learning-paths/7",
+      "type": "warning",
+      "message": "[Vue Router warn]: The `next()` callback in navigation guards is deprecated. Return the value instead of calling `next(value)`.",
+      "url": "http://127.0.0.1:5176/learning-paths/7?tab=modules&tag=a&tag=b#chapter-2"
+    },
+    {
+      "scenario": "deep-link-login-return:/challenge/7",
+      "type": "warning",
+      "message": "[Vue Router warn]: The `next()` callback in navigation guards is deprecated. Return the value instead of calling `next(value)`.",
+      "url": "http://127.0.0.1:5176/challenge/7?tab=hints&tag=a&tag=b#hint-2"
+    },
+    {
+      "scenario": "deep-link-login-return:/challenge/7",
+      "type": "warning",
+      "message": "[Vue Router warn]: The `next()` callback in navigation guards is deprecated. Return the value instead of calling `next(value)`.",
+      "url": "http://127.0.0.1:5176/challenge/7?tab=hints&tag=a&tag=b#hint-2"
+    },
+    {
+      "scenario": "deep-link-login-return:/challenge/7",
+      "type": "warning",
+      "message": "[Vue Router warn]: The `next()` callback in navigation guards is deprecated. Return the value instead of calling `next(value)`.",
+      "url": "http://127.0.0.1:5176/login?redirect=/challenge/7?tab=hints%26tag=a%26tag=b%23hint-2"
+    },
+    {
+      "scenario": "deep-link-login-return:/challenge/7",
+      "type": "warning",
+      "message": "[Vue Router warn]: The `next()` callback in navigation guards is deprecated. Return the value instead of calling `next(value)`.",
+      "url": "http://127.0.0.1:5176/login?redirect=/challenge/7?tab=hints%26tag=a%26tag=b%23hint-2"
+    },
+    {
+      "scenario": "deep-link-login-return:/challenge/7",
+      "type": "warning",
+      "message": "[Vue Router warn]: The `next()` callback in navigation guards is deprecated. Return the value instead of calling `next(value)`.",
+      "url": "http://127.0.0.1:5176/challenge/7?tab=hints&tag=a&tag=b#hint-2"
+    },
+    {
+      "scenario": "role-root-and-denial:student",
+      "type": "warning",
+      "message": "[Vue Router warn]: The `next()` callback in navigation guards is deprecated. Return the value instead of calling `next(value)`.",
+      "url": "http://127.0.0.1:5176/"
+    },
+    {
+      "scenario": "role-root-and-denial:student",
+      "type": "warning",
+      "message": "[Vue Router warn]: The `next()` callback in navigation guards is deprecated. Return the value instead of calling `next(value)`.",
+      "url": "http://127.0.0.1:5176/"
+    },
+    {
+      "scenario": "role-root-and-denial:student",
+      "type": "warning",
+      "message": "[Vue Router warn]: The `next()` callback in navigation guards is deprecated. Return the value instead of calling `next(value)`.",
+      "url": "http://127.0.0.1:5176/teacher/materials"
+    },
+    {
+      "scenario": "role-root-and-denial:student",
+      "type": "warning",
+      "message": "[Vue Router warn]: The `next()` callback in navigation guards is deprecated. Return the value instead of calling `next(value)`.",
+      "url": "http://127.0.0.1:5176/teacher/materials"
+    },
+    {
+      "scenario": "role-root-and-denial:teacher",
+      "type": "warning",
+      "message": "[Vue Router warn]: The `next()` callback in navigation guards is deprecated. Return the value instead of calling `next(value)`.",
+      "url": "http://127.0.0.1:5176/"
+    },
+    {
+      "scenario": "role-root-and-denial:teacher",
+      "type": "warning",
+      "message": "[Vue Router warn]: The `next()` callback in navigation guards is deprecated. Return the value instead of calling `next(value)`.",
+      "url": "http://127.0.0.1:5176/"
+    },
+    {
+      "scenario": "role-root-and-denial:teacher",
+      "type": "warning",
+      "message": "[Vue Router warn]: The `next()` callback in navigation guards is deprecated. Return the value instead of calling `next(value)`.",
+      "url": "http://127.0.0.1:5176/admin/users"
+    },
+    {
+      "scenario": "role-root-and-denial:teacher",
+      "type": "warning",
+      "message": "[Vue Router warn]: The `next()` callback in navigation guards is deprecated. Return the value instead of calling `next(value)`.",
+      "url": "http://127.0.0.1:5176/admin/users"
+    },
+    {
+      "scenario": "role-root-and-denial:admin",
+      "type": "warning",
+      "message": "[Vue Router warn]: The `next()` callback in navigation guards is deprecated. Return the value instead of calling `next(value)`.",
+      "url": "http://127.0.0.1:5176/"
+    },
+    {
+      "scenario": "role-root-and-denial:admin",
+      "type": "warning",
+      "message": "[Vue Router warn]: The `next()` callback in navigation guards is deprecated. Return the value instead of calling `next(value)`.",
+      "url": "http://127.0.0.1:5176/"
+    },
+    {
+      "scenario": "role-root-and-denial:admin",
+      "type": "warning",
+      "message": "[Vue Router warn]: The `next()` callback in navigation guards is deprecated. Return the value instead of calling `next(value)`.",
+      "url": "http://127.0.0.1:5176/teacher"
+    },
+    {
+      "scenario": "role-root-and-denial:admin",
+      "type": "warning",
+      "message": "[Vue Router warn]: The `next()` callback in navigation guards is deprecated. Return the value instead of calling `next(value)`.",
+      "url": "http://127.0.0.1:5176/teacher"
+    },
+    {
+      "scenario": "legacy-student-deep-links",
+      "type": "warning",
+      "message": "[Vue Router warn]: The `next()` callback in navigation guards is deprecated. Return the value instead of calling `next(value)`.",
+      "url": "http://127.0.0.1:5176/exam-history?window=30&tag=a&tag=b#record"
+    },
+    {
+      "scenario": "legacy-student-deep-links",
+      "type": "warning",
+      "message": "[Vue Router warn]: The `next()` callback in navigation guards is deprecated. Return the value instead of calling `next(value)`.",
+      "url": "http://127.0.0.1:5176/exam-result/7?window=30&tag=a&tag=b#record"
+    },
+    {
+      "scenario": "legacy-student-deep-links",
+      "type": "warning",
+      "message": "[Vue Router warn]: The `next()` callback in navigation guards is deprecated. Return the value instead of calling `next(value)`.",
+      "url": "http://127.0.0.1:5176/analytics?window=30&tag=a&tag=b#record"
+    },
+    {
+      "scenario": "legacy-student-deep-links",
+      "type": "warning",
+      "message": "[Vue Router warn]: The `next()` callback in navigation guards is deprecated. Return the value instead of calling `next(value)`.",
+      "url": "http://127.0.0.1:5176/analytics?window=30&tag=a&tag=b#record"
+    },
+    {
+      "scenario": "legacy-student-deep-links",
+      "type": "warning",
+      "message": "[Vue Router warn]: The `next()` callback in navigation guards is deprecated. Return the value instead of calling `next(value)`.",
+      "url": "http://127.0.0.1:5176/my-results?window=30&tag=a&tag=b#record"
+    },
+    {
+      "scenario": "legacy-student-deep-links",
+      "type": "warning",
+      "message": "[Vue Router warn]: The `next()` callback in navigation guards is deprecated. Return the value instead of calling `next(value)`.",
+      "url": "http://127.0.0.1:5176/my-results?window=30&tag=a&tag=b#record"
+    },
+    {
+      "scenario": "untrusted-login-return-falls-back",
+      "type": "warning",
+      "message": "[Vue Router warn]: The `next()` callback in navigation guards is deprecated. Return the value instead of calling `next(value)`.",
+      "url": "http://127.0.0.1:5176/login?redirect=https%3A%2F%2Fexample.invalid%2F"
+    },
+    {
+      "scenario": "untrusted-login-return-falls-back",
+      "type": "warning",
+      "message": "[Vue Router warn]: The `next()` callback in navigation guards is deprecated. Return the value instead of calling `next(value)`.",
+      "url": "http://127.0.0.1:5176/login?redirect=https%3A%2F%2Fexample.invalid%2F"
+    }
+  ],
+  "pageErrors": [],
+  "failedRequests": [],
+  "mockRequests": [
+    {
+      "scenario": "guest-home-desktop",
+      "method": "GET",
+      "path": "/api/announcements/announcements/pinned/"
+    },
+    {
+      "scenario": "guest-home-desktop",
+      "method": "GET",
+      "path": "/api/announcements/announcements/latest/"
+    },
+    {
+      "scenario": "guest-home-desktop",
+      "method": "GET",
+      "path": "/api/challenges/challenges/"
+    },
+    {
+      "scenario": "guest-home-desktop",
+      "method": "GET",
+      "path": "/api/announcements/announcements/pinned/"
+    },
+    {
+      "scenario": "guest-home-desktop",
+      "method": "GET",
+      "path": "/api/announcements/announcements/latest/"
+    },
+    {
+      "scenario": "guest-home-desktop",
+      "method": "GET",
+      "path": "/api/challenges/challenges/"
+    },
+    {
+      "scenario": "guest-home-mobile",
+      "method": "GET",
+      "path": "/api/announcements/announcements/pinned/"
+    },
+    {
+      "scenario": "guest-home-mobile",
+      "method": "GET",
+      "path": "/api/announcements/announcements/latest/"
+    },
+    {
+      "scenario": "guest-home-mobile",
+      "method": "GET",
+      "path": "/api/challenges/challenges/"
+    },
+    {
+      "scenario": "guest-home-mobile",
+      "method": "GET",
+      "path": "/api/announcements/announcements/pinned/"
+    },
+    {
+      "scenario": "guest-home-mobile",
+      "method": "GET",
+      "path": "/api/announcements/announcements/latest/"
+    },
+    {
+      "scenario": "guest-home-mobile",
+      "method": "GET",
+      "path": "/api/challenges/challenges/"
+    },
+    {
+      "scenario": "home-primary-cta-login-return",
+      "method": "GET",
+      "path": "/api/announcements/announcements/pinned/"
+    },
+    {
+      "scenario": "home-primary-cta-login-return",
+      "method": "GET",
+      "path": "/api/announcements/announcements/latest/"
+    },
+    {
+      "scenario": "home-primary-cta-login-return",
+      "method": "GET",
+      "path": "/api/challenges/challenges/"
+    },
+    {
+      "scenario": "home-primary-cta-login-return",
+      "method": "GET",
+      "path": "/api/users/csrf/"
+    },
+    {
+      "scenario": "home-primary-cta-login-return",
+      "method": "POST",
+      "path": "/api/users/login/"
+    },
+    {
+      "scenario": "home-primary-cta-login-return",
+      "method": "GET",
+      "path": "/api/ai/list/"
+    },
+    {
+      "scenario": "home-primary-cta-login-return",
+      "method": "GET",
+      "path": "/api/announcements/announcements/pinned/"
+    },
+    {
+      "scenario": "home-primary-cta-login-return",
+      "method": "GET",
+      "path": "/api/announcements/announcements/latest/"
+    },
+    {
+      "scenario": "home-primary-cta-login-return",
+      "method": "GET",
+      "path": "/api/learning-paths/progress/"
+    },
+    {
+      "scenario": "home-primary-cta-login-return",
+      "method": "GET",
+      "path": "/api/learning-paths/recommendations/review-reminders/"
+    },
+    {
+      "scenario": "home-primary-cta-login-return",
+      "method": "GET",
+      "path": "/api/ai/list/"
+    },
+    {
+      "scenario": "home-primary-cta-login-return",
+      "method": "GET",
+      "path": "/api/analytics/teaching-plan/"
+    },
+    {
+      "scenario": "home-primary-cta-login-return",
+      "method": "GET",
+      "path": "/api/learning-paths/progress/"
+    },
+    {
+      "scenario": "home-primary-cta-login-return",
+      "method": "GET",
+      "path": "/api/learning-paths/recommendations/review-reminders/"
+    },
+    {
+      "scenario": "home-featured-card-mouse-and-keyboard",
+      "method": "GET",
+      "path": "/api/announcements/announcements/pinned/"
+    },
+    {
+      "scenario": "home-featured-card-mouse-and-keyboard",
+      "method": "GET",
+      "path": "/api/announcements/announcements/latest/"
+    },
+    {
+      "scenario": "home-featured-card-mouse-and-keyboard",
+      "method": "GET",
+      "path": "/api/challenges/challenges/"
+    },
+    {
+      "scenario": "home-featured-card-mouse-and-keyboard",
+      "method": "GET",
+      "path": "/api/announcements/announcements/pinned/"
+    },
+    {
+      "scenario": "home-featured-card-mouse-and-keyboard",
+      "method": "GET",
+      "path": "/api/announcements/announcements/latest/"
+    },
+    {
+      "scenario": "home-featured-card-mouse-and-keyboard",
+      "method": "GET",
+      "path": "/api/challenges/challenges/"
+    },
+    {
+      "scenario": "deep-link-login-return:/learning-paths/7",
+      "method": "GET",
+      "path": "/api/announcements/announcements/pinned/"
+    },
+    {
+      "scenario": "deep-link-login-return:/learning-paths/7",
+      "method": "GET",
+      "path": "/api/announcements/announcements/latest/"
+    },
+    {
+      "scenario": "deep-link-login-return:/learning-paths/7",
+      "method": "GET",
+      "path": "/api/announcements/announcements/pinned/"
+    },
+    {
+      "scenario": "deep-link-login-return:/learning-paths/7",
+      "method": "GET",
+      "path": "/api/announcements/announcements/latest/"
+    },
+    {
+      "scenario": "deep-link-login-return:/learning-paths/7",
+      "method": "GET",
+      "path": "/api/users/csrf/"
+    },
+    {
+      "scenario": "deep-link-login-return:/learning-paths/7",
+      "method": "POST",
+      "path": "/api/users/login/"
+    },
+    {
+      "scenario": "deep-link-login-return:/learning-paths/7",
+      "method": "GET",
+      "path": "/api/ai/list/"
+    },
+    {
+      "scenario": "deep-link-login-return:/learning-paths/7",
+      "method": "GET",
+      "path": "/api/announcements/announcements/pinned/"
+    },
+    {
+      "scenario": "deep-link-login-return:/learning-paths/7",
+      "method": "GET",
+      "path": "/api/announcements/announcements/latest/"
+    },
+    {
+      "scenario": "deep-link-login-return:/learning-paths/7",
+      "method": "GET",
+      "path": "/api/learning-paths/modules/"
+    },
+    {
+      "scenario": "deep-link-login-return:/learning-paths/7",
+      "method": "GET",
+      "path": "/api/learning-paths/paths/7/progress/"
+    },
+    {
+      "scenario": "deep-link-login-return:/learning-paths/7",
+      "method": "GET",
+      "path": "/api/learning-paths/paths/7/"
+    },
+    {
+      "scenario": "deep-link-login-return:/learning-paths/7",
+      "method": "GET",
+      "path": "/api/ai/list/"
+    },
+    {
+      "scenario": "deep-link-login-return:/learning-paths/7",
+      "method": "GET",
+      "path": "/api/announcements/announcements/pinned/"
+    },
+    {
+      "scenario": "deep-link-login-return:/learning-paths/7",
+      "method": "GET",
+      "path": "/api/announcements/announcements/latest/"
+    },
+    {
+      "scenario": "deep-link-login-return:/learning-paths/7",
+      "method": "GET",
+      "path": "/api/learning-paths/modules/"
+    },
+    {
+      "scenario": "deep-link-login-return:/learning-paths/7",
+      "method": "GET",
+      "path": "/api/learning-paths/paths/7/progress/"
+    },
+    {
+      "scenario": "deep-link-login-return:/learning-paths/7",
+      "method": "GET",
+      "path": "/api/learning-paths/paths/7/"
+    },
+    {
+      "scenario": "deep-link-login-return:/challenge/7",
+      "method": "GET",
+      "path": "/api/announcements/announcements/pinned/"
+    },
+    {
+      "scenario": "deep-link-login-return:/challenge/7",
+      "method": "GET",
+      "path": "/api/announcements/announcements/latest/"
+    },
+    {
+      "scenario": "deep-link-login-return:/challenge/7",
+      "method": "GET",
+      "path": "/api/announcements/announcements/pinned/"
+    },
+    {
+      "scenario": "deep-link-login-return:/challenge/7",
+      "method": "GET",
+      "path": "/api/announcements/announcements/latest/"
+    },
+    {
+      "scenario": "deep-link-login-return:/challenge/7",
+      "method": "GET",
+      "path": "/api/users/csrf/"
+    },
+    {
+      "scenario": "deep-link-login-return:/challenge/7",
+      "method": "POST",
+      "path": "/api/users/login/"
+    },
+    {
+      "scenario": "deep-link-login-return:/challenge/7",
+      "method": "GET",
+      "path": "/api/ai/list/"
+    },
+    {
+      "scenario": "deep-link-login-return:/challenge/7",
+      "method": "GET",
+      "path": "/api/announcements/announcements/pinned/"
+    },
+    {
+      "scenario": "deep-link-login-return:/challenge/7",
+      "method": "GET",
+      "path": "/api/announcements/announcements/latest/"
+    },
+    {
+      "scenario": "deep-link-login-return:/challenge/7",
+      "method": "GET",
+      "path": "/api/challenges/challenge/7/"
+    },
+    {
+      "scenario": "deep-link-login-return:/challenge/7",
+      "method": "GET",
+      "path": "/api/submissions/my/"
+    },
+    {
+      "scenario": "deep-link-login-return:/challenge/7",
+      "method": "GET",
+      "path": "/api/challenges/challenges/7/container/"
+    },
+    {
+      "scenario": "deep-link-login-return:/challenge/7",
+      "method": "GET",
+      "path": "/api/ai/list/"
+    },
+    {
+      "scenario": "deep-link-login-return:/challenge/7",
+      "method": "GET",
+      "path": "/api/announcements/announcements/pinned/"
+    },
+    {
+      "scenario": "deep-link-login-return:/challenge/7",
+      "method": "GET",
+      "path": "/api/announcements/announcements/latest/"
+    },
+    {
+      "scenario": "deep-link-login-return:/challenge/7",
+      "method": "GET",
+      "path": "/api/challenges/challenge/7/"
+    },
+    {
+      "scenario": "deep-link-login-return:/challenge/7",
+      "method": "GET",
+      "path": "/api/submissions/my/"
+    },
+    {
+      "scenario": "deep-link-login-return:/challenge/7",
+      "method": "GET",
+      "path": "/api/challenges/challenges/7/container/"
+    },
+    {
+      "scenario": "role-root-and-denial:student",
+      "method": "GET",
+      "path": "/api/ai/list/"
+    },
+    {
+      "scenario": "role-root-and-denial:student",
+      "method": "GET",
+      "path": "/api/announcements/announcements/pinned/"
+    },
+    {
+      "scenario": "role-root-and-denial:student",
+      "method": "GET",
+      "path": "/api/announcements/announcements/latest/"
+    },
+    {
+      "scenario": "role-root-and-denial:student",
+      "method": "GET",
+      "path": "/api/learning-paths/progress/"
+    },
+    {
+      "scenario": "role-root-and-denial:student",
+      "method": "GET",
+      "path": "/api/learning-paths/recommendations/review-reminders/"
+    },
+    {
+      "scenario": "role-root-and-denial:student",
+      "method": "GET",
+      "path": "/api/ai/list/"
+    },
+    {
+      "scenario": "role-root-and-denial:student",
+      "method": "GET",
+      "path": "/api/analytics/teaching-plan/"
+    },
+    {
+      "scenario": "role-root-and-denial:student",
+      "method": "GET",
+      "path": "/api/learning-paths/progress/"
+    },
+    {
+      "scenario": "role-root-and-denial:student",
+      "method": "GET",
+      "path": "/api/learning-paths/recommendations/review-reminders/"
+    },
+    {
+      "scenario": "role-root-and-denial:student",
+      "method": "GET",
+      "path": "/api/ai/list/"
+    },
+    {
+      "scenario": "role-root-and-denial:student",
+      "method": "GET",
+      "path": "/api/announcements/announcements/pinned/"
+    },
+    {
+      "scenario": "role-root-and-denial:student",
+      "method": "GET",
+      "path": "/api/announcements/announcements/latest/"
+    },
+    {
+      "scenario": "role-root-and-denial:teacher",
+      "method": "GET",
+      "path": "/api/ai/list/"
+    },
+    {
+      "scenario": "role-root-and-denial:teacher",
+      "method": "GET",
+      "path": "/api/announcements/announcements/pinned/"
+    },
+    {
+      "scenario": "role-root-and-denial:teacher",
+      "method": "GET",
+      "path": "/api/feedback/teacher/queue/"
+    },
+    {
+      "scenario": "role-root-and-denial:teacher",
+      "method": "GET",
+      "path": "/api/skill-review/teacher/queue/"
+    },
+    {
+      "scenario": "role-root-and-denial:teacher",
+      "method": "GET",
+      "path": "/api/resources/admin/"
+    },
+    {
+      "scenario": "role-root-and-denial:teacher",
+      "method": "GET",
+      "path": "/api/teaching-knowledge/materials/"
+    },
+    {
+      "scenario": "role-root-and-denial:teacher",
+      "method": "GET",
+      "path": "/api/learning-paths/paths/"
+    },
+    {
+      "scenario": "role-root-and-denial:teacher",
+      "method": "GET",
+      "path": "/api/announcements/announcements/latest/"
+    },
+    {
+      "scenario": "role-root-and-denial:teacher",
+      "method": "GET",
+      "path": "/api/ai/list/"
+    },
+    {
+      "scenario": "role-root-and-denial:teacher",
+      "method": "GET",
+      "path": "/api/announcements/announcements/pinned/"
+    },
+    {
+      "scenario": "role-root-and-denial:teacher",
+      "method": "GET",
+      "path": "/api/announcements/announcements/latest/"
+    },
+    {
+      "scenario": "role-root-and-denial:admin",
+      "method": "GET",
+      "path": "/api/ai/list/"
+    },
+    {
+      "scenario": "role-root-and-denial:admin",
+      "method": "GET",
+      "path": "/api/announcements/announcements/pinned/"
+    },
+    {
+      "scenario": "role-root-and-denial:admin",
+      "method": "GET",
+      "path": "/api/announcements/announcements/latest/"
+    },
+    {
+      "scenario": "role-root-and-denial:admin",
+      "method": "GET",
+      "path": "/api/resources/admin/"
+    },
+    {
+      "scenario": "role-root-and-denial:admin",
+      "method": "GET",
+      "path": "/api/articles/articles/"
+    },
+    {
+      "scenario": "role-root-and-denial:admin",
+      "method": "GET",
+      "path": "/api/legal-kb/ingestion-jobs/"
+    },
+    {
+      "scenario": "role-root-and-denial:admin",
+      "method": "GET",
+      "path": "/api/ai/list/"
+    },
+    {
+      "scenario": "role-root-and-denial:admin",
+      "method": "GET",
+      "path": "/api/announcements/announcements/pinned/"
+    },
+    {
+      "scenario": "role-root-and-denial:admin",
+      "method": "GET",
+      "path": "/api/announcements/announcements/latest/"
+    },
+    {
+      "scenario": "legacy-student-deep-links",
+      "method": "GET",
+      "path": "/api/ai/list/"
+    },
+    {
+      "scenario": "legacy-student-deep-links",
+      "method": "GET",
+      "path": "/api/announcements/announcements/pinned/"
+    },
+    {
+      "scenario": "legacy-student-deep-links",
+      "method": "GET",
+      "path": "/api/announcements/announcements/latest/"
+    },
+    {
+      "scenario": "legacy-student-deep-links",
+      "method": "GET",
+      "path": "/api/exams/level-rules/"
+    },
+    {
+      "scenario": "legacy-student-deep-links",
+      "method": "GET",
+      "path": "/api/exams/records/score_trend/"
+    },
+    {
+      "scenario": "legacy-student-deep-links",
+      "method": "GET",
+      "path": "/api/exams/records/my_history/"
+    },
+    {
+      "scenario": "legacy-student-deep-links",
+      "method": "GET",
+      "path": "/api/exams/records/statistics/"
+    },
+    {
+      "scenario": "legacy-student-deep-links",
+      "method": "GET",
+      "path": "/api/ai/list/"
+    },
+    {
+      "scenario": "legacy-student-deep-links",
+      "method": "GET",
+      "path": "/api/announcements/announcements/pinned/"
+    },
+    {
+      "scenario": "legacy-student-deep-links",
+      "method": "GET",
+      "path": "/api/announcements/announcements/latest/"
+    },
+    {
+      "scenario": "legacy-student-deep-links",
+      "method": "GET",
+      "path": "/api/exams/records/7/result/"
+    },
+    {
+      "scenario": "legacy-student-deep-links",
+      "method": "GET",
+      "path": "/api/ai/list/"
+    },
+    {
+      "scenario": "legacy-student-deep-links",
+      "method": "GET",
+      "path": "/api/announcements/announcements/pinned/"
+    },
+    {
+      "scenario": "legacy-student-deep-links",
+      "method": "GET",
+      "path": "/api/announcements/announcements/latest/"
+    },
+    {
+      "scenario": "legacy-student-deep-links",
+      "method": "GET",
+      "path": "/api/ai/list/"
+    },
+    {
+      "scenario": "legacy-student-deep-links",
+      "method": "GET",
+      "path": "/api/announcements/announcements/pinned/"
+    },
+    {
+      "scenario": "legacy-student-deep-links",
+      "method": "GET",
+      "path": "/api/announcements/announcements/latest/"
+    },
+    {
+      "scenario": "legacy-student-deep-links",
+      "method": "GET",
+      "path": "/api/analytics/learning/effect/"
+    },
+    {
+      "scenario": "legacy-student-deep-links",
+      "method": "GET",
+      "path": "/api/analytics/weekly-summary/"
+    },
+    {
+      "scenario": "legacy-student-deep-links",
+      "method": "GET",
+      "path": "/api/learning-paths/recommendations/review-reminders/"
+    },
+    {
+      "scenario": "legacy-student-deep-links",
+      "method": "GET",
+      "path": "/api/ai/learning/recommend/"
+    },
+    {
+      "scenario": "legacy-student-deep-links",
+      "method": "GET",
+      "path": "/api/analytics/insights/"
+    },
+    {
+      "scenario": "legacy-student-deep-links",
+      "method": "GET",
+      "path": "/api/learning-paths/paths/"
+    },
+    {
+      "scenario": "legacy-student-deep-links",
+      "method": "GET",
+      "path": "/api/articles/articles/recommend/"
+    },
+    {
+      "scenario": "legacy-student-deep-links",
+      "method": "GET",
+      "path": "/api/resources/"
+    },
+    {
+      "scenario": "legacy-student-deep-links",
+      "method": "GET",
+      "path": "/api/skill-review/me/retests/"
+    },
+    {
+      "scenario": "legacy-student-deep-links",
+      "method": "GET",
+      "path": "/api/skill-review/me/submissions/"
+    },
+    {
+      "scenario": "legacy-student-deep-links",
+      "method": "GET",
+      "path": "/api/skill-review/me/disputes/"
+    },
+    {
+      "scenario": "legacy-student-deep-links",
+      "method": "GET",
+      "path": "/api/student-profiles/me/"
+    },
+    {
+      "scenario": "legacy-student-deep-links",
+      "method": "GET",
+      "path": "/api/student-profiles/me/persona/"
+    },
+    {
+      "scenario": "legacy-student-deep-links",
+      "method": "GET",
+      "path": "/api/student-profiles/me/growth/"
+    },
+    {
+      "scenario": "legacy-student-deep-links",
+      "method": "GET",
+      "path": "/api/student-profiles/learning-directions/"
+    },
+    {
+      "scenario": "legacy-student-deep-links",
+      "method": "GET",
+      "path": "/api/analytics/teaching-plan/"
+    },
+    {
+      "scenario": "legacy-student-deep-links",
+      "method": "GET",
+      "path": "/api/analytics/progress-report/"
+    },
+    {
+      "scenario": "legacy-student-deep-links",
+      "method": "GET",
+      "path": "/api/submissions/stats/"
+    },
+    {
+      "scenario": "legacy-student-deep-links",
+      "method": "GET",
+      "path": "/api/exams/records/my_history/"
+    },
+    {
+      "scenario": "untrusted-login-return-falls-back",
+      "method": "GET",
+      "path": "/api/announcements/announcements/pinned/"
+    },
+    {
+      "scenario": "untrusted-login-return-falls-back",
+      "method": "GET",
+      "path": "/api/announcements/announcements/latest/"
+    },
+    {
+      "scenario": "untrusted-login-return-falls-back",
+      "method": "GET",
+      "path": "/api/users/csrf/"
+    },
+    {
+      "scenario": "untrusted-login-return-falls-back",
+      "method": "POST",
+      "path": "/api/users/login/"
+    },
+    {
+      "scenario": "untrusted-login-return-falls-back",
+      "method": "GET",
+      "path": "/api/ai/list/"
+    },
+    {
+      "scenario": "untrusted-login-return-falls-back",
+      "method": "GET",
+      "path": "/api/announcements/announcements/pinned/"
+    },
+    {
+      "scenario": "untrusted-login-return-falls-back",
+      "method": "GET",
+      "path": "/api/announcements/announcements/latest/"
+    },
+    {
+      "scenario": "untrusted-login-return-falls-back",
+      "method": "GET",
+      "path": "/api/learning-paths/progress/"
+    },
+    {
+      "scenario": "untrusted-login-return-falls-back",
+      "method": "GET",
+      "path": "/api/learning-paths/recommendations/review-reminders/"
+    },
+    {
+      "scenario": "untrusted-login-return-falls-back",
+      "method": "GET",
+      "path": "/api/ai/list/"
+    },
+    {
+      "scenario": "untrusted-login-return-falls-back",
+      "method": "GET",
+      "path": "/api/analytics/teaching-plan/"
+    },
+    {
+      "scenario": "untrusted-login-return-falls-back",
+      "method": "GET",
+      "path": "/api/learning-paths/progress/"
+    },
+    {
+      "scenario": "untrusted-login-return-falls-back",
+      "method": "GET",
+      "path": "/api/learning-paths/recommendations/review-reminders/"
+    }
+  ],
+  "summary": {
+    "checks": 11,
+    "passed": 11,
+    "failed": 0,
+    "consoleErrors": 0,
+    "consoleWarnings": 44,
+    "pageErrors": 0
+  }
+}

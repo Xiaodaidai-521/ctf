@@ -124,14 +124,16 @@ for (const [role, authenticated, expected] of [
     const router = routerFor({ isAuthenticated: authenticated, userInfo: { role } })
     const route = router.routes.find(route => route.path === '/data-lab/teacher')
     const decisions = []
-    router.guard(route, {}, value => decisions.push(value))
-    assert.deepEqual(decisions, [expected])
+    const fullPath = `${route.path}?case=7&tag=a&tag=b#materials`
+    router.guard({ ...route, fullPath }, {}, value => decisions.push(value))
+    assert.deepEqual(decisions, [role === 'guest' ? { path: '/login', query: { redirect: fullPath } } : expected])
   })
 }
 test('module student guard: guests must log in', () => {
   const router = routerFor({ isAuthenticated: false })
   const route = router.routes.find(route => route.path === '/data-lab')
   const decisions = []
-  router.guard(route, {}, value => decisions.push(value))
-  assert.deepEqual(decisions, ['/login'])
+  const fullPath = '/data-lab?case=7#materials'
+  router.guard({ ...route, fullPath }, {}, value => decisions.push(value))
+  assert.deepEqual(decisions, [{ path: '/login', query: { redirect: fullPath } }])
 })
