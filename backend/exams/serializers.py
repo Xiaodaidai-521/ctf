@@ -154,8 +154,15 @@ class TheoryExamCreateSerializer(serializers.ModelSerializer):
 class ExamAnswerSerializer(ProtectionSerializerMixin, serializers.ModelSerializer):
     def to_representation(self, instance):
         data = super().to_representation(instance)
-        if field_storage_enabled() or instance.security_state != 'legacy-v0':
+        request = self.context.get('request')
+        owner = request and request.user.is_authenticated and request.user.pk == instance.exam_record.user_id
+        if owner:
+            data['user_answer'] = instance.read_protected('user_answer')
+        else:
             data['user_answer'] = '[REDACTED]'
+        if instance.exam_record.exam_type == 'theory' and instance.exam_record.status != 'completed':
+            data.pop('is_correct', None)
+            data.pop('points_earned', None)
         return data
 
     question_text = serializers.SerializerMethodField()
@@ -180,6 +187,12 @@ class ExamRecordSerializer(serializers.ModelSerializer):
         data = super().to_representation(instance)
         data['protection'] = {'user_answer': summarize(
             answer['protection']['user_answer'] for answer in data['answers'])}
+        if instance.exam_type == 'theory' and instance.status != 'completed':
+            data['score'] = None
+            data['correct_count'] = None
+            data['is_passed'] = None
+        if instance.status == 'pending':
+            data['start_time'] = None
         return data
 
     exam_type_display = serializers.CharField(source='get_exam_type_display', read_only=True)
@@ -263,6 +276,10 @@ class ExamRecordCreateSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         validated_data['user'] = self.context['request'].user
         validated_data['status'] = 'in_progress'
+        exam = validated_data.get('theory_exam') or validated_data.get('practice_exam')
+        # Serialize record creation with question regeneration/deletion, which
+        # locks the same exam row before checking whether it has been used.
+        type(exam).objects.select_for_update().get(pk=exam.pk)
 
         # 设置总分和题数
         if validated_data['exam_type'] == 'theory' and validated_data.get('theory_exam'):
@@ -281,7 +298,7 @@ class SubmitAnswerSerializer(serializers.Serializer):
     exam_record_id = serializers.IntegerField()
     theory_question_id = serializers.IntegerField(required=False)
     practice_question_id = serializers.IntegerField(required=False)
-    user_answer = serializers.CharField()
+    user_answer = serializers.CharField(allow_blank=True)
     time_spent = serializers.IntegerField(default=0)
 
     def validate(self, attrs):
@@ -289,6 +306,8 @@ class SubmitAnswerSerializer(serializers.Serializer):
         practice_question_id = attrs.get('practice_question_id')
         if bool(theory_question_id) == bool(practice_question_id):
             raise serializers.ValidationError('Provide exactly one question identifier.')
+        if practice_question_id and not attrs['user_answer'].strip():
+            raise serializers.ValidationError({'user_answer': 'Flag must not be blank.'})
         if attrs.get('time_spent', 0) < 0:
             raise serializers.ValidationError({'time_spent': 'Must be non-negative.'})
         return attrs

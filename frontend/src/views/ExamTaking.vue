@@ -30,17 +30,18 @@
       </section>
       <aside class="question-nav-section"><div class="nav-card"><h2 class="nav-title">题目导航</h2><p class="nav-legend">当前 / 已答 / 未答</p>
         <div class="nav-grid"><button v-for="(question, index) in questions" :key="question.id" type="button" class="nav-item" :class="{ current: index === currentQuestionIndex, answered: isAnswered(index) }" :aria-label="`第 ${index + 1} 题，${isAnswered(index) ? '已答' : '未答'}${index === currentQuestionIndex ? '，当前题' : ''}`" :aria-current="index === currentQuestionIndex ? 'step' : undefined" @click="goToQuestion(index)">{{ index + 1 }}<icon-check v-if="isAnswered(index)" /></button></div>
-        <p>已答题：{{ answeredCount }} / {{ questions.length }}</p><p>已记录正确率：{{ accuracyRate }}%</p>
+        <p>已答题：{{ answeredCount }} / {{ questions.length }}</p><p v-if="examType === 'practice'">已记录正确率：{{ accuracyRate }}%</p>
         <div class="quick-nav"><button class="btn btn-outline" @click="goToFirstUnanswered" :disabled="!hasUnanswered">跳转未答</button></div>
       </div></aside>
     </div>
+    <p v-if="examType === 'theory' && !loading && !loadError" class="exam-notice" role="status">{{ savingTheoryAnswers ? '答案保存中…' : answerSaveError ? '答案尚未保存，请重试。' : '答案已保存' }} <button v-if="answerSaveError && timeRemaining > 0" class="btn btn-outline" @click="saveTheoryAnswers">重试保存</button></p>
     <p v-if="timeoutNotice" class="exam-notice is-error" role="alert">{{ timeoutNotice }}</p><p v-if="submitError" class="exam-notice is-error" role="alert">{{ submitError }}</p>
     <ExamTakingDialog :open="showSubmitDialog" title="提交考试" title-id="exam-submit-heading" @close="closeSubmitDialog">
       <p>已答题目：{{ answeredCount }} / {{ questions.length }}</p><p>已用时间：{{ formatTime(elapsedTime) }}</p><p v-if="answeredCount < questions.length">还有 {{ questions.length - answeredCount }} 道题未答，确认提交吗？</p>
       <template #footer><button class="btn btn-outline" autofocus @click="closeSubmitDialog">取消</button><button class="btn btn-primary" @click="confirmSubmit" :disabled="submittingExam">{{ submittingExam ? '正在交卷…' : '确认提交' }}</button></template>
     </ExamTakingDialog>
     <ExamTakingDialog :open="showExitDialog" title="退出考试" title-id="exam-exit-heading" @close="closeExitDialog">
-      <p>仅保留已提交的答案，尚未提交的选择不会保存</p><div class="exit-options"><button class="btn btn-outline" @click="exitWithoutAbandon">退出并保留</button><button class="btn btn-outline" :disabled="abandoning" @click="abandonAndExit">放弃考试并退出</button></div>
+      <p>退出前会保存当前答案；网络异常时请先重试保存。</p><div class="exit-options"><button class="btn btn-outline" @click="exitWithoutAbandon">退出并保留</button><button class="btn btn-outline" :disabled="abandoning" @click="abandonAndExit">放弃考试并退出</button></div>
       <template #footer><button class="btn btn-outline" autofocus @click="closeExitDialog">取消</button></template>
     </ExamTakingDialog>
   </main>
@@ -77,6 +78,9 @@ const showSubmitDialog = ref(false)
 const showExitDialog = ref(false)
 const submissionResult = ref(null)
 const timer = ref(null)
+const savingTheoryAnswers = ref(false), answerSaveError = ref('')
+const examDeadline = ref(0)
+let theoryDirty = new Set(), savedTheoryAnswers = new Map(), theorySavePromise = null
 
 const currentQuestion = computed(() => questions.value[currentQuestionIndex.value])
 const answeredCount = computed(() => Object.keys(answers.value).length)
@@ -111,7 +115,7 @@ const formatQuestion = (question) => {
   }
   // 实战题
   if (question.challenge) {
-    return sanitizeHtml(question.challenge.description || question.challenge_title)
+    return sanitizeHtml(question.challenge_description || question.challenge?.description || question.challenge_title || '')
   }
   return ''
 }
@@ -132,7 +136,7 @@ const isOptionSelected = (option) => {
 
 // 选择选项
 const selectOption = (option) => {
-  if (!currentQuestion.value) return
+  if (!currentQuestion.value || timeRemaining.value <= 0 || submittingExam.value) return
 
   const questionId = currentQuestion.value.id
   const questionType = currentQuestion.value.question_detail?.question_type
@@ -153,21 +157,62 @@ const selectOption = (option) => {
 
     if (answerArray.length === 0) {
       delete answers.value[questionId]
-      return
-    }
-    answers.value[questionId] = {
-      user_answer: answerArray.join(','),
-      is_correct: false,
-      points_earned: 0,
+    } else {
+      answers.value[questionId] = {
+        user_answer: answerArray.join(','),
+      }
     }
   } else {
     // 单选/判断：直接设置
     answers.value[questionId] = {
       user_answer: option,
-      is_correct: false,
-      points_earned: 0,
     }
   }
+  theoryDirty.add(questionId)
+  void saveTheoryAnswers()
+}
+
+// One writer per record prevents an older response from restoring a cleared
+// choice. Changes made while a request is in flight stay in the queue.
+const saveTheoryAnswers = () => {
+  if (theorySavePromise) return theorySavePromise
+  const id = recordId.value, reading = examReadGeneration
+  const dirty = theoryDirty, saved = savedTheoryAnswers
+  const belongsToPage = () => pageAlive && id === recordId.value && reading === examReadGeneration
+  savingTheoryAnswers.value = true
+  answerSaveError.value = ''
+  const task = Promise.resolve().then(async () => {
+    try {
+      for (const question of questions.value) {
+        const value = answers.value[question.id]?.user_answer || ''
+        if (value !== (saved.get(question.id) || '')) dirty.add(question.id)
+      }
+      while (dirty.size) {
+        if (!belongsToPage()) return false
+        const questionId = dirty.values().next().value
+        const question = questions.value.find(item => item.id === questionId)
+        if (!question?.question) { dirty.delete(questionId); continue }
+        const value = answers.value[questionId]?.user_answer || ''
+        await api.exams.submitAnswer(id, {
+          theory_question_id: question.question,
+          user_answer: value,
+          time_spent: Math.floor(elapsedTime.value),
+        })
+        if (!belongsToPage()) return false
+        saved.set(questionId, value)
+        if ((answers.value[questionId]?.user_answer || '') === value) dirty.delete(questionId)
+      }
+      return true
+    } catch (error) {
+      if (belongsToPage()) answerSaveError.value = '答案保存失败，请检查网络后重试。'
+      return false
+    } finally {
+      if (belongsToPage()) savingTheoryAnswers.value = false
+    }
+  })
+  theorySavePromise = task
+  void task.finally(() => { if (theorySavePromise === task) theorySavePromise = null })
+  return task
 }
 
 // 判断是否已答
@@ -268,19 +313,9 @@ const submitExam = () => {
 const submitAllTheoryAnswers = async () => {
   if (preparingSubmit.value) return false
   const id = recordId.value, reading = examReadGeneration
-  const entries = questions.value.map(question => ({ question: question.question, answer: answers.value[question.id]?.user_answer }))
   preparingSubmit.value = true
   try {
-    for (const question of entries) {
-      if (!pageAlive || id !== recordId.value || reading !== examReadGeneration) return false
-      if (question.question && question.answer) {
-        await api.exams.submitAnswer(id, {
-          theory_question_id: question.question,  // 使用实际的题目 ID
-          user_answer: question.answer,
-          time_spent: Math.floor(elapsedTime.value),
-        })
-      }
-    }
+    if (!(await saveTheoryAnswers())) return false
     if (!pageAlive || id !== recordId.value || reading !== examReadGeneration) return false
     showSubmitDialog.value = true
     return true
@@ -294,13 +329,18 @@ const submitAllTheoryAnswers = async () => {
 }
 
 // 确认提交
-const confirmSubmit = async () => {
+const confirmSubmit = async (automatic = false) => {
   if (submittingExam.value) return
   const id = recordId.value, reading = examReadGeneration
   submittingExam.value = true
   try {
+    if (automatic !== true && examType.value === 'theory' && !(await saveTheoryAnswers())) return
     await api.exams.submitExam(id)
     if (!pageAlive || id !== recordId.value || reading !== examReadGeneration) return
+    if (automatic === true && examType.value === 'theory' && theoryDirty.size) {
+      router.push(`/exam-center/result/${id}?unsaved=1`)
+      return
+    }
 
     // 检查是否是理论考试，如果是则进入实战考试
     if (examType.value === 'theory') {
@@ -334,7 +374,8 @@ const exitExam = () => {
 }
 
 // 退出但不放弃考试
-const exitWithoutAbandon = () => {
+const exitWithoutAbandon = async () => {
+  if (examType.value === 'theory' && !(await saveTheoryAnswers())) return
   closeExitDialog()
   router.push('/exam-center')
 }
@@ -383,6 +424,12 @@ const loadExamInfo = async () => {
   examInfo.value = {}
   questions.value = []
   answers.value = {}
+  theoryDirty = new Set()
+  savedTheoryAnswers = new Map()
+  theorySavePromise = null
+  savingTheoryAnswers.value = false
+  answerSaveError.value = ''
+  examDeadline.value = 0
   currentQuestionIndex.value = 0
   currentAnswer.value = ''
   submissionResult.value = null
@@ -420,6 +467,7 @@ const loadExamInfo = async () => {
     if (!Number.isFinite(duration) || duration <= 0 || !Number.isFinite(startedAt)) throw new Error('考试时间无法确认')
     elapsedTime.value = Math.max(0, Math.floor((Date.now() - startedAt) / 1000))
     timeRemaining.value = Math.max(0, Math.floor(duration * 60) - elapsedTime.value)
+    examDeadline.value = startedAt + duration * 60000
     answers.value = {}
     if (Array.isArray(record.answers)) {
       for (const answer of record.answers) {
@@ -433,12 +481,13 @@ const loadExamInfo = async () => {
         } else {
           questionId = answerRef
         }
-        if (questionId && answer.user_answer !== '[REDACTED]') {
+        if (questionId && typeof answer.user_answer === 'string' && answer.user_answer !== '[REDACTED]' && answer.user_answer.trim()) {
           answers.value[questionId] = {
             user_answer: answer.user_answer,
             is_correct: answer.is_correct,
             points_earned: answer.points_earned,
           }
+          savedTheoryAnswers.set(questionId, answer.user_answer)
         }
       }
     }
@@ -454,9 +503,13 @@ const loadExamInfo = async () => {
 
 // 更新计时器
 const updateTimer = () => {
+  if (examDeadline.value) {
+    timeRemaining.value = Math.max(0, Math.ceil((examDeadline.value - Date.now()) / 1000))
+    elapsedTime.value = Math.max(0, Math.floor(Number(examInfo.value.duration) * 60 - (examDeadline.value - Date.now()) / 1000))
+  }
   if (timeRemaining.value > 0) {
-    timeRemaining.value--
-    elapsedTime.value++
+    if (!examDeadline.value) { timeRemaining.value--; elapsedTime.value++ }
+    if (examType.value === 'theory' && theoryDirty.size) void saveTheoryAnswers()
   } else {
     // 时间到，自动提交
     handleTimeUp()
@@ -466,11 +519,13 @@ const updateTimer = () => {
 const handleTimeUp = async () => {
   clearInterval(timer.value)
   timeoutNotice.value = ''
-  if (examType.value === 'theory' && !(await submitAllTheoryAnswers())) {
-    timeoutNotice.value = '考试时间已到，答案保存未完成；不会把未保存的答案当作已交卷。请保留当前页面并联系教师核对。'
-    return
+  if (examType.value === 'theory') {
+    // Await requests already sent before expiry; the server remains the
+    // authority for the deadline. Do not resend saved answers after expiry.
+    if (theorySavePromise) await theorySavePromise
+    if (theoryDirty.size) timeoutNotice.value = '考试时间已到，仅结算截止前保存成功的答案；未保存的选择未计入成绩，请联系教师核对。'
   }
-  await confirmSubmit()
+  await confirmSubmit(true)
 }
 
 async function restartExam() {

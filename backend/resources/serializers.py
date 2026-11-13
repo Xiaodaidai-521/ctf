@@ -1,9 +1,12 @@
+from pathlib import PurePosixPath
 from rest_framework import serializers
 from data_security.contracts import ProtectionError
 from data_security.adapters.django.private_files import private_files
 from data_security.adapters.django.protection_status import private_file_status
+from data_security.runtime.storage import enabled as runtime_files_enabled
 from .models import Resource
 from .validators import validate_cover_image, validate_resource_file
+from .validators import RESOURCE_FILE_TYPES
 from users.serializers import UserSerializer
 
 
@@ -15,7 +18,10 @@ class ResourceSerializer(serializers.ModelSerializer):
     resource_type_display = serializers.SerializerMethodField()
     status_display = serializers.CharField(source='get_status_display', read_only=True)
     file_url = serializers.SerializerMethodField()
+    file_name = serializers.SerializerMethodField()
+    file_type = serializers.SerializerMethodField()
     cover_url = serializers.SerializerMethodField()
+    cover_image = serializers.SerializerMethodField()
     is_ai_highlighted = serializers.SerializerMethodField()
     ai_generated_label = serializers.SerializerMethodField()
 
@@ -23,7 +29,7 @@ class ResourceSerializer(serializers.ModelSerializer):
         model = Resource
         fields = [
             'id', 'title', 'description', 'resource_type', 'resource_type_display',
-            'file_url', 'file_size', 'cover_image', 'cover_url',
+            'file_url', 'file_name', 'file_type', 'file_size', 'cover_image', 'cover_url',
             'category', 'tags', 'tags_list', 'status', 'status_display',
             'is_tutoring_reserved', 'is_ai_highlighted', 'ai_generated_label',
             'uploader', 'uploader_info', 'reviewer', 'reviewer_info',
@@ -40,6 +46,9 @@ class ResourceSerializer(serializers.ModelSerializer):
         owner = private_files('resources')
         result['protection'] = {'file': {'storage': 'legacy' if instance.file else 'unknown'},
                                 'cover_image': {'storage': 'legacy' if instance.cover_image else 'empty'}}
+        if runtime_files_enabled() and owner is None:
+            result['protection'] = {name: getattr(instance, name).storage.protection_status(
+                getattr(instance, name).name, verify=False) for name in ('file', 'cover_image')}
         request = self.context.get('request')
         if owner is not None and not isinstance(owner, ProtectionError) and request and request.user.is_authenticated:
             references = owner.authenticated_references(user=request.user, resource_id=instance.pk)
@@ -56,6 +65,8 @@ class ResourceSerializer(serializers.ModelSerializer):
 
     def get_file_url(self, obj):
         request = self.context.get('request')
+        if request and not request.user.is_authenticated:
+            return None
         owner = private_files('resources')
         if owner is not None:
             if isinstance(owner, ProtectionError) or not obj.private_files or not request or not request.user.is_authenticated:
@@ -65,16 +76,40 @@ class ResourceSerializer(serializers.ModelSerializer):
         elif not obj.file:
             return None
         path = f'/api/resources/{obj.id}/download/'
+        if obj.is_tutoring_reserved and self.get_is_ai_highlighted(obj):
+            path += f'?highlight_resource={obj.id}'
         return request.build_absolute_uri(path) if request else path
 
+    def get_file_type(self, obj):
+        # Expose a known extension, never a private storage directory or old
+        # personally identifying upload filename.
+        name = str(obj.file.name or '').lower()
+        extension = '.tar.gz' if name.endswith('.tar.gz') else PurePosixPath(name).suffix
+        return extension if extension in RESOURCE_FILE_TYPES else ''
+
+    def get_file_name(self, obj):
+        extension = self.get_file_type(obj)
+        return f'resource-{obj.pk}{extension}' if extension else None
+
     def get_cover_url(self, obj):
+        request = self.context.get('request')
+        if request and not request.user.is_authenticated:
+            return None
         owner = private_files('resources')
         if owner is not None:
             if self.get_file_url(obj) is None or 'cover_image' not in obj.private_files.get('files', {}):
                 return None
             return self.context['request'].build_absolute_uri(f'/api/resources/{obj.id}/cover/download/')
         if obj.cover_image:
-            return obj.cover_image.url
+            request = self.context.get('request')
+            path = f'/api/resources/{obj.id}/cover/download/'
+            if obj.is_tutoring_reserved:
+                path += f'?highlight_resource={obj.id}'
+            return request.build_absolute_uri(path) if request else path
+        return None
+
+    def get_cover_image(self, obj):
+        # Covers, including legacy bytes, use the permission-checked endpoint.
         return None
 
     def get_is_ai_highlighted(self, obj):

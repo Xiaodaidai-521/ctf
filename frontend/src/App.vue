@@ -12,7 +12,6 @@
         <StateRouteView :key="`${user.userInfo?.id || 'guest'}:${role}`" />
       </main>
     </div>
-    <TutorPet v-if="user.isAuthenticated" :key="`pet:${accountScope.epoch}`" :exam-page="examPage" />
     <TutorDrawer v-if="role === 'student' && !examPage" :key="`drawer:${accountScope.epoch}`" />
   </div>
 </template>
@@ -22,16 +21,13 @@ import { useRoute } from 'vue-router'
 import StateRouteView from '@/shared/state/StateRouteView.vue'
 import { accountScope, syncStateAccount } from '@/shared/state/accountScope.js'
 import { useUserStore } from '@/store/user'
-import { usePetStore } from '@/store/pet'
 import GlobalHeader from '@/shared/layout/GlobalHeader.vue'
 import RoleNavigation from '@/shared/layout/RoleNavigation.vue'
-import TutorPet from '@/learning/agent/TutorPet.vue'
 import TutorDrawer from '@/learning/agent/components/TutorDrawer.vue'
 import { signOutAgent, syncAgentAccount } from '@/learning/agent/runtime.js'
 import { breakpoints } from '@/shared/design/breakpoints.js'
 const route = useRoute()
 const user = useUserStore()
-const pet = usePetStore()
 const role = computed(() => user.isAuthenticated ? user.userInfo?.role || 'guest' : 'guest')
 const examPage = computed(() => route.path.startsWith('/exam-taking'))
 // 账号切换清理本端会话；退出登录作废在途响应，旧账号数据不落入新状态。
@@ -40,7 +36,6 @@ watch(() => [user.userInfo?.id, role.value], () => {
 }, { immediate: true, flush: 'sync' })
 watch(() => accountScope.value, () => {
   signOutAgent()
-  pet.reset()
   if (user.isAuthenticated) syncAgentAccount(user.userInfo?.id)
 }, { immediate: true, flush: 'sync' })
 const staff = computed(() => ['teacher', 'admin'].includes(role.value))
@@ -59,6 +54,6 @@ watch(() => `${user.userInfo?.id}:${role.value}`, () => { menuOpen.value = false
 .staff-workspace { display: grid; grid-template-columns: var(--sidebar-width) minmax(0, 1fr); min-height: calc(100vh - var(--header-height)); }
 .workspace-sidebar { background: var(--surface); border-right: var(--stroke) solid var(--line); }
 .page-content { min-width: 0; padding-bottom: var(--space-10); }
-.skip-link { position: fixed; left: var(--space-2); top: var(--space-2); transform: translateY(-200%); padding: var(--space-1) var(--space-2); z-index: var(--z-pet); color: var(--on-action); background: var(--action); }
+.skip-link { position: fixed; left: var(--space-2); top: var(--space-2); transform: translateY(-200%); padding: var(--space-1) var(--space-2); z-index: var(--z-overlay); color: var(--on-action); background: var(--action); }
 .skip-link:focus { transform: none; }
 </style>

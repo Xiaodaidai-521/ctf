@@ -3,7 +3,7 @@
     <span v-if="compact" :title="view.explanation">{{ view.label }}</span>
     <details v-else>
       <summary>{{ view.label }}</summary>
-      <span class="protection-explanation">{{ explanation || view.explanation }} <router-link to="/privacy">隐私与数据保护</router-link></span>
+      <span class="protection-explanation">{{ explanation || view.explanation }}</span>
     </details>
   </span>
 </template>

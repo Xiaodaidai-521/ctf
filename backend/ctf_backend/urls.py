@@ -80,5 +80,6 @@ urlpatterns = [
 # 开发环境下的媒体文件服务
 if settings.DEBUG:
     if not getattr(settings, 'DATA_SECURITY_FORMAL_MODE', False):
-        urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+        from data_security.runtime.media import serve_public_media
+        urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT, view=serve_public_media)
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

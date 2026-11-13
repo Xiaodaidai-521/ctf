@@ -1,5 +1,6 @@
 from django.db import models
 from users.models import CTFUser
+from data_security.runtime.storage import protected_storage
 
 
 class Resource(models.Model):
@@ -25,11 +26,12 @@ class Resource(models.Model):
         choices=RESOURCE_TYPE_CHOICES,
         verbose_name='资源类型'
     )
-    file = models.FileField(upload_to='resources/', verbose_name='资源文件')
+    file = models.FileField(upload_to='resources/', storage=protected_storage, verbose_name='资源文件')
     file_size = models.IntegerField(default=0, verbose_name='文件大小(字节)')
     private_files = models.JSONField(default=dict, blank=True, editable=False)
     cover_image = models.ImageField(
         upload_to='resource_covers/',
+        storage=protected_storage,
         blank=True,
         null=True,
         verbose_name='封面图片'

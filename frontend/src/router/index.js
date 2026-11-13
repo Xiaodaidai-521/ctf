@@ -16,9 +16,6 @@ const enterTeaching = to => {
 const enterShadow = to => shadowDestination(to, useUserStore().userInfo?.role) || true
 
 const routes = [
-  { path: '/privacy', name: 'Privacy', component: () => import('@/views/Privacy.vue'), meta: { title: '隐私与数据保护' } },
-  { path: '/profile/memories', name: 'MemoryManagement', component: () => import('@/views/MemoryManagement.vue'), meta: { title: '我的 AI 记忆', requiresAuth: true } },
-  { path: '/profile/exports', name: 'ExportRecords', component: () => import('@/views/ExportRecords.vue'), meta: { title: '导出记录', requiresAuth: true } },
   {
     path: '/guide',
     name: 'Guide',

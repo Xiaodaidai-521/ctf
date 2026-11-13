@@ -342,7 +342,9 @@ class LegalReportSerializer(ProtectedLegalSerializer):
 
     def to_representation(self, instance):
         result = super().to_representation(instance)
-        result['export_available'] = False
+        from .services.report_exports import enabled, is_exporter
+        request = self.context.get('request')
+        result['export_available'] = enabled() and is_exporter(getattr(request, 'user', None))
         return result
 
     class Meta:

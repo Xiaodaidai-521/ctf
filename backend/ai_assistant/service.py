@@ -106,6 +106,7 @@ def _build_teaching_context_summary(context: Optional[Dict]) -> str:
 # Phase 9: deterministic task-scoped summary and bounded recent history.
 from .prompt_budget import build_teaching_context_summary as _build_teaching_context_summary
 from .prompt_budget import trim_history
+from .history import record_items, tracking_origin
 
 
 def _build_question_prompt(question: str, context_summary: str = '') -> str:
@@ -382,6 +383,8 @@ class MultiAgentChatService:
             object_ref='rag/knowledge-context', object_version='v1', outlet=outlet)
 
     def _get_cached_knowledge_result(self, cache_key: str) -> Optional[Dict]:
+        if tracking_origin() is not None:
+            return None
         now = time.monotonic()
         with self._knowledge_cache_lock:
             cached = self._knowledge_cache.get(cache_key)
@@ -449,6 +452,10 @@ class MultiAgentChatService:
         return protect_rag_response(value, outlet=outlet)
 
     def _get_cached_response_result(self, cache_key: str) -> Optional[Dict]:
+        # Legacy response entries have no source/actor binding. Authenticated
+        # request chains rebuild their evidence instead of reusing those bodies.
+        if tracking_origin() is not None:
+            return None
         now = time.monotonic()
         with self._response_cache_lock:
             cached = self._response_cache.get(cache_key)
@@ -1853,6 +1860,9 @@ class MultiAgentChatService:
         semantic_items = self._semantic_knowledge_items(query, limit, user=user)
         fused_items = self._merge_knowledge_items(semantic_items, keyword_items, limit)
         result['items'] = fused_items
+        record_items(fused_items)
+        if result.get('context_text'):
+            record_items([{'source_type': 'unknown', 'id': 'opaque-context'}])
         # Legacy field counts the indexed-recall channel, not verified semantic matches.
         result['semantic_count'] = len(semantic_items)
         result['retrieval_counts'] = {
@@ -2074,6 +2084,7 @@ class MultiAgentChatService:
                 }, keywords)
                 items.append({
                     'type': 'article',
+                    'id': article.id,
                     'title': article.title,
                     'reason': f"Matches current keywords: {query_terms}",
                     'entry': f"/community/article/{article.id}",
@@ -2109,6 +2120,7 @@ class MultiAgentChatService:
                 }, keywords)
                 items.append({
                     'type': resource.resource_type or 'resource',
+                    'id': resource.id,
                     'title': resource.title,
                     'reason': f"Matches current keywords: {query_terms}",
                     'entry': f"/resources?highlight_resource={resource.id}&resource={resource.id}",
@@ -2148,6 +2160,7 @@ class MultiAgentChatService:
                 }, keywords)
                 items.append({
                     'type': 'challenge',
+                    'id': challenge.id,
                     'title': challenge.title,
                     'reason': f"Same or adjacent practice topic: {challenge.category.name if challenge.category else 'CTF'} / {challenge.difficulty}",
                     'entry': f"/challenge/{challenge.id}",
@@ -2170,6 +2183,7 @@ class MultiAgentChatService:
         items.sort(key=lambda item: item.get('_score', 0), reverse=True)
         for item in items:
             item.pop('_score', None)
+        record_items(items[:5])
         return {'keywords': keywords, 'items': items[:5]}
 
     def _format_practice_references(self, references: Dict) -> str:
@@ -2225,11 +2239,13 @@ class MultiAgentChatService:
                     continue
                 items.append({
                     'type': item.get('type') or 'resource',
+                    'id': item.get('id') or item.get('object_id'),
                     'title': title,
                     'entry': item.get('entry') or '',
                     'summary': item.get('summary') or '',
                 })
 
+        record_items(items)
         query = ' '.join(part.strip() for part in [concept_name, question] if part and part.strip())
         return {
             'mode': 'resource_cache' if resource_preparation.get('cacheHit') else 'resource_agent',
@@ -2275,6 +2291,7 @@ class MultiAgentChatService:
                 seen.add(key)
                 items.append({
                     'type': item['source_type'],
+                    'id': item['object_id'],
                     'title': item['title'] or '未命名资料',
                     'entry': (
                         f'/community/article/{item["object_id"]}'
@@ -2285,6 +2302,7 @@ class MultiAgentChatService:
                 })
                 if len(items) >= top_k:
                     break
+            record_items(items)
             return {'mode': 'vector', 'query': query, 'items': items}
         except ContentProtectionError:
             raise

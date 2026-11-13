@@ -1,6 +1,6 @@
 import { sanitizeContext } from './context.js'
 
-// 题内宿主登记当前可授权的学习对象；抽屉与宠物共用，不额外抓取页面内容。
+// 题内宿主登记当前可授权的学习对象，供教学抽屉读取，不额外抓取页面内容。
 let pageContext = null
 let open = false
 const listeners = new Set()

@@ -15,12 +15,3 @@ export function profileUpdatePayload(form, originalEmail) {
   if (!changed || form.email === '[REDACTED]' || form.email.includes('***')) delete payload.email
   return payload
 }
-
-export function exportStateLabel(state) {
-  return ({ ready: '可以生成', pending: '等待授权完成', generated: '文件已生成', unknown: '状态待确认' })[state] || '状态待确认'
-}
-
-export function exportConfirmed(record) {
-  return record?.state === 'generated' && record?.protection?.redaction === 'completed'
-    && record?.protection?.storage === 'encrypted' && record?.can_download === true
-}

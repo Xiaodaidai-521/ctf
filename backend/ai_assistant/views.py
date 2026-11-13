@@ -30,6 +30,7 @@ def _run_async(coro):
         return pool.submit(asyncio.run, coro).result(timeout=300)
 
 from .models import AgentPreset, AIConversation, AIMessage
+from .history import Origin, create_message, history_message, readable, track_origin
 from data_security.adapters.persistence.fields import protect_stored_value
 from data_security.adapters.django.content import ContentProtectionError
 from data_security.adapters.django.rag import RagProtectionError, protect_rag, protect_rag_response
@@ -324,7 +325,7 @@ def _run_specialist_agents(
 
 async def _persist_stream_message(**kwargs):
     try:
-        await sync_to_async(AIMessage.objects.create, thread_sensitive=True)(**kwargs)
+        await sync_to_async(create_message, thread_sensitive=True)(**kwargs)
     except ContentProtectionError:
         raise
     except Exception as exc:
@@ -448,14 +449,7 @@ class AIConversationViewSet(viewsets.ModelViewSet):
                 from data_security.adapters.django.protection_status import protection_for
                 return [
                     {
-                        'id': msg.id,
-                        'role': msg.role,
-                        'content': msg.display_protected('content'),
-                        'agent_id': msg.agent_id,
-                        'agent_name': msg.agent_name,
-                        'provider': msg.provider,
-                        'metadata': msg.display_protected('metadata') or {},
-                        'created_at': msg.created_at.isoformat(),
+                        **history_message(msg, self.context['request'].user),
                         'protection': protection_for(msg),
                     }
                     for msg in obj.messages.all().order_by('created_at')
@@ -495,7 +489,8 @@ class AIConversationViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        AIMessage.objects.create(
+        create_message(
+            origin=Origin(request.user),
             conversation=conversation,
             role='user',
             content=user_message
@@ -506,11 +501,13 @@ class AIConversationViewSet(viewsets.ModelViewSet):
         conversation_history = [
             {'role': msg.role, 'content': msg.read_protected('content')}
             for msg in messages[:-1]
+            if readable(msg, request.user)
         ]
 
         challenge_info = None
         if conversation.challenge:
             challenge_info = {
+                'id': conversation.challenge_id,
                 'title': conversation.challenge.title,
                 'category': conversation.challenge.category.name if conversation.challenge.category else None,
                 'category_name': conversation.challenge.category.name if conversation.challenge.category else 'unknown',
@@ -536,15 +533,21 @@ class AIConversationViewSet(viewsets.ModelViewSet):
             conversation_history=conversation_history,
             existing_request_data=dict(request.data),
         )
-        ai_response = _TUTOR_REQUEST_ORCHESTRATOR.call_legacy_answer(
-            message=user_message,
-            conversation_history=conversation_history,
-            challenge_info=challenge_info,
-            teaching_context=preparation.get('teachingContext'),
-        )
+        origin = preparation['_history_origin']
+        for msg in messages[:-1]:
+            if readable(msg, request.user):
+                origin.inherit(msg)
+        with track_origin(origin):
+            ai_response = _TUTOR_REQUEST_ORCHESTRATOR.call_legacy_answer(
+                message=user_message,
+                conversation_history=conversation_history,
+                challenge_info=challenge_info,
+                teaching_context=preparation.get('teachingContext'),
+            )
 
         # æ·æ¿ç¨AIé¥ç²
-        assistant_message = AIMessage.objects.create(
+        assistant_message = create_message(
+            origin=preparation.get('_history_origin'),
             conversation=conversation,
             role='assistant',
             content=ai_response,
@@ -742,7 +745,8 @@ def multi_agent_chat(request):
         student_level = student_level or 'beginner'
 
         conversation = _get_or_create_ai_conversation(request, challenge_info)
-        AIMessage.objects.create(
+        create_message(
+            origin=Origin(request.user),
             conversation=conversation,
             role='user',
             content=message,
@@ -805,7 +809,8 @@ def multi_agent_chat(request):
                 'rag_sources': step.get('rag_sources', []),
             })
             if content.strip() and provider != 'error':
-                AIMessage.objects.create(
+                create_message(
+                    origin=preparation.get('_history_origin'),
                     conversation=conversation,
                     role='assistant',
                     content=content,
@@ -862,7 +867,8 @@ def multi_agent_chat(request):
         agent_ids = ['xiaohei']
 
     conversation = _get_or_create_ai_conversation(request, challenge_info)
-    AIMessage.objects.create(
+    create_message(
+        origin=Origin(request.user),
         conversation=conversation,
         role='user',
         content=message,
@@ -970,7 +976,8 @@ def multi_agent_chat(request):
             })
 
             if content.strip():
-                AIMessage.objects.create(
+                create_message(
+                    origin=preparation.get('_history_origin'),
                     conversation=conversation,
                     role='assistant',
                     content=content,
@@ -1144,7 +1151,8 @@ def multi_agent_chat_stream(request):
         agent_ids = ['xiaohei']
 
     conversation = _get_or_create_ai_conversation(request, challenge_info)
-    AIMessage.objects.create(
+    create_message(
+        origin=Origin(request.user),
         conversation=conversation,
         role='user',
         content=message,
@@ -1229,6 +1237,7 @@ def multi_agent_chat_stream(request):
                 responses.append(formatted)
                 if formatted['content'].strip() and formatted['provider'] != 'error':
                     await _persist_stream_message(
+                        origin=preparation.get('_history_origin'),
                         conversation=conversation,
                         role='assistant',
                         content=formatted['content'],
@@ -1320,6 +1329,11 @@ def multi_agent_chat_stream(request):
             }
         runtime_context['knowledge_context'] = knowledge_package.get('context_text')
         runtime_context['knowledge_retrieval'] = knowledge_package
+        stream_origin = preparation.get('_history_origin')
+        if stream_origin is not None:
+            stream_origin.items(knowledge_package.get('items') or [])
+            if knowledge_package.get('context_text') and not knowledge_package.get('items'):
+                stream_origin.complete = False
 
         if challenge_info:
             requested_agents = [agent_id for agent_id in agent_ids if agent_id != 'tutor']
@@ -1356,6 +1370,7 @@ def multi_agent_chat_stream(request):
             formatted = _format_agent_response(raw, service, agent_id, config.get('name', agent_id))
             if formatted['content'].strip():
                 await _persist_stream_message(
+                    origin=preparation.get('_history_origin'),
                     conversation=conversation,
                     role='assistant',
                     content=formatted['content'],
@@ -1619,7 +1634,8 @@ class TutoringSessionView(APIView):
             )
 
         conversation = _get_or_create_ai_conversation(request)
-        AIMessage.objects.create(
+        create_message(
+            origin=Origin(request.user),
             conversation=conversation,
             role='user',
             content=question,
@@ -1650,7 +1666,8 @@ class TutoringSessionView(APIView):
             content = _normalize_ai_content(step.get('content', ''))
             provider = step.get('provider', 'unknown')
             if content.strip() and provider != 'error':
-                AIMessage.objects.create(
+                create_message(
+                    origin=preparation.get('_history_origin'),
                     conversation=conversation,
                     role='assistant',
                     content=content,

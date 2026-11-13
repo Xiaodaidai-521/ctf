@@ -15,6 +15,7 @@
     </div>
 
     <template v-else>
+      <p v-if="unsavedAtExpiry" class="page-state is-error" role="alert">考试到期时仍有选择未保存；本次成绩仅包含截止前保存成功的答案。请联系教师核对。</p>
       <p v-if="error" class="page-state is-error" role="alert">
         {{ error }}<button type="button" class="text-action" @click="loadResult">重试</button>
       </p>
@@ -98,6 +99,7 @@ import { RECORDS_PATH, accuracy, examTypeLabel, examsApi, formatDuration, passCo
 const route = useRoute()
 const router = useRouter()
 const recordId = computed(() => route.params.id)
+const unsavedAtExpiry = computed(() => route.query?.unsaved === '1')
 const record = ref(null)
 const loading = ref(true)
 const error = ref('')

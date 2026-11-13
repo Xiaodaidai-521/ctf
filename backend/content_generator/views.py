@@ -5,6 +5,7 @@ from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.exceptions import ValidationError
 
 from .models import GeneratedTutorial, GeneratedQuiz, GeneratedDiagram, GeneratedCodeExercise
 from .serializers import (
@@ -14,11 +15,12 @@ from .serializers import (
     GeneratedCodeExerciseSerializer,
     CONTENT_SERIALIZER_MAP,
 )
-from .generators import ContentGeneratorService
+from .generators import ContentGeneratorService, ContentGenerationError
 
 logger = logging.getLogger(__name__)
 
 _MODEL_REGISTRY = [GeneratedTutorial, GeneratedQuiz, GeneratedDiagram, GeneratedCodeExercise]
+_TYPED_MODELS = dict(zip(('tutorial', 'quiz', 'diagram', 'exercise'), _MODEL_REGISTRY))
 
 
 def _resolve_concept(topic):
@@ -85,13 +87,21 @@ def _get_serializer_for_instance(instance):
     return None
 
 
-def _get_owned_content(content_id, user):
-    instance, model = _find_content_by_id(content_id)
-    if instance is None:
-        return None, None
-    if instance.created_by_id and instance.created_by_id != user.id and not user.is_staff:
-        return None, None
-    return instance, model
+def _get_owned_content(content_id, user, content_type=None):
+    if content_type is not None and content_type not in _TYPED_MODELS:
+        raise ValidationError({'content_type': '请选择 tutorial/quiz/diagram/exercise。'})
+    models = [_TYPED_MODELS[content_type]] if content_type else _MODEL_REGISTRY
+    matches = []
+    for model in models:
+        qs = model.objects.filter(pk=content_id)
+        if not user.is_staff:
+            qs = qs.filter(created_by=user)
+        instance = qs.first()
+        if instance is not None:
+            matches.append((instance, model))
+    if len(matches) > 1:
+        raise ValidationError({'content_type': '该编号对应多类内容，请指定 content_type。'})
+    return matches[0] if matches else (None, None)
 
 
 # ------------------------------------------------------------------
@@ -117,6 +127,9 @@ class GenerateTutorialView(APIView):
             tutorial = _run_async(service.generate_tutorial(
                 topic_name or topic, difficulty, concept, request.user
             ))
+        except ContentGenerationError as exc:
+            return Response({'error': str(exc), 'code': 'content_generation_failed', 'retryable': True},
+                            status=status.HTTP_502_BAD_GATEWAY)
         except Exception as exc:
             logger.exception('生成教程失败')
             return Response({'error': f'生成失败: {str(exc)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -150,6 +163,9 @@ class GenerateQuizView(APIView):
             quiz = _run_async(service.generate_quiz(
                 topic_name or topic, question_count, difficulty, concept, request.user
             ))
+        except ContentGenerationError as exc:
+            return Response({'error': str(exc), 'code': 'content_generation_failed', 'retryable': True},
+                            status=status.HTTP_502_BAD_GATEWAY)
         except Exception as exc:
             logger.exception('生成测验失败')
             return Response({'error': f'生成失败: {str(exc)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -181,6 +197,9 @@ class GenerateDiagramView(APIView):
             diagram = _run_async(service.generate_diagram(
                 topic_name or topic, diagram_type, 'medium', concept, request.user
             ))
+        except ContentGenerationError as exc:
+            return Response({'error': str(exc), 'code': 'content_generation_failed', 'retryable': True},
+                            status=status.HTTP_502_BAD_GATEWAY)
         except Exception as exc:
             logger.exception('生成图表失败')
             return Response({'error': f'生成失败: {str(exc)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -209,6 +228,9 @@ class GenerateExerciseView(APIView):
             exercise = _run_async(service.generate_exercise(
                 topic_name or topic, language, difficulty, concept, request.user
             ))
+        except ContentGenerationError as exc:
+            return Response({'error': str(exc), 'code': 'content_generation_failed', 'retryable': True},
+                            status=status.HTTP_502_BAD_GATEWAY)
         except Exception as exc:
             logger.exception('生成练习失败')
             return Response({'error': f'生成失败: {str(exc)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -224,8 +246,8 @@ class GenerateExerciseView(APIView):
 class GeneratedContentDetailView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, pk):
-        instance, _model = _get_owned_content(pk, request.user)
+    def get(self, request, pk, content_type=None):
+        instance, _model = _get_owned_content(pk, request.user, content_type or request.query_params.get('content_type'))
         if instance is None:
             return Response({'error': '内容不存在'}, status=status.HTTP_404_NOT_FOUND)
 
@@ -240,8 +262,9 @@ class GeneratedContentDetailView(APIView):
 class RegenerateContentView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def post(self, request, pk):
-        instance, model_cls = _get_owned_content(pk, request.user)
+    def post(self, request, pk, content_type=None):
+        instance, model_cls = _get_owned_content(pk, request.user,
+            content_type or request.data.get('content_type') or request.query_params.get('content_type'))
         if instance is None:
             return Response({'error': '内容不存在'}, status=status.HTTP_404_NOT_FOUND)
 
@@ -255,6 +278,7 @@ class RegenerateContentView(APIView):
                     params.get('difficulty', 'medium'),
                     instance.topic,
                     request.user,
+                    bypass_cache=True,
                 ))
                 serializer_cls = GeneratedTutorialSerializer
             elif isinstance(instance, GeneratedQuiz):
@@ -264,6 +288,7 @@ class RegenerateContentView(APIView):
                     params.get('difficulty', 'medium'),
                     instance.topic,
                     request.user,
+                    bypass_cache=True,
                 ))
                 serializer_cls = GeneratedQuizSerializer
             elif isinstance(instance, GeneratedDiagram):
@@ -273,6 +298,7 @@ class RegenerateContentView(APIView):
                     params.get('difficulty', 'medium'),
                     instance.topic,
                     request.user,
+                    bypass_cache=True,
                 ))
                 serializer_cls = GeneratedDiagramSerializer
             elif isinstance(instance, GeneratedCodeExercise):
@@ -282,10 +308,14 @@ class RegenerateContentView(APIView):
                     params.get('difficulty', 'medium'),
                     instance.topic,
                     request.user,
+                    bypass_cache=True,
                 ))
                 serializer_cls = GeneratedCodeExerciseSerializer
             else:
                 return Response({'error': '未知内容类型'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        except ContentGenerationError as exc:
+            return Response({'error': str(exc), 'code': 'content_generation_failed', 'retryable': True},
+                            status=status.HTTP_502_BAD_GATEWAY)
         except Exception as exc:
             logger.exception('重新生成失败')
             return Response({'error': f'重新生成失败: {str(exc)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

@@ -73,7 +73,6 @@
   --control-height: 40px;
   --icon-size: 20px;
   --avatar-size: 40px;
-  --pet-size: 56px;
   --reading-width: 880px;
   --page-width: 1280px;
   --form-width: 448px;
@@ -94,7 +93,6 @@
   --motion-loop: 1200ms;
   --z-overlay: 1000;
   --z-header: 100;
-  --z-pet: 110;
   --page-gutter: var(--space-4);
   --density-gap: var(--space-3);
 

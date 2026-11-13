@@ -90,12 +90,12 @@ def read_resource_body(resource: Resource) -> str:
     if not resource.file.name:
         return ""
 
-    media_path = Path(settings.MEDIA_ROOT) / resource.file.name
-    suffix = media_path.suffix.lower()
-    if suffix in TEXT_SUFFIXES and media_path.exists():
-        return media_path.read_text(encoding="utf-8-sig")
+    filename = Path(resource.file.name)
+    if filename.suffix.lower() in TEXT_SUFFIXES and resource.file.storage.exists(resource.file.name):
+        with resource.file.open('rb') as content:
+            return content.read().decode('utf-8-sig')
 
-    return VISIBLE_TEXT_BY_FILENAME.get(media_path.name, "")
+    return VISIBLE_TEXT_BY_FILENAME.get(filename.name, "")
 
 
 def is_image_resource(resource: Resource) -> bool:

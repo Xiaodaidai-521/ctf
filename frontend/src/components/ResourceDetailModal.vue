@@ -79,7 +79,6 @@
             </div>
             <ProtectionBadge :status="resource?.protection?.file" label="文件已加密保存" />
             <ProtectionBadge :status="resource?.protection?.cover_image" label="封面已加密保存" />
-            <router-link :to="{ path: '/profile/exports', query: { resource: resourceId } }">查看导出任务</router-link>
 
             <div v-if="showPreview && canPreview" class="preview-section">
               <div class="preview-header"><h3>资源预览</h3></div>
@@ -92,10 +91,10 @@
 
                 <!-- 保留原预览类型与加载事件；错误提示在所有类型中可见。 -->
                 <div v-if="resource?.resource_type === 'document' && isImageFile" class="preview-image">
-                  <img :src="resource.file_url" :alt="resource.title" @error="handlePreviewError" />
+                  <img :key="resource.file_url" :src="resource.file_url" :alt="resource.title" @error="handlePreviewError" />
                 </div>
                 <div v-else-if="resource?.resource_type === 'video'" class="preview-video">
-                  <video controls :src="resource.file_url" preload="metadata" @error="handlePreviewError">您的浏览器不支持视频播放</video>
+                  <video :key="resource.file_url" controls :src="resource.file_url" preload="metadata" @error="handlePreviewError">您的浏览器不支持视频播放</video>
                 </div>
                 <div v-else-if="resource?.resource_type === 'ai_resource'" class="ai-resource-preview">
                   <p v-if="previewLoading" class="preview-loading" role="status"><icon-loading class="loading-icon" aria-hidden="true" /> 正在读取资源内容…</p>
@@ -133,7 +132,7 @@
 
 <script setup>
 import ProtectionBadge from '@/shared/privacy/ProtectionBadge.vue'
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onBeforeUnmount } from 'vue'
 import { marked } from 'marked'
 import DOMPurify from 'dompurify'
 import api from '@/api'
@@ -160,6 +159,8 @@ const showPreview = ref(false)
 const previewError = ref('')
 const previewLoading = ref(false)
 const previewMarkdown = ref('')
+let requestVersion = 0
+let previewVersion = 0
 
 const highlightParams = computed(() => props.highlightResourceId
   ? { highlight_resource: props.highlightResourceId }
@@ -191,14 +192,14 @@ const displayUploaderInitial = computed(() => displayUploaderName.value.charAt(0
 const isMindMap = computed(() => resource.value?.tags_list?.includes('思维导图'))
 
 const isImageFile = computed(() => {
-  if (!resource.value?.file_name) return false
-  const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.svg']
-  const fileName = resource.value.file_name.toLowerCase()
+  const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp']
+  if (resource.value?.file_type) return imageExtensions.includes(resource.value.file_type.toLowerCase())
+  const fileName = resource.value?.file_name?.toLowerCase() || ''
   return imageExtensions.some(ext => fileName.endsWith(ext))
 })
 
 const canPreview = computed(() => {
-  if (!resource.value) return false
+  if (!resource.value?.file_url) return false
   const type = resource.value.resource_type
   // 视频和图片可以预览
   if (type === 'ai_resource' || type === 'video' || (type === 'document' && isImageFile.value)) {
@@ -210,23 +211,31 @@ const canPreview = computed(() => {
 const previewHtml = computed(() => DOMPurify.sanitize(marked.parse(previewMarkdown.value || '暂无可预览内容。')))
 
 const fetchResource = async () => {
+  const version = requestVersion
+  const id = props.resourceId
+  const params = highlightParams.value
   loading.value = true
   try {
-    resource.value = await api.resource.detail(props.resourceId, highlightParams.value)
+    const detail = await api.resource.detail(id, params)
+    if (version !== requestVersion) return
+    resource.value = detail
     if (resource.value?.resource_type === 'ai_resource') {
       showPreview.value = true
       await loadAiPreview()
     }
   } catch (error) {
+    if (version !== requestVersion) return
     console.error('获取资源详情失败:', error)
     message.value = '获取资源失败'
     messageType.value = 'error'
   } finally {
-    loading.value = false
+    if (version === requestVersion) loading.value = false
   }
 }
 
-const handleClose = () => emit('close')
+const invalidateRequests = () => { requestVersion++; previewVersion++ }
+const handleClose = () => { invalidateRequests(); emit('close') }
+onBeforeUnmount(invalidateRequests)
 
 const togglePreview = () => {
   showPreview.value = !showPreview.value
@@ -239,15 +248,23 @@ const togglePreview = () => {
 }
 
 const loadAiPreview = async () => {
+  const version = requestVersion
+  const preview = ++previewVersion
+  const id = resource.value?.id
+  const params = highlightParams.value
+  const current = () => version === requestVersion && preview === previewVersion && resource.value?.id === id
   previewLoading.value = true
   try {
-    const response = await api.resource.download(props.resourceId, highlightParams.value)
-    previewMarkdown.value = await response.data.text()
+    const response = await api.resource.download(id, params)
+    if (!current()) return
+    const text = await response.data.text()
+    if (current()) previewMarkdown.value = text
   } catch (error) {
+    if (!current()) return
     previewError.value = '无法读取资源内容，请稍后重试'
     console.error('AI 资源预览加载失败:', error)
   } finally {
-    previewLoading.value = false
+    if (current()) previewLoading.value = false
   }
 }
 
@@ -258,15 +275,18 @@ const handlePreviewError = (event) => {
 
 const handleDownload = async () => {
   if (!resource.value) return
+  const version = requestVersion
+  const currentResource = resource.value
   downloading.value = true
   message.value = ''
   try {
-    const response = await api.resource.download(props.resourceId, highlightParams.value)
+    const response = await api.resource.download(currentResource.id, highlightParams.value)
+    if (version !== requestVersion) return
     const contentDisposition = response.headers['content-disposition'] || ''
     const fileNameMatch = contentDisposition.match(/filename\*?=(?:UTF-8''|\")?([^;\"]+)/i)
     const fileName = fileNameMatch
       ? decodeURIComponent(fileNameMatch[1].trim())
-      : resource.value.file_name || 'resource-download'
+      : currentResource.file_name || 'resource-download'
     const url = URL.createObjectURL(response.data)
     message.value = '下载链接已生成'
     messageType.value = 'success'
@@ -278,10 +298,11 @@ const handleDownload = async () => {
     link.remove()
     URL.revokeObjectURL(url)
   } catch (error) {
+    if (version !== requestVersion) return
     message.value = '下载失败，请稍后重试'
     messageType.value = 'error'
   } finally {
-    downloading.value = false
+    if (version === requestVersion) downloading.value = false
   }
 }
 
@@ -295,12 +316,17 @@ const formatFileSize = (bytes) => {
 }
 
 watch([() => props.resourceId, () => props.highlightResourceId], ([newId]) => {
+  invalidateRequests()
+  resource.value = null
+  loading.value = false
+  previewLoading.value = false
+  downloading.value = false
+  message.value = ''
+  messageType.value = ''
+  previewMarkdown.value = ''
+  previewError.value = ''
+  showPreview.value = false
   if (newId) {
-    message.value = ''
-    messageType.value = ''
-    previewMarkdown.value = ''
-    previewError.value = ''
-    showPreview.value = false
     fetchResource()
   }
 }, { immediate: true })

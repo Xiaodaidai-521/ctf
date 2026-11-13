@@ -27,7 +27,11 @@ class CorrectionHandoffEventTests(TestCase):
                                              'shown': True}})
         raw_id = f'm6-dispatch-{changed.corrected_result.result_id}-{changed.corrected_result.revision}-{changed.correction_id}'
         self.assertGreater(len(raw_id), 64)
-        events = LearningEvent.objects.filter(event_id__startswith='m6-dispatch-')
+        # Delivery acknowledgements carry the number of M1 facts sent. Their
+        # bounded IDs are opaque; do not depend on a retired readable prefix.
+        events = LearningEvent.objects.filter(
+            event_type='verification_result', metadata__module1_sent=1,
+        )
         self.assertEqual(events.count(), 2)
         event = events.get(metadata__result_id=str(changed.corrected_result.result_id))
         self.assertLessEqual(len(event.event_id), 64)

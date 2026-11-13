@@ -10,9 +10,10 @@ COOKIE_NAME = 'challenge_access'
 def build_access_url(container):
     if container.runtime_metadata.get('profile') == 'juice-shop':
         return container.access_url if container.is_running else ''
-    host = getattr(settings, 'CONTAINER_PROXY_HOST', 'localhost:8000')
+    host = getattr(settings, 'CONTAINER_PROXY_HOST', '').strip()
     scheme = getattr(settings, 'CONTAINER_PROXY_SCHEME', 'http')
-    return f'{scheme}://{host}/challenge/{container.user_id}-{container.container_id}/'
+    path = f'/challenge/{container.user_id}-{container.container_id}/'
+    return f'{scheme}://{host}{path}' if host else path
 
 
 def build_access_cookie_value(container):

@@ -65,7 +65,6 @@
           <!-- 标题栏 -->
           <div class="content-header">
             <h2 class="content-title">{{ currentMenu?.label }}</h2>
-            <nav aria-label="个人数据"><router-link to="/profile/memories">我的 AI 记忆</router-link> · <router-link to="/profile/exports">导出记录</router-link> · <router-link to="/privacy">隐私与数据保护</router-link></nav>
           </div>
 
           <!-- 收藏列表 -->

@@ -1,0 +1,13 @@
+{
+  "command": [
+    "D:\\aaa10\\16015478\u6e90\u7801\\project-code\\.state\\full-audit-20261113\\venv\\Scripts\\python.exe",
+    "-B",
+    "D:\\aaa10\\16015478\u6e90\u7801\\project-code\\tools\\full_audit\\unit_entry.py",
+    "ctf_backend.test_bootstrap_permissions",
+    "data_security.tests.test_windows_private_keys"
+  ],
+  "exit_code": 0,
+  "elapsed_seconds": 1.66,
+  "synthetic_only": true,
+  "test_database": "test_logic_fix_bootstrap_windows"
+}

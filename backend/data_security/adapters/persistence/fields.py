@@ -1,8 +1,10 @@
 """Explicit owner-model storage adapter; no HTTP, key lookup, or implicit decryption."""
+from copy import copy
 from datetime import datetime, timezone
 from uuid import uuid4
 
-from django.db import models, transaction
+from django.db import models, router, transaction
+from django.db.models.functions import Trim
 
 from data_security.contracts import (BASELINE_LIMITS, BoundedPayload, CipherEnvelope, Environment,
     FrozenJSON, MediaType, ObjectContext, PayloadKind, ProtectionError, ReasonCode)
@@ -112,6 +114,13 @@ class ProtectedQuerySet(models.QuerySet):
         candidates = self.filter(models.Q(email_index__in=indexes) |
                                  models.Q(email_index_previous__in=indexes))
         matched = [item.pk for item in candidates if _adapter.read(item, 'email') == normalized]
+        if getattr(_adapter, 'legacy_reads', False):
+            # Preserve the caller's authorization/filter scope while the
+            # background backfill is still working through pre-encryption rows.
+            legacy = self.filter(security_state='legacy-v0').alias(
+                _legacy_email=Trim('email')).filter(_legacy_email__iexact=normalized)
+            matched.extend(item.pk for item in legacy.only('pk', 'email').iterator()
+                           if normalize_email(item.email) == normalized)
         return self.filter(pk__in=matched)
 
     def update(self, **kwargs):
@@ -176,15 +185,34 @@ class ProtectedModel(models.Model):
         if _adapter is None:
             require(self.security_state == 'legacy-v0', ReasonCode.KEY_UNAVAILABLE)
             return super().save(*args, **kwargs)
-        # Existing plaintext is changed only by the backup-gated maintenance entry.
-        require(self._state.adding or self.security_state != 'legacy-v0' or legacy_migration,
+        # Formal adapters retain their backup-gated migration requirement. The
+        # ordinary application adapter explicitly supports encrypting legacy
+        # rows as part of the same transaction as a business update.
+        require(self._state.adding or self.security_state != 'legacy-v0' or legacy_migration
+                or getattr(_adapter, 'migrate_on_write', False),
                 ReasonCode.SOURCE_NOT_APPROVED)
         update_fields = kwargs.get('update_fields')
         if update_fields is not None and not update_fields:
             return
-        with transaction.atomic(using=kwargs.get('using') or self._state.db):
+        original = self.__dict__.copy()
+        original['_security_dirty'] = self._security_dirty.copy()
+        original['_state'] = copy(self._state)
+        try:
+            return self._save_protected(*args, _legacy_migration=legacy_migration, **kwargs)
+        except Exception:
+            # A failed seal or database write must not replace the caller's
+            # pending plaintext with empty columns before a retry.
+            self.__dict__.clear()
+            self.__dict__.update(original)
+            raise
+
+    def _save_protected(self, *args, _legacy_migration=False, **kwargs):
+        update_fields = kwargs.get('update_fields')
+        using = kwargs.get('using') or router.db_for_write(type(self), instance=self)
+        kwargs['using'] = using
+        with transaction.atomic(using=using):
             if not self._state.adding:
-                current = type(self)._base_manager.select_for_update().values_list('security_revision', flat=True).get(pk=self.pk)
+                current = type(self)._base_manager.using(using).select_for_update().values_list('security_revision', flat=True).get(pk=self.pk)
                 require(current == self.security_revision, ReasonCode.IDEMPOTENCY_CONFLICT)
             revision = self.security_revision + 1
             migrating = self._state.adding or self.security_state == 'legacy-v0'
@@ -201,7 +229,7 @@ class ProtectedModel(models.Model):
                     value = normalize_email(value)
                     self.email_index, self.email_index_previous = _adapter.email_indexes(self, value)
                     changed.update(('email_index', 'email_index_previous'))
-                envelopes[name] = _adapter.seal(self, name, value, revision, enroll=not legacy_migration)
+                envelopes[name] = _adapter.seal(self, name, value, revision, enroll=not _legacy_migration)
                 setattr(self, name, {} if isinstance(self._meta.get_field(name), models.JSONField) else '')
                 changed.add(name)
             for name in self.redacted_fields:
@@ -217,5 +245,8 @@ class ProtectedModel(models.Model):
                 kwargs['update_fields'] = set(update_fields) | changed | {
                     'security_envelopes', 'security_revision', 'security_state'}
             result = super().save(*args, **kwargs)
-            self._security_dirty.clear()
+            # Django's update_fields intentionally leaves excluded edits in
+            # memory. They must still be encrypted when a later save includes
+            # them, instead of being silently forgotten or written as plaintext.
+            self._security_dirty.difference_update(selected)
             return result

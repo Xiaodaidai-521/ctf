@@ -21,6 +21,7 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
+from data_security.runtime.storage import protected_storage
 
 from . import constants
 
@@ -238,7 +239,7 @@ class FeedbackAttachment(models.Model):
     ticket = models.ForeignKey(
         FeedbackTicket, on_delete=models.CASCADE, related_name='attachments', verbose_name='反馈工单',
     )
-    file = models.FileField(upload_to=feedback_attachment_path, verbose_name='受控文件')
+    file = models.FileField(upload_to=feedback_attachment_path, storage=protected_storage, verbose_name='受控文件')
     private_file = models.JSONField(default=dict, blank=True, editable=False)
     original_name = models.CharField(max_length=255, verbose_name='原始文件名')
     content_type = models.CharField(max_length=128, blank=True, verbose_name='内容类型')

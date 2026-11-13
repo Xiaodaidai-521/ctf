@@ -60,9 +60,9 @@ def read_resource_body(resource: Resource) -> str:
     if not resource.file.name:
         return ""
 
-    media_path = Path(settings.MEDIA_ROOT) / resource.file.name
-    if media_path.suffix.lower() in TEXT_SUFFIXES and media_path.exists():
-        return media_path.read_text(encoding="utf-8-sig")
+    if Path(resource.file.name).suffix.lower() in TEXT_SUFFIXES and resource.file.storage.exists(resource.file.name):
+        with resource.file.open('rb') as content:
+            return content.read().decode('utf-8-sig')
     return ""
 
 

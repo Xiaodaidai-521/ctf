@@ -141,5 +141,7 @@ export function contentFailure(error) {
 export function regeneratedTarget(currentId, payload) {
   const id = finiteNumber(payload?.id)
   if (id === null) return { ok: false, id: null, changed: false, to: '' }
-  return { ok: true, id, changed: String(id) !== String(currentId), to: `/content/${id}` }
+  const type = payload?.content_type
+  const suffix = Object.hasOwn(CONTENT_META, type) ? `?content_type=${encodeURIComponent(type)}` : ''
+  return { ok: true, id, changed: String(id) !== String(currentId), to: `/content/${id}${suffix}` }
 }

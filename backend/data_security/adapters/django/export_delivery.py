@@ -59,8 +59,6 @@ def resource_export(request, operation):
 def export_records(request):
     """Only current subject grants; a role never expands this list."""
     owner = export_delivery()
-    if isinstance(owner, ProtectionError):
-        return private_file_error(owner)
     try:
         require(not set(request.query_params) - {'offset', 'resource_id'}, ReasonCode.INVALID_VALUE)
         require(all(len(request.query_params.getlist(key)) == 1 for key in request.query_params), ReasonCode.INVALID_VALUE)
@@ -72,6 +70,13 @@ def export_records(request):
             require(resource_id > 0, ReasonCode.INVALID_VALUE)
     except (ContractViolation, ValueError):
         return Response({'code': 'INVALID_VALUE'}, status=400)
+    if isinstance(owner, ProtectionError):
+        from legal.services import report_exports
+        if report_exports.enabled():
+            result = ({'items': [], 'next_offset': None} if resource_id is not None
+                      else report_exports.records(request.user, offset))
+            return Response(result, headers={'Cache-Control': 'no-store, private'})
+        return private_file_error(owner)
     from resources.models import ExportSourcePermission
     permissions = ExportSourcePermission.objects.filter(actor_ref='user/' + str(request.user.pk),
         revoked_at__isnull=True, expires_at__gt=timezone.now(), source__revoked_at__isnull=True,

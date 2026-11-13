@@ -11,6 +11,7 @@ from rest_framework.exceptions import ValidationError
 from challenges.models import Challenge
 from users.permissions import IsAdminRole
 import random
+from .pools import gradable_challenges
 
 from .models import (
     ExamLevelRule, TheoryQuestion, PracticeExam, PracticeExamQuestion,
@@ -109,22 +110,37 @@ class PracticeExamViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(created_by=self.request.user)
 
+    @transaction.atomic
+    def perform_destroy(self, instance):
+        exam = PracticeExam.objects.select_for_update().get(pk=instance.pk)
+        if exam.records.exists():
+            raise ValidationError('这份试卷已有考试记录，请归档并新建试卷，不能删除历史。')
+        exam.delete()
+
     @action(detail=True, methods=['post'])
     @transaction.atomic
     def generate_questions(self, request, pk=None):
         """Generate practice exam questions by difficulty."""
         exam = self.get_object()
+        exam = PracticeExam.objects.select_for_update().get(pk=exam.pk)
+        if exam.records.exists():
+            raise ValidationError('这份试卷已有考试记录，请新建试卷后组题，不能替换历史试题。')
 
-        easy_questions = Challenge.objects.filter(difficulty='easy', is_active=True)
-        medium_questions = Challenge.objects.filter(difficulty='medium', is_active=True)
-        hard_questions = Challenge.objects.filter(difficulty='hard', is_active=True)
+        easy_questions = gradable_challenges('easy')
+        medium_questions = gradable_challenges('medium')
+        hard_questions = gradable_challenges('hard')
         if min(exam.easy_count, exam.medium_count, exam.hard_count) < 0:
             raise ValidationError('题目数量不能为负数。')
 
         # 闅忔満閫夋嫨棰樼洰
-        selected_easy = random.sample(list(easy_questions), min(exam.easy_count, easy_questions.count()))
-        selected_medium = random.sample(list(medium_questions), min(exam.medium_count, medium_questions.count()))
-        selected_hard = random.sample(list(hard_questions), min(exam.hard_count, hard_questions.count()))
+        if any(len(pool) < count for pool, count in (
+            (easy_questions, exam.easy_count), (medium_questions, exam.medium_count),
+            (hard_questions, exam.hard_count),
+        )):
+            raise ValidationError('可判题的实战题目不足，请补充已启用且具有有效 Flag 的题目。')
+        selected_easy = random.sample(easy_questions, exam.easy_count)
+        selected_medium = random.sample(medium_questions, exam.medium_count)
+        selected_hard = random.sample(hard_questions, exam.hard_count)
 
         # 鍚堝苟棰樼洰
         all_questions = []
@@ -143,13 +159,16 @@ class PracticeExamViewSet(viewsets.ModelViewSet):
                 challenge=challenge,
                 order=order
             )
+        exam.total_points = sum(challenge.score for challenge, _ in all_questions)
+        exam.save(update_fields=['total_points', 'updated_at'])
 
         return Response({
             'message': '题目生成成功',
             'total': len(all_questions),
             'easy': len(selected_easy),
             'medium': len(selected_medium),
-            'hard': len(selected_hard)
+            'hard': len(selected_hard),
+            'total_points': exam.total_points,
         })
 
     @action(detail=True, methods=['get'])
@@ -227,7 +246,7 @@ class TheoryExamViewSet(viewsets.ModelViewSet):
 
         return Response({
             'total': records.count(),
-            'records': ExamRecordSerializer(records, many=True).data
+            'records': ExamRecordSerializer(records, many=True, context={'request': request}).data
         })
 
 
@@ -281,7 +300,7 @@ class ExamRecordViewSet(viewsets.ModelViewSet):
 
         return Response({
             'total': records.count(),
-            'records': ExamRecordSerializer(records, many=True).data
+            'records': self.get_serializer(records, many=True).data
         })
 
     @action(detail=False, methods=['get'])
@@ -356,9 +375,10 @@ class ExamRecordViewSet(viewsets.ModelViewSet):
             ).first()
             if practice_record:
                 practice_record.status = 'in_progress'
-                practice_record.save(update_fields=['status'])
+                practice_record.start_time = timezone.now()
+                practice_record.save(update_fields=['status', 'start_time'])
 
-        serializer = ExamRecordSerializer(record)
+        serializer = self.get_serializer(record)
         return Response(serializer.data)
 
     @action(detail=True, methods=['post'])
@@ -402,14 +422,14 @@ class ExamRecordViewSet(viewsets.ModelViewSet):
             user_answer = data['user_answer'].strip()
             correct_answer = question.read_protected('correct_answer')
 
-            if question.question_type == 'single_choice':
+            if user_answer and question.question_type == 'single_choice':
                 is_correct = user_answer == correct_answer
-            elif question.question_type == 'multiple_choice':
+            elif user_answer and question.question_type == 'multiple_choice':
                 # 澶氶€夌瓟妗堢敤閫楀彿鍒嗛殧锛岄渶瑕佹帓搴忓悗姣旇緝
                 user_answers = sorted([a.strip() for a in user_answer.split(',')])
                 correct_answers = sorted([a.strip() for a in correct_answer.split(',')])
                 is_correct = user_answers == correct_answers
-            elif question.question_type == 'true_false':
+            elif user_answer and question.question_type == 'true_false':
                 is_correct = user_answer.lower() == correct_answer.lower()
 
             points_earned = exam_question.points if is_correct else 0
@@ -451,12 +471,14 @@ class ExamRecordViewSet(viewsets.ModelViewSet):
             }
         )
 
-        return Response({
-            'is_correct': is_correct,
-            'points_earned': points_earned,
+        result = {
+            'saved': True,
             'answer_id': exam_answer.id,
             'protection': protection_for(exam_answer),
-        })
+        }
+        if record.exam_type != 'theory':
+            result.update(is_correct=is_correct, points_earned=points_earned)
+        return Response(result)
 
     @action(detail=True, methods=['get'])
     def result(self, request, pk=None):
@@ -466,7 +488,7 @@ class ExamRecordViewSet(viewsets.ModelViewSet):
         if record.user != request.user:
             return Response({'error': '鏃犳潈鏌ョ湅姝よ€冭瘯缁撴灉'}, status=403)
 
-        serializer = ExamRecordSerializer(record)
+        serializer = self.get_serializer(record)
         return Response(serializer.data)
 
     @action(detail=False, methods=['get'])

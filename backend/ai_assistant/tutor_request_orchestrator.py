@@ -15,6 +15,7 @@ from agents.specialists.tutor_executor import TutorSpecialistExecutor
 from agents.task_plan import QUESTION_ANSWER, execution_plan_for
 from .performance import TutorPerformanceMetrics, activate_metrics, log_metrics
 from .response_adapter import build_compatible_chat_response
+from .history import preparation_origin, track_origin
 
 logger = logging.getLogger(__name__)
 
@@ -111,6 +112,7 @@ class TutorRequestOrchestrator:
         )
         return {
             "route": route, "specialists": specialists, "teachingContext": teaching_context,
+            "_history_origin": preparation_origin(user, specialists, challenge_info, request_data),
             "fallbackReasons": fallback_reasons,
             "durationMs": round((time.monotonic() - started) * 1000, 2),
             "conversation": conversation, "performanceMetrics": metrics,
@@ -128,6 +130,10 @@ class TutorRequestOrchestrator:
             return service.chat(user_message=message, conversation_history=conversation_history, challenge_info=challenge_info)
 
     def call_existing_answer_chain(self, preparation, answer_chain):
+        with track_origin(preparation.get('_history_origin')):
+            return self._call_existing_answer_chain(preparation, answer_chain)
+
+    def _call_existing_answer_chain(self, preparation, answer_chain):
         teaching_context = preparation.get("teachingContext")
         try:
             return answer_chain(teaching_context)
@@ -142,6 +148,10 @@ class TutorRequestOrchestrator:
             return answer_chain(None)
 
     async def call_existing_answer_chain_async(self, preparation, answer_chain):
+        with track_origin(preparation.get('_history_origin')):
+            return await self._call_existing_answer_chain_async(preparation, answer_chain)
+
+    async def _call_existing_answer_chain_async(self, preparation, answer_chain):
         teaching_context = preparation.get("teachingContext")
         try:
             return await answer_chain(teaching_context)

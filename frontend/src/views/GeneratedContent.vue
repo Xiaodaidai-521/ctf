@@ -61,10 +61,10 @@ const result = computed(() => quizResult(view.value.questions, answers.value))
 const renderedMarkdown = computed(() => sanitizeHtml(marked(view.value.rawContent)))
 const resetPractice = () => { answers.value = {}; submitted.value = false }
 const fetchContent = async () => {
-  const reading = ++generation, id = route.params.id
+  const reading = ++generation, id = route.params.id, contentType = route.query.content_type
   loading.value = true; content.value = null; failure.value = null; resetPractice()
   try {
-    const response = await api.content.getDetail(id)
+    const response = await api.content.getDetail(id, { content_type: contentType })
     if (!guard.current() || reading !== generation || id !== route.params.id) return
     content.value = response
   } catch (error) {
@@ -78,7 +78,7 @@ const handleRegenerate = async () => {
   const id = route.params.id, reading = generation
   regenerating.value = true
   try {
-    const response = await api.content.regenerate(id, {})
+    const response = await api.content.regenerate(id, { content_type: content.value?.content_type || route.query.content_type })
     if (!guard.current() || reading !== generation || id !== route.params.id) return
     const target = regeneratedTarget(id, response)
     if (!target.ok) { Message.error('服务未返回可打开的生成内容，请重新读取。'); return }
@@ -92,7 +92,7 @@ const handleRegenerate = async () => {
   }
 }
 const submitQuiz = () => { submitted.value = true }
-watch(() => route.params.id, fetchContent)
+watch(() => [route.params.id, route.query.content_type], fetchContent)
 onMounted(fetchContent)
 onBeforeUnmount(guard.dispose)
 </script>

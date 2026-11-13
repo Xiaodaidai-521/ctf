@@ -10,6 +10,7 @@ the server.
 import hashlib
 
 from django.contrib.auth import get_user_model
+from django.core.exceptions import SuspiciousFileOperation
 from django.db import DatabaseError, connection
 from django.db.models import Case, IntegerField, Q, Value, When
 from django.http import FileResponse
@@ -23,6 +24,7 @@ from rest_framework.views import APIView
 
 from data_security.contracts import ProtectionError
 from data_security.adapters.django.protection_status import private_file_status
+from data_security.runtime.storage import enabled as runtime_files_enabled
 from data_security.adapters.django.private_files import (
     create_private_share, operation_response, private_file_error, private_file_response, private_files, upload_operation_id,
 )
@@ -115,6 +117,8 @@ def _attachment_payload(attachment, audience, user=None):
         return None
     protection = {'file': {'storage': 'legacy' if attachment.file else 'unknown'}}
     owner = private_files('feedback')
+    if owner is None and runtime_files_enabled():
+        protection['file'] = attachment.file.storage.protection_status(attachment.file.name)
     if user is not None and owner is not None and not isinstance(owner, ProtectionError):
         inspected = owner.authenticated_reference(user=user, ticket_id=attachment.ticket_id,
                                                   attachment_id=attachment.attachment_id)
@@ -753,14 +757,19 @@ class FeedbackAttachmentDownloadView(APIView):
         if attachment.private_file or not attachment.file:
             _log_access(ticket, request.user, constants.ATTACHMENT_DOWNLOAD_ACTION, allowed=False, note='not_ready')
             return Response({'detail': '附件暂不可下载。'}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+        try:
+            attachment.file.open('rb')
+        except (OSError, ValueError, SuspiciousFileOperation):
+            return Response({'detail': '附件暂不可下载。'}, status=status.HTTP_409_CONFLICT)
         _log_access(ticket, request.user, constants.ATTACHMENT_DOWNLOAD_ACTION, allowed=True)
         response = FileResponse(
-            attachment.file.open('rb'),
+            attachment.file,
             as_attachment=True,
             filename=attachment.original_name,
             content_type='application/octet-stream',
         )
         response['X-Content-Type-Options'] = 'nosniff'
+        response['Cache-Control'] = 'no-store, private'
         return response
 
 

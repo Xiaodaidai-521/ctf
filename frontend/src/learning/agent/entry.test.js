@@ -6,37 +6,29 @@ import { openTutor, subscribeTutor } from './public.js'
 import { setPageContext, requestTutorDrawer, closeTutorDrawer, resetTutorHost, tutorDrawerSnapshot } from './host.js'
 
 const appSource = readFileSync(new URL('../../App.vue', import.meta.url), 'utf8')
-const petSource = readFileSync(new URL('./TutorPet.vue', import.meta.url), 'utf8')
-const platformPetSource = readFileSync(new URL('../../components/PlatformPet.vue', import.meta.url), 'utf8')
 const hostSource = readFileSync(new URL('./components/TutorHost.vue', import.meta.url), 'utf8')
 const drawerSource = readFileSync(new URL('./components/TutorDrawer.vue', import.meta.url), 'utf8')
 const exam = page => /^\/exam-taking[^/]*/.test(page)
 
-test('exam-taking preserves the pet but disables tutoring and keeps the drawer closed', () => {
-  // 六期跨页保留宠物；正式测评继续禁止在宠物处问答，不破坏独立作答边界。
-  assert.match(appSource, /<TutorPet v-if="user\.isAuthenticated"[^>]*:exam-page="examPage"/)
-  assert.match(platformPetSource, /<form v-if="!examPage"/)
-  assert.match(platformPetSource, /props\.session\.restoring \|\| props\.examPage\) return/)
+test('exam-taking disables the teaching drawer after pet removal', () => {
+  assert.doesNotMatch(appSource, /<TutorPet|usePetStore/)
   assert.match(appSource, /<TutorDrawer v-if="role === 'student' && !examPage"/)
   assert.match(appSource, /const examPage = computed\(\(\) => route\.path\.startsWith\('\/exam-taking'\)\)/)
   // 抽屉自身在路由进入答题页时也会关闭（防止从其他页带入）。
   assert.match(drawerSource, /path\.startsWith\('\/exam-taking'\)/)
-  // 正式测评保留陪伴形象，但不开放教学问答或第二套助手。
+  // 正式测评不开放教学问答或第二套助手。
   assert.equal(exam('/exam-taking/3'), true)
   assert.equal(exam('/exam-taking'), true)
   assert.equal(exam('/challenge/3'), false)
 })
 
-test('page, drawer and pet share one session controller instead of separate chats', () => {
+test('page and drawer retain the shared session controller', () => {
   assert.match(hostSource, /import \{ agentSession, syncAgentAccount \}/)
   assert.match(hostSource, /session\.send\(\{ message: text, agentIds: \['tutor'\] \}\)/)
   assert.match(hostSource, /session\.reset\(\)/)
   assert.match(hostSource, /session\.cancelWaiting\(\)/)
-  // 六期点击唤出本体，不跳页；发送与完整对话共用一个控制器。
-  assert.match(platformPetSource, /function togglePet\(\) \{ pet\.setOpened/)
-  assert.match(petSource, /agentSession\.send\(\{ message, agentIds: \['tutor'\] \}\)/)
-  assert.match(petSource, /openTutor\(router, \{ userId: user\.userInfo\?\.id \}\)/)
-  assert.doesNotMatch(petSource, /AIAssistant|AITutorChat|MultiAgentChat/)
+  assert.match(appSource, /signOutAgent\(\)/)
+  assert.match(appSource, /syncAgentAccount\(user\.userInfo\?\.id\)/)
 })
 
 test('challenge workspace: hint entry keeps the drawer with the current challenge reference only', async () => {

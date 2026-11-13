@@ -18,6 +18,14 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 ROOT_DIR = BASE_DIR.parent
 
+# Regular deployment storage protection; isolated suites bind disposable adapters.
+_isolated_test = 'test' in sys.argv or 'pytest' in sys.modules
+DATA_PROTECTION_ENABLED = os.environ.get('DATA_PROTECTION_ENABLED',
+    'false' if _isolated_test else 'true').lower() in ('true', '1', 'yes')
+_protection_home = Path(os.environ.get('LOCALAPPDATA', str(Path.home() / '.local' / 'share')))
+DATA_PROTECTION_ROOT = Path(os.environ.get('DATA_PROTECTION_ROOT', str(_protection_home / 'ctf-platform' / 'security')))
+DATA_PROTECTION_KEY_FILE = Path(os.environ.get('DATA_PROTECTION_KEY_FILE', str(DATA_PROTECTION_ROOT / 'storage-v1.key')))
+
 # Secrets enter only through the explicit startup boundary; no dotenv discovery.
 from .security_bootstrap import framework_startup, startup_database_url, startup_secret
 
@@ -317,6 +325,9 @@ RESOURCE_MAX_ARCHIVE_UNCOMPRESSED_SIZE = int(
     os.environ.get('RESOURCE_MAX_ARCHIVE_UNCOMPRESSED_SIZE_MB', '100')
 ) * 1024 * 1024
 RESOURCE_MAX_ARCHIVE_ENTRIES = int(os.environ.get('RESOURCE_MAX_ARCHIVE_ENTRIES', '1000'))
+DATA_PROTECTION_MAX_UPLOAD_BYTES = RESOURCE_MAX_UPLOAD_SIZE + RESOURCE_MAX_COVER_IMAGE_SIZE + 1024 * 1024
+if DATA_PROTECTION_ENABLED and not os.environ.get('DATA_SECURITY_CONFIG'):
+    FILE_UPLOAD_HANDLERS = ['data_security.runtime.uploads.PrivateMemoryUploadHandler']
 
 # Language and Time zone
 LANGUAGE_CODE = 'zh-hans'
@@ -373,7 +384,8 @@ JUICE_SHOP_START_TIMEOUT = 75
 # ⚠️ 生产环境必须通过环境变量配置，禁止硬编码！
 CONTAINER_PORT_MIN = int(os.environ.get('CONTAINER_PORT_MIN', '8080'))
 CONTAINER_PORT_MAX = int(os.environ.get('CONTAINER_PORT_MAX', '9000'))
-CONTAINER_PROXY_HOST = os.environ.get('CONTAINER_PROXY_HOST', 'localhost:8000')
+# Empty means the browser's current origin (works behind TLS/reverse proxies).
+CONTAINER_PROXY_HOST = os.environ.get('CONTAINER_PROXY_HOST', '')
 CONTAINER_PROXY_SCHEME = os.environ.get(
     'CONTAINER_PROXY_SCHEME',
     'https' if os.environ.get('SECURE_SSL_REDIRECT', 'false').lower() in ('true', '1', 'yes') else 'http',

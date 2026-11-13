@@ -1,0 +1,15 @@
+{
+  "tests": 4,
+  "passed": [
+    "practical_training.tests.EvidenceTests.test_server_evidence_is_bound_and_delivered_to_module_six_and_one",
+    "practical_training.tests.EvidenceTests.test_self_report_and_direct_module_six_json_cannot_pass",
+    "practical_training.test_acceptance.AcceptanceTests.test_all_models_disabled_full_http_contract_flow_and_zero_external_calls",
+    "practical_training.test_acceptance.AcceptanceTests.test_delivery_failure_retries_without_reexecution_or_new_facts"
+  ],
+  "failures": [],
+  "errors": [],
+  "skipped": [],
+  "expected_failures": 0,
+  "unexpected_successes": 0,
+  "synthetic_database_only": true
+}

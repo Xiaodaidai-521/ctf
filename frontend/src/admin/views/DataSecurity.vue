@@ -6,7 +6,6 @@
         <button class="action-btn btn-default" :disabled="loading" @click="loadPolicy">刷新</button>
       </div>
       <p>默认遮蔽敏感内容。本页只管理策略与查看申请，不展示原文、读取密钥或导出数据。</p>
-      <p><router-link to="/privacy">查看面向使用者的隐私说明</router-link> · <router-link to="/profile/exports">查看本人获授权的导出任务</router-link></p>
       <p v-if="error" role="alert" class="error-message">{{ error }}</p>
       <p v-if="loading" role="status">正在读取策略…</p>
       <template v-if="metadata">

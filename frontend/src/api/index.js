@@ -38,15 +38,7 @@ const service = {
     statistics: (params) => api.get('/data-security/stats/', { params }),
   },
   privacy: {
-    capabilities: () => api.get('/data-security/privacy/capabilities/'),
     conversation: id => api.get(`/data-security/privacy/conversations/${id}/`),
-    exports: params => api.get('/data-security/exports/records/', { params }),
-    generateExport: data => api.post('/data-security/exports/resources/execute/', data),
-    downloadExport: data => api.post('/data-security/exports/resources/download/', data, { responseType: 'blob' }),
-  },
-  memory: {
-    list: cursor => api.get('/agent-runtime/memories/' + (cursor ? new URL(cursor, window.location.origin).search : '')),
-    remove: id => api.delete(`/agent-runtime/memories/${id}/`),
   },
   // 认证相关
   auth: {
@@ -284,7 +276,7 @@ const service = {
     generateQuiz: (data) => api.post('/content/generate/quiz/', data),
     generateDiagram: (data) => api.post('/content/generate/diagram/', data),
     generateExercise: (data) => api.post('/content/generate/exercise/', data),
-    getDetail: (id) => api.get(`/content/${id}/`),
+    getDetail: (id, params) => api.get(`/content/${id}/`, { params }),
     regenerate: (id, data) => api.post(`/content/${id}/regenerate/`, data),
   },
 
@@ -324,7 +316,7 @@ const service = {
     violations: (params) => api.get('/legal/violations/', { params }),
     createViolation: (data) => api.post('/legal/violations/', data),
     reports: (params) => api.get('/legal/reports/', { params }),
-    exportReport: (id) => api.post(`/legal/reports/${id}/export/`),
+    exportReport: (id) => api.post(`/legal/reports/${id}/export/`, {}, { responseType: 'blob' }),
     agentRuns: (params) => api.get('/legal/agent-runs/', { params }),
     containerAudits: (params) => api.get('/legal/container-audits/', { params }),
     previewExerciseFacts: (data) => api.post('/legal/exercise-facts/preview/', data),

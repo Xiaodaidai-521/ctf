@@ -6,6 +6,8 @@ urlpatterns = [
     path('generate/quiz/', views.GenerateQuizView.as_view(), name='generate-quiz'),
     path('generate/diagram/', views.GenerateDiagramView.as_view(), name='generate-diagram'),
     path('generate/exercise/', views.GenerateExerciseView.as_view(), name='generate-exercise'),
+    path('<str:content_type>/<int:pk>/', views.GeneratedContentDetailView.as_view(), name='typed-content-detail'),
+    path('<str:content_type>/<int:pk>/regenerate/', views.RegenerateContentView.as_view(), name='typed-content-regenerate'),
     path('<int:pk>/', views.GeneratedContentDetailView.as_view(), name='content-detail'),
     path('<int:pk>/regenerate/', views.RegenerateContentView.as_view(), name='content-regenerate'),
 ]

@@ -9,6 +9,7 @@ from rest_framework.response import Response
 
 from challenges.models import Challenge
 from .models import ExamRecord, PracticeExam, PracticeExamQuestion, TheoryExam, TheoryExamQuestion, TheoryQuestion
+from .pools import gradable_challenges
 
 
 @transaction.atomic
@@ -32,7 +33,7 @@ def start_comprehensive(request):
         for kind, count, points in (('single_choice', 30, 2), ('multiple_choice', 20, 2), ('true_false', 20, 1))
     ]
     practice_pools = [
-        (list(Challenge.objects.filter(difficulty=kind, is_active=True, submission_mode='flag')), count)
+        (gradable_challenges(kind), count)
         for kind, count in (('easy', 3), ('medium', 2), ('hard', 1))
     ]
     if any(len(pool) < count for pool, count, _ in theory_pools):

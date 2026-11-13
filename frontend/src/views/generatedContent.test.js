@@ -143,6 +143,7 @@ test('regenerate keeps the current page when no new id, and targets the real new
   assert.deepEqual(regeneratedTarget(12, { id: 31 }), { ok: true, id: 31, changed: true, to: '/content/31' })
   assert.equal(regeneratedTarget(12, {}).ok, false)
   assert.equal(regeneratedTarget(12, null).ok, false)
+  assert.equal(regeneratedTarget(12, { id: 31, content_type: 'quiz' }).to, '/content/31?content_type=quiz')
 })
 
 test('page consumes the adapter, reloads on id change, and keeps legacy field access out', () => {
@@ -154,7 +155,7 @@ test('page consumes the adapter, reloads on id change, and keeps legacy field ac
   // MermaidDiagram 的真实 prop 是 mermaidCode；旧页传 code 会渲染空白。
   assert.match(source, /:mermaid-code="view\.mermaidCode"/)
   assert.doesNotMatch(source, /<MermaidDiagram[^>]*:code=/)
-  assert.match(source, /watch\(\s*\(\) => route\.params\.id/)
+  assert.match(source, /watch\(\s*\(\) => \[route\.params\.id, route\.query\.content_type\]/)
   assert.match(source, /router\.replace\(target\.to\)/)
   assert.match(source, /本地练习，不计入正式测评/)
   assert.match(source, /不自动判题/)

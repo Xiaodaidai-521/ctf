@@ -285,7 +285,7 @@ class LegalReportViewSet(LegalScopeMixin, viewsets.ModelViewSet):
     permission_classes = [IsLegalReviewer]
 
     def get_permissions(self):
-        if self.action in ['create', 'update', 'partial_update', 'destroy', 'export']:
+        if self.action in ['create', 'update', 'partial_update', 'destroy', 'export', 'export_file']:
             return [IsLegalAdmin()]
         return [IsLegalReviewer()]
 
@@ -296,11 +296,21 @@ class LegalReportViewSet(LegalScopeMixin, viewsets.ModelViewSet):
     @action(detail=True, methods=['post'])
     def export(self, request, pk=None):
         report = self.get_object()
-        # The existing endpoint has no approved artifact generator. Do not invent
-        # a file, grant, or success state outside the controlled-export owner.
-        return Response({'code': 'EXPORT_NOT_AVAILABLE', 'report_id': report.pk,
-            'detail': '报告文件导出尚未开放，当前报告可在系统内查看。'},
-            status=409, headers={'Cache-Control': 'no-store'})
+        from .services import report_exports
+        if not report_exports.enabled():
+            return Response({'code': 'EXPORT_NOT_AVAILABLE', 'report_id': report.pk,
+                'detail': '报告文件导出尚未开放，当前报告可在系统内查看。'},
+                status=409, headers={'Cache-Control': 'no-store'})
+        if request.data:
+            raise serializers.ValidationError('导出使用服务器中的报告内容，不接受自定义正文或授权。')
+        record = report_exports.generate(request.user, report.pk, self.course_id)
+        return report_exports.download(request.user, report.pk, record.pk)
+
+    @action(detail=True, methods=['get'], url_path=r'export-file/(?P<export_id>[0-9a-f-]{36})')
+    def export_file(self, request, pk=None, export_id=None):
+        from .services import report_exports
+        # The stored course scope and current subject grant are rechecked by the owner.
+        return report_exports.download(request.user, pk, export_id)
 
 
 class ComplianceAgentRunViewSet(LegalScopeMixin, viewsets.ReadOnlyModelViewSet):

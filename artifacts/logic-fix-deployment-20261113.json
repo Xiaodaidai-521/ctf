@@ -1,0 +1,19 @@
+{
+  "synthetic_only": true,
+  "docker_daemon_called": false,
+  "database_accessed": false,
+  "compose_uses_placeholder_tls_frps_paths": true,
+  "backend_network_names": [
+    "ctf-challenge",
+    "project-code_ctf-control"
+  ],
+  "manager_network": "ctf-challenge",
+  "manager_network_is_shared_with_backend": true,
+  "challenge_network_is_internal": true,
+  "ordinary_challenge_access_url": "/challenge/101-synthetic01/",
+  "published_ports": [
+    "80",
+    "443"
+  ],
+  "explicit_public_origin_supported": true
+}

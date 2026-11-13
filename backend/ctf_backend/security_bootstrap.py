@@ -81,11 +81,18 @@ def startup_database_url():
     return os.environ.get('DATABASE_URL', '')
 
 
+def _bootstrap_file_permissions(path):
+    if os.name == 'nt':
+        from data_security.adapters.private_permissions import is_private_path
+        return is_private_path(path)
+    return not path.stat().st_mode & 0o022
+
+
 def _configuration(path):
     from data_security.adapters.keys import FileKeyResolver
     source = Path(path)
     require(source.is_absolute() and source == source.resolve() and
-            not source.stat().st_mode & 0o022 and source.stat().st_size <= 65536,
+            _bootstrap_file_permissions(source) and source.stat().st_size <= 65536,
             ReasonCode.AUTHORIZATION_DENIED)
     config = json.loads(source.read_bytes())
     require(type(config) is dict, ReasonCode.INVALID_TYPE)
@@ -116,7 +123,7 @@ def _configuration(path):
         require(type(proof) is dict and set(proof) == {'path', 'sha256'}, ReasonCode.INVALID_VALUE)
         recovery = Path(proof['path'])
         require(recovery.is_absolute() and recovery == recovery.resolve() and
-                not recovery.stat().st_mode & 0o022 and recovery.stat().st_size <= 65536,
+                _bootstrap_file_permissions(recovery) and recovery.stat().st_size <= 65536,
                 ReasonCode.AUTHORIZATION_DENIED)
         import hashlib
         record = recovery.read_bytes()
@@ -1087,6 +1094,8 @@ def start_application():
     path = os.environ.get('DATA_SECURITY_CONFIG')
     if not path:
         bind_rag_protection(None)
+        from data_security.runtime.bootstrap import start_runtime_protection
+        start_runtime_protection()
         return
     components = assemble(config_path=path)
     bind_rag_protection(components['protect_rag_value'])

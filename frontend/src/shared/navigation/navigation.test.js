@@ -66,7 +66,7 @@ test('header clears private search on identity changes and ignores unauthenticat
   const user = reactive({ isAuthenticated: true, userInfo: { id: 1, role: 'student' } })
   const scope = effectScope()
   const header = scope.run(() => vm.runInNewContext(`${script}\n;({ query, searchOpen, role })`, {
-    computed, ref, watch, useUserStore: () => user, usePetStore: () => ({ preferences: { hidden: false }, reveal() {} }), useRouter: () => ({}), useRoute: () => reactive({ path: '/guide' }),
+    computed, ref, watch, useUserStore: () => user, useRouter: () => ({}), useRoute: () => reactive({ path: '/guide' }),
     onBeforeUnmount() {}, window: { addEventListener() {}, removeEventListener() {} }, createRecentVisits,
     defineProps() {}, defineEmits() {}, searchEntries, clearTeachingTransfer,
   }))
@@ -88,10 +88,10 @@ test('header clears private search on identity changes and ignores unauthenticat
     assert.equal(consumeTeachingTransfer(teachingIdentity(teacher), 'path'), null)
   } finally { scope.stop() }
 })
-test('shell mounts one header, one pet, and no floating announcement', () => {
+test('shell mounts one header and retains the teaching entry after pet removal', () => {
   const source = readFileSync(new URL('../../App.vue', import.meta.url), 'utf8')
   assert.equal((source.match(/<GlobalHeader\b/g) || []).length, 1)
-  assert.equal((source.match(/<TutorPet\b/g) || []).length, 1)
+  assert.equal((source.match(/<TutorPet\b/g) || []).length, 0)
   assert.doesNotMatch(source, /AnnouncementButton|Navbar|agent\/lifecycle|agent\/draft/)
   const guide = readFileSync(new URL('../../learning/guide/GuideView.vue', import.meta.url), 'utf8')
   const header = readFileSync(new URL('../layout/GlobalHeader.vue', import.meta.url), 'utf8')
