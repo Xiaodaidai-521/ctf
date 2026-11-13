@@ -147,151 +147,56 @@ Juice Shop 使用独立网络和宿主机端口，操作步骤见 [Juice Shop Li
 
 共享 Compose `ctf-control` 网络的容器之间使用服务名 `frp-server:7000`；同宿主机的其他网络容器不一定能解析或连接该服务名。跨主机需要真实可达地址和明确的端口发布。原 `FRPConfigManager` 中的旧 API 更新逻辑也不能直接当作 FRPS 0.52.3 的动态配置接口。
 
-## 3. pgvector / 外部模型：先做隔离评测
+## 3. pgvector / 外部模型：火山文本嵌入 + DeepSeek 聊天
 
-### 3.1 先确认供应商控制台
+2026-11-14 更新：通义 `text-embedding-v4` 保持弃置，原通义开通、充值及重试步骤已取消。用户确认 `doubao-embedding-vision-251215` 可用后，当前选择火山文本嵌入 + DeepSeek 聊天；实际配置与返回以本轮最终探针报告为准。完整命令见 [最新联调指南](pgvector-model-quickstart-20261113.md)，通义失败证据保留在 [历史探针记录](pgvector-model-probe-result-20261114.md)。
 
-分别检查嵌入模型和聊天模型是否允许调用、凭据所属区域、余额 / 额度、限流。此前真实请求是通义 401、DeepSeek 401、火山 429，尚未得到真实嵌入或回答。
-
-当前官方适配器只允许以下固定地址：
-
-| 供应商 | 当前实现允许的地址 |
-| --- | --- |
-| 通义 qwen | `https://dashscope.aliyuncs.com/compatible-mode/v1` |
-| DeepSeek | `https://api.deepseek.com` |
-| 火山 volcano | `https://ark.cn-beijing.volces.com/api/v3` |
-
-本机 `.env` 的通义 BASE_URL 使用国际站地址，与当前适配器固定的国内站不同。单改 `EMBEDDING_BASE_URL` 不能切换官方适配器；联调需使用与上述接口匹配的凭据。如果必须使用国际站，需要先增加对应 endpoint 支持，再进行请求验证。
-
-### 3.2 Windows：复用现有完整评测脚本
-
-在仓库外建立专用文件，如 `D:/ctf-deploy/remote-eval.env`。以下占位内容必须替换；模型 ID 以控制台实际允许的模型为准：
+### 3.1 按用途配置模型
 
 ```dotenv
-EMBEDDING_PROVIDER=qwen
-EMBEDDING_MODEL=text-embedding-v4
+EMBEDDING_PROVIDER=volcano
+EMBEDDING_MODEL=doubao-embedding-vision-251215
 EMBEDDING_DIMENSION=1024
-EMBEDDING_API_KEY=<匹配国内站接口的有效通义密钥>
-DEEPSEEK_API_KEY=<有效DeepSeek密钥>
-DEEPSEEK_MODEL=<可调用的聊天模型ID>
-```
-
-如还要验火山聊天，可添加 `ARK_API_KEY` 和 `ARK_MODEL`。通义 `text-embedding-v3` 也是当前实现的默认候选，应按实际权限选择并验证 1024 维返回。
-
-在当前项目根目录 PowerShell 运行：
-
-```powershell
-$env:PYTHONUTF8 = '1'
-& '.state/full-audit-20261113/venv/Scripts/python.exe' backend/scripts/evaluate_remote_knowledge.py --env-file 'D:/ctf-deploy/remote-eval.env' --pg-bin 'C:/Program Files/PostgreSQL/16/bin' --workers 1 --postgres-tests --output 'artifacts/knowledge-remote-pg-retest.json'
-```
-
-这是**完整质量评测**：嵌入探针成功后会自动对约 4106 个公开片段请求嵌入，再做检索和聊天评测，会产生供应商调用用量。脚本没有 `--probe-only` 参数。先检查额度再运行；`--workers 1` 用于降低初次联调并发。
-
-脚本只读读取现有 SQLite 知识库，建立独立临时 PostgreSQL 数据库；不覆盖业务 `.env`。正常退出时停止专用 PostgreSQL、删除临时凭据文件，并保留非秘密数据库和结果供诊断。正常退出才写入清理确认；若命令异常退出、清理字段缺失或不为 true，不能认为清理已完成，需要检查退出信息和临时目录。
-
-**该脚本固定使用 `.exe` 程序名，不能原样搬到 Linux 执行。** 它验证隔离评测组合；并不把已成功的 provider 自动绑定到正在运行的业务进程。
-
-打开输出 JSON，至少检查：
-
-- qwen `status=success`，实际 `dimension=1024`。
-- 所选聊天 provider `status=success`，有真实回答。
-- `remote_quality_evaluated=true`，`completed=true`，没有阻断错误。
-- `embedding_index.completed` 达到目标数；存在 `remote_exact`、`remote_hnsw`、`production_hybrid` 的逐查询结果。
-- 有所选聊天模型的 `answers`，人工核对证据、结论和引用；范围正确的引用编号并不自动证明内容正确。
-- `isolated_postgres_stopped`、`temporary_keys_deleted` 为 true。
-
-只看到脚本退出 0、BM25 命中率高或 `remote_quality_evaluated=true`，都不足以证明全部模型和回答质量通过；该布尔值主要由嵌入探针决定。
-
-## 4. 容器中的真实业务联调
-
-### 4.1 先接入模型启动组合
-
-业务代码将 `settings.EMBEDDING_API_KEY` 固定为空，provider manager 不会自动读取 `.env` 里的凭据。需要将仓库外的 bootstrap JSON、key manifest、密钥文件和批准策略挂入容器，设置 `DATA_SECURITY_CONFIG` 为**容器内绝对路径**。
-
-当前 Compose 没有这些挂载；需要根据部署路径补 overlay。当前 bootstrap 仅支持 `environment=evaluation`，先用于独立测试环境；正式生产接入仍须处理部署支持。该部分适合由开发者制作和验证，避免人工拼凑策略、密钥引用与路径。
-
-若采用“通义嵌入 + DeepSeek 聊天”，测试业务配置可使用：
-
-```dotenv
-EMBEDDING_PROVIDER=qwen
-EMBEDDING_MODEL=text-embedding-v4
-EMBEDDING_DIMENSION=1024
-EMBEDDING_BATCH_SIZE=10
+EMBEDDING_API_KEY=REPLACE_WITH_ARK_EMBEDDING_API_KEY
 LEGAL_KB_RAG_USE_LLM=true
 LEGAL_KB_RAG_AGENT_ID=legal_reviewer
 ```
 
-同时在启动组合中配置实际 DeepSeek 聊天模型。默认的 `compliance_officer` 绑定 qwen；如果 qwen 的首个允许模型是 embedding 模型，会先尝试把它用于 chat。使用绑定 DeepSeek 的 `legal_reviewer` 可以明确区分这两种用途。
+`EMBEDDING_API_KEY` 填火山方舟密钥，DeepSeek 凭据和聊天模型保留。`ARK_MODEL` 仅用于可选火山聊天，不要填入 embedding 模型。两个旧 `SEMANTIC` 检索通道开关保持现状，默认 true，使学生和代理继续使用共享知识库。
 
-### 4.2 检查数据库与单次真实请求
+Vision 当前对纯文本调用 `POST https://ark.cn-beijing.volces.com/api/v3/embeddings/multimodal`，输入为 `[{"type":"text","text":"..."}]`，显式发送 `dimensions=1024`，每个文本请求返回一个向量。实际返回须检查 1024 维及有限数值。
 
-完成启动组合后，在独立测试部署运行：
+保留 PostgreSQL / pgvector 结构、现有知识库数据和业务加密密钥。128 维本地字符向量仍可保存作便携数据，不能称为语义模型或代替火山新向量空间。
 
-```text
-docker compose exec backend python manage.py check_legal_kb
-docker compose exec postgres psql -U ctf_user -d ctf_platform -c "SELECT extversion FROM pg_extension WHERE extname='vector';"
-docker compose exec backend python manage.py shell
-```
+### 3.2 先探针，再决定完整评测
 
-`check_legal_kb` 应显示 PostgreSQL、存在 vector 扩展、远程配置启用、1024 维；该命令自身不请求模型。
+先用 `--probe-only` 检查隔离 PostgreSQL / pgvector、一次火山 embedding 和一次 DeepSeek chat。报告通过 `purpose=embedding` / `purpose=chat` 区分用途；远程向量阶段按选中的 embedding 任务成功判断。volcano 配置下 qwen 保持 `disabled`。探针不批量嵌入、不做质量评测，`remote_quality_evaluated=false` 是预期值，不能据此宣称召回与回答质量通过。
 
-在打开的 Python shell 中执行两次真实请求：
+完整版会对约 4106 个公开片段生成向量，当前 Vision 每片段一次 API 请求，还要查询嵌入与聊天评测。`--workers 1` 降低并发，不减少总请求数。完整命令只作下一步参考；先确认探针和用量再执行。`--postgres-tests` 的合成向量检查仅验证数据库分支，不能与 `--probe-only` 同用。
 
-```python
-from legal_kb.services.embedding_service import EmbeddingService
-s = EmbeddingService()
-v = s.embed_text('SQL injection prevention')
-print(s.provider, s.model, len(v), s.vector_space)
+脚本使用 Windows `.exe` 工具名，不能原样搬到 Linux。正常结束后核对专用 PostgreSQL 已停止、临时 provider 与保护密钥已删除；源配置和现有业务加密密钥保留。
 
-import asyncio
-from ai_providers import get_manager, Message
-p = get_manager().get_provider('deepseek')
-assert p is not None, 'DeepSeek provider 未绑定'
-r = asyncio.run(p.chat([Message('user', '仅回复：连接成功')]))
-print(r.provider, r.model, r.content)
-```
+## 4. 容器中的真实业务联调
 
-预期得到真实 1024 维向量和真实聊天回答。这里使用项目的受保护官方 provider，适合先验证少量调用，再决定重建规模。
+### 4.1 业务模型仍需独立启动组合
 
-### 4.3 先重建一条公开法条，再看真实检索
+隔离探针成功不会自动绑定运行中的 provider，`.env` 也不会自行装配业务模型凭据。启动组合应按用途配置火山 embedding 与 DeepSeek chat，需要仓库外 bootstrap JSON、key manifest、密钥文件和批准策略，并将 `DATA_SECURITY_CONFIG` 设为容器内绝对路径。当前 bootstrap 只支持 `environment=evaluation`，先接入独立测试环境；正式生产支持仍须开发验证。
 
-要求测试库已有公开法条和分块，并有现有活跃管理员 / staff 账号。以下 `<...>` 是占位符，替换后再运行；`法条ID` 是 `LegalClause` 的 ID：
+`LEGAL_KB_RAG_AGENT_ID=legal_reviewer` 绑定 DeepSeek。嵌入模型不能当作聊天模型；可选火山聊天应另外配置实际聊天模型 ID。
 
-```text
-docker compose exec backend python manage.py rebuild_legal_kb --actor <管理员用户名> --source-type legal_clause --object-id <法条ID> --dry-run
-docker compose exec backend python manage.py rebuild_legal_kb --actor <管理员用户名> --source-type legal_clause --object-id <法条ID>
-docker compose exec backend python manage.py check_legal_kb
-```
+已有 backend / worker 要重建容器或重启进程读取环境。Compose 环境文件修改后应重新创建相关容器，只重启旧容器不能保证新配置载入。settings、EmbeddingService 和 provider manager 不会自动刷新。
 
-dry-run 只校验和统计；第二条会请求模型并更新该法条索引。先对一个对象通过，再扩展为完整测试语料重建。若新 PostgreSQL 里没有知识库，先准备公开测试语料，重建命令不会替你导入源文档。
+### 4.2 单次验证与测试索引
 
-真实远程向量存放在 `embedding_vector`，字段固定 1024 维；便携 `embedding` 列仍保留 128 维字符向量。远程模型和空间应核对 `metadata.vector_model` / `metadata.vector_space`，不能仅按便携列的 `embedding_model` 判断。
+在完成启动组合的独立测试部署检查 `check_legal_kb`，再通过项目 `EmbeddingService` 做一次真实火山文本嵌入，核对 provider 为 volcano、模型为 `doubao-embedding-vision-251215`、实际 1024 维；通过受保护 DeepSeek provider 独立做一次聊天请求。详细 shell 代码见最新指南。`check_legal_kb` 自身不请求模型，不能单独证明可调用。
 
-再次进入 Django shell，使用可访问目标语料的测试管理员 / 教师：
+真实远程向量存放在 `embedding_vector`；核对 `metadata.vector_model` 与 `metadata.vector_space=volcano/doubao-embedding-vision-251215/1024/raw-v1`。先选一条已有公开法条 `dry-run`，再仅重建该测试对象，确认成功后决定规模。不要用旧通义、未知空间或本地字符向量冒充新语义索引，也无需清空整个知识库。
 
-```python
-from django.contrib.auth import get_user_model
-from legal_kb.services.retrieval_service import LegalRetrievalService
-actor = get_user_model().objects.get(username='实际管理员用户名')
-rows = LegalRetrievalService().retrieve(
-    query='网站如何防止用户输入变成可执行的数据库语句？',
-    top_k=5, user=actor)
-print([(r['retrieval'], r['vector_space'], r['title']) for r in rows])
-```
+### 4.3 业务接口与人工质量
 
-用适合测试语料的改写问题。返回中应有 `retrieval=semantic` 和与当前模型一致的向量空间。只有 `lexical` 说明使用词法路径，可能是向量为空、空间不同或 pgvector 分支异常。`PGVECTOR_NON_NULL>0` 只证明有向量；HNSW 索引存在也不证明小样本查询规划器一定使用它。
+管理员 / 教师在实际功能入口检查 `POST /api/legal-kb/retrieve/`。应有与火山新空间一致的语义召回证据、真实 DeepSeek provider/model 和可追溯 citations。仅有 `lexical` 时检查当前空间的远程索引、查询和 PostgreSQL 分支。`provider=local`、`model=rag-template-v1` 或 `provider_error=MODEL_CALL_FAILED` 不算外部聊天通过。
 
-### 4.4 验证业务接口和人工质量
-
-管理员 / 教师登录后，通过前端对应功能或浏览器 Network 观察 `POST /api/legal-kb/retrieve/`：
-
-```json
-{"query":"网站如何防止用户输入变成可执行的数据库语句？","top_k":5}
-```
-
-应返回真实聊天 provider / model、可追溯 citations，并且回答依据正确。如果是 `provider=local`、`model=rag-template-v1` 或出现 `provider_error=MODEL_CALL_FAILED`，不能计为外部聊天通过。该知识库管理接口限制管理员 / 教师，学生访问 403 属于当前权限设计。
-
-用正常问题、改写问题、知识库没有答案的问题各测几条；核对引用原文支持结论，并用实际师生身份检验可见范围。正式保护模式可能不返回 raw results，检索方式可通过上面的服务层元数据验证。
+该管理接口限制管理员 / 教师，学生访问 403 属于当前设计；学生知识库通道在实际学生功能入口另验。分别测正常问题、同义改写、无答案问题和不同身份权限，人工核对引用原文是否支持每项结论。向量非空、HNSW 索引存在和引用编号合法，都不能单独证明实际召回与回答质量。
 
 ## 5. 常见阻断的归属
 
@@ -305,7 +210,7 @@ print([(r['retrieval'], r['vector_space'], r['title']) for r in rows])
 | HTTP 429 | 限流、余额 / 额度、账户限制 | 用户供应商控制台；开发者调整调用并发 |
 | `AUTHORIZATION_DENIED` | 官方地址、模型允许列表、保护策略 | 开发者检查实际拒绝原因 |
 | `EMBEDDING_SHAPE_INVALID` | 实际返回维度与索引维度 | 开发者处理适配；用户确认模型选择 |
-| 有结果但只有 `lexical` | 远程向量、向量空间、数据库分支 | 开发者排查和重建 |
+| 结果仅有 `lexical` | 火山当前向量空间的索引、查询和数据库分支 | 开发者排查；词法结果不能计为语义通过 |
 | 有回答但 `provider=local` | 聊天配置、模型用途、失败字段 | 开发者定位；凭据 / 额度问题由用户处理 |
 | 引用编号正确但答案错误 | 对照法条 / 原文逐项评阅 | 用户或领域教师评阅，开发者据此改检索和提示 |
 

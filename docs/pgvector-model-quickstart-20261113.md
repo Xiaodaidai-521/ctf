@@ -1,23 +1,49 @@
-# pgvector 与外部模型联调：北京国内站快速操作
+# pgvector 与外部模型联调：火山文本嵌入 + DeepSeek（2026-11-14 更新）
 
-先用少量请求确认“PostgreSQL + pgvector + 通义嵌入 + DeepSeek 聊天”都能连接，再运行完整质量评测，最后接入测试业务进程。默认采用通义 `text-embedding-v4`、1024 维；DeepSeek 聊天模型 ID 需要填写控制台实际可调用的 ID。
+当前选择火山 `doubao-embedding-vision-251215` 为知识库生成文本向量，DeepSeek 负责聊天与基于引用生成回答。通义 `text-embedding-v4` 保持弃置，旧通义开通和充值步骤已取消。下面是当前方案的目标配置，实际配置是否生效、模型是否成功，以本轮最终探针报告为准。
 
-这份说明配套新增的 `--probe-only` 模式。它建立隔离 PostgreSQL、检查 vector 扩展，并向每个已配置供应商发送一次探针请求；跳过源 SQLite、历史语料文件、批量嵌入和质量评测。本地已验证真实隔离 PostgreSQL 迁移与 pgvector，以及缺密钥、非法配置的失败路径；使用模拟网络响应确认了各一次 embedding/chat、源 SQLite 不存在也能探针、跳过质量阶段并完成清理。编写本说明时，尚未调用真实模型。下面命令需要有效凭据执行后，才能取得真实联调结论。
+本轮已实际通过单次探测：[火山 + DeepSeek 探测报告](../artifacts/knowledge-ark-deepseek-probe-20261114.json) 中两家均返回 HTTP 200。火山返回一个 1024 维有限数值向量，DeepSeek 真实回复“连接成功”；qwen 为 disabled。隔离 PostgreSQL 和临时密钥已清理，退出码为 0。此结果仅证明连接与向量格式，尚未评测语料召回和回答引用质量。
 
-## 1. 在控制台准备两份凭据
+先运行单次探针，再决定完整评测规模。本指南提供完整评测命令，没有执行完整评测。保留 PostgreSQL / pgvector 数据库结构、现有知识库数据及业务加密密钥。
 
-| 用途 | 当前代码调用地址 | 你需要确认 |
+## 1. 分清嵌入模型和聊天模型
+
+| 用途 | 配置 | 接口 |
 | --- | --- | --- |
-| 通义文本嵌入 | `https://dashscope.aliyuncs.com/compatible-mode/v1/embeddings` | 北京国内站凭据有效；`text-embedding-v4` 可调用；额度和限流允许请求 |
-| DeepSeek 聊天 | `https://api.deepseek.com/chat/completions` | DeepSeek 凭据有效；所选聊天模型可调用；余额和额度可用 |
+| 火山文本嵌入 | `EMBEDDING_PROVIDER=volcano`、`EMBEDDING_MODEL=doubao-embedding-vision-251215`、`EMBEDDING_DIMENSION=1024` | `POST https://ark.cn-beijing.volces.com/api/v3/embeddings/multimodal` |
+| DeepSeek 聊天 | 保留 `DEEPSEEK_MODEL` 与 `DEEPSEEK_API_KEY` | `POST https://api.deepseek.com/chat/completions` |
+| 可选火山聊天 | `ARK_MODEL` 填实际可调用的火山聊天模型，配 `ARK_API_KEY` | 火山 `/chat/completions` |
 
-通义国际站凭据与当前固定的国内站接口可能不匹配。当前官方适配器不会通过 `EMBEDDING_BASE_URL` 切换地址。
+`EMBEDDING_API_KEY` 应填写火山方舟密钥，可以使用已有且允许调用该嵌入模型的方舟密钥。它不再填写通义密钥。`ARK_MODEL` 仅用于可选火山聊天，**不要把 `doubao-embedding-vision-251215` 填入 `ARK_MODEL`**；只做火山嵌入时无需新增火山聊天配置。
 
-`EMBEDDING_DIMENSION=1024` 是代码校验的目标维度。当前普通通义 embedding 请求不显式传 `dimensions`，实际返回必须确认是 1024 维；配置值不能代替这个检查，也不能把其他维度的结果直接截断入库。
+同时配置火山聊天和嵌入时，该评测组合使用同一个火山 provider 密钥；`EMBEDDING_API_KEY` 与 `ARK_API_KEY` 若同时填写，应为同一密钥。
 
-## 2. 复制配置，在本地填写密钥
+模型名称含 vision，本轮输入为纯文本。当前适配器发出的文本请求形状是：
 
-打开 PowerShell，逐段执行。以下命令使用当前电脑的项目路径；配置文件放在仓库外。
+```json
+{"model":"doubao-embedding-vision-251215","input":[{"type":"text","text":"SQL injection prevention"}],"dimensions":1024,"encoding_format":"float"}
+```
+
+每个文本请求返回一个向量，代码明确请求并校验 1024 维，还需验证数值有限。模型名可用或 HTTP 200 不能代替返回维度检查。
+
+## 2. 核对本地配置
+
+项目 `.env` 与仓库外 `D:\ctf-deploy\remote-eval.env` 应采用：
+
+```dotenv
+EMBEDDING_PROVIDER=volcano
+EMBEDDING_MODEL=doubao-embedding-vision-251215
+EMBEDDING_DIMENSION=1024
+EMBEDDING_API_KEY=REPLACE_WITH_ARK_EMBEDDING_API_KEY
+DEEPSEEK_MODEL=REPLACE_WITH_AVAILABLE_DEEPSEEK_CHAT_MODEL_ID
+DEEPSEEK_API_KEY=REPLACE_WITH_DEEPSEEK_API_KEY
+LEGAL_KB_RAG_USE_LLM=true
+LEGAL_KB_RAG_AGENT_ID=legal_reviewer
+```
+
+占位符只用于说明。现有已填写配置由开发者按本轮最终验证更新，密钥保留在本地；不要覆盖用户已经填写好的文件，也不要把密钥发送到聊天或提交到仓库。
+
+新环境可复制模板，目标文件存在时保留：
 
 ```powershell
 Set-Location -LiteralPath 'D:\aaa10\16015478源码\project-code'
@@ -28,135 +54,102 @@ if (-not (Test-Path -LiteralPath 'D:\ctf-deploy\remote-eval.env')) {
 notepad 'D:\ctf-deploy\remote-eval.env'
 ```
 
-在打开的文件里，把密钥占位符替换成各自的真实密钥，把 DeepSeek 模型占位符替换成控制台实际可调用的聊天模型 ID，保存后关闭：
+两个旧检索通道开关 `KNOWLEDGE_RAG_SEMANTIC_ENABLED`、`AGENT_RUNTIME_SEMANTIC_RETRIEVAL` 保持现状，默认 true，让学生与代理继续使用共享知识库。实际结果是语义还是 BM25，应核对响应的 `retrieval` 与 `vector_space`。
 
-```dotenv
-EMBEDDING_PROVIDER=qwen
-EMBEDDING_MODEL=text-embedding-v4
-EMBEDDING_DIMENSION=1024
-EMBEDDING_API_KEY=REPLACE_WITH_BEIJING_QWEN_API_KEY
-DEEPSEEK_MODEL=REPLACE_WITH_AVAILABLE_DEEPSEEK_CHAT_MODEL_ID
-DEEPSEEK_API_KEY=REPLACE_WITH_DEEPSEEK_API_KEY
-```
-
-将密钥保留在本地配置文件中。反馈联调结果时提供输出 JSON 和错误类别，密钥不需要发送到聊天或提交进仓库。已有配置文件不会被上面的复制命令覆盖。
-
-## 3. 先运行少量请求探针
+## 3. 先运行火山嵌入与 DeepSeek 聊天探针
 
 ```powershell
 $env:PYTHONUTF8 = '1'
-& 'D:\aaa10\16015478源码\project-code\.state\full-audit-20261113\venv\Scripts\python.exe' 'D:\aaa10\16015478源码\project-code\backend\scripts\evaluate_remote_knowledge.py' --env-file 'D:\ctf-deploy\remote-eval.env' --pg-bin 'C:\Program Files\PostgreSQL\16\bin' --probe-only --output 'D:\aaa10\16015478源码\project-code\artifacts\knowledge-remote-pg-probe.json'
+& 'D:\aaa10\16015478源码\project-code\.state\full-audit-20261113\venv\Scripts\python.exe' 'D:\aaa10\16015478源码\project-code\backend\scripts\evaluate_remote_knowledge.py' --env-file 'D:\ctf-deploy\remote-eval.env' --pg-bin 'C:\Program Files\PostgreSQL\16\bin' --probe-only --output 'D:\aaa10\16015478源码\project-code\artifacts\knowledge-ark-deepseek-probe-20261114.json'
 $LASTEXITCODE
 ```
 
-这个模式会创建、迁移并停止一个独立 PostgreSQL 实例，需要本机 PostgreSQL 16、pgvector 扩展和现有 Python 环境。它也会产生少量真实模型用量。配置了上面的两份密钥时，预期各发一次通义嵌入、DeepSeek 聊天请求。未配置的火山 provider 会显示 `not_configured`。
-
-读取结果，不读取密钥文件：
+探针建立、迁移并停止隔离 PostgreSQL，检查 pgvector，并分别执行选中的 embedding 和已配置 chat 任务。当前方案应包含一次火山文本嵌入和一次 DeepSeek 聊天；额外配置火山聊天时还有独立聊天探针。`--probe-only` 不读取源 SQLite、不批量嵌入语料，不评测召回或答案质量。
 
 ```powershell
-$probeReport = Get-Content -LiteralPath 'D:\aaa10\16015478源码\project-code\artifacts\knowledge-remote-pg-probe.json' -Raw -Encoding UTF8 | ConvertFrom-Json
-$probeReport | Select-Object evaluation_mode, status, completed, remote_probe_succeeded, remote_quality_evaluated, pgvector_version, isolated_postgres_stopped, temporary_keys_deleted
-$probeReport.providers | Format-Table provider, model, status, dimension, finite, error_code
+$probeReport = Get-Content -LiteralPath 'D:\aaa10\16015478源码\project-code\artifacts\knowledge-ark-deepseek-probe-20261114.json' -Raw -Encoding UTF8 | ConvertFrom-Json
+$probeReport | Select-Object evaluation_mode, status, completed, embedding_disabled, remote_embedding_status, remote_probe_succeeded, remote_quality_evaluated, remote_quality_status, pgvector_version, isolated_postgres_stopped, temporary_keys_deleted, temporary_runtime_key_deleted
+$probeReport.providers | Format-Table provider, purpose, model, status, dimension, finite, error_code
 $probeReport.http_observations | Format-Table host, status, error_category, transport_error_type
 $probeReport.errors | Format-Table type, code
 ```
 
-必须同时满足以下条件，才算探针通过：
+通过条件：
 
-- 退出码为 `0`，`evaluation_mode=probe_only`、`status=complete_probe`、`completed=true`、`remote_probe_succeeded=true`。
-- `pgvector_version` 有实际版本号。
-- qwen 为 `status=success`、`dimension=1024`、`finite=true`。
-- DeepSeek 为 `status=success`，其 `content` 中有真实聊天回复。DeepSeek 若为 `not_configured`，说明本次没有验证聊天，需要检查配置文件是否填写了密钥和模型。
-- `errors` 为空，`isolated_postgres_stopped=true`、`temporary_keys_deleted=true`。
+- 退出码 0，`evaluation_mode=probe_only`、`status=complete_probe`、`completed=true`、`remote_probe_succeeded=true`。
+- `embedding_disabled=false`，选中的 `provider=volcano`、`purpose=embedding`、模型为 `doubao-embedding-vision-251215`，`status=success`、`dimension=1024`、`finite=true`。
+- `provider=deepseek`、`purpose=chat`、`status=success`，有真实聊天回复。可选火山聊天与火山嵌入是不同任务，不能用聊天成功代替嵌入成功。
+- 在 volcano 配置下 qwen 为 `status=disabled`，没有通义请求。远程向量阶段以选中的 embedding 任务成功判定，不再要求 qwen 成功。
+- `remote_quality_evaluated=false` 是探针的预期值。只通过探针不能证明语义召回和回答质量。
+- `pgvector_version` 有实际版本号，`errors` 为空；`isolated_postgres_stopped`、`temporary_keys_deleted`、`temporary_runtime_key_deleted` 均为 true。
 
-探针的 `remote_quality_evaluated=false` 是预期值：它只确认连接和返回格式，尚未评测语义召回或答案质量。探针成功也不会自动把 provider 绑定到正在运行的业务服务。
+新输出文件保留此前通义失败证据。临时凭据与保护密钥会在正常退出时清理，源评测配置和业务加密密钥保留。本脚本使用 Windows `.exe` 工具名，不能原样搬到 Linux。
 
-## 4. 探针通过后，运行完整评测
+## 4. 完整评测会产生大量火山请求
 
-确认愿意承担完整嵌入和聊天请求的用量后再执行：
+下面命令留作探针成功后的下一步，先确认供应商余额和限流、愿意承担用量，再执行：
 
 ```powershell
 $env:PYTHONUTF8 = '1'
-& 'D:\aaa10\16015478源码\project-code\.state\full-audit-20261113\venv\Scripts\python.exe' 'D:\aaa10\16015478源码\project-code\backend\scripts\evaluate_remote_knowledge.py' --env-file 'D:\ctf-deploy\remote-eval.env' --pg-bin 'C:\Program Files\PostgreSQL\16\bin' --workers 1 --postgres-tests --output 'D:\aaa10\16015478源码\project-code\artifacts\knowledge-remote-pg-retest.json'
+& 'D:\aaa10\16015478源码\project-code\.state\full-audit-20261113\venv\Scripts\python.exe' 'D:\aaa10\16015478源码\project-code\backend\scripts\evaluate_remote_knowledge.py' --env-file 'D:\ctf-deploy\remote-eval.env' --pg-bin 'C:\Program Files\PostgreSQL\16\bin' --workers 1 --postgres-tests --output 'D:\aaa10\16015478源码\project-code\artifacts\knowledge-ark-pg-evaluation-20261114.json'
 $LASTEXITCODE
 ```
 
-完整版默认只读读取 `D:\aaa10\16015478源码\database\db.sqlite3`，复制到独立临时 PostgreSQL，依赖现有 `artifacts/knowledge-import.json` 和 `artifacts/knowledge-retrieval-evaluation.json`。根据此前语料规模，会对约 4106 个公开片段进行嵌入，再执行查询和聊天评测；实际数量由本次数据决定。`--workers 1` 降低首次并发，但不会减少语料总量。`--probe-only` 不能和 `--postgres-tests` 一起使用。
+完整版只读复制 `D:\aaa10\16015478源码\database\db.sqlite3` 到隔离 PostgreSQL，依赖现有 `artifacts/knowledge-import.json` 和 `artifacts/knowledge-retrieval-evaluation.json`。此前公开语料约 4106 个片段；Vision 当前每片段单独发一次 API 请求，所以首次完整嵌入可能产生约 4106 次请求，此外还有查询嵌入和聊天评测。实际新嵌入数量以本轮报告为准。`--workers 1` 降低并发，不能减少总请求数。
 
-```powershell
-$fullReport = Get-Content -LiteralPath 'D:\aaa10\16015478源码\project-code\artifacts\knowledge-remote-pg-retest.json' -Raw -Encoding UTF8 | ConvertFrom-Json
-$fullReport | Select-Object status, completed, remote_quality_evaluated, postgres_regressions, isolated_postgres_stopped, temporary_keys_deleted
-$fullReport.providers | Format-Table provider, model, status, dimension, error_code
-$fullReport.embedding_index
-$fullReport.retrieval.remote_exact.metrics
-$fullReport.retrieval.remote_hnsw.metrics
-$fullReport.retrieval.production_hybrid.metrics
-$fullReport.answers | Select-Object provider, model, question, answer, citations_in_range, keyword_check, error_code
-$fullReport.errors | Format-Table type, code
+验收需同时检查选中 embedding 与 DeepSeek chat 的成功状态、`embedding_index.completed` 达到 `total`、实际 1024 维，以及 `remote_exact`、`remote_hnsw`、`production_hybrid` 的逐查询证据。还要有真实 DeepSeek `answers`，人工核对引用与结论；退出 0 或 `remote_quality_evaluated=true` 不能单独证明聊天和回答质量。
+
+`--postgres-tests` 的合成向量回归仅证明数据库分支，不能替代真实模型质量评测；它不能与 `--probe-only` 同用。
+
+## 5. 业务启动组合与索引接入
+
+隔离探针不会自动绑定正在运行的业务 provider。业务 `.env` 也不会自行装配模型凭据，仍需仓库外 bootstrap JSON、key manifest、密钥文件和批准策略，设置 `DATA_SECURITY_CONFIG` 为进程内可访问的绝对路径。当前 bootstrap 只支持 `environment=evaluation`，先用于独立测试部署，正式生产支持仍须开发验证。
+
+启动组合应按用途配置火山 embedding 模型和 DeepSeek chat 模型。`LEGAL_KB_RAG_AGENT_ID=legal_reviewer` 绑定 DeepSeek；嵌入模型不能当作聊天模型。可选火山聊天必须另填实际聊天模型 ID。
+
+已有 backend / worker 要重新创建容器或重启进程读取新环境。Compose 环境文件修改后应重新创建相关容器；仅重启旧容器不能保证载入新环境。settings、EmbeddingService 和 provider manager 不会自动刷新。
+
+完成启动组合后，在独立测试部署进入 `python manage.py shell`，各做一次真实请求：
+
+```python
+from legal_kb.services.embedding_service import EmbeddingService
+s = EmbeddingService()
+v = s.embed_text('SQL injection prevention')
+assert s.provider == 'volcano' and s.uses_remote_provider
+assert s.model == 'doubao-embedding-vision-251215' and len(v) == 1024
+print(s.model, len(v), s.vector_space)
+
+import asyncio
+from ai_providers import get_manager, Message
+p = get_manager().get_provider('deepseek')
+assert p is not None, 'DeepSeek provider 未绑定'
+r = asyncio.run(p.chat([Message('user', '仅回复：连接成功')]))
+print(r.provider, r.model, r.content)
 ```
 
-验收要看 qwen 与 DeepSeek 实际成功、`completed=true`、`remote_quality_evaluated=true`、没有阻断错误、`embedding_index.completed` 达到 `total`，以及三条远程检索分支的逐查询结果。还要确认 DeepSeek 有真实 `answers`，并人工评阅引用和答案。退出码、质量布尔值或 BM25 命中率不能单独证明这些条件成立。
+真实远程向量存放在 `embedding_vector`，固定 1024 维；`embedding` 仍保留 128 维字符向量，该字符向量不是语义模型。核对 `metadata.vector_model` 和 `metadata.vector_space=volcano/doubao-embedding-vision-251215/1024/raw-v1`。历史向量和本地字符向量不能充当这个新空间的语义索引。
 
-`--postgres-tests` 使用合成向量检查数据库分支和权限回归；这部分通过不能代替真实模型召回质量。脚本正常结束后删除临时凭据文件，保留隔离数据库和报告供诊断；你的源配置文件仍保存在 `D:\ctf-deploy\remote-eval.env`。本脚本使用 Windows `.exe` 工具名，不能原样搬到 Linux。
+先在测试库选择一条已有公开法条及现有管理员，用 `rebuild_legal_kb --actor <管理员用户名> --source-type legal_clause --object-id <法条ID> --dry-run` 核对，再去掉 `--dry-run` 重建该对象。第二条会请求火山并更新目标索引，先确认小样本成功再决定扩大规模。新测试库没有源正文和分块时，应先准备公开测试材料。
 
-## 5. 失败时按结果排查
+随后检查 `POST /api/legal-kb/retrieve/`：应有真实 DeepSeek provider/model、可追溯 citations，以及与新空间一致的语义召回证据。仅见 `lexical` 时检查匹配空间的远程向量、查询和数据库分支；词法结果本身不能计为语义通过。向量数量非零、HNSW 索引存在或引用编号合法，都不能单独证明这条链路通过。
 
-| 现象 | 检查与处理 | 主要由谁处理 |
-| --- | --- | --- |
-| Python、`initdb.exe` 等路径不存在 | 核对上面的本机路径和依赖安装 | 我可以检查环境、调整命令 |
-| vector 扩展不可用或迁移失败 | 核对 PostgreSQL 16 的 pgvector 安装、扩展版本和迁移日志 | 我可以定位配置和代码问题 |
-| HTTP 401 | 核对密钥是否有效、通义是否为北京国内站、所选模型是否有权限 | 你操作供应商控制台；我解读诊断 |
-| HTTP 429 | 查看 `error_category`，区分限流与账户余额/额度，再调整调用并发 | 你处理账户额度；我处理调用策略 |
-| `not_configured` | 检查同一配置文件是否同时填写该 provider 的密钥和模型 | 你填写凭据；我检查配置读取 |
-| `EMBEDDING_NOT_CONFIGURED` | 核对 provider 装配和启动组合 | 我检查 bootstrap 与绑定 |
-| `AUTHORIZATION_DENIED` | 核对固定接口、模型允许列表、策略与密钥引用 | 我定位实际拒绝位置 |
-| `EMBEDDING_SHAPE_INVALID` / `REAL_EMBEDDING_PROBE_INVALID` | 核对实际返回维度、有限数值与目标 1024 维 | 我处理协议适配；你确认可用模型 |
-| 只有 `PROVIDER_UNAVAILABLE` | 查看报告中的 `http_observations`，业务错误码可能统一隐藏原始 HTTP 细节 | 我解读状态与错误类别 |
-| 检索仅显示 `lexical` | 检查远程向量是否写入、查询与索引的 vector space 是否一致、PG 分支是否异常 | 我定位并重建测试索引 |
-| 有回答但 `provider=local`、`model=rag-template-v1` 或 `MODEL_CALL_FAILED` | 核对聊天用途、启动组合、凭据和额度 | 我处理程序；账户问题由你处理 |
-| `PG_STOP_FAILED` 或清理字段缺失/不为 true | 检查报告中的隔离工作目录和专用 PostgreSQL 状态，确认清理完成 | 我可以协助核查和清理隔离实例 |
-
-不要只根据状态码猜原因。例如 429 可能代表账户限制，也可能代表速率限制，应结合控制台和报告类别判断。
-
-## 6. 接入测试业务进程，再验收实际功能
-
-隔离评测成功后，业务服务还需要独立接入模型启动组合。业务 `settings.EMBEDDING_API_KEY` 固定为空，provider manager 不会自动读取 `.env` 凭据。开发者需要准备仓库外的 bootstrap JSON、key manifest、密钥文件和批准策略，挂入测试容器，设置 `DATA_SECURITY_CONFIG` 为容器内绝对路径，再启动进程。
-
-当前 bootstrap 只接受 `environment=evaluation`，因此先接入独立测试部署。正式生产接入支持仍需开发验证。当前 Compose 也没有自动完成上述文件挂载；这部分我可以制作配置并联调，不能把隔离评测成功当成业务启动配置已经完成。
-
-通义嵌入配 DeepSeek 聊天的测试业务配置应包含：
-
-```dotenv
-EMBEDDING_PROVIDER=qwen
-EMBEDDING_MODEL=text-embedding-v4
-EMBEDDING_DIMENSION=1024
-EMBEDDING_BATCH_SIZE=10
-LEGAL_KB_RAG_USE_LLM=true
-LEGAL_KB_RAG_AGENT_ID=legal_reviewer
-```
-
-`legal_reviewer` 绑定 DeepSeek。默认 `compliance_officer` 绑定 qwen；如果 qwen 仅允许 embedding 模型，默认聊天调用可能误用该模型。启动组合中的 DeepSeek 模型还必须与控制台实际可调用模型一致。
-
-接入后先运行 `check_legal_kb`，再通过项目的 `EmbeddingService` 和受保护聊天 provider 各发一次真实请求。`check_legal_kb` 自身不请求模型，不能单独证明模型可调用。随后选择一条公开测试法条，用 `rebuild_legal_kb --actor <现有管理员用户名> --source-type legal_clause --object-id <法条ID> --dry-run` 核对，再去掉 `--dry-run` 重建；扩展重建规模前先确认单条成功。新测试库没有源法条和分块时，需要先导入公开测试语料。
-
-真实远程向量应写入 `embedding_vector`，其维度固定为 1024；`embedding` 仍保留 128 维字符向量。核对 `metadata.vector_model`、`metadata.vector_space`，以及检索的 `retrieval=semantic`。向量数量非零、HNSW 索引存在，都不能单独证明某个请求实际走了正确语义检索。
-
-管理员或教师可在前端相应功能的浏览器 Network 中检查 `POST /api/legal-kb/retrieve/`，例如发送：
-
-```json
-{"query":"网站如何防止用户输入变成可执行的数据库语句？","top_k":5}
-```
-
-用适合实际测试语料的问题，并验证返回的真实聊天 provider/model、答案与 citations。当前知识库管理接口限制管理员/教师；学生访问该接口 403 属于权限设计。学生端的知识访问范围还应在实际学生功能入口验证。
-
-最后由你或领域教师评阅以下场景：
+## 6. 人工验收与失败排查
 
 | 场景 | 通过条件 |
 | --- | --- |
-| 正常问题 | 召回正确证据，答案与原文一致 |
-| 同义改写 | 减少原文关键词后仍召回正确材料 |
-| 无答案问题 | 明确说明证据不足，不编造事实和法条 |
-| 管理员、教师、学生及未登录身份 | 各身份只能访问允许范围，受限材料不越权召回 |
-| 回答引用 | 引用可以追溯到原文，而且原文逐项支持结论；编号合法不等于内容正确 |
+| 正常问题 | 召回正确材料，DeepSeek 回答与原文一致 |
+| 同义改写 | 减少原文关键词后仍召回正确证据，并检查实际语义模式和新向量空间 |
+| 无答案问题 | 明确说明证据不足，不编造事实或法条 |
+| 各用户身份 | 管理员、教师、学生及未登录身份只能访问允许范围；学生访问知识库管理接口 403 属于当前设计，学生功能另行验证 |
+| 回答引用 | 引用可追溯，原文支持每项结论；编号合法不等于内容正确 |
 
-供应商开户、密钥、区域、模型权限和余额需要你实际确认；程序配置、数据库分支、模型协议、测试索引、错误处理和日志诊断可以由我处理。实际回答质量与教学适用性需要你或领域教师给出最终判断。
+| 现象 | 检查与处理 |
+| --- | --- |
+| 火山 embedding 未配置或模型错误 | 检查 EMBEDDING 配置、方舟密钥和用途；不要把 embedding 模型填入 ARK_MODEL |
+| 火山 / DeepSeek HTTP 401、429 | 核对所选模型的密钥、访问权限、余额和限流；结合报告类别判断 |
+| `EMBEDDING_SHAPE_INVALID` | 检查实际返回是否 1024 维及有限数值，不能截断入库 |
+| 仍出现 qwen 请求 | 检查当前进程配置与启动组合，通义应保持 disabled |
+| `MODEL_CALL_FAILED` / 本地模板回答 | 核对 DeepSeek 独立聊天任务、业务 bootstrap 与实际错误类别 |
+| 清理字段缺失或不为 true | 核查专用 PostgreSQL 和临时目录；保留现有业务加密密钥 |
+
+程序配置、数据库分支、模型适配、索引和日志诊断可以由我处理；供应商账户操作、实际回答与教学适用性的评阅，需要你或领域教师确认。

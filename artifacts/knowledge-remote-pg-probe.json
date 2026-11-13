@@ -1,0 +1,75 @@
+{
+  "started_at": "2026-11-13T16:22:49.727365+00:00",
+  "source_database": "D:\\aaa10\\16015478源码\\database\\db.sqlite3",
+  "source_access": "not accessed; isolated native PostgreSQL cluster",
+  "postgres_port": 55484,
+  "evaluation_mode": "probe_only",
+  "providers": [
+    {
+      "provider": "qwen",
+      "model": "text-embedding-v4",
+      "status": "failed",
+      "error_type": "RuntimeError",
+      "error_code": "PROVIDER_UNAVAILABLE",
+      "latency_ms": 520.9
+    },
+    {
+      "provider": "volcano",
+      "status": "not_configured"
+    },
+    {
+      "provider": "deepseek",
+      "model": "deepseek-flash",
+      "status": "success",
+      "latency_ms": 753.62,
+      "content": "连接成功",
+      "usage": {
+        "prompt_tokens": 35,
+        "completion_tokens": 3
+      }
+    }
+  ],
+  "retrieval": {},
+  "answers": [],
+  "errors": [
+    {
+      "type": "RuntimeError",
+      "code": "REAL_EMBEDDING_PROBE_FAILED"
+    }
+  ],
+  "production_settings_changed": false,
+  "runtime_protection": {
+    "enabled": true,
+    "isolated": true,
+    "root": "C:\\Users\\29681\\AppData\\Local\\Temp\\knowledge-remote-pg-qt3q6i28\\runtime-storage",
+    "key_file": "C:\\Users\\29681\\AppData\\Local\\Temp\\knowledge-remote-pg-qt3q6i28\\keys\\runtime-storage.key"
+  },
+  "postgres_version": "PostgreSQL 16.14, compiled by Visual C++ build 1944, 64-bit",
+  "pgvector_version": "0.8.2",
+  "initial_index": {
+    "remote_vectors": 0,
+    "unbound_remote_error": "EMBEDDING_NOT_CONFIGURED"
+  },
+  "http_observations": [
+    {
+      "host": "dashscope.aliyuncs.com",
+      "status": 400,
+      "latency_ms": 490.75,
+      "error_category": "other"
+    },
+    {
+      "host": "api.deepseek.com",
+      "status": 200,
+      "latency_ms": 318.36
+    }
+  ],
+  "completed": false,
+  "remote_probe_succeeded": false,
+  "remote_quality_evaluated": false,
+  "status": "partial_probe_failed",
+  "isolated_postgres_stopped": true,
+  "temporary_keys_deleted": true,
+  "temporary_runtime_key_deleted": true,
+  "isolated_workspace": "C:\\Users\\29681\\AppData\\Local\\Temp\\knowledge-remote-pg-qt3q6i28",
+  "finished_at": "2026-11-13T16:23:51.027213+00:00"
+}

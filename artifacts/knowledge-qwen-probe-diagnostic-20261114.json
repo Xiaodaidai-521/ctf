@@ -1,0 +1,92 @@
+{
+  "started_at": "2026-11-13T16:30:01.398507+00:00",
+  "source_database": "D:\\aaa10\\16015478源码\\database\\db.sqlite3",
+  "source_access": "not accessed; isolated native PostgreSQL cluster",
+  "postgres_port": 65452,
+  "evaluation_mode": "probe_only",
+  "providers": [
+    {
+      "provider": "qwen",
+      "model": "text-embedding-v4",
+      "status": "failed",
+      "error_type": "RuntimeError",
+      "error_code": "PROVIDER_UNAVAILABLE",
+      "latency_ms": 431.91
+    },
+    {
+      "provider": "volcano",
+      "status": "not_configured"
+    },
+    {
+      "provider": "deepseek",
+      "status": "not_configured"
+    }
+  ],
+  "retrieval": {},
+  "answers": [],
+  "errors": [
+    {
+      "type": "RuntimeError",
+      "code": "REAL_EMBEDDING_PROBE_FAILED"
+    }
+  ],
+  "production_settings_changed": false,
+  "runtime_protection": {
+    "enabled": true,
+    "isolated": true,
+    "root": "C:\\Users\\29681\\AppData\\Local\\Temp\\knowledge-remote-pg-an4zsaqw\\runtime-storage",
+    "key_file": "C:\\Users\\29681\\AppData\\Local\\Temp\\knowledge-remote-pg-an4zsaqw\\keys\\runtime-storage.key"
+  },
+  "postgres_version": "PostgreSQL 16.14, compiled by Visual C++ build 1944, 64-bit",
+  "pgvector_version": "0.8.2",
+  "initial_index": {
+    "remote_vectors": 0,
+    "unbound_remote_error": "EMBEDDING_NOT_CONFIGURED"
+  },
+  "http_observations": [
+    {
+      "host": "dashscope.aliyuncs.com",
+      "status": 400,
+      "latency_ms": 415.15,
+      "error_category": "other"
+    }
+  ],
+  "completed": false,
+  "remote_probe_succeeded": false,
+  "remote_quality_evaluated": false,
+  "status": "partial_probe_failed",
+  "isolated_postgres_stopped": true,
+  "temporary_keys_deleted": true,
+  "temporary_runtime_key_deleted": true,
+  "isolated_workspace": "C:\\Users\\29681\\AppData\\Local\\Temp\\knowledge-remote-pg-an4zsaqw",
+  "finished_at": "2026-11-13T16:30:58.635244+00:00",
+  "qwen_diagnostics": [
+    {
+      "http_status": 400,
+      "request_shape": {
+        "model_is_text_embedding_v4": true,
+        "input_is_nonempty_string_list": true,
+        "input_count": 1,
+        "encoding_format_is_float": true,
+        "dimensions_present": false
+      },
+      "provider_error_kind": "unclassified",
+      "error_type_known": "unclassified",
+      "message_hints": {
+        "model": true,
+        "region": false,
+        "encoding": false,
+        "dimension": false,
+        "input": false,
+        "api_key": false,
+        "unsupported": false,
+        "required": false,
+        "not_found": false,
+        "access_or_permission": true,
+        "invalid_model": false,
+        "quota_or_billing": false
+      },
+      "error_parameter": null
+    }
+  ]
+}
