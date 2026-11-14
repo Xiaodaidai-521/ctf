@@ -1,5 +1,7 @@
 """Models for legal compliance business workflows."""
 
+import uuid
+
 from django.conf import settings
 from django.db import models
 
@@ -203,7 +205,7 @@ class LegalAnalysisTask(ProtectedModel):
     """Compliance analysis task submitted by an admin or teacher."""
 
     encrypted_fields = ('input_text',)
-    redacted_fields = ('title', 'result_summary', 'metadata')
+    redacted_fields = ('title', 'result_summary', 'metadata', 'error_message')
 
     STATUS_CHOICES = [
         ('pending', 'Pending'),
@@ -467,10 +469,27 @@ class LegalReport(ProtectedModel):
         return self.title
 
 
+class LegalReportExport(models.Model):
+    """A short-lived, actor-bound encrypted export; the source ACL stays authoritative."""
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    report = models.ForeignKey(LegalReport, on_delete=models.CASCADE, related_name='exports')
+    requested_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    course_id = models.PositiveBigIntegerField(null=True, blank=True)
+    policy_version = models.CharField(max_length=80)
+    content_hash = models.CharField(max_length=64)
+    byte_size = models.PositiveIntegerField()
+    expires_at = models.DateTimeField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at', '-id']
+
+
 class ComplianceAgentRun(ProtectedModel):
     """Execution trace for compliance AI or rule-based analysis."""
 
-    redacted_fields = ('input_payload', 'output_payload')
+    redacted_fields = ('input_payload', 'output_payload', 'error_message')
 
     task = models.ForeignKey(
         LegalAnalysisTask,

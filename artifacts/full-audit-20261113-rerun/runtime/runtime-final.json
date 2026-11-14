@@ -1,0 +1,98 @@
+{
+  "scope": "read-only runtime and Compose structure; no deployment or production database access",
+  "observed_at_utc": "2026-11-13T01:22:26.695787+00:00",
+  "python": "3.12.8 (tags/v3.12.8:2dc476b, Dec  3 2024, 19:30:04) [MSC v.1942 64 bit (AMD64)]",
+  "django_version": "6.0.3",
+  "pip_check": {
+    "exit_code": 0,
+    "stdout": "No broken requirements found.",
+    "stderr": ""
+  },
+  "docker_server": {
+    "exit_code": 1,
+    "stdout": "null",
+    "stderr": "failed to connect to the docker API at npipe:////./pipe/dockerDesktopLinuxEngine; check if the path is correct and if the daemon is running: open //./pipe/dockerDesktopLinuxEngine: The system cannot find the file specified."
+  },
+  "hypervisor_present": {
+    "exit_code": 0,
+    "stdout": "False",
+    "stderr": ""
+  },
+  "external_paths_configured": {
+    "TLS_CERT_DIR": false,
+    "FRPS_CONFIG_FILE": false
+  },
+  "feature_gates_enabled": {
+    "PRACTICAL_TRAINING_ENABLED": false,
+    "FEEDBACK_PHASE3_ENABLED": false,
+    "FEEDBACK_PHASE3_RELEASE_ENABLED": false,
+    "EVALUATION_LIVE_GATEWAY_ENABLED": false
+  },
+  "analytics_scheduler_depends_on": {
+    "postgres": {
+      "condition": "service_healthy"
+    },
+    "backend": {
+      "condition": "service_healthy"
+    }
+  },
+  "container_cleanup_depends_on": {
+    "backend": {
+      "condition": "service_healthy"
+    }
+  },
+  "compose_actual_environment": {
+    "exit_code": 1,
+    "stdout": "",
+    "stderr": "error while interpolating services.frontend.volumes.[]: required variable TLS_CERT_DIR is missing a value: Set the approved external TLS directory"
+  },
+  "compose_fixture_paths": {
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  "fixture_paths_are_not_deployment_evidence": true,
+  "source_hash_comparison": {
+    "backend/Dockerfile": {
+      "sha256": "02cff5e8d0e7940804ea22f6192d9cae9439d65efef5ffb922a46ea1800c2cc3",
+      "same_as_prior_evidence": true
+    },
+    "frontend/Dockerfile": {
+      "sha256": "12e9b90650c0f88f73494214148cfd633aa86c1c02a489ad7791adf7f31c8aac",
+      "same_as_prior_evidence": true
+    },
+    "docker-compose.yml": {
+      "sha256": "b00e6165c2a552524bfe8a6c6d9468946dab6833a8857f2915edd7176ece2aee",
+      "same_as_prior_evidence": false
+    },
+    "frontend/nginx.conf": {
+      "sha256": "b53b534cac4b7835d7c74983672f8520eaaa214c77f5985840dae687f9030d83",
+      "same_as_prior_evidence": true
+    },
+    "backend/start.sh": {
+      "sha256": "90fd7ee3c40d9b5e0a95cb6941607a2322ed2beeb4ea453d6ac7fb6267d1510a",
+      "same_as_prior_evidence": true
+    },
+    "backend/requirements.txt": {
+      "sha256": "8ca9abaf45b692da639ce7803f89f9ec99ad48392ed52aceebee47c3ee7bbbb8",
+      "same_as_prior_evidence": true
+    },
+    "backend/healthcheck.py": {
+      "sha256": "65edfce1763a0900c338b171bfd0b1e9a758d1c5f9e9b0b125d2d842c09a5c5c",
+      "same_as_prior_evidence": true
+    },
+    "backend/.dockerignore": {
+      "sha256": "2ddeed3f99a42d4e7a9460d8461e7696a53444cc0e4d3beefee4b1306e653f4c",
+      "same_as_prior_evidence": true
+    },
+    "frontend/.dockerignore": {
+      "sha256": "1474d5c5ca052aa90d820ab0254ed6fb2ee65f96f513eefc194ab6aad410cbb1",
+      "same_as_prior_evidence": true
+    },
+    "docs/feedback/module7-phase3-handoff.md": {
+      "sha256": "8461e2d8c948ea485ddfc95d21a596bd39fe62d46f9c53d567cb9a2a3e57ab15",
+      "same_as_prior_evidence": false
+    }
+  },
+  "start_sh_crlf_count": 0
+}

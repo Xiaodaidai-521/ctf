@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { loginUrl } from '../shared/navigation/returnTarget.js'
 
 const api = axios.create({
   baseURL: '/api',
@@ -13,8 +14,9 @@ api.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401 || error.response?.data?.code === 'authentication_required') {
       localStorage.removeItem('userInfo')
-      if (window.location.pathname !== '/login') {
-        window.location.href = '/login'
+      if (!/^\/(?:login|register)\/?$/i.test(window.location.pathname)) {
+        const { pathname, search, hash } = window.location
+        window.location.href = loginUrl(`${pathname}${search || ''}${hash || ''}`)
       }
     }
     return Promise.reject(error)
@@ -23,6 +25,21 @@ api.interceptors.response.use(
 
 
 const service = {
+  dataSecurity: {
+    policies: () => api.get('/data-security/policies/'),
+    preview: (sampleCase) => api.post('/data-security/preview/', { case: sampleCase }),
+    revealRequests: (params) => api.get('/data-security/reveal-requests/', { params }),
+    revealSource: (params) => api.get('/data-security/reveal-source/', { params }),
+    createRevealRequest: (data) => api.post('/data-security/reveal-requests/', data),
+    decideRevealRequest: (id, action) => {
+      if (!['approve', 'reject', 'revoke'].includes(action)) return Promise.reject(new Error('不支持的审批操作'))
+      return api.post(`/data-security/reveal-requests/${encodeURIComponent(id)}/${action}/`, {})
+    },
+    statistics: (params) => api.get('/data-security/stats/', { params }),
+  },
+  privacy: {
+    conversation: id => api.get(`/data-security/privacy/conversations/${id}/`),
+  },
   // 认证相关
   auth: {
     csrf: () => api.get('/users/csrf/'),
@@ -44,7 +61,7 @@ const service = {
 
   // 题目相关
   challenge: {
-    getCategories: () => api.get('/challenges/categories/'),
+    getCategories: (params) => api.get('/challenges/categories/', { params }),
     getChallenges: (params) => api.get('/challenges/challenges/', { params }),
     getChallengeDetail: (id) => api.get(`/challenges/challenge/${id}/`),
     submitFlag: (id, flag) => api.post(`/challenges/challenges/${id}/submit/`, {
@@ -259,7 +276,7 @@ const service = {
     generateQuiz: (data) => api.post('/content/generate/quiz/', data),
     generateDiagram: (data) => api.post('/content/generate/diagram/', data),
     generateExercise: (data) => api.post('/content/generate/exercise/', data),
-    getDetail: (id) => api.get(`/content/${id}/`),
+    getDetail: (id, params) => api.get(`/content/${id}/`, { params }),
     regenerate: (id, data) => api.post(`/content/${id}/regenerate/`, data),
   },
 
@@ -299,7 +316,7 @@ const service = {
     violations: (params) => api.get('/legal/violations/', { params }),
     createViolation: (data) => api.post('/legal/violations/', data),
     reports: (params) => api.get('/legal/reports/', { params }),
-    exportReport: (id) => api.post(`/legal/reports/${id}/export/`),
+    exportReport: (id) => api.post(`/legal/reports/${id}/export/`, {}, { responseType: 'blob' }),
     agentRuns: (params) => api.get('/legal/agent-runs/', { params }),
     containerAudits: (params) => api.get('/legal/container-audits/', { params }),
     previewExerciseFacts: (data) => api.post('/legal/exercise-facts/preview/', data),

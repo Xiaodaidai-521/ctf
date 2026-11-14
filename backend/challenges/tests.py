@@ -115,12 +115,17 @@ class ChallengeProxyAccessTests(TestCase):
         request_mock.assert_not_called()
 
     @patch('challenges.views.requests.request')
+    @override_settings(CONTAINER_PROXY_HOST='')
     def test_access_url_does_not_include_reusable_token(self, request_mock):
         access_url = build_access_url(self.container)
 
         self.assertNotIn('access_token=', access_url)
-        self.assertEqual(access_url, f'http://localhost:8000{self.path}')
+        self.assertEqual(access_url, self.path)
         request_mock.assert_not_called()
+
+    @override_settings(CONTAINER_PROXY_HOST='learn.example.test', CONTAINER_PROXY_SCHEME='https')
+    def test_access_url_uses_explicit_public_origin_when_configured(self):
+        self.assertEqual(build_access_url(self.container), f'https://learn.example.test{self.path}')
 
     @patch('challenges.views.requests.request')
     def test_proxy_accepts_scoped_cookie(self, request_mock):

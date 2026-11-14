@@ -7,7 +7,8 @@ from uuid import UUID
 
 from .parsing import InputError, fingerprint
 
-IMPLEMENTATIONS = frozenset({'email_ascii_v1', 'ipv4_v1', 'luhn_candidate_v1'})
+TEACHING_IMPLEMENTATIONS = frozenset({'demo_person_ref_v1', 'demo_contact_v1'})
+IMPLEMENTATIONS = frozenset({'email_ascii_v1', 'ipv4_v1', 'luhn_candidate_v1'}) | TEACHING_IMPLEMENTATIONS
 
 
 def require(condition, code='CONFIG_INVALID'):
@@ -95,6 +96,10 @@ class RuleConfiguration:
                 require(isinstance(rule['version'], str) and bool(rule['version']))
                 require(type(rule['enabled']) is bool)
                 require(rule['implementation'] in IMPLEMENTATIONS, 'RULE_IMPLEMENTATION_UNSUPPORTED')
+                if rule['implementation'] in TEACHING_IMPLEMENTATIONS:
+                    require(value['allowed_environments'] == ['test']
+                            and rule['category_id'] in {'DEMO_PERSON_REF', 'DEMO_CONTACT'},
+                            'RULE_IMPLEMENTATION_UNSUPPORTED')
                 require(rule['category_id'] in category_ids, 'CATEGORY_REFERENCE_INVALID')
             for category in categories.values():
                 actual = {r['rule_id'] for r in rules if r['category_id'] == category['category_id']}

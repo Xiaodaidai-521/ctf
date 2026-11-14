@@ -1,0 +1,223 @@
+{
+  "scope": "owned synthetic cluster; final export includes 2 native ACL tests also checked separately; tool has 2 failed subtests in 1 test method; do not double count",
+  "records": {
+    "recheck-rt-mainline-pure": {
+      "command": [
+        "D:\\aaa10\\16015478源码\\project-code\\.state\\full-audit-20261113\\venv\\Scripts\\python.exe",
+        "-B",
+        "D:\\aaa10\\16015478源码\\project-code\\tools\\full_audit\\batch.py",
+        "--entry",
+        "unit",
+        "discover",
+        "-s",
+        "mainline1/tests",
+        "-p",
+        "test*.py"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 10.25,
+      "test_database": "test_audit_batch_recheck-rt-mainline-pure",
+      "source_changes": [],
+      "counts": {
+        "tests": 157,
+        "passed": 157,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "error_groups": {},
+      "failure_ids": []
+    },
+    "recheck-rt-mainline-postgres": {
+      "command": [
+        "D:\\aaa10\\16015478源码\\project-code\\.state\\full-audit-20261113\\venv\\Scripts\\python.exe",
+        "-B",
+        "D:\\aaa10\\16015478源码\\project-code\\tools\\full_audit\\batch.py",
+        "--entry",
+        "django",
+        "test",
+        "mainline1.tests.postgres_cases",
+        "mainline1.tests.postgres_review_cases",
+        "mainline1.tests.postgres_operations_cases",
+        "mainline1.tests.postgres_planning_cases",
+        "mainline1.tests.postgres_parsed_artifact_cases",
+        "--noinput",
+        "--keepdb",
+        "-v",
+        "2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 22.09,
+      "test_database": "test_audit_batch_recheck-rt-mainline-postgres",
+      "source_changes": [],
+      "counts": {
+        "tests": 67,
+        "passed": 67,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "error_groups": {},
+      "failure_ids": []
+    },
+    "recheck-rt-tool-pure": {
+      "command": [
+        "D:\\aaa10\\16015478源码\\project-code\\.state\\full-audit-20261113\\venv\\Scripts\\python.exe",
+        "-B",
+        "D:\\aaa10\\16015478源码\\project-code\\tools\\full_audit\\batch.py",
+        "--entry",
+        "unit",
+        "tools.data_security.test_phase4_evidence",
+        "tools.data_security.test_phase6_plaintext_scan"
+      ],
+      "exit_code": 1,
+      "elapsed_seconds": 6.09,
+      "test_database": "test_audit_batch_recheck-rt-tool-pure",
+      "source_changes": [],
+      "counts": {
+        "tests": 12,
+        "passed": 11,
+        "failures": 2,
+        "errors": 0,
+        "skipped": 0
+      },
+      "error_groups": {},
+      "failure_ids": [
+        "tools.data_security.test_phase4_evidence.BackupReceiptTests.test_log_hash_binds_exact_output_and_preserves_exit_code (exit_code=0)",
+        "tools.data_security.test_phase4_evidence.BackupReceiptTests.test_log_hash_binds_exact_output_and_preserves_exit_code (exit_code=1)"
+      ]
+    },
+    "recheck-rt-export-final": {
+      "command": [
+        "D:\\aaa10\\16015478源码\\project-code\\.state\\full-audit-20261113\\venv\\Scripts\\python.exe",
+        "-B",
+        "D:\\aaa10\\16015478源码\\project-code\\tools\\full_audit\\batch.py",
+        "--entry",
+        "django",
+        "test",
+        "controlled_export",
+        "--noinput",
+        "--keepdb",
+        "-v",
+        "1"
+      ],
+      "exit_code": 1,
+      "elapsed_seconds": 43.2,
+      "test_database": "test_audit_batch_recheck-rt-export-final",
+      "source_changes": [],
+      "counts": {
+        "tests": 105,
+        "passed": 76,
+        "failures": 0,
+        "errors": 29,
+        "skipped": 0
+      },
+      "error_groups": {
+        "test_phase6_b2_http": 8,
+        "test_phase6_b3_recovery_pg": 4,
+        "test_phase6_private_preparation": 13,
+        "test_phase6_b2_boundaries": 1,
+        "test_phase6_b3_recovery": 3
+      },
+      "failure_ids": []
+    },
+    "recheck-rt-export-native-config": {
+      "command": [
+        "D:\\aaa10\\16015478源码\\project-code\\.state\\full-audit-20261113\\venv\\Scripts\\python.exe",
+        "-B",
+        "D:\\aaa10\\16015478源码\\project-code\\tools\\full_audit\\batch.py",
+        "--entry",
+        "unit",
+        "controlled_export.tests.test_windows_bootstrap"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 6.22,
+      "test_database": "test_audit_batch_recheck-rt-export-native-config",
+      "source_changes": [],
+      "counts": {
+        "tests": 2,
+        "passed": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "error_groups": {},
+      "failure_ids": []
+    },
+    "recheck-rt-check": {
+      "command": [
+        "D:\\aaa10\\16015478源码\\project-code\\.state\\full-audit-20261113\\venv\\Scripts\\python.exe",
+        "-B",
+        "D:\\aaa10\\16015478源码\\project-code\\tools\\full_audit\\batch.py",
+        "--entry",
+        "django",
+        "check"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 8.39,
+      "test_database": "test_audit_batch_recheck-rt-check",
+      "source_changes": []
+    },
+    "recheck-rt-migration-check": {
+      "command": [
+        "D:\\aaa10\\16015478源码\\project-code\\.state\\full-audit-20261113\\venv\\Scripts\\python.exe",
+        "-B",
+        "D:\\aaa10\\16015478源码\\project-code\\tools\\full_audit\\batch.py",
+        "--entry",
+        "django",
+        "makemigrations",
+        "--check",
+        "--dry-run"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 8.88,
+      "test_database": "test_audit_batch_recheck-rt-migration-check",
+      "source_changes": []
+    },
+    "recheck-rt-migration-plan": {
+      "command": [
+        "D:\\aaa10\\16015478源码\\project-code\\.state\\full-audit-20261113\\venv\\Scripts\\python.exe",
+        "-B",
+        "D:\\aaa10\\16015478源码\\project-code\\tools\\full_audit\\batch.py",
+        "--entry",
+        "django",
+        "showmigrations",
+        "--plan"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 9.02,
+      "test_database": "test_audit_batch_recheck-rt-migration-plan",
+      "source_changes": []
+    },
+    "recheck-rt-export-check": {
+      "command": [
+        "D:\\aaa10\\16015478源码\\project-code\\.state\\full-audit-20261113\\venv\\Scripts\\python.exe",
+        "-B",
+        "D:\\aaa10\\16015478源码\\project-code\\tools\\full_audit\\batch.py",
+        "--entry",
+        "django",
+        "check"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 9.51,
+      "test_database": "test_audit_batch_recheck-rt-export-check",
+      "source_changes": []
+    },
+    "recheck-rt-export-migration-check": {
+      "command": [
+        "D:\\aaa10\\16015478源码\\project-code\\.state\\full-audit-20261113\\venv\\Scripts\\python.exe",
+        "-B",
+        "D:\\aaa10\\16015478源码\\project-code\\tools\\full_audit\\batch.py",
+        "--entry",
+        "django",
+        "makemigrations",
+        "--check",
+        "--dry-run"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 9.53,
+      "test_database": "test_audit_batch_recheck-rt-export-migration-check",
+      "source_changes": []
+    }
+  }
+}

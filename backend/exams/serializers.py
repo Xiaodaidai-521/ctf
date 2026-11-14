@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from data_security.adapters.django.protection_status import ProtectionSerializerMixin, summarize
 from django.contrib.auth import get_user_model
 from data_security.adapters.persistence.fields import field_storage_enabled
 from .models import (
@@ -21,6 +22,14 @@ class TheoryQuestionSerializer(serializers.ModelSerializer):
     question_type_display = serializers.CharField(source='get_question_type_display', read_only=True)
     category_display = serializers.CharField(source='get_category_display', read_only=True)
     difficulty_display = serializers.CharField(source='get_difficulty_display', read_only=True)
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        request = self.context.get('request')
+        user = request.user if request else None
+        if not user or not user.is_authenticated or not (user.is_staff or user.role in ('teacher', 'admin')):
+            data.pop('explanation', None)
+        return data
 
     class Meta:
         model = TheoryQuestion
@@ -50,7 +59,7 @@ class TheoryQuestionCreateSerializer(serializers.ModelSerializer):
 class PracticeExamQuestionSerializer(serializers.ModelSerializer):
     challenge_title = serializers.CharField(source='challenge.title', read_only=True)
     challenge_difficulty = serializers.CharField(source='challenge.difficulty', read_only=True)
-    challenge_points = serializers.IntegerField(source='challenge.points', read_only=True)
+    challenge_points = serializers.IntegerField(source='challenge.score', read_only=True)
     challenge_description = serializers.CharField(source='challenge.description', read_only=True)
 
     class Meta:
@@ -83,7 +92,7 @@ class PracticeExamCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = PracticeExam
         fields = [
-            'title', 'description', 'status',
+            'id', 'title', 'description', 'status',
             'duration', 'total_points', 'easy_count', 'medium_count', 'hard_count'
         ]
 
@@ -122,7 +131,7 @@ class TheoryExamCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = TheoryExam
         fields = [
-            'title', 'description', 'status',
+            'id', 'title', 'description', 'status',
             'duration', 'total_points', 'random_order', 'pass_score', 'max_attempts', 'question_ids'
         ]
 
@@ -142,11 +151,18 @@ class TheoryExamCreateSerializer(serializers.ModelSerializer):
         return exam
 
 
-class ExamAnswerSerializer(serializers.ModelSerializer):
+class ExamAnswerSerializer(ProtectionSerializerMixin, serializers.ModelSerializer):
     def to_representation(self, instance):
         data = super().to_representation(instance)
-        if field_storage_enabled() or instance.security_state != 'legacy-v0':
+        request = self.context.get('request')
+        owner = request and request.user.is_authenticated and request.user.pk == instance.exam_record.user_id
+        if owner:
+            data['user_answer'] = instance.read_protected('user_answer')
+        else:
             data['user_answer'] = '[REDACTED]'
+        if instance.exam_record.exam_type == 'theory' and instance.exam_record.status != 'completed':
+            data.pop('is_correct', None)
+            data.pop('points_earned', None)
         return data
 
     question_text = serializers.SerializerMethodField()
@@ -167,6 +183,18 @@ class ExamAnswerSerializer(serializers.ModelSerializer):
 
 
 class ExamRecordSerializer(serializers.ModelSerializer):
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        data['protection'] = {'user_answer': summarize(
+            answer['protection']['user_answer'] for answer in data['answers'])}
+        if instance.exam_type == 'theory' and instance.status != 'completed':
+            data['score'] = None
+            data['correct_count'] = None
+            data['is_passed'] = None
+        if instance.status == 'pending':
+            data['start_time'] = None
+        return data
+
     exam_type_display = serializers.CharField(source='get_exam_type_display', read_only=True)
     status_display = serializers.CharField(source='get_status_display', read_only=True)
     user_name = serializers.CharField(source='user.username', read_only=True)
@@ -228,11 +256,30 @@ class ExamRecordSerializer(serializers.ModelSerializer):
 class ExamRecordCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = ExamRecord
-        fields = ['exam_type', 'theory_exam', 'practice_exam']
+        fields = ['id', 'exam_type', 'theory_exam', 'practice_exam']
 
+    def validate(self, attrs):
+        theory = attrs.get('theory_exam')
+        practice = attrs.get('practice_exam')
+        exam = theory if attrs['exam_type'] == 'theory' else practice
+        if exam is None or (theory is not None and practice is not None):
+            raise serializers.ValidationError('考试类型必须对应唯一的考试。')
+        if exam.status != 'published':
+            raise serializers.ValidationError('考试尚未发布，不能开始。')
+        student = self.context['request'].user
+        records = ExamRecord.objects.filter(user=student, theory_exam=theory, practice_exam=practice)
+        if records.filter(status__in=('pending', 'in_progress')).exists():
+            raise serializers.ValidationError('这场考试已经开始，请继续已有的考试。')
+        if theory and (theory.max_attempts <= 0 or records.count() >= theory.max_attempts):
+            raise serializers.ValidationError('已达到这场考试的最大尝试次数。')
+        return attrs
     def create(self, validated_data):
         validated_data['user'] = self.context['request'].user
         validated_data['status'] = 'in_progress'
+        exam = validated_data.get('theory_exam') or validated_data.get('practice_exam')
+        # Serialize record creation with question regeneration/deletion, which
+        # locks the same exam row before checking whether it has been used.
+        type(exam).objects.select_for_update().get(pk=exam.pk)
 
         # 设置总分和题数
         if validated_data['exam_type'] == 'theory' and validated_data.get('theory_exam'):
@@ -251,7 +298,7 @@ class SubmitAnswerSerializer(serializers.Serializer):
     exam_record_id = serializers.IntegerField()
     theory_question_id = serializers.IntegerField(required=False)
     practice_question_id = serializers.IntegerField(required=False)
-    user_answer = serializers.CharField()
+    user_answer = serializers.CharField(allow_blank=True)
     time_spent = serializers.IntegerField(default=0)
 
     def validate(self, attrs):
@@ -259,11 +306,8 @@ class SubmitAnswerSerializer(serializers.Serializer):
         practice_question_id = attrs.get('practice_question_id')
         if bool(theory_question_id) == bool(practice_question_id):
             raise serializers.ValidationError('Provide exactly one question identifier.')
+        if practice_question_id and not attrs['user_answer'].strip():
+            raise serializers.ValidationError({'user_answer': 'Flag must not be blank.'})
         if attrs.get('time_spent', 0) < 0:
             raise serializers.ValidationError({'time_spent': 'Must be non-negative.'})
         return attrs
-
-    def validate(self, data):
-        if not data.get('theory_question_id') and not data.get('practice_question_id'):
-            raise serializers.ValidationError("必须提供题目ID")
-        return data

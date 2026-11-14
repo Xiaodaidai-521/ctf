@@ -14,9 +14,10 @@
     <p v-if="message" class="message">{{ message }}</p>
     <div v-if="loading" class="state-box">正在读取...</div>
 
+    <p v-else-if="loadError" class="message" role="alert">{{ loadError }}</p>
     <template v-else>
       <div class="tabs">
-        <button v-for="tab in tabs" :key="tab.key" :class="{ active: activeTab === tab.key }" @click="activeTab = tab.key">
+        <button v-for="tab in tabs" :key="tab.key" :class="{ active: activeTab === tab.key }" @click="selectTab(tab.key)">
           {{ tab.label }}<span v-if="counts[tab.countKey]" class="count">{{ counts[tab.countKey] }}</span>
         </button>
       </div>
@@ -45,8 +46,8 @@
               <div><span class="label">帮助层级</span>{{ task.submission.assistance.level_label || '无' }}</div>
               <div><span class="label">帮助来源</span>{{ task.submission.assistance.source_label }}</div>
             </div>
-            <pre class="payload">{{ JSON.stringify(task.submission.items, null, 2) }}</pre>
-            <p class="muted small">程序核验明细：{{ JSON.stringify(task.submission.program_result) }}</p>
+            <RecordView :value="task.submission.items" title="提交分项完整记录" />
+            <RecordView :value="task.submission.program_result" title="程序核验完整记录" />
           </details>
 
           <div v-if="task.status !== 'reviewed' && task.status !== 'corrected'" class="review-form">
@@ -94,16 +95,17 @@
             <div>
               <strong>{{ item.student }} · {{ item.task_title }}</strong>
               <p class="muted small">
-                {{ item.batch_title }} · {{ item.selection_reason === 'high_risk' ? '高风险' : '随机' }}
-                <template v-if="item.risk_reasons.length"> · {{ item.risk_reasons.join('、') }}</template>
+                {{ item.batch_title }} · {{ selectionLabel(item.selection_reason) }}
+                <template v-if="item.risk_reasons?.length"> · {{ item.risk_reasons.map(riskLabel).join('、') }}</template>
                 <template v-if="item.overdue"> · 已超期</template>
               </p>
             </div>
             <div class="item-actions">
               <button v-if="item.status === 'pending'" class="btn btn-small" @click="claimSampling(item)">认领</button>
-              <button v-if="item.status === 'claimed'" class="btn btn-primary btn-small" @click="completeSampling(item)">完成复核</button>
+              <button v-if="item.status === 'claimed'" class="btn btn-primary btn-small" :disabled="samplingWriting[item.item_id]" @click="completeSampling(item)">完成复核</button>
             </div>
           </div>
+          <div v-if="item.status === 'claimed'" class="review-form"><p>逐项确认你实际完成的核对；未核对项保持未选中。</p><label><input v-model="samplingForm(item).evidence_checked" type="checkbox" />已核对证据</label><label><input v-model="samplingForm(item).verifier_checked" type="checkbox" />已核对核验器</label><label><input v-model="samplingForm(item).rubric_checked" type="checkbox" />已核对量表</label><label><input v-model="samplingForm(item).help_checked" type="checkbox" />已核对帮助记录</label><label><input v-model="samplingForm(item).independence_checked" type="checkbox" />已核对独立性</label><label>实际结论<input v-model="samplingForm(item).conclusion" /></label><label>说明<input v-model="samplingForm(item).notes" /></label></div>
           <p v-if="item.status === 'completed'" class="muted small">已完成复核。</p>
         </article>
       </section>
@@ -149,7 +151,7 @@
                 <template v-if="item.outcome_label"> · {{ item.outcome_label }}</template>
               </p>
             </div>
-            <span class="badge">{{ item.selection_reason }}</span>
+            <span class="badge">{{ selectionLabel(item.selection_reason) }}</span>
           </div>
         </article>
       </section>
@@ -169,7 +171,7 @@
         </p>
         <details>
           <summary>固定回归样例（交模块八）</summary>
-          <pre class="payload">{{ JSON.stringify(regression, null, 2) }}</pre>
+          <RecordView :value="regression" title="固定回归样例完整记录" />
         </details>
       </section>
     </template>
@@ -177,7 +179,10 @@
 </template>
 
 <script setup>
-import { onMounted, reactive, ref } from 'vue'
+import { onMounted, onBeforeUnmount, reactive, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { feedbackLabel, feedbackDate, feedbackError } from './feedbackPresentation.js'
+import RecordView from '../shared/forms/RecordView.vue'
 import service from '@/api'
 
 const tabs = [
@@ -187,10 +192,19 @@ const tabs = [
   { key: 'retest', label: '复测安排', countKey: '' },
   { key: 'stats', label: '统计口径', countKey: '' },
 ]
-const activeTab = ref('manual')
+const route = useRoute(), router = useRouter()
+function tabPreset(value) { return typeof value === 'string' && tabs.some(tab => tab.key === value) ? value : 'manual' }
+const activeTab = ref(tabPreset(route.query.tab))
+function selectTab(key) { return router.replace({ path: route.path, query: { ...route.query, tab: tabPreset(key) }, hash: route.hash }) }
+watch(() => route.query.tab, value => { activeTab.value = tabPreset(value) })
 const loading = ref(true)
 const message = ref('')
-const counts = reactive({ manual_pending: 0, sampling_pending: 0, disputes_pending: 0 })
+const counts = reactive({})
+const loadError = ref('')
+const samplingForms = reactive({})
+const samplingWriting = reactive({})
+let alive = true, loadRead = 0
+onBeforeUnmount(() => { alive = false; ++loadRead })
 const manualTasks = ref([])
 const samplingItems = ref([])
 const disputes = ref([])
@@ -207,25 +221,12 @@ const rubricRows = [
   { key: 'improvement', label: '改进与验证' },
 ]
 
-function formatDate(value) {
-  if (!value) return '—'
-  return new Date(value).toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })
-}
-
-function rateText(entry) {
-  if (!entry) return '—'
-  if (!entry.denominator) return '暂无数据'
-  return `${entry.numerator}/${entry.denominator}（${Math.round(entry.rate * 100)}%）`
-}
-
-function extractError(err) {
-  const data = err?.response?.data
-  if (!data) return '网络或服务异常。'
-  if (typeof data === 'string') return data
-  if (typeof data.detail === 'string') return data.detail
-  if (data.detail?.detail) return data.detail.detail
-  return '操作未完成。'
-}
+function formatDate(value) { return feedbackDate(value) }
+function riskLabel(value) { return ({ evidence_conflict: '证据冲突', verifier_failure: '核验未完成', unknown_independence: '独立性未知', scoring_dispute: '评分争议', missing_evidence: '证据缺失' })[value] || '已关联风险，完整记录可下载核对' }
+function selectionLabel(value) { return feedbackLabel('sampling', value) }
+function rateText(entry) { if (!entry || typeof entry.denominator !== 'number' || typeof entry.numerator !== 'number') return '未提供'; if (entry.denominator === 0) return '暂无数据'; return `${entry.numerator}/${entry.denominator}（${Math.round(entry.numerator / entry.denominator * 100)}%）` }
+function extractError(err) { return feedbackError(err, '操作未完成，请核对填写内容或稍后重试。') }
+function samplingForm(item) { return samplingForms[item.item_id] ||= { evidence_checked: false, verifier_checked: false, rubric_checked: false, help_checked: false, independence_checked: false, conclusion: '', notes: '' } }
 
 function ensureReviewForm(task) {
   if (!reviewForms[task.task_id]) {
@@ -239,38 +240,22 @@ function ensureReviewForm(task) {
 }
 
 async function loadAll() {
-  loading.value = true
-  message.value = ''
+  if (!alive) return
+  const read = ++loadRead
+  loading.value = true; loadError.value = ''
   try {
-    const queue = await service.skillReview.teacherQueue()
-    Object.assign(counts, queue.counts)
-    const [manual, samplingPayload, disputesPayload, retestPayload, statsPayload, regressionPayload] = await Promise.all([
-      service.skillReview.manualTasks(),
-      service.skillReview.samplingItems(),
-      service.skillReview.teacherDisputes(),
-      service.skillReview.teacherRetests(),
-      service.skillReview.stats(),
-      service.skillReview.regressionCases(),
-    ])
-    manualTasks.value = manual.items || []
-    samplingItems.value = samplingPayload.items || []
-    disputes.value = disputesPayload.items || []
-    retests.value = retestPayload.items || []
-    stats.value = statsPayload
-    regression.value = regressionPayload
-    for (const task of manualTasks.value) {
-      ensureReviewForm(task)
-    }
-    for (const item of disputes.value) {
-      if (!disputeForms[item.dispute_id]) {
-        disputeForms[item.dispute_id] = { status: 'resolved', resolution: '' }
-      }
-    }
-  } catch (err) {
-    message.value = extractError(err)
-  } finally {
-    loading.value = false
-  }
+    const [queue, manual, samplingPayload, disputesPayload, retestPayload, statsPayload, regressionPayload] = await Promise.all([service.skillReview.teacherQueue(), service.skillReview.manualTasks(), service.skillReview.samplingItems(), service.skillReview.teacherDisputes(), service.skillReview.teacherRetests(), service.skillReview.stats(), service.skillReview.regressionCases()])
+    if (!alive || read !== loadRead) return
+    if (![manual, samplingPayload, disputesPayload, retestPayload].every(value => Array.isArray(value.items))) throw new Error('Incomplete response')
+    for (const key of Object.keys(counts)) delete counts[key]
+    Object.assign(counts, queue.counts || {})
+    manualTasks.value = manual.items; samplingItems.value = samplingPayload.items; disputes.value = disputesPayload.items; retests.value = retestPayload.items
+    stats.value = statsPayload; regression.value = regressionPayload
+    for (const task of manualTasks.value) ensureReviewForm(task)
+    for (const item of samplingItems.value) samplingForm(item)
+    for (const item of disputes.value) if (!disputeForms[item.dispute_id]) disputeForms[item.dispute_id] = { status: 'resolved', resolution: '' }
+  } catch (err) { if (alive && read === loadRead) loadError.value = feedbackError(err, '验收待办未能完整读取，请重试。') }
+  finally { if (alive && read === loadRead) loading.value = false }
 }
 
 async function claimManual(task) {
@@ -335,23 +320,14 @@ async function claimSampling(item) {
 }
 
 async function completeSampling(item) {
-  try {
-    await service.skillReview.reviewSampling(item.item_id, {
-      findings: {
-        evidence_checked: true,
-        verifier_checked: true,
-        rubric_checked: true,
-        help_checked: true,
-        independence_checked: true,
-        conclusion: '已复核，维持原判',
-      },
-      notes: '界面复核',
-    })
-    message.value = '抽查项已完成。'
-    await loadAll()
-  } catch (err) {
-    message.value = extractError(err)
-  }
+  if (!alive || samplingWriting[item.item_id]) return
+  const form = samplingForm(item)
+  if (!form.conclusion.trim()) { message.value = '请填写实际复核结论，再提交已完成的核对项。'; return }
+  const payload = { findings: { evidence_checked: form.evidence_checked, verifier_checked: form.verifier_checked, rubric_checked: form.rubric_checked, help_checked: form.help_checked, independence_checked: form.independence_checked, conclusion: form.conclusion }, notes: form.notes }
+  samplingWriting[item.item_id] = true
+  try { await service.skillReview.reviewSampling(item.item_id, payload); if (alive) { message.value = '实际复核内容已提交，请核对服务端结果。'; await loadAll() } }
+  catch (err) { if (alive) message.value = extractError(err) }
+  finally { if (alive) samplingWriting[item.item_id] = false }
 }
 
 async function resolveDispute(item) {
@@ -390,7 +366,7 @@ h1 { font-family: "Songti SC", serif; font-size: 38px; line-height: 1.1; }
 .tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
 .tabs button { border: 1px solid var(--border-color); background: var(--bg-light); padding: 7px 12px; cursor: pointer; font-weight: 600; }
 .tabs button.active { background: var(--text-primary); color: var(--bg-light); border-color: var(--text-primary); }
-.count { margin-left: 6px; font-size: 11px; background: var(--primary-color); color: #fff; padding: 0 6px; border-radius: 8px; }
+.count { margin-left: 6px; font-size: 11px; background: var(--primary-color); color: var(--on-action); padding: 0 6px; border-radius: 8px; }
 .panel { background: var(--bg-light); border: 1px solid var(--border-color); padding: 18px; box-shadow: var(--shadow-md); }
 .panel h2 { font-family: "Songti SC", serif; font-size: 20px; margin-bottom: 10px; }
 .item { border-top: 1px solid var(--border-color); padding: 12px 0; }
@@ -407,7 +383,7 @@ h1 { font-family: "Songti SC", serif; font-size: 38px; line-height: 1.1; }
 .review-actions { display: flex; gap: 8px; align-items: center; margin-top: 8px; flex-wrap: wrap; }
 .batch-form { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
 .badge { font-size: 11px; padding: 2px 8px; border: 1px solid var(--border-color); }
-.message { background: rgba(183,53,45,.06); border-left: 3px solid var(--primary-color); padding: 9px 12px; font-size: 13px; margin-bottom: 12px; }
+.message { background: var(--warning-soft); border-left: 3px solid var(--primary-color); padding: 9px 12px; font-size: 13px; margin-bottom: 12px; }
 .state-box { background: var(--bg-light); border: 1px solid var(--border-color); padding: 48px; text-align: center; color: var(--text-muted); }
 @media (max-width: 900px) { .grid, .rubric-row { grid-template-columns: 1fr; } }
 </style>

@@ -1,0 +1,44 @@
+{
+  "started_at": "2026-11-13T15:49:54.275357+00:00",
+  "source_database": "D:\\aaa10\\16015478源码\\database\\db.sqlite3",
+  "source_access": "not accessed; isolated native PostgreSQL cluster",
+  "postgres_port": 55854,
+  "evaluation_mode": "probe_only",
+  "providers": [
+    {
+      "provider": "qwen",
+      "status": "not_configured"
+    },
+    {
+      "provider": "volcano",
+      "status": "not_configured"
+    },
+    {
+      "provider": "deepseek",
+      "status": "not_configured"
+    }
+  ],
+  "retrieval": {},
+  "answers": [],
+  "errors": [
+    {
+      "type": "RuntimeError",
+      "code": "REAL_EMBEDDING_PROBE_FAILED"
+    }
+  ],
+  "production_settings_changed": false,
+  "postgres_version": "PostgreSQL 16.14, compiled by Visual C++ build 1944, 64-bit",
+  "pgvector_version": "0.8.2",
+  "initial_index": {
+    "remote_vectors": 0,
+    "unbound_remote_error": "EMBEDDING_NOT_CONFIGURED"
+  },
+  "completed": false,
+  "remote_probe_succeeded": false,
+  "remote_quality_evaluated": false,
+  "status": "partial_probe_failed",
+  "isolated_postgres_stopped": true,
+  "temporary_keys_deleted": true,
+  "isolated_workspace": "C:\\Users\\29681\\AppData\\Local\\Temp\\knowledge-remote-pg-rmexxjgw",
+  "finished_at": "2026-11-13T15:50:51.163509+00:00"
+}

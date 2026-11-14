@@ -4,6 +4,7 @@ Public-shaped findings/profiles remain Proposed; snapshot and outcome are intern
 No semantic call, external authorization, profile-head mutation or policy activation.
 """
 import json
+import re
 import time
 
 from data_security.contracts import ContractViolation, ReasonCode
@@ -12,13 +13,22 @@ from collections import Counter, OrderedDict
 from dataclasses import asdict, dataclass, field
 from uuid import UUID, uuid5
 
-from .classification import BusinessContext, RuleConfiguration, canonical, identifier, require, validate_meta
+from .classification import (BusinessContext, RuleConfiguration, TEACHING_IMPLEMENTATIONS,
+                             canonical, identifier, require, validate_meta)
 from .parsing import InputError, fingerprint
 
 ENGINE_VERSION = 'format-rule-engine-v1'
 
 
 def candidates(implementation, text):
+    if implementation in TEACHING_IMPLEMENTATIONS:
+        # Fixed synthetic markers only; real PII continues through M0 Detect.
+        expression = (r'(?<![A-Z0-9-])DEMO-U-[0-9]{4}(?![A-Z0-9-])'
+                      if implementation == 'demo_person_ref_v1' else
+                      r'[a-z][a-z0-9._+-]{0,20}@example\.invalid(?![A-Za-z0-9.-])')
+        for match in re.finditer(expression, text):
+            yield match.start(), match.end(), 'SYNTHETIC_PATTERN_REQUIRES_FACTS'
+        return
     try:
         yield from core_candidates(implementation, text)
     except ContractViolation as exc:
@@ -84,7 +94,7 @@ class RuleCache:
 
 def scan_rules(parsed, configuration: RuleConfiguration, context: BusinessContext, *, meta, asset,
                principal, scan_id, applicability_ref, parsed_ref, semantic_required=True,
-               max_findings=10000, cancelled=lambda: False, cache=None):
+               max_findings=10000, cancelled=lambda: False, cache=None, scan_columns=None):
     """Trusted internal boundary; callers must authorize asset and refs before EVERY call.
 
     applicability_ref is an owner-reserved ID, NOT proof an applicability service exists.
@@ -103,6 +113,9 @@ def scan_rules(parsed, configuration: RuleConfiguration, context: BusinessContex
     cfg = RuleConfiguration.load(configuration.data()).data()
     policy, rules = cfg['policy'], cfg['rules']
     require(meta['environment'] in cfg['allowed_environments'], 'POLICY_NOT_ACTIVE')
+    if any(rule['implementation'] in TEACHING_IMPLEMENTATIONS for rule in rules):
+        require(meta['environment'] == 'test' and meta['domain_id'].startswith('data-lab:'),
+                'RULE_IMPLEMENTATION_UNSUPPORTED')
     ctx = context.data()
     require(ctx['content_hash'] == fingerprint({k: v for k, v in ctx.items() if k != 'content_hash'}), 'CONTEXT_INVALID')
     receipt = None
@@ -138,6 +151,10 @@ def scan_rules(parsed, configuration: RuleConfiguration, context: BusinessContex
                     model=None, fusion_version='not_run', sampling={'mode': 'all', 'seed': None},
                     semantic_required=semantic_required, combination_required=False,
                     scan_policy_version='rule-baseline-scan-v1', max_findings=max_findings)
+    if scan_columns is not None:
+        require(isinstance(scan_columns, (list, tuple))
+                and all(type(column) is int and column > 0 for column in scan_columns), 'SCOPE_INVALID')
+        snapshot['scan_columns'] = sorted(set(scan_columns))
     request_hash = fingerprint(snapshot)
     if cancelled():
         raise InputError('TASK_CANCELLED')
@@ -154,6 +171,11 @@ def scan_rules(parsed, configuration: RuleConfiguration, context: BusinessContex
         if cancelled():
             raise InputError('TASK_CANCELLED')
         base = dict(sheet_id=cell.sheet_id, row=cell.row, column=cell.column, channel=cell.channel)
+        if scan_columns is not None and cell.column not in scan_columns:
+            skipped.append(base)
+            outcomes.append(dict(location=base, status='not_detected', category_ids=[],
+                                 reason_codes=['COLUMN_NOT_SCANNED']))
+            continue
         if not active:
             skipped.append(base)
             outcomes.append(dict(location=base, status='not_detected', category_ids=[], reason_codes=['RULES_DISABLED']))

@@ -1,0 +1,82 @@
+{
+  "started_at": "2026-11-13T17:34:21.541251+00:00",
+  "source_database": "D:\\aaa10\\16015478源码\\database\\db.sqlite3",
+  "source_access": "not accessed; isolated native PostgreSQL cluster",
+  "postgres_port": 54981,
+  "evaluation_mode": "probe_only",
+  "embedding_provider": "volcano",
+  "embedding_model": "doubao-embedding-vision-251215",
+  "embedding_disabled": false,
+  "remote_embedding_status": "success",
+  "remote_quality_status": "skipped_probe_only",
+  "remote_quality_evaluated": false,
+  "providers": [
+    {
+      "provider": "qwen",
+      "purpose": "embedding",
+      "status": "disabled"
+    },
+    {
+      "provider": "volcano",
+      "purpose": "embedding",
+      "model": "doubao-embedding-vision-251215",
+      "status": "success",
+      "latency_ms": 679.15,
+      "dimension": 1024,
+      "finite": true
+    },
+    {
+      "provider": "volcano",
+      "purpose": "chat",
+      "status": "not_configured"
+    },
+    {
+      "provider": "deepseek",
+      "purpose": "chat",
+      "model": "deepseek-flash",
+      "status": "success",
+      "latency_ms": 1471.94,
+      "content": "连接成功",
+      "usage": {
+        "prompt_tokens": 35,
+        "completion_tokens": 31
+      }
+    }
+  ],
+  "retrieval": {},
+  "answers": [],
+  "errors": [],
+  "production_settings_changed": false,
+  "runtime_protection": {
+    "enabled": true,
+    "isolated": true,
+    "root": "C:\\Users\\29681\\AppData\\Local\\Temp\\knowledge-remote-pg-vct2r5k6\\runtime-storage",
+    "key_file": "C:\\Users\\29681\\AppData\\Local\\Temp\\knowledge-remote-pg-vct2r5k6\\keys\\runtime-storage.key"
+  },
+  "postgres_version": "PostgreSQL 16.14, compiled by Visual C++ build 1944, 64-bit",
+  "pgvector_version": "0.8.2",
+  "initial_index": {
+    "remote_vectors": 0,
+    "unbound_remote_error": "EMBEDDING_NOT_CONFIGURED"
+  },
+  "http_observations": [
+    {
+      "host": "ark.cn-beijing.volces.com",
+      "status": 200,
+      "latency_ms": 654.64
+    },
+    {
+      "host": "api.deepseek.com",
+      "status": 200,
+      "latency_ms": 438.07
+    }
+  ],
+  "completed": true,
+  "remote_probe_succeeded": true,
+  "status": "complete_probe",
+  "isolated_postgres_stopped": true,
+  "temporary_keys_deleted": true,
+  "temporary_runtime_key_deleted": true,
+  "isolated_workspace": "C:\\Users\\29681\\AppData\\Local\\Temp\\knowledge-remote-pg-vct2r5k6",
+  "finished_at": "2026-11-13T17:35:20.866500+00:00"
+}

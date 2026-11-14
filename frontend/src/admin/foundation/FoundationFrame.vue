@@ -17,6 +17,7 @@ const entries = [
   { key: 'tools', path: '/admin/legal/kb/tools', label: names.indexTools },
   { key: 'health', path: '/admin/legal/kb/health', label: names.indexHealth },
   { key: 'authorization', path: '/admin/legal/kb/authorization', label: names.authorizationSupervision },
+  { key: 'materials', path: '/admin/legal/kb/materials', label: names.materialMaintenance },
 ]
 </script>
 <style scoped>

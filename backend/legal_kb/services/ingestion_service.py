@@ -1,5 +1,6 @@
 """Knowledge-base ingestion service."""
 
+from dataclasses import replace
 from typing import Optional
 
 from django.contrib.contenttypes.models import ContentType
@@ -12,7 +13,7 @@ from audit.services import AuditLedgerService
 from data_security.adapters.django.rag import RagProtectionError, protect_rag, rag_protection_enabled
 from rag_ingestion.registry import get_embedding_service
 
-from ..permissions import IsLegalKbAdmin
+from ..permissions import IsLegalKbAdmin, require_ingestion_actor
 from ..models import KbIngestionJob, LegalClause, LegalDocument, LegalKnowledgeEmbedding
 from .chunking_service import ChunkingService
 from .embedding_service import EmbeddingService
@@ -23,10 +24,21 @@ class LegalKbIngestionService:
     """Parse a legal document into clauses and embeddings."""
 
     def __init__(self, embedding_service: Optional[EmbeddingService] = None):
-        self.embedding_service = embedding_service if embedding_service is not None else get_embedding_service()
+        self._embedding_service = embedding_service
 
-    def ingest_document(self, document: LegalDocument, actor=None) -> KbIngestionJob:
+    @property
+    def embedding_service(self):
+        if self._embedding_service is None:
+            self._embedding_service = get_embedding_service()
+        return self._embedding_service
+
+    @embedding_service.setter
+    def embedding_service(self, value):
+        self._embedding_service = value
+
+    def ingest_document(self, document: LegalDocument, actor=None, *, source_chunks=None) -> KbIngestionJob:
         """Create clauses and embedding rows for a legal document."""
+        require_ingestion_actor(actor)
         if rag_protection_enabled() and not IsLegalKbAdmin.allows(actor):
             raise RagProtectionError('RAG_AUTHORIZATION_REQUIRED')
         job = KbIngestionJob.objects.create(
@@ -38,7 +50,7 @@ class LegalKbIngestionService:
             started_at=timezone.now(),
         )
         try:
-            return self._ingest_document(job=job, document=document, actor=actor)
+            return self._ingest_document(job=job, document=document, actor=actor, source_chunks=source_chunks)
         except Exception as exc:
             now = timezone.now()
             KbIngestionJob.objects.filter(pk=job.pk).update(
@@ -51,13 +63,25 @@ class LegalKbIngestionService:
             job.refresh_from_db(fields=['status', 'error_message', 'completed_at', 'updated_at'])
             raise
 
-    def _ingest_document(self, *, job: KbIngestionJob, document: LegalDocument, actor=None) -> KbIngestionJob:
+    def _ingest_document(self, *, job: KbIngestionJob, document: LegalDocument, actor=None,
+                         source_chunks=None) -> KbIngestionJob:
         object_ref = f'rag/legal-document/{document.pk}'
         version = 'v' + str(int(document.updated_at.timestamp() * 1_000_000))
         headers = protect_rag({'title': document.title, 'metadata': document.metadata},
                               object_ref=object_ref, object_version=version)
         text = protect_rag(document.full_text, object_ref=object_ref, object_version=version)
-        chunks = ChunkingService.split_legal_text(text)
+        if source_chunks is None:
+            chunks = ChunkingService.split_legal_text(text)
+        else:
+            chunks = []
+            for chunk in source_chunks:
+                if not chunk.text or chunk.text not in document.full_text:
+                    raise ValueError('Source clause must match the document body')
+                # Pre-split official clauses pass through the same protection boundary.
+                chunks.append(replace(chunk,
+                    text=protect_rag(chunk.text, object_ref=object_ref, object_version=version),
+                    title=protect_rag(chunk.title, object_ref=object_ref, object_version=version),
+                    chapter=protect_rag(chunk.chapter, object_ref=object_ref, object_version=version)))
         prepared = [(chunk, self.embedding_service.embed_text(chunk.text),
                      self.embedding_service.embed_local_text(chunk.text)) for chunk in chunks]
         document_ct = ContentType.objects.get_for_model(document)
@@ -101,6 +125,7 @@ class LegalKbIngestionService:
                     ),
                     embedding_model='local-hash-v1',
                     embedding_dimension=len(embedding),
+                    index_version=sha256_text(EmbeddingService.LOCAL_VECTOR_SPACE),
                     metadata={
                         **headers['metadata'],
                         'document_id': document.id,
@@ -109,6 +134,7 @@ class LegalKbIngestionService:
                         'vector_model': self.embedding_service.model,
                         'vector_space': self.embedding_service.vector_space,
                         'retrieval_mode': self.embedding_service.retrieval_mode,
+                        'chunking_version': ChunkingService.VERSION,
                     },
                 )
 

@@ -1,0 +1,69 @@
+{
+  "tests": 39,
+  "passed": [
+    "agent_runtime.tests.AgentGatewayTests.test_learning_task_completes_with_failed_verification_after_retry",
+    "agent_runtime.tests.AgentGatewayTests.test_learning_task_failure_is_recorded",
+    "agent_runtime.tests.AgentGatewayTests.test_learning_task_records_failed_verification_when_answer_ignores_sources",
+    "agent_runtime.tests.AgentGatewayTests.test_learning_task_records_retrieved_docs_and_tool_usage",
+    "agent_runtime.tests.AgentGatewayTests.test_learning_task_retries_once_when_verification_fails",
+    "agent_runtime.tests.AgentGatewayTests.test_learning_task_wraps_existing_service_and_completes_run",
+    "agent_runtime.tests.AgentRunStateStoreTests.test_create_complete_and_query_run",
+    "agent_runtime.tests.AgentRunStateStoreTests.test_fail_run_records_error",
+    "agent_runtime.tests.AgentRunStateStoreTests.test_record_intermediate_keeps_run_active",
+    "agent_runtime.tests.AgentRuntimeApiTests.test_learning_run_api_creates_runtime_run",
+    "agent_runtime.tests.AgentRuntimeApiTests.test_run_detail_api_is_scoped_to_authenticated_user",
+    "agent_runtime.tests.AgentRuntimeApiTests.test_run_list_api_only_returns_authenticated_user_runs",
+    "agent_runtime.tests.LearningRetrievalSemanticTests.test_semantic_docs_are_appended_with_source_refs",
+    "agent_runtime.tests.LearningRetrievalSemanticTests.test_semantic_docs_survive_context_cap_with_many_tool_docs",
+    "agent_runtime.tests.LearningRetrievalSemanticTests.test_semantic_retrieval_can_be_disabled",
+    "agent_runtime.tests.UserMemoryStoreTests.test_memory_store_upserts_recalls_and_forgets",
+    "agent_runtime.test_phase6_canary.CanaryGatewayDisabledTests.test_default_gateway_does_not_register_or_discover_security_tools",
+    "agent_runtime.test_phase6_canary.CanaryGatewayTests.test_bound_security_tools_are_not_automatically_called_by_learning_retrieval",
+    "agent_runtime.test_phase6_canary.CanaryGatewayTests.test_explicit_runtime_plant_and_check_confirm_new_chain_without_body_results",
+    "agent_runtime.test_phase6_canary.CanaryGatewayTests.test_other_user_unknown_reference_and_revoked_grant_do_not_load_or_plant",
+    "agent_runtime.test_phase6_canary_tool_protocol.ModelCanaryGatewayTests.test_another_user_cannot_borrow_authority_and_no_automatic_retry_occurs",
+    "agent_runtime.test_phase6_canary_tool_protocol.ModelCanaryGatewayTests.test_current_owner_rechecks_revocation_with_same_cached_user_for_each_call",
+    "agent_runtime.test_phase6_canary_tool_protocol.ModelCanaryGatewayTests.test_disabled_or_unauthenticated_runtime_never_calls_model_or_owners",
+    "agent_runtime.test_phase6_canary_tool_protocol.ModelCanaryGatewayTests.test_exception_is_body_free_and_no_model_or_tool_retry_occurs",
+    "agent_runtime.test_phase6_canary_tool_protocol.ModelCanaryGatewayTests.test_model_chooses_check_then_plant_serially_and_only_metadata_round_trips",
+    "agent_runtime.test_phase6_canary_tool_protocol.ModelCanaryGatewayTests.test_model_may_choose_no_tool_without_background_or_fixed_calls",
+    "agent_runtime.test_phase6_canary_tool_protocol.ModelCanaryGatewayTests.test_only_reference_semantics_are_validated_by_original_registry",
+    "agent_runtime.test_phase6_canary_tool_protocol.ModelCanaryGatewayTests.test_protocol_aliases_are_only_adaptation_and_original_dispatch_remains_closed",
+    "agent_runtime.test_phase6_canary_tool_protocol.ModelCanaryGatewayTests.test_reused_call_id_is_rejected_instead_of_replayed",
+    "agent_runtime.test_phase6_canary_tool_protocol.ModelCanaryGatewayTests.test_round_limit_stops_before_last_round_side_effect_without_retry",
+    "agent_runtime.test_phase6_canary_tool_protocol.ModelCanaryGatewayTests.test_synchronous_owner_is_not_invoked_inside_the_model_event_loop",
+    "agent_runtime.test_phase6_canary_tool_protocol.ModelCanaryGatewayTests.test_task_never_logs_model_text_arguments_or_tool_results",
+    "agent_runtime.test_phase6_canary_tool_protocol.ModelCanaryGatewayTests.test_unknown_bad_second_call_rejects_entire_batch_before_any_owner"
+  ],
+  "failures": [],
+  "errors": [
+    {
+      "id": "agent_runtime.test_phase4_fields.MemoryJudgingFieldTests.test_hundred_values_in_each_of_seven_fields",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\agent_runtime\\test_phase4_fields.py\", line 32, in setUp\n    path, *_ = fixture.__enter__()\n               ^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\29681\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\contextlib.py\", line 137, in __enter__\n    return next(self.gen)\n           ^^^^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_security\\tests\\phase4_fixtures.py\", line 32, in field_configuration\n    'recovery_record': {'path': str(proof), 'sha256': hashlib.sha256(proof.read_bytes()).hexdigest()}})\n                                                                     ^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\29681\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\pathlib.py\", line 1019, in read_bytes\n    with self.open(mode='rb') as f:\n         ^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\29681\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\pathlib.py\", line 1013, in open\n    return io.open(self, mode, buffering, encoding, errors, newline)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nFileNotFoundError: [Errno 2] No such file or directory: '\\\\home\\\\hatch\\\\workspace\\\\data-security-seven-phases\\\\evidence\\\\phase-03\\\\phase3-backup-20261105T081657523598Z.json'\n"
+    },
+    {
+      "id": "agent_runtime.test_phase4_fields.MemoryJudgingFieldTests.test_memory_updates_and_user_scope",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\agent_runtime\\test_phase4_fields.py\", line 32, in setUp\n    path, *_ = fixture.__enter__()\n               ^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\29681\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\contextlib.py\", line 137, in __enter__\n    return next(self.gen)\n           ^^^^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_security\\tests\\phase4_fixtures.py\", line 32, in field_configuration\n    'recovery_record': {'path': str(proof), 'sha256': hashlib.sha256(proof.read_bytes()).hexdigest()}})\n                                                                     ^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\29681\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\pathlib.py\", line 1019, in read_bytes\n    with self.open(mode='rb') as f:\n         ^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\29681\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\pathlib.py\", line 1013, in open\n    return io.open(self, mode, buffering, encoding, errors, newline)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nFileNotFoundError: [Errno 2] No such file or directory: '\\\\home\\\\hatch\\\\workspace\\\\data-security-seven-phases\\\\evidence\\\\phase-03\\\\phase3-backup-20261105T081657523598Z.json'\n"
+    },
+    {
+      "id": "agent_runtime.test_phase4_fields.MemoryJudgingFieldTests.test_reverse_schema_refuses_to_drop_sealed_storage",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\agent_runtime\\test_phase4_fields.py\", line 32, in setUp\n    path, *_ = fixture.__enter__()\n               ^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\29681\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\contextlib.py\", line 137, in __enter__\n    return next(self.gen)\n           ^^^^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_security\\tests\\phase4_fixtures.py\", line 32, in field_configuration\n    'recovery_record': {'path': str(proof), 'sha256': hashlib.sha256(proof.read_bytes()).hexdigest()}})\n                                                                     ^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\29681\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\pathlib.py\", line 1019, in read_bytes\n    with self.open(mode='rb') as f:\n         ^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\29681\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\pathlib.py\", line 1013, in open\n    return io.open(self, mode, buffering, encoding, errors, newline)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nFileNotFoundError: [Errno 2] No such file or directory: '\\\\home\\\\hatch\\\\workspace\\\\data-security-seven-phases\\\\evidence\\\\phase-03\\\\phase3-backup-20261105T081657523598Z.json'\n"
+    },
+    {
+      "id": "agent_runtime.test_phase4_fields.MemoryJudgingFieldTests.test_runtime_copies_store_only_protected_values",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\agent_runtime\\test_phase4_fields.py\", line 32, in setUp\n    path, *_ = fixture.__enter__()\n               ^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\29681\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\contextlib.py\", line 137, in __enter__\n    return next(self.gen)\n           ^^^^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_security\\tests\\phase4_fixtures.py\", line 32, in field_configuration\n    'recovery_record': {'path': str(proof), 'sha256': hashlib.sha256(proof.read_bytes()).hexdigest()}})\n                                                                     ^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\29681\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\pathlib.py\", line 1019, in read_bytes\n    with self.open(mode='rb') as f:\n         ^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\29681\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\pathlib.py\", line 1013, in open\n    return io.open(self, mode, buffering, encoding, errors, newline)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nFileNotFoundError: [Errno 2] No such file or directory: '\\\\home\\\\hatch\\\\workspace\\\\data-security-seven-phases\\\\evidence\\\\phase-03\\\\phase3-backup-20261105T081657523598Z.json'\n"
+    },
+    {
+      "id": "agent_runtime.test_phase4_fields.MemoryJudgingFieldTests.test_sealed_answers_remain_internal_and_resaving_submission_preserves_judgment",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\agent_runtime\\test_phase4_fields.py\", line 32, in setUp\n    path, *_ = fixture.__enter__()\n               ^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\29681\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\contextlib.py\", line 137, in __enter__\n    return next(self.gen)\n           ^^^^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_security\\tests\\phase4_fixtures.py\", line 32, in field_configuration\n    'recovery_record': {'path': str(proof), 'sha256': hashlib.sha256(proof.read_bytes()).hexdigest()}})\n                                                                     ^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\29681\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\pathlib.py\", line 1019, in read_bytes\n    with self.open(mode='rb') as f:\n         ^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\29681\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\pathlib.py\", line 1013, in open\n    return io.open(self, mode, buffering, encoding, errors, newline)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nFileNotFoundError: [Errno 2] No such file or directory: '\\\\home\\\\hatch\\\\workspace\\\\data-security-seven-phases\\\\evidence\\\\phase-03\\\\phase3-backup-20261105T081657523598Z.json'\n"
+    },
+    {
+      "id": "agent_runtime.test_phase4_fields.MemoryJudgingFieldTests.test_theory_judging_uses_explicit_answer_reads",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\agent_runtime\\test_phase4_fields.py\", line 32, in setUp\n    path, *_ = fixture.__enter__()\n               ^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\29681\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\contextlib.py\", line 137, in __enter__\n    return next(self.gen)\n           ^^^^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_security\\tests\\phase4_fixtures.py\", line 32, in field_configuration\n    'recovery_record': {'path': str(proof), 'sha256': hashlib.sha256(proof.read_bytes()).hexdigest()}})\n                                                                     ^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\29681\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\pathlib.py\", line 1019, in read_bytes\n    with self.open(mode='rb') as f:\n         ^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\29681\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\pathlib.py\", line 1013, in open\n    return io.open(self, mode, buffering, encoding, errors, newline)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nFileNotFoundError: [Errno 2] No such file or directory: '\\\\home\\\\hatch\\\\workspace\\\\data-security-seven-phases\\\\evidence\\\\phase-03\\\\phase3-backup-20261105T081657523598Z.json'\n"
+    }
+  ],
+  "skipped": [],
+  "expected_failures": 0,
+  "unexpected_successes": 0,
+  "synthetic_database_only": true
+}

@@ -1,0 +1,15 @@
+{
+  "scope": "isolated SQLite in memory; actual User/Job models; failing rebuild substitute, no snapshots or external calls",
+  "stale_job": {
+    "same_job": true,
+    "status": "running",
+    "attempt_count": 1,
+    "rebuild_called": false
+  },
+  "failed_command": {
+    "status": "failed",
+    "command_error_raised": false,
+    "stdout": "job=225c02c3e8d9428286ce550e08a66f39 status=failed users=0 errors=1\n"
+  },
+  "production_database_accessed": false
+}

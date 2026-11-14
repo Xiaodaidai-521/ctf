@@ -6,6 +6,7 @@ from django.db.models import Q
 from .models import Submission
 from .serializers import SubmissionSerializer
 from users.permissions import authorized_users
+from users.pagination import page_parameters
 from data_security.adapters.persistence.fields import field_storage_enabled
 
 
@@ -69,8 +70,7 @@ class SubmissionListView(generics.ListAPIView):
         queryset = self.filter_queryset(self.get_queryset())
 
         # 分页
-        page = int(request.GET.get('page', 1))
-        page_size = int(request.GET.get('page_size', 20))
+        page, page_size = page_parameters(request.query_params)
         start = (page - 1) * page_size
         end = start + page_size
 

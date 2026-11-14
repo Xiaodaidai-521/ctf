@@ -7,7 +7,7 @@ from unittest.mock import patch
 from django.contrib.auth import get_user_model
 from django.core.exceptions import PermissionDenied
 from django.core.signals import request_finished
-from django.test import TestCase, override_settings
+from django.test import SimpleTestCase, TestCase, override_settings
 
 from agent_runtime.memory import UserMemoryStore
 from agent_runtime.models import UserMemory
@@ -22,6 +22,32 @@ from learning_paths.models import KnowledgeConcept
 from submissions.models import Submission
 from .ledger import clear_request, MAX_SUMMARY_CHARS
 from .models import ConversationLedger, KnowledgeObservation, LedgerEntry
+
+
+class MemoryRegistrationTests(SimpleTestCase):
+    def test_repeated_ready_preserves_one_history_cache_wrapper(self):
+        from django.apps import apps
+        from .prompt import HistorySummary
+
+        config = apps.get_app_config('agent_memory')
+        original_key = MultiAgentChatService._build_response_cache_key.__wrapped__
+        args = dict(question='CURRENT', challenge_id=None, agent_ids=['analyst'],
+                    mode='single', force_ai=False, knowledge_scope='category')
+        service = MultiAgentChatService()
+        with patch.object(MultiAgentChatService, '_build_response_cache_key', original_key):
+            config.ready()
+            registered_key = MultiAgentChatService._build_response_cache_key
+            first_key = service._build_response_cache_key(
+                context_summary=HistorySummary('SAME TEXT', 'conversation-A'), **args)
+            config.ready()
+            self.assertIs(MultiAgentChatService._build_response_cache_key, registered_key)
+            self.assertIs(registered_key.__wrapped__, original_key)
+            self.assertEqual(first_key, service._build_response_cache_key(
+                context_summary=HistorySummary('SAME TEXT', 'conversation-A'), **args))
+            self.assertNotEqual(first_key, service._build_response_cache_key(
+                context_summary=HistorySummary('SAME TEXT', 'conversation-B'), **args))
+            self.assertEqual(service._build_response_cache_key(context_summary='SAME TEXT', **args),
+                             original_key(service, context_summary='SAME TEXT', **args))
 
 
 class MemoryWiringTests(TestCase):

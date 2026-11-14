@@ -1,4 +1,5 @@
 import { landingFor, names, renameCopy } from './names.js'
+import { loginDestination } from './returnTarget.js'
 
 export function canOpen(meta = {}, role = 'guest') {
   if ((meta.requiresAuth || meta.requiresTeacher || meta.requiresAdmin || meta.requiresTeacherOnly) && role === 'guest') return false
@@ -31,7 +32,7 @@ export function pageTitle(route, role) {
 }
 export function guardDestination(to, user) {
   const role = user.isAuthenticated ? user.userInfo?.role || 'guest' : 'guest'
-  if (!canOpen(to.meta, role)) return role === 'guest' ? '/login' : '/access-denied'
+  if (!canOpen(to.meta, role)) return role === 'guest' ? loginDestination(to.fullPath || to.path) : '/access-denied'
   if (to.name === 'Home' && role !== 'guest') return landingFor(role)
   if (to.name === 'Guide' && ['teacher', 'admin'].includes(role)) return landingFor(role)
   if (to.name === 'KnowledgeLibrary') return role === 'teacher' ? '/teacher/knowledge' : '/admin/legal/kb'

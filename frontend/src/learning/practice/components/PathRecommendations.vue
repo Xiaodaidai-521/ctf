@@ -6,7 +6,7 @@
     </header>
     <p v-if="error" class="path-state error" role="alert">{{ error }} <button type="button" class="text-action" @click="$emit('retry')">重试</button></p>
     <p v-if="loading" class="path-state" role="status">正在读取{{ names.paths }}…</p>
-    <p v-else-if="!authenticated" class="path-state">登录后可读取个性化推荐；以下为公开可选航线。</p>
+    <p v-else-if="!authenticated" class="path-state">登录后查看学习航线与个性化推荐。</p>
     <template v-if="!loading">
       <ul v-if="views.length" class="path-list">
         <li v-for="view in views" :key="view.key">
@@ -18,7 +18,7 @@
           <span class="path-badge">{{ view.badge }}</span>
         </li>
       </ul>
-      <p v-else-if="!error" class="path-state">暂时没有可选{{ names.paths }}。</p>
+      <p v-else-if="authenticated && !error" class="path-state">暂时没有可选{{ names.paths }}。</p>
     </template>
   </section>
 </template>

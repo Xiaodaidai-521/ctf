@@ -1,197 +1,111 @@
 <template>
-  <div class="generated-content-page">
-    <div class="container">
-      <a-spin :loading="loading">
-        <template v-if="content">
-          <div class="content-header">
-            <h1 class="content-title">{{ content.title }}</h1>
-            <a-tag :color="typeColor">{{ typeLabel }}</a-tag>
+  <main class="generated-content-page">
+    <p v-if="loading" role="status">正在读取生成内容…</p>
+    <section v-else-if="failure" class="content-card" role="alert">
+      <h1>{{ failure.title }}</h1><p>{{ failure.message }}</p>
+      <a-button @click="fetchContent">重新读取</a-button>
+    </section>
+    <template v-else-if="content">
+      <header class="content-header"><h1>{{ view.title }}</h1><a-tag :color="view.typeColor">{{ view.typeLabel }}</a-tag></header>
+      <section v-if="view.type === 'quiz' && view.hasQuestions" class="quiz-area">
+        <p>本地练习，不计入正式测评。</p>
+        <article v-for="(q, qi) in view.questions" :key="qi" class="content-card quiz-card">
+          <h2>{{ qi + 1 }}. {{ q.question }}</h2>
+          <a-radio-group v-model="answers[qi]" direction="vertical" :disabled="submitted">
+            <a-radio v-for="(opt, oi) in q.options" :key="oi" :value="oi">{{ opt }}</a-radio>
+          </a-radio-group>
+          <div v-if="submitted" class="quiz-feedback">
+            <p v-if="q.answerIndex === null">本题未提供可判定答案，不计分。</p>
+            <p v-else-if="answers[qi] === q.answerIndex">回答正确！</p>
+            <p v-else>正确答案：{{ q.options[q.answerIndex] }}</p>
+            <p v-if="q.explanation">{{ q.explanation }}</p>
           </div>
-
-          <!-- tutorial: Markdown 渲染 -->
-          <div v-if="content.type === 'tutorial'" class="content-card card-markdown">
-            <div v-html="renderedMarkdown"></div>
-          </div>
-
-          <!-- quiz: 交互答题 -->
-          <div v-else-if="content.type === 'quiz'" class="quiz-area">
-            <div v-for="(q, qi) in questions" :key="qi" class="quiz-card">
-              <h3 class="quiz-question">{{ qi + 1 }}. {{ q.question }}</h3>
-              <a-radio-group v-model="answers[qi]" direction="vertical">
-                <a-radio v-for="(opt, oi) in q.options" :key="oi" :value="oi">{{ opt }}</a-radio>
-              </a-radio-group>
-              <div v-if="submitted && answers[qi] !== undefined" class="quiz-feedback" :class="{ correct: answers[qi] === q.answer }">
-                {{ answers[qi] === q.answer ? '回答正确！' : `正确答案：${q.options[q.answer]}` }}
-              </div>
-            </div>
-            <a-button type="primary" @click="submitQuiz" :disabled="submitted">提交答案</a-button>
-          </div>
-
-          <!-- diagram: Mermaid 渲染 -->
-          <div v-else-if="content.type === 'diagram'" class="content-card">
-            <MermaidDiagram :code="content.body || content.diagram_code || ''" />
-          </div>
-
-          <!-- exercise: 代码 + 折叠提示 -->
-          <div v-else-if="content.type === 'exercise'" class="exercise-area">
-            <div class="code-card">
-              <div class="code-header">
-                <span class="code-lang">{{ content.language || 'python' }}</span>
-              </div>
-              <pre class="code-block"><code>{{ content.code || content.body }}</code></pre>
-            </div>
-            <div v-if="content.hints && content.hints.length" class="hints-section">
-              <a-collapse>
-                <a-collapse-item v-for="(hint, hi) in content.hints" :key="hi" :header="`提示 ${hi + 1}`">
-                  <p>{{ hint }}</p>
-                </a-collapse-item>
-              </a-collapse>
-            </div>
-          </div>
-
-          <!-- 未知类型回退 -->
-          <div v-else class="content-card">
-            <div v-html="renderedMarkdown"></div>
-          </div>
-
-          <div class="regenerate-area">
-            <a-button type="primary" :loading="regenerating" @click="handleRegenerate">重新生成</a-button>
-          </div>
-        </template>
-
-        <div v-else-if="!loading" class="empty-state">
-          <p>内容不存在或已被删除</p>
-        </div>
-      </a-spin>
-    </div>
-  </div>
+        </article>
+        <a-button type="primary" @click="submitQuiz" :disabled="submitted">提交本地练习</a-button>
+        <p v-if="submitted" role="status">{{ result.label }}</p>
+      </section>
+      <section v-else-if="view.type === 'diagram' && view.mermaidCode" class="content-card">
+        <MermaidDiagram :mermaid-code="view.mermaidCode" />
+      </section>
+      <section v-else-if="view.type === 'exercise'" class="content-card">
+        <p>代码阅读练习，不自动判题，不计入正式测评。</p>
+        <p v-if="view.exercise.language">{{ view.exercise.language }}</p>
+        <pre v-if="view.exercise.starterCode"><code>{{ view.exercise.starterCode }}</code></pre>
+        <div v-else-if="view.hasBody" v-html="renderedMarkdown"></div>
+        <p v-else>暂未提供起始代码或练习正文。</p>
+        <details v-for="(hint, hi) in view.exercise.hints" :key="hi"><summary>提示 {{ hi + 1 }}</summary><p>{{ hint }}</p></details>
+      </section>
+      <section v-else class="content-card"><div v-if="view.hasBody" v-html="renderedMarkdown"></div><p v-else>暂未提供可阅读的正文或题目。</p></section>
+      <div class="regenerate-area"><a-button :loading="regenerating" @click="handleRegenerate">重新生成</a-button></div>
+    </template>
+  </main>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { Message } from '@arco-design/web-vue'
 import { marked } from 'marked'
 import api from '@/api'
 import MermaidDiagram from '@/components/MermaidDiagram.vue'
 import { sanitizeHtml } from '@/utils/sanitize'
+import { contentView, contentFailure, quizResult, regeneratedTarget } from './generatedContent.js'
+import { createAccountGuard } from '@/shared/state/accountScope.js'
 
-const route = useRoute()
-const content = ref(null)
-const loading = ref(false)
-const regenerating = ref(false)
-const answers = ref({})
-const submitted = ref(false)
-
-const questions = computed(() => {
-  if (!content.value || content.value.type !== 'quiz') return []
-  const qs = content.value.questions || content.value.body?.questions || []
-  return qs
-})
-
-const typeLabel = computed(() => {
-  const map = { tutorial: '教程', quiz: '测验', diagram: '图表', exercise: '练习' }
-  return map[content.value?.type] || '内容'
-})
-
-const typeColor = computed(() => {
-  const map = { tutorial: 'blue', quiz: 'orange', diagram: 'purple', exercise: 'green' }
-  return map[content.value?.type] || 'gray'
-})
-
-const renderedMarkdown = computed(() => {
-  const body = content.value?.body
-  if (!body) return ''
-  return sanitizeHtml(typeof body === 'string' ? marked(body) : marked(JSON.stringify(body)))
-})
-
+const route = useRoute(), router = useRouter(), guard = createAccountGuard()
+const content = ref(null), loading = ref(true), regenerating = ref(false), failure = ref(null)
+const answers = ref({}), submitted = ref(false)
+let generation = 0
+const view = computed(() => contentView(content.value))
+const result = computed(() => quizResult(view.value.questions, answers.value))
+const renderedMarkdown = computed(() => sanitizeHtml(marked(view.value.rawContent)))
+const resetPractice = () => { answers.value = {}; submitted.value = false }
 const fetchContent = async () => {
-  loading.value = true
+  const reading = ++generation, id = route.params.id, contentType = route.query.content_type
+  loading.value = true; content.value = null; failure.value = null; resetPractice()
   try {
-    content.value = await api.content.getDetail(route.params.id)
-  } catch {
-    content.value = null
+    const response = await api.content.getDetail(id, { content_type: contentType })
+    if (!guard.current() || reading !== generation || id !== route.params.id) return
+    content.value = response
+  } catch (error) {
+    if (guard.current() && reading === generation) failure.value = contentFailure(error)
   } finally {
-    loading.value = false
+    if (guard.current() && reading === generation) loading.value = false
   }
 }
-
 const handleRegenerate = async () => {
+  if (regenerating.value || loading.value) return
+  const id = route.params.id, reading = generation
   regenerating.value = true
   try {
-    const result = await api.content.regenerate(route.params.id, {})
-    content.value = result
-    answers.value = {}
-    submitted.value = false
-    Message.success('重新生成成功')
+    const response = await api.content.regenerate(id, { content_type: content.value?.content_type || route.query.content_type })
+    if (!guard.current() || reading !== generation || id !== route.params.id) return
+    const target = regeneratedTarget(id, response)
+    if (!target.ok) { Message.error('服务未返回可打开的生成内容，请重新读取。'); return }
+    if (target.changed) await router.replace(target.to)
+    else { content.value = response; resetPractice() }
+    Message.success('重新生成已完成')
   } catch {
-    Message.error('重新生成失败')
+    if (guard.current() && reading === generation) Message.error('重新生成失败，请稍后重试。')
   } finally {
-    regenerating.value = false
+    if (guard.current()) regenerating.value = false
   }
 }
-
-const submitQuiz = () => {
-  submitted.value = true
-  const correct = questions.value.filter((q, i) => answers.value[i] === q.answer).length
-  Message.success(`答题结果：${correct}/${questions.value.length} 正确`)
-}
-
+const submitQuiz = () => { submitted.value = true }
+watch(() => [route.params.id, route.query.content_type], fetchContent)
 onMounted(fetchContent)
+onBeforeUnmount(guard.dispose)
 </script>
 
 <style scoped>
-.generated-content-page {
-  min-height: calc(100vh - 64px);
-  background: #f6f7f8;
-  padding: 24px 0;
-}
-
-.container { max-width: 900px; margin: 0 auto; padding: 0 16px; }
-
-.content-header { display: flex; align-items: baseline; gap: 12px; margin-bottom: 24px; }
-
-.content-title { font-size: 24px; font-weight: 600; color: #1f1f1f; margin: 0; }
-
-.content-card {
-  background: white;
-  border-radius: 10px;
-  padding: 24px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
-}
-
-.card-markdown :deep(h1), .card-markdown :deep(h2) { margin-top: 0; }
-
-.quiz-card {
-  background: white;
-  border-radius: 10px;
-  padding: 20px;
-  margin-bottom: 12px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
-}
-
-.quiz-question { font-size: 16px; font-weight: 500; margin: 0 0 12px; }
-
-.quiz-feedback { margin-top: 10px; padding: 8px 12px; border-radius: 6px; font-size: 13px; }
-.quiz-feedback.correct { background: #f6ffed; color: #52c41a; }
-.quiz-feedback:not(.correct) { background: #fff1f0; color: #f5222d; }
-
-.code-card {
-  background: #1e1e1e;
-  border-radius: 10px;
-  overflow: hidden;
-  margin-bottom: 16px;
-}
-
-.code-header { padding: 8px 16px; background: #333; }
-
-.code-lang { font-size: 12px; color: #ccc; }
-
-.code-block { padding: 16px; margin: 0; overflow-x: auto; }
-
-.code-block code { color: #d4d4d4; font-family: 'Fira Code', monospace; font-size: 13px; white-space: pre; }
-
-.regenerate-area { margin-top: 24px; text-align: center; }
-
-.empty-state { text-align: center; padding: 80px 0; color: #9499a0; }
+.generated-content-page { width: min(var(--reading-width), calc(100% - var(--page-gutter) * 2)); margin: auto; padding: var(--space-3) 0; color: var(--ink); }
+.content-header { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-2); }
+h1 { font-size: var(--text-page); } h2 { font-size: var(--text-card); }
+.content-card { padding: var(--space-3); border-radius: var(--radius-panel); background: var(--surface); overflow-wrap: anywhere; }
+.quiz-card, .regenerate-area { margin-top: var(--space-2); }
+.quiz-feedback { color: var(--ink-secondary); }
+pre { max-width: 100%; overflow: auto; padding: var(--space-2); background: var(--surface-muted); }
+.content-card :deep(img), .content-card :deep(svg) { max-width: 100%; height: auto; }
+.content-card :deep(table) { display: block; max-width: 100%; overflow: auto; }
+summary { cursor: pointer; } summary:focus-visible { outline: var(--focus-width) solid var(--action); }
 </style>

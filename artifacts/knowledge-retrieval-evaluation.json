@@ -1,0 +1,3429 @@
+{
+  "evaluated_at": "2026-11-12T06:48:38.732788+08:00",
+  "database": "D:\\aaa10\\16015478源码\\database\\db.sqlite3",
+  "database_access": "read-only source, temporary SQLite snapshot",
+  "django_version": "6.0.5",
+  "embedding_provider_setting": "dashscope",
+  "embedding_model_setting": "text-embedding-v4",
+  "actual_retrieval": "portable deterministic vectors plus lexical RRF",
+  "remote_calls": 0,
+  "llm_answer_quality_evaluated": false,
+  "integrity": {
+    "owasp_documents": 246,
+    "legal_documents": 7,
+    "legal_articles": 393,
+    "index_counts": {
+      "article": 26,
+      "challenge": 41,
+      "document": 3713,
+      "legal_clause": 393,
+      "resource": 32
+    },
+    "original_clause_texts_match": true,
+    "owasp_source_hashes_match": true,
+    "indexed_text_hashes_match": true,
+    "owasp_internal_documents": 246
+  },
+  "candidate_coverage": {
+    "unfiltered": {
+      "available_chunks": 4205,
+      "considered_chunks": 1000,
+      "considered_source_types": {
+        "article": 26,
+        "challenge": 41,
+        "document": 933
+      },
+      "represented_document_ids": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        49,
+        50,
+        51,
+        52,
+        53,
+        54,
+        55,
+        56,
+        57,
+        58,
+        59,
+        60,
+        61,
+        62,
+        63,
+        64,
+        65,
+        66,
+        67,
+        68,
+        69,
+        70,
+        71,
+        72,
+        73,
+        74,
+        75,
+        76,
+        77,
+        78,
+        79,
+        80,
+        81,
+        82,
+        83,
+        84,
+        85,
+        86,
+        87,
+        88,
+        89,
+        90,
+        91,
+        92,
+        93,
+        94,
+        95,
+        96,
+        97,
+        98,
+        99,
+        100,
+        101,
+        102,
+        103,
+        104,
+        105,
+        106,
+        107
+      ]
+    },
+    "document": {
+      "available_chunks": 3713,
+      "considered_chunks": 1000,
+      "considered_source_types": {
+        "document": 1000
+      },
+      "represented_document_ids": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        49,
+        50,
+        51,
+        52,
+        53,
+        54,
+        55,
+        56,
+        57,
+        58,
+        59,
+        60,
+        61,
+        62,
+        63,
+        64,
+        65,
+        66,
+        67,
+        68,
+        69,
+        70,
+        71,
+        72,
+        73,
+        74,
+        75,
+        76,
+        77,
+        78,
+        79,
+        80,
+        81,
+        82,
+        83,
+        84,
+        85,
+        86,
+        87,
+        88,
+        89,
+        90,
+        91,
+        92,
+        93,
+        94,
+        95,
+        96,
+        97,
+        98,
+        99,
+        100,
+        101,
+        102,
+        103,
+        104,
+        105,
+        106,
+        107,
+        108,
+        109,
+        110,
+        111,
+        112,
+        113,
+        114
+      ]
+    },
+    "legal_clause": {
+      "available_chunks": 393,
+      "considered_chunks": 393,
+      "considered_source_types": {
+        "legal_clause": 393
+      },
+      "represented_document_ids": []
+    }
+  },
+  "queries": [
+    {
+      "query": "SQL injection",
+      "category": "document",
+      "scope": "unfiltered",
+      "expected": {
+        "titles": [
+          "Testing for SQL Injection",
+          "SQL Injection Prevention Cheat Sheet"
+        ]
+      },
+      "hit_at_5": true,
+      "reciprocal_rank": 0.5,
+      "latency_ms": 161.64,
+      "results": [
+        {
+          "id": 7,
+          "object_id": 62,
+          "source_type": "challenge",
+          "title": "SQL Injection Basics",
+          "source_title": "",
+          "article_label": "",
+          "score": 0.45,
+          "retrieval": "deterministic",
+          "excerpt": "SQL Injection Basics A login form concatenates user input into a SQL WHERE clause. Analyze why parameterized queries are required and identify the injection point. Focus on quote closure, boolean conditions, and SQL comments. Web easy",
+          "source_url": ""
+        },
+        {
+          "id": 1320,
+          "object_id": 54,
+          "source_type": "document",
+          "title": "Chunk 2",
+          "source_title": "Testing for SQL Injection",
+          "article_label": "",
+          "score": 0.45,
+          "retrieval": "deterministic",
+          "excerpt": "S file system or write files into the file system, and, in some cases, issue commands to the operating system. SQL injection attacks are a type of injection attack, in which SQL commands are injected into data-plane input in order to affect the execution of predefined SQL command",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/07-Input_Validation_Testing/05-Testing_for_SQL_Injection.md"
+        },
+        {
+          "id": 1122,
+          "object_id": 31,
+          "source_type": "document",
+          "title": "Chunk 7",
+          "source_title": "Testing for Bypassing Authentication Schema",
+          "article_label": "",
+          "score": 0.45,
+          "retrieval": "deterministic",
+          "excerpt": ".4-5: SQL Injection* The following figure shows that with a simple SQL injection attack, it is sometimes possible to bypass the authentication form. ![Simple SQL Injection Attack](https://raw.githubusercontent.com/OWASP/wstg/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/04-Authentication_Testing/04-Testing_for_Bypassing_Authentication_Schema.md"
+        },
+        {
+          "id": 1326,
+          "object_id": 54,
+          "source_type": "document",
+          "title": "Chunk 8",
+          "source_title": "Testing for SQL Injection",
+          "article_label": "",
+          "score": 0.45,
+          "retrieval": "deterministic",
+          "excerpt": "is very important to test each field separately: only one variable must vary while all the other remain constant, in order to precisely understand which parameters are vulnerable and which are not. ### Standard SQL Injection Testing #### Classic SQL Injection Consider the followi",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/07-Input_Validation_Testing/05-Testing_for_SQL_Injection.md"
+        },
+        {
+          "id": 1397,
+          "object_id": 57,
+          "source_type": "document",
+          "title": "Chunk 14",
+          "source_title": "Testing for SQL Server",
+          "article_label": "",
+          "score": 0.45,
+          "retrieval": "deterministic",
+          "excerpt": "mple 4 above](#Example-4:-Yet-Another-(Useful)-GET-Example). ### Blind SQL Injection Attacks #### Trial and Error Alternatively, one may play lucky. That is the attacker may assume that there is a blind or out-of-band SQL injection vulnerability in a the web application. He will ",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/07-Input_Validation_Testing/05.3-Testing_for_SQL_Server.md"
+        }
+      ]
+    },
+    {
+      "query": "SQL injection",
+      "category": "document",
+      "scope": "document",
+      "expected": {
+        "titles": [
+          "Testing for SQL Injection",
+          "SQL Injection Prevention Cheat Sheet"
+        ]
+      },
+      "hit_at_5": true,
+      "reciprocal_rank": 1.0,
+      "latency_ms": 152.96,
+      "results": [
+        {
+          "id": 1320,
+          "object_id": 54,
+          "source_type": "document",
+          "title": "Chunk 2",
+          "source_title": "Testing for SQL Injection",
+          "article_label": "",
+          "score": 0.45,
+          "retrieval": "deterministic",
+          "excerpt": "S file system or write files into the file system, and, in some cases, issue commands to the operating system. SQL injection attacks are a type of injection attack, in which SQL commands are injected into data-plane input in order to affect the execution of predefined SQL command",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/07-Input_Validation_Testing/05-Testing_for_SQL_Injection.md"
+        },
+        {
+          "id": 1122,
+          "object_id": 31,
+          "source_type": "document",
+          "title": "Chunk 7",
+          "source_title": "Testing for Bypassing Authentication Schema",
+          "article_label": "",
+          "score": 0.45,
+          "retrieval": "deterministic",
+          "excerpt": ".4-5: SQL Injection* The following figure shows that with a simple SQL injection attack, it is sometimes possible to bypass the authentication form. ![Simple SQL Injection Attack](https://raw.githubusercontent.com/OWASP/wstg/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/04-Authentication_Testing/04-Testing_for_Bypassing_Authentication_Schema.md"
+        },
+        {
+          "id": 1121,
+          "object_id": 31,
+          "source_type": "document",
+          "title": "Chunk 6",
+          "source_title": "Testing for Bypassing Authentication Schema",
+          "article_label": "",
+          "score": 0.45,
+          "retrieval": "deterministic",
+          "excerpt": "04-Authentication_Testing/images/Basm-sessid.jpg)\\ *Figure 4.4.4-3: Cookie Values Over Time* In the following figure, values inside cookies change only partially, so it's possible to restrict a brute force attack to the defined fields shown below. ![Partially Changed Cookie Value",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/04-Authentication_Testing/04-Testing_for_Bypassing_Authentication_Schema.md"
+        },
+        {
+          "id": 1326,
+          "object_id": 54,
+          "source_type": "document",
+          "title": "Chunk 8",
+          "source_title": "Testing for SQL Injection",
+          "article_label": "",
+          "score": 0.45,
+          "retrieval": "deterministic",
+          "excerpt": "is very important to test each field separately: only one variable must vary while all the other remain constant, in order to precisely understand which parameters are vulnerable and which are not. ### Standard SQL Injection Testing #### Classic SQL Injection Consider the followi",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/07-Input_Validation_Testing/05-Testing_for_SQL_Injection.md"
+        },
+        {
+          "id": 1112,
+          "object_id": 30,
+          "source_type": "document",
+          "title": "Chunk 5",
+          "source_title": "Testing for Weak Lock Out Mechanism",
+          "article_label": "",
+          "score": 0.45,
+          "retrieval": "deterministic",
+          "excerpt": "etc) while using a testing proxy (request submitted directly server-side). 5. Attempt to fuzz CAPTCHA data entry points (if present) with common injection payloads or special characters sequences. 6. Check if the solution to the CAPTCHA might be the alt-text of the image(s), file",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/04-Authentication_Testing/03-Testing_for_Weak_Lock_Out_Mechanism.md"
+        }
+      ]
+    },
+    {
+      "query": "SQL Injection Prevention Cheat Sheet",
+      "category": "document",
+      "scope": "unfiltered",
+      "expected": {
+        "titles": [
+          "SQL Injection Prevention Cheat Sheet"
+        ]
+      },
+      "hit_at_5": false,
+      "reciprocal_rank": 0,
+      "latency_ms": 149.6,
+      "results": [
+        {
+          "id": 1326,
+          "object_id": 54,
+          "source_type": "document",
+          "title": "Chunk 8",
+          "source_title": "Testing for SQL Injection",
+          "article_label": "",
+          "score": 0.491883,
+          "retrieval": "deterministic",
+          "excerpt": "is very important to test each field separately: only one variable must vary while all the other remain constant, in order to precisely understand which parameters are vulnerable and which are not. ### Standard SQL Injection Testing #### Classic SQL Injection Consider the followi",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/07-Input_Validation_Testing/05-Testing_for_SQL_Injection.md"
+        },
+        {
+          "id": 1298,
+          "object_id": 52,
+          "source_type": "document",
+          "title": "Chunk 6",
+          "source_title": "Testing for Stored Cross Site Scripting",
+          "article_label": "",
+          "score": 0.480583,
+          "retrieval": "deterministic",
+          "excerpt": "aaa@aa.com&quot;&gt;&lt;script&gt;alert(document.cookie)&lt;/script&gt;` - `aaa@aa.com%22%3E%3Cscript%3Ealert(document.cookie)%3C%2Fscript%3E` Ensure the input is submitted through the application. This normally involves disabling JavaScript if client-side security controls are i",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/07-Input_Validation_Testing/02-Testing_for_Stored_Cross_Site_Scripting.md"
+        },
+        {
+          "id": 1335,
+          "object_id": 54,
+          "source_type": "document",
+          "title": "Chunk 17",
+          "source_title": "Testing for SQL Injection",
+          "article_label": "",
+          "score": 0.481108,
+          "retrieval": "deterministic",
+          "excerpt": "n can be an integer. Then the tester can move further and so on: `http://www.example.com/product.php?id=10 UNION SELECT 1,1,null--` After the successful information gathering, depending on the application, it may only show the tester the first result, because the application trea",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/07-Input_Validation_Testing/05-Testing_for_SQL_Injection.md"
+        },
+        {
+          "id": 1377,
+          "object_id": 56,
+          "source_type": "document",
+          "title": "Chunk 5",
+          "source_title": "Testing for MySQL",
+          "article_label": "",
+          "score": 0.483933,
+          "retrieval": "deterministic",
+          "excerpt": "s://dev.mysql.com/doc/refman/8.0/en/information-functions.html#function_version) 3. By using comment fingerprinting with a version number `/*!40110 and 1=0*/` which means ```sql if(version >= 4.1.10) add 'and 1=0' to the query. ``` These are equivalent as the result is the same. ",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/07-Input_Validation_Testing/05.2-Testing_for_MySQL.md"
+        },
+        {
+          "id": 1514,
+          "object_id": 72,
+          "source_type": "document",
+          "title": "Chunk 8",
+          "source_title": "Testing for Format String Injection",
+          "article_label": "",
+          "score": 0.499256,
+          "retrieval": "deterministic",
+          "excerpt": "ment enables the approprate escaping for the strings and `FUZZ` (with the capital letters) tells the tool where to introduce the inputs. An example output is as follows ```text ID Response Lines Word Chars Payload ==================================================================",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/07-Input_Validation_Testing/13-Testing_for_Format_String_Injection.md"
+        }
+      ]
+    },
+    {
+      "query": "SQL Injection Prevention Cheat Sheet",
+      "category": "document",
+      "scope": "document",
+      "expected": {
+        "titles": [
+          "SQL Injection Prevention Cheat Sheet"
+        ]
+      },
+      "hit_at_5": false,
+      "reciprocal_rank": 0,
+      "latency_ms": 169.49,
+      "results": [
+        {
+          "id": 1326,
+          "object_id": 54,
+          "source_type": "document",
+          "title": "Chunk 8",
+          "source_title": "Testing for SQL Injection",
+          "article_label": "",
+          "score": 0.491883,
+          "retrieval": "deterministic",
+          "excerpt": "is very important to test each field separately: only one variable must vary while all the other remain constant, in order to precisely understand which parameters are vulnerable and which are not. ### Standard SQL Injection Testing #### Classic SQL Injection Consider the followi",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/07-Input_Validation_Testing/05-Testing_for_SQL_Injection.md"
+        },
+        {
+          "id": 1298,
+          "object_id": 52,
+          "source_type": "document",
+          "title": "Chunk 6",
+          "source_title": "Testing for Stored Cross Site Scripting",
+          "article_label": "",
+          "score": 0.480583,
+          "retrieval": "deterministic",
+          "excerpt": "aaa@aa.com&quot;&gt;&lt;script&gt;alert(document.cookie)&lt;/script&gt;` - `aaa@aa.com%22%3E%3Cscript%3Ealert(document.cookie)%3C%2Fscript%3E` Ensure the input is submitted through the application. This normally involves disabling JavaScript if client-side security controls are i",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/07-Input_Validation_Testing/02-Testing_for_Stored_Cross_Site_Scripting.md"
+        },
+        {
+          "id": 1335,
+          "object_id": 54,
+          "source_type": "document",
+          "title": "Chunk 17",
+          "source_title": "Testing for SQL Injection",
+          "article_label": "",
+          "score": 0.481108,
+          "retrieval": "deterministic",
+          "excerpt": "n can be an integer. Then the tester can move further and so on: `http://www.example.com/product.php?id=10 UNION SELECT 1,1,null--` After the successful information gathering, depending on the application, it may only show the tester the first result, because the application trea",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/07-Input_Validation_Testing/05-Testing_for_SQL_Injection.md"
+        },
+        {
+          "id": 1377,
+          "object_id": 56,
+          "source_type": "document",
+          "title": "Chunk 5",
+          "source_title": "Testing for MySQL",
+          "article_label": "",
+          "score": 0.483933,
+          "retrieval": "deterministic",
+          "excerpt": "s://dev.mysql.com/doc/refman/8.0/en/information-functions.html#function_version) 3. By using comment fingerprinting with a version number `/*!40110 and 1=0*/` which means ```sql if(version >= 4.1.10) add 'and 1=0' to the query. ``` These are equivalent as the result is the same. ",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/07-Input_Validation_Testing/05.2-Testing_for_MySQL.md"
+        },
+        {
+          "id": 1514,
+          "object_id": 72,
+          "source_type": "document",
+          "title": "Chunk 8",
+          "source_title": "Testing for Format String Injection",
+          "article_label": "",
+          "score": 0.499256,
+          "retrieval": "deterministic",
+          "excerpt": "ment enables the approprate escaping for the strings and `FUZZ` (with the capital letters) tells the tool where to introduce the inputs. An example output is as follows ```text ID Response Lines Word Chars Payload ==================================================================",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/07-Input_Validation_Testing/13-Testing_for_Format_String_Injection.md"
+        }
+      ]
+    },
+    {
+      "query": "Cross Site Scripting Prevention Cheat Sheet",
+      "category": "document",
+      "scope": "unfiltered",
+      "expected": {
+        "titles": [
+          "Cross Site Scripting Prevention Cheat Sheet"
+        ]
+      },
+      "hit_at_5": false,
+      "reciprocal_rank": 0,
+      "latency_ms": 160.33,
+      "results": [
+        {
+          "id": 1013,
+          "object_id": 15,
+          "source_type": "document",
+          "title": "Chunk 13",
+          "source_title": "Review Old Backup and Unreferenced Files for Sensitive Information",
+          "article_label": "",
+          "score": 0.53621,
+          "retrieval": "deterministic",
+          "excerpt": "low an attacker to enumerate unreferenced content, for example: - Apache ?M=D directory listing vulnerability. - Various IIS script source disclosure vulnerabilities. - IIS WebDAV directory listing vulnerabilities. #### Use of Publicly Available Information Pages and functionalit",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/04-Review_Old_Backup_and_Unreferenced_Files_for_Sensitive_Information.md"
+        },
+        {
+          "id": 1084,
+          "object_id": 28,
+          "source_type": "document",
+          "title": "Chunk 1",
+          "source_title": "Testing for Credentials Transported over an Encrypted Channel",
+          "article_label": "",
+          "score": 0.533398,
+          "retrieval": "deterministic",
+          "excerpt": "# Testing for Credentials Transported over an Encrypted Channel |ID | |------------| |WSTG-ATHN-01| ## Summary Testing for credentials transport verifies that web applications encrypt authentication data in transit. This encryption prevents attackers from taking over accounts by ",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/04-Authentication_Testing/01-Testing_for_Credentials_Transported_over_an_Encrypted_Channel.md"
+        },
+        {
+          "id": 976,
+          "object_id": 13,
+          "source_type": "document",
+          "title": "Chunk 2",
+          "source_title": "Test Application Platform Configuration",
+          "article_label": "",
+          "score": 0.50667,
+          "retrieval": "deterministic",
+          "excerpt": "he logging mechanisms set in place for the application. ## How to Test ### Black-Box Testing #### Sample and Known Files and Directories Many web servers and application servers provide, in a default installation, sample applications and files for the benefit of the developer and",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/02-Test_Application_Platform_Configuration.md"
+        },
+        {
+          "id": 1557,
+          "object_id": 78,
+          "source_type": "document",
+          "title": "Chunk 6",
+          "source_title": "Testing for Server-Side Request Forgery",
+          "article_label": "",
+          "score": 0.556198,
+          "retrieval": "deterministic",
+          "excerpt": "ty-703c5706eefb) - [Abusing the AWS Metadata Service Using SSRF Vulnerabilities](https://blog.christophetd.fr/abusing-aws-metadata-service-using-ssrf-vulnerabilities/) - [OWASP Server Side Request Forgery Prevention Cheatsheet](https://cheatsheetseries.owasp.org/cheatsheets/Serve",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/07-Input_Validation_Testing/19-Testing_for_Server-Side_Request_Forgery.md"
+        },
+        {
+          "id": 942,
+          "object_id": 10,
+          "source_type": "document",
+          "title": "Chunk 3",
+          "source_title": "Fingerprint Web Application Framework",
+          "article_label": "",
+          "score": 0.501024,
+          "retrieval": "deterministic",
+          "excerpt": "owever, although this approach is simple and quick, this methodology doesn't work in 100% of cases. It is possible to easily disable `X-Powered-By` header by a proper configuration. There are also several techniques that allow a web site to obfuscate HTTP headers (see an example ",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/01-Information_Gathering/08-Fingerprint_Web_Application_Framework.md"
+        }
+      ]
+    },
+    {
+      "query": "Cross Site Scripting Prevention Cheat Sheet",
+      "category": "document",
+      "scope": "document",
+      "expected": {
+        "titles": [
+          "Cross Site Scripting Prevention Cheat Sheet"
+        ]
+      },
+      "hit_at_5": false,
+      "reciprocal_rank": 0,
+      "latency_ms": 158.17,
+      "results": [
+        {
+          "id": 1013,
+          "object_id": 15,
+          "source_type": "document",
+          "title": "Chunk 13",
+          "source_title": "Review Old Backup and Unreferenced Files for Sensitive Information",
+          "article_label": "",
+          "score": 0.53621,
+          "retrieval": "deterministic",
+          "excerpt": "low an attacker to enumerate unreferenced content, for example: - Apache ?M=D directory listing vulnerability. - Various IIS script source disclosure vulnerabilities. - IIS WebDAV directory listing vulnerabilities. #### Use of Publicly Available Information Pages and functionalit",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/04-Review_Old_Backup_and_Unreferenced_Files_for_Sensitive_Information.md"
+        },
+        {
+          "id": 1084,
+          "object_id": 28,
+          "source_type": "document",
+          "title": "Chunk 1",
+          "source_title": "Testing for Credentials Transported over an Encrypted Channel",
+          "article_label": "",
+          "score": 0.533398,
+          "retrieval": "deterministic",
+          "excerpt": "# Testing for Credentials Transported over an Encrypted Channel |ID | |------------| |WSTG-ATHN-01| ## Summary Testing for credentials transport verifies that web applications encrypt authentication data in transit. This encryption prevents attackers from taking over accounts by ",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/04-Authentication_Testing/01-Testing_for_Credentials_Transported_over_an_Encrypted_Channel.md"
+        },
+        {
+          "id": 976,
+          "object_id": 13,
+          "source_type": "document",
+          "title": "Chunk 2",
+          "source_title": "Test Application Platform Configuration",
+          "article_label": "",
+          "score": 0.50667,
+          "retrieval": "deterministic",
+          "excerpt": "he logging mechanisms set in place for the application. ## How to Test ### Black-Box Testing #### Sample and Known Files and Directories Many web servers and application servers provide, in a default installation, sample applications and files for the benefit of the developer and",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/02-Test_Application_Platform_Configuration.md"
+        },
+        {
+          "id": 1557,
+          "object_id": 78,
+          "source_type": "document",
+          "title": "Chunk 6",
+          "source_title": "Testing for Server-Side Request Forgery",
+          "article_label": "",
+          "score": 0.556198,
+          "retrieval": "deterministic",
+          "excerpt": "ty-703c5706eefb) - [Abusing the AWS Metadata Service Using SSRF Vulnerabilities](https://blog.christophetd.fr/abusing-aws-metadata-service-using-ssrf-vulnerabilities/) - [OWASP Server Side Request Forgery Prevention Cheatsheet](https://cheatsheetseries.owasp.org/cheatsheets/Serve",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/07-Input_Validation_Testing/19-Testing_for_Server-Side_Request_Forgery.md"
+        },
+        {
+          "id": 942,
+          "object_id": 10,
+          "source_type": "document",
+          "title": "Chunk 3",
+          "source_title": "Fingerprint Web Application Framework",
+          "article_label": "",
+          "score": 0.501024,
+          "retrieval": "deterministic",
+          "excerpt": "owever, although this approach is simple and quick, this methodology doesn't work in 100% of cases. It is possible to easily disable `X-Powered-By` header by a proper configuration. There are also several techniques that allow a web site to obfuscate HTTP headers (see an example ",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/01-Information_Gathering/08-Fingerprint_Web_Application_Framework.md"
+        }
+      ]
+    },
+    {
+      "query": "Cross-Site Request Forgery Prevention Cheat Sheet",
+      "category": "document",
+      "scope": "unfiltered",
+      "expected": {
+        "titles": [
+          "Cross-Site Request Forgery Prevention Cheat Sheet"
+        ]
+      },
+      "hit_at_5": false,
+      "reciprocal_rank": 0,
+      "latency_ms": 149.68,
+      "results": [
+        {
+          "id": 1031,
+          "object_id": 17,
+          "source_type": "document",
+          "title": "Chunk 5",
+          "source_title": "Test HTTP Methods",
+          "article_label": "",
+          "score": 0.523206,
+          "retrieval": "deterministic",
+          "excerpt": "has a security constraint such that a GET request would normally force a 302 redirect to a log in page or force a log in directly. Issue requests using various methods such as HEAD, POST, PUT etc. as well as arbitrarily made up methods such as BILBAO, FOOBAR, CATS, etc. If the we",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/06-Test_HTTP_Methods.md"
+        },
+        {
+          "id": 1090,
+          "object_id": 28,
+          "source_type": "document",
+          "title": "Chunk 7",
+          "source_title": "Testing for Credentials Transported over an Encrypted Channel",
+          "article_label": "",
+          "score": 0.519407,
+          "retrieval": "deterministic",
+          "excerpt": "ing, the client still sends the new account request through HTTPS: ```http Request URL: https://www.example.org/securityRealm/createAccount Request method: POST ... Response headers: HTTP/1.1 200 OK Server: nginx/1.19.2 Date: Tue, 29 Sep 2020 01:11:50 GMT Content-Type: text/html;",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/04-Authentication_Testing/01-Testing_for_Credentials_Transported_over_an_Encrypted_Channel.md"
+        },
+        {
+          "id": 1077,
+          "object_id": 26,
+          "source_type": "document",
+          "title": "Chunk 6",
+          "source_title": "Testing for Account Enumeration and Guessable User Account",
+          "article_label": "",
+          "score": 0.516873,
+          "retrieval": "deterministic",
+          "excerpt": "nalyze. #### Analyzing URLs and URLs Re-directions For example: - `http://www.foo.com/err.jsp?User=baduser&Error=0` - `http://www.foo.com/err.jsp?User=gooduser&Error=2` As is seen above, when a tester provides a user ID and password to the web application, they see a message indi",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/03-Identity_Management_Testing/04-Testing_for_Account_Enumeration_and_Guessable_User_Account.md"
+        },
+        {
+          "id": 880,
+          "object_id": 4,
+          "source_type": "document",
+          "title": "Chunk 5",
+          "source_title": "Fingerprint Web Server",
+          "article_label": "",
+          "score": 0.498361,
+          "retrieval": "deterministic",
+          "excerpt": "ponse to a request for the non-existent method `SANTA CLAUS` from an Apache server. ```sh GET / SANTA CLAUS/1.1 HTTP/1.1 400 Bad Request Date: Fri, 06 Sep 2019 19:21:01 GMT Server: Apache/2.4.41 (Unix) Content-Length: 226 Connection: close Content-Type: text/html; charset=iso-885",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/01-Information_Gathering/02-Fingerprint_Web_Server.md"
+        },
+        {
+          "id": 1292,
+          "object_id": 51,
+          "source_type": "document",
+          "title": "Chunk 15",
+          "source_title": "Testing for Reflected Cross Site Scripting",
+          "article_label": "",
+          "score": 0.537394,
+          "retrieval": "deterministic",
+          "excerpt": "aleb Sima - \"Hacking Exposed Web Applications\", Second Edition, McGraw-Hill, 2006 - ISBN 0-07-226229-0 - Dafydd Stuttard, Marcus Pinto - \"The Web Application's Handbook - Discovering and Exploiting Security Flaws\", 2008, Wiley, ISBN 978-0-470-17077-9 - Jeremiah Grossman, Robert \"",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/07-Input_Validation_Testing/01-Testing_for_Reflected_Cross_Site_Scripting.md"
+        }
+      ]
+    },
+    {
+      "query": "Cross-Site Request Forgery Prevention Cheat Sheet",
+      "category": "document",
+      "scope": "document",
+      "expected": {
+        "titles": [
+          "Cross-Site Request Forgery Prevention Cheat Sheet"
+        ]
+      },
+      "hit_at_5": false,
+      "reciprocal_rank": 0,
+      "latency_ms": 154.8,
+      "results": [
+        {
+          "id": 1031,
+          "object_id": 17,
+          "source_type": "document",
+          "title": "Chunk 5",
+          "source_title": "Test HTTP Methods",
+          "article_label": "",
+          "score": 0.523206,
+          "retrieval": "deterministic",
+          "excerpt": "has a security constraint such that a GET request would normally force a 302 redirect to a log in page or force a log in directly. Issue requests using various methods such as HEAD, POST, PUT etc. as well as arbitrarily made up methods such as BILBAO, FOOBAR, CATS, etc. If the we",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/06-Test_HTTP_Methods.md"
+        },
+        {
+          "id": 1077,
+          "object_id": 26,
+          "source_type": "document",
+          "title": "Chunk 6",
+          "source_title": "Testing for Account Enumeration and Guessable User Account",
+          "article_label": "",
+          "score": 0.516873,
+          "retrieval": "deterministic",
+          "excerpt": "nalyze. #### Analyzing URLs and URLs Re-directions For example: - `http://www.foo.com/err.jsp?User=baduser&Error=0` - `http://www.foo.com/err.jsp?User=gooduser&Error=2` As is seen above, when a tester provides a user ID and password to the web application, they see a message indi",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/03-Identity_Management_Testing/04-Testing_for_Account_Enumeration_and_Guessable_User_Account.md"
+        },
+        {
+          "id": 1292,
+          "object_id": 51,
+          "source_type": "document",
+          "title": "Chunk 15",
+          "source_title": "Testing for Reflected Cross Site Scripting",
+          "article_label": "",
+          "score": 0.537394,
+          "retrieval": "deterministic",
+          "excerpt": "aleb Sima - \"Hacking Exposed Web Applications\", Second Edition, McGraw-Hill, 2006 - ISBN 0-07-226229-0 - Dafydd Stuttard, Marcus Pinto - \"The Web Application's Handbook - Discovering and Exploiting Security Flaws\", 2008, Wiley, ISBN 978-0-470-17077-9 - Jeremiah Grossman, Robert \"",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/07-Input_Validation_Testing/01-Testing_for_Reflected_Cross_Site_Scripting.md"
+        },
+        {
+          "id": 1090,
+          "object_id": 28,
+          "source_type": "document",
+          "title": "Chunk 7",
+          "source_title": "Testing for Credentials Transported over an Encrypted Channel",
+          "article_label": "",
+          "score": 0.519407,
+          "retrieval": "deterministic",
+          "excerpt": "ing, the client still sends the new account request through HTTPS: ```http Request URL: https://www.example.org/securityRealm/createAccount Request method: POST ... Response headers: HTTP/1.1 200 OK Server: nginx/1.19.2 Date: Tue, 29 Sep 2020 01:11:50 GMT Content-Type: text/html;",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/04-Authentication_Testing/01-Testing_for_Credentials_Transported_over_an_Encrypted_Channel.md"
+        },
+        {
+          "id": 880,
+          "object_id": 4,
+          "source_type": "document",
+          "title": "Chunk 5",
+          "source_title": "Fingerprint Web Server",
+          "article_label": "",
+          "score": 0.498361,
+          "retrieval": "deterministic",
+          "excerpt": "ponse to a request for the non-existent method `SANTA CLAUS` from an Apache server. ```sh GET / SANTA CLAUS/1.1 HTTP/1.1 400 Bad Request Date: Fri, 06 Sep 2019 19:21:01 GMT Server: Apache/2.4.41 (Unix) Content-Length: 226 Connection: close Content-Type: text/html; charset=iso-885",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/01-Information_Gathering/02-Fingerprint_Web_Server.md"
+        }
+      ]
+    },
+    {
+      "query": "Cryptographic Storage Cheat Sheet",
+      "category": "document",
+      "scope": "unfiltered",
+      "expected": {
+        "titles": [
+          "Cryptographic Storage Cheat Sheet"
+        ]
+      },
+      "hit_at_5": false,
+      "reciprocal_rank": 0,
+      "latency_ms": 149.33,
+      "results": [
+        {
+          "id": 1213,
+          "object_id": 43,
+          "source_type": "document",
+          "title": "Chunk 1",
+          "source_title": "Testing for Cookies Attributes",
+          "article_label": "",
+          "score": 0.45,
+          "retrieval": "deterministic",
+          "excerpt": "# Testing for Cookies Attributes |ID | |------------| |WSTG-SESS-02| ## Summary Web Cookies (herein referred to as cookies) are often a key attack vector for malicious users (typically targeting other users) and the application should always take due diligence to protect cookies.",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/06-Session_Management_Testing/02-Testing_for_Cookies_Attributes.md"
+        },
+        {
+          "id": 1413,
+          "object_id": 58,
+          "source_type": "document",
+          "title": "Chunk 9",
+          "source_title": "Testing PostgreSQL",
+          "article_label": "",
+          "score": 0.45,
+          "retrieval": "deterministic",
+          "excerpt": "function: `/store.php?id=1; CREATE FUNCTION proxyshell(text) RETURNS text AS 'open(FD,\"$_[0] |\");return join(\"\",<FD>);' LANGUAGE plperlu;` - Run an OS Command: `/store.php?id=1 UNION ALL SELECT NULL, proxyshell('whoami'), NULL OFFSET 1;--` ## References - [Testing for SQL Injecti",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/07-Input_Validation_Testing/05.4-Testing_PostgreSQL.md"
+        },
+        {
+          "id": 1437,
+          "object_id": 61,
+          "source_type": "document",
+          "title": "Chunk 5",
+          "source_title": "Testing for ORM Injection",
+          "article_label": "",
+          "score": 0.45,
+          "retrieval": "deterministic",
+          "excerpt": "article](https://blog.ripstech.com/2020/exploiting-hibernate-injections/), a cheat sheet that could allow the tester to identify issues could be outlined as follows: | DBMS | SQL Injection | |------------|-----------------------------------------------------------------------| | ",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/07-Input_Validation_Testing/05.7-Testing_for_ORM_Injection.md"
+        },
+        {
+          "id": 1595,
+          "object_id": 83,
+          "source_type": "document",
+          "title": "Chunk 6",
+          "source_title": "Testing for Weak Encryption",
+          "article_label": "",
+          "score": 0.45,
+          "retrieval": "deterministic",
+          "excerpt": "## Tools - Vulnerability scanners such as Nessus, NMAP (scripts), or OpenVAS can scan for use or acceptance of weak encryption against protocol such as SNMP, TLS, SSH, SMTP, etc. - Use static code analysis tool to do source code review such as klocwork, Fortify, Coverity, CheckMa",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/09-Testing_for_Weak_Cryptography/04-Testing_for_Weak_Encryption.md"
+        },
+        {
+          "id": 993,
+          "object_id": 13,
+          "source_type": "document",
+          "title": "Chunk 19",
+          "source_title": "Test Application Platform Configuration",
+          "article_label": "",
+          "score": 0.45,
+          "retrieval": "deterministic",
+          "excerpt": "g Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Logging_Cheat_Sheet.html), OWASP - [SP 800-92](https://csrc.nist.gov/publications/detail/sp/800-92/final) Guide to Computer Security Log Management, NIST - [PCI DSS v3.2.1](https://www.pcisecuritystandards.org/document",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/02-Test_Application_Platform_Configuration.md"
+        }
+      ]
+    },
+    {
+      "query": "Cryptographic Storage Cheat Sheet",
+      "category": "document",
+      "scope": "document",
+      "expected": {
+        "titles": [
+          "Cryptographic Storage Cheat Sheet"
+        ]
+      },
+      "hit_at_5": false,
+      "reciprocal_rank": 0,
+      "latency_ms": 151.55,
+      "results": [
+        {
+          "id": 1213,
+          "object_id": 43,
+          "source_type": "document",
+          "title": "Chunk 1",
+          "source_title": "Testing for Cookies Attributes",
+          "article_label": "",
+          "score": 0.45,
+          "retrieval": "deterministic",
+          "excerpt": "# Testing for Cookies Attributes |ID | |------------| |WSTG-SESS-02| ## Summary Web Cookies (herein referred to as cookies) are often a key attack vector for malicious users (typically targeting other users) and the application should always take due diligence to protect cookies.",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/06-Session_Management_Testing/02-Testing_for_Cookies_Attributes.md"
+        },
+        {
+          "id": 1413,
+          "object_id": 58,
+          "source_type": "document",
+          "title": "Chunk 9",
+          "source_title": "Testing PostgreSQL",
+          "article_label": "",
+          "score": 0.45,
+          "retrieval": "deterministic",
+          "excerpt": "function: `/store.php?id=1; CREATE FUNCTION proxyshell(text) RETURNS text AS 'open(FD,\"$_[0] |\");return join(\"\",<FD>);' LANGUAGE plperlu;` - Run an OS Command: `/store.php?id=1 UNION ALL SELECT NULL, proxyshell('whoami'), NULL OFFSET 1;--` ## References - [Testing for SQL Injecti",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/07-Input_Validation_Testing/05.4-Testing_PostgreSQL.md"
+        },
+        {
+          "id": 1437,
+          "object_id": 61,
+          "source_type": "document",
+          "title": "Chunk 5",
+          "source_title": "Testing for ORM Injection",
+          "article_label": "",
+          "score": 0.45,
+          "retrieval": "deterministic",
+          "excerpt": "article](https://blog.ripstech.com/2020/exploiting-hibernate-injections/), a cheat sheet that could allow the tester to identify issues could be outlined as follows: | DBMS | SQL Injection | |------------|-----------------------------------------------------------------------| | ",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/07-Input_Validation_Testing/05.7-Testing_for_ORM_Injection.md"
+        },
+        {
+          "id": 1595,
+          "object_id": 83,
+          "source_type": "document",
+          "title": "Chunk 6",
+          "source_title": "Testing for Weak Encryption",
+          "article_label": "",
+          "score": 0.45,
+          "retrieval": "deterministic",
+          "excerpt": "## Tools - Vulnerability scanners such as Nessus, NMAP (scripts), or OpenVAS can scan for use or acceptance of weak encryption against protocol such as SNMP, TLS, SSH, SMTP, etc. - Use static code analysis tool to do source code review such as klocwork, Fortify, Coverity, CheckMa",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/09-Testing_for_Weak_Cryptography/04-Testing_for_Weak_Encryption.md"
+        },
+        {
+          "id": 993,
+          "object_id": 13,
+          "source_type": "document",
+          "title": "Chunk 19",
+          "source_title": "Test Application Platform Configuration",
+          "article_label": "",
+          "score": 0.45,
+          "retrieval": "deterministic",
+          "excerpt": "g Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Logging_Cheat_Sheet.html), OWASP - [SP 800-92](https://csrc.nist.gov/publications/detail/sp/800-92/final) Guide to Computer Security Log Management, NIST - [PCI DSS v3.2.1](https://www.pcisecuritystandards.org/document",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/02-Test_Application_Platform_Configuration.md"
+        }
+      ]
+    },
+    {
+      "query": "Authentication Cheat Sheet",
+      "category": "document",
+      "scope": "unfiltered",
+      "expected": {
+        "titles": [
+          "Authentication Cheat Sheet"
+        ]
+      },
+      "hit_at_5": false,
+      "reciprocal_rank": 0,
+      "latency_ms": 155.85,
+      "results": [
+        {
+          "id": 964,
+          "object_id": 12,
+          "source_type": "document",
+          "title": "Chunk 1",
+          "source_title": "Test Network Infrastructure Configuration",
+          "article_label": "",
+          "score": 0.45,
+          "retrieval": "deterministic",
+          "excerpt": "# Test Network Infrastructure Configuration |ID | |------------| |WSTG-CONF-01| ## Summary The intrinsic complexity of interconnected and heterogeneous web server infrastructure, which can include hundreds of web applications, makes configuration management and review a fundament",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/01-Test_Network_Infrastructure_Configuration.md"
+        },
+        {
+          "id": 993,
+          "object_id": 13,
+          "source_type": "document",
+          "title": "Chunk 19",
+          "source_title": "Test Application Platform Configuration",
+          "article_label": "",
+          "score": 0.45,
+          "retrieval": "deterministic",
+          "excerpt": "g Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Logging_Cheat_Sheet.html), OWASP - [SP 800-92](https://csrc.nist.gov/publications/detail/sp/800-92/final) Guide to Computer Security Log Management, NIST - [PCI DSS v3.2.1](https://www.pcisecuritystandards.org/document",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/02-Test_Application_Platform_Configuration.md"
+        },
+        {
+          "id": 1311,
+          "object_id": 53,
+          "source_type": "document",
+          "title": "Chunk 5",
+          "source_title": "Testing for HTTP Parameter Pollution",
+          "article_label": "",
+          "score": 0.45,
+          "retrieval": "deterministic",
+          "excerpt": "il.com(attacker email)&ok=Invite ``` The flaw resided in the authentication mechanism used by the web application, as the security check was performed on the first `blogID` parameter, whereas the actual operation used the second occurrence. ### Expected Behavior by Application Se",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/07-Input_Validation_Testing/04-Testing_for_HTTP_Parameter_Pollution.md"
+        },
+        {
+          "id": 1437,
+          "object_id": 61,
+          "source_type": "document",
+          "title": "Chunk 5",
+          "source_title": "Testing for ORM Injection",
+          "article_label": "",
+          "score": 0.45,
+          "retrieval": "deterministic",
+          "excerpt": "article](https://blog.ripstech.com/2020/exploiting-hibernate-injections/), a cheat sheet that could allow the tester to identify issues could be outlined as follows: | DBMS | SQL Injection | |------------|-----------------------------------------------------------------------| | ",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/07-Input_Validation_Testing/05.7-Testing_for_ORM_Injection.md"
+        },
+        {
+          "id": 1460,
+          "object_id": 64,
+          "source_type": "document",
+          "title": "Chunk 14",
+          "source_title": "Testing for XML Injection",
+          "article_label": "",
+          "score": 0.45,
+          "retrieval": "deterministic",
+          "excerpt": "- `poi-3.8.jar` - `poi-ooxml-3.8.jar` The followings source code keyword may apply to C. - libxml2: xmlCtxtReadMemory,xmlCtxtUseOptions,xmlParseInNodeContext,xmlReadDoc,xmlReadFd,xmlReadFile ,xmlReadIO,xmlReadMemory, xmlCtxtReadDoc ,xmlCtxtReadFd,xmlCtxtReadFile,xmlCtxtReadIO - l",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/07-Input_Validation_Testing/07-Testing_for_XML_Injection.md"
+        }
+      ]
+    },
+    {
+      "query": "Authentication Cheat Sheet",
+      "category": "document",
+      "scope": "document",
+      "expected": {
+        "titles": [
+          "Authentication Cheat Sheet"
+        ]
+      },
+      "hit_at_5": false,
+      "reciprocal_rank": 0,
+      "latency_ms": 157.95,
+      "results": [
+        {
+          "id": 964,
+          "object_id": 12,
+          "source_type": "document",
+          "title": "Chunk 1",
+          "source_title": "Test Network Infrastructure Configuration",
+          "article_label": "",
+          "score": 0.45,
+          "retrieval": "deterministic",
+          "excerpt": "# Test Network Infrastructure Configuration |ID | |------------| |WSTG-CONF-01| ## Summary The intrinsic complexity of interconnected and heterogeneous web server infrastructure, which can include hundreds of web applications, makes configuration management and review a fundament",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/01-Test_Network_Infrastructure_Configuration.md"
+        },
+        {
+          "id": 993,
+          "object_id": 13,
+          "source_type": "document",
+          "title": "Chunk 19",
+          "source_title": "Test Application Platform Configuration",
+          "article_label": "",
+          "score": 0.45,
+          "retrieval": "deterministic",
+          "excerpt": "g Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Logging_Cheat_Sheet.html), OWASP - [SP 800-92](https://csrc.nist.gov/publications/detail/sp/800-92/final) Guide to Computer Security Log Management, NIST - [PCI DSS v3.2.1](https://www.pcisecuritystandards.org/document",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/02-Test_Application_Platform_Configuration.md"
+        },
+        {
+          "id": 1311,
+          "object_id": 53,
+          "source_type": "document",
+          "title": "Chunk 5",
+          "source_title": "Testing for HTTP Parameter Pollution",
+          "article_label": "",
+          "score": 0.45,
+          "retrieval": "deterministic",
+          "excerpt": "il.com(attacker email)&ok=Invite ``` The flaw resided in the authentication mechanism used by the web application, as the security check was performed on the first `blogID` parameter, whereas the actual operation used the second occurrence. ### Expected Behavior by Application Se",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/07-Input_Validation_Testing/04-Testing_for_HTTP_Parameter_Pollution.md"
+        },
+        {
+          "id": 1437,
+          "object_id": 61,
+          "source_type": "document",
+          "title": "Chunk 5",
+          "source_title": "Testing for ORM Injection",
+          "article_label": "",
+          "score": 0.45,
+          "retrieval": "deterministic",
+          "excerpt": "article](https://blog.ripstech.com/2020/exploiting-hibernate-injections/), a cheat sheet that could allow the tester to identify issues could be outlined as follows: | DBMS | SQL Injection | |------------|-----------------------------------------------------------------------| | ",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/07-Input_Validation_Testing/05.7-Testing_for_ORM_Injection.md"
+        },
+        {
+          "id": 1460,
+          "object_id": 64,
+          "source_type": "document",
+          "title": "Chunk 14",
+          "source_title": "Testing for XML Injection",
+          "article_label": "",
+          "score": 0.45,
+          "retrieval": "deterministic",
+          "excerpt": "- `poi-3.8.jar` - `poi-ooxml-3.8.jar` The followings source code keyword may apply to C. - libxml2: xmlCtxtReadMemory,xmlCtxtUseOptions,xmlParseInNodeContext,xmlReadDoc,xmlReadFd,xmlReadFile ,xmlReadIO,xmlReadMemory, xmlCtxtReadDoc ,xmlCtxtReadFd,xmlCtxtReadFile,xmlCtxtReadIO - l",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/07-Input_Validation_Testing/07-Testing_for_XML_Injection.md"
+        }
+      ]
+    },
+    {
+      "query": "Server-Side Request Forgery Prevention Cheat Sheet",
+      "category": "document",
+      "scope": "unfiltered",
+      "expected": {
+        "titles": [
+          "Server-Side Request Forgery Prevention Cheat Sheet"
+        ]
+      },
+      "hit_at_5": false,
+      "reciprocal_rank": 0,
+      "latency_ms": 154.67,
+      "results": [
+        {
+          "id": 970,
+          "object_id": 12,
+          "source_type": "document",
+          "title": "Chunk 7",
+          "source_title": "Test Network Infrastructure Configuration",
+          "article_label": "",
+          "score": 0.547662,
+          "retrieval": "deterministic",
+          "excerpt": "when the tester is provided with internal information of the software used, including versions and releases used and patches applied to the software. With this information, the tester can retrieve the information from the vendor itself and analyze what vulnerabilities might be pr",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/01-Test_Network_Infrastructure_Configuration.md"
+        },
+        {
+          "id": 1031,
+          "object_id": 17,
+          "source_type": "document",
+          "title": "Chunk 5",
+          "source_title": "Test HTTP Methods",
+          "article_label": "",
+          "score": 0.548463,
+          "retrieval": "deterministic",
+          "excerpt": "has a security constraint such that a GET request would normally force a 302 redirect to a log in page or force a log in directly. Issue requests using various methods such as HEAD, POST, PUT etc. as well as arbitrarily made up methods such as BILBAO, FOOBAR, CATS, etc. If the we",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/06-Test_HTTP_Methods.md"
+        },
+        {
+          "id": 1084,
+          "object_id": 28,
+          "source_type": "document",
+          "title": "Chunk 1",
+          "source_title": "Testing for Credentials Transported over an Encrypted Channel",
+          "article_label": "",
+          "score": 0.548526,
+          "retrieval": "deterministic",
+          "excerpt": "# Testing for Credentials Transported over an Encrypted Channel |ID | |------------| |WSTG-ATHN-01| ## Summary Testing for credentials transport verifies that web applications encrypt authentication data in transit. This encryption prevents attackers from taking over accounts by ",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/04-Authentication_Testing/01-Testing_for_Credentials_Transported_over_an_Encrypted_Channel.md"
+        },
+        {
+          "id": 1077,
+          "object_id": 26,
+          "source_type": "document",
+          "title": "Chunk 6",
+          "source_title": "Testing for Account Enumeration and Guessable User Account",
+          "article_label": "",
+          "score": 0.53977,
+          "retrieval": "deterministic",
+          "excerpt": "nalyze. #### Analyzing URLs and URLs Re-directions For example: - `http://www.foo.com/err.jsp?User=baduser&Error=0` - `http://www.foo.com/err.jsp?User=gooduser&Error=2` As is seen above, when a tester provides a user ID and password to the web application, they see a message indi",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/03-Identity_Management_Testing/04-Testing_for_Account_Enumeration_and_Guessable_User_Account.md"
+        },
+        {
+          "id": 959,
+          "object_id": 11,
+          "source_type": "document",
+          "title": "Chunk 4",
+          "source_title": "Map Application Architecture",
+          "article_label": "",
+          "score": 0.519758,
+          "retrieval": "deterministic",
+          "excerpt": "ackets for all non-listening ports). This analysis can be enhanced to determine the type of firewall used based on network packet tests. Is it a stateful firewall or is it an access list filter on a router? How is it configured? Can it be bypassed? Is it a full fledged web applic",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/01-Information_Gathering/10-Map_Application_Architecture.md"
+        }
+      ]
+    },
+    {
+      "query": "Server-Side Request Forgery Prevention Cheat Sheet",
+      "category": "document",
+      "scope": "document",
+      "expected": {
+        "titles": [
+          "Server-Side Request Forgery Prevention Cheat Sheet"
+        ]
+      },
+      "hit_at_5": false,
+      "reciprocal_rank": 0,
+      "latency_ms": 160.1,
+      "results": [
+        {
+          "id": 970,
+          "object_id": 12,
+          "source_type": "document",
+          "title": "Chunk 7",
+          "source_title": "Test Network Infrastructure Configuration",
+          "article_label": "",
+          "score": 0.547662,
+          "retrieval": "deterministic",
+          "excerpt": "when the tester is provided with internal information of the software used, including versions and releases used and patches applied to the software. With this information, the tester can retrieve the information from the vendor itself and analyze what vulnerabilities might be pr",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/01-Test_Network_Infrastructure_Configuration.md"
+        },
+        {
+          "id": 1031,
+          "object_id": 17,
+          "source_type": "document",
+          "title": "Chunk 5",
+          "source_title": "Test HTTP Methods",
+          "article_label": "",
+          "score": 0.548463,
+          "retrieval": "deterministic",
+          "excerpt": "has a security constraint such that a GET request would normally force a 302 redirect to a log in page or force a log in directly. Issue requests using various methods such as HEAD, POST, PUT etc. as well as arbitrarily made up methods such as BILBAO, FOOBAR, CATS, etc. If the we",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/06-Test_HTTP_Methods.md"
+        },
+        {
+          "id": 1084,
+          "object_id": 28,
+          "source_type": "document",
+          "title": "Chunk 1",
+          "source_title": "Testing for Credentials Transported over an Encrypted Channel",
+          "article_label": "",
+          "score": 0.548526,
+          "retrieval": "deterministic",
+          "excerpt": "# Testing for Credentials Transported over an Encrypted Channel |ID | |------------| |WSTG-ATHN-01| ## Summary Testing for credentials transport verifies that web applications encrypt authentication data in transit. This encryption prevents attackers from taking over accounts by ",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/04-Authentication_Testing/01-Testing_for_Credentials_Transported_over_an_Encrypted_Channel.md"
+        },
+        {
+          "id": 1077,
+          "object_id": 26,
+          "source_type": "document",
+          "title": "Chunk 6",
+          "source_title": "Testing for Account Enumeration and Guessable User Account",
+          "article_label": "",
+          "score": 0.53977,
+          "retrieval": "deterministic",
+          "excerpt": "nalyze. #### Analyzing URLs and URLs Re-directions For example: - `http://www.foo.com/err.jsp?User=baduser&Error=0` - `http://www.foo.com/err.jsp?User=gooduser&Error=2` As is seen above, when a tester provides a user ID and password to the web application, they see a message indi",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/03-Identity_Management_Testing/04-Testing_for_Account_Enumeration_and_Guessable_User_Account.md"
+        },
+        {
+          "id": 959,
+          "object_id": 11,
+          "source_type": "document",
+          "title": "Chunk 4",
+          "source_title": "Map Application Architecture",
+          "article_label": "",
+          "score": 0.519758,
+          "retrieval": "deterministic",
+          "excerpt": "ackets for all non-listening ports). This analysis can be enhanced to determine the type of firewall used based on network packet tests. Is it a stateful firewall or is it an access list filter on a router? How is it configured? Can it be bypassed? Is it a full fledged web applic",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/01-Information_Gathering/10-Map_Application_Architecture.md"
+        }
+      ]
+    },
+    {
+      "query": "XML External Entity Prevention Cheat Sheet",
+      "category": "document",
+      "scope": "unfiltered",
+      "expected": {
+        "titles": [
+          "XML External Entity Prevention Cheat Sheet"
+        ]
+      },
+      "hit_at_5": false,
+      "reciprocal_rank": 0,
+      "latency_ms": 156.78,
+      "results": [
+        {
+          "id": 1159,
+          "object_id": 38,
+          "source_type": "document",
+          "title": "Chunk 2",
+          "source_title": "Testing Directory Traversal File Include",
+          "article_label": "",
+          "score": 0.50605,
+          "retrieval": "deterministic",
+          "excerpt": "ify, or execute a specific file on the server. These mechanisms are designed to prevent malicious users from accessing sensitive files (for example, the common `/etc/passwd` file on a UNIX-like platform) or to avoid the execution of system commands. Many web applications use serv",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/05-Authorization_Testing/01-Testing_Directory_Traversal_File_Include.md"
+        },
+        {
+          "id": 937,
+          "object_id": 9,
+          "source_type": "document",
+          "title": "Chunk 2",
+          "source_title": "Map Execution Paths Through Application",
+          "article_label": "",
+          "score": 0.492627,
+          "retrieval": "deterministic",
+          "excerpt": "oroughness, the number of testable paths grows exponentially with each decision branch. - **Data Flow (or Taint Analysis)** - tests the assignment of variables via external interaction (normally users). Focuses on mapping the flow, transformation and use of data throughout an app",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/01-Information_Gathering/07-Map_Execution_Paths_Through_Application.md"
+        },
+        {
+          "id": 979,
+          "object_id": 13,
+          "source_type": "document",
+          "title": "Chunk 5",
+          "source_title": "Test Application Platform Configuration",
+          "article_label": "",
+          "score": 0.497874,
+          "retrieval": "deterministic",
+          "excerpt": "onfiguration guidelines (either provided by the software vendor or external parties) should be followed to determine if the server has been properly secured. It is impossible to generically say how a server should be configured, however, some common guidelines should be taken int",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/02-Test_Application_Platform_Configuration.md"
+        },
+        {
+          "id": 1446,
+          "object_id": 63,
+          "source_type": "document",
+          "title": "Chunk 5",
+          "source_title": "Testing for LDAP Injection",
+          "article_label": "",
+          "score": 0.515745,
+          "retrieval": "deterministic",
+          "excerpt": "or.com) ## References - [LDAP Injection Prevention Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/LDAP_Injection_Prevention_Cheat_Sheet.html) ### Whitepapers - [Sacha Faust: LDAP Injection: Are Your Applications Vulnerable?](http://www.networkdls.com/articles/ldapinj",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/07-Input_Validation_Testing/06-Testing_for_LDAP_Injection.md"
+        },
+        {
+          "id": 1281,
+          "object_id": 51,
+          "source_type": "document",
+          "title": "Chunk 4",
+          "source_title": "Testing for Reflected Cross Site Scripting",
+          "article_label": "",
+          "score": 0.503687,
+          "retrieval": "deterministic",
+          "excerpt": "sting data can be generated by using a web application fuzzer, an automated predefined list of known attack strings, or manually. Some example of such input data are the following: - `<script>alert(123)</script>` - `\"><script>alert(document.cookie)</script>` For a comprehensive l",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/07-Input_Validation_Testing/01-Testing_for_Reflected_Cross_Site_Scripting.md"
+        }
+      ]
+    },
+    {
+      "query": "XML External Entity Prevention Cheat Sheet",
+      "category": "document",
+      "scope": "document",
+      "expected": {
+        "titles": [
+          "XML External Entity Prevention Cheat Sheet"
+        ]
+      },
+      "hit_at_5": false,
+      "reciprocal_rank": 0,
+      "latency_ms": 157.63,
+      "results": [
+        {
+          "id": 1159,
+          "object_id": 38,
+          "source_type": "document",
+          "title": "Chunk 2",
+          "source_title": "Testing Directory Traversal File Include",
+          "article_label": "",
+          "score": 0.50605,
+          "retrieval": "deterministic",
+          "excerpt": "ify, or execute a specific file on the server. These mechanisms are designed to prevent malicious users from accessing sensitive files (for example, the common `/etc/passwd` file on a UNIX-like platform) or to avoid the execution of system commands. Many web applications use serv",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/05-Authorization_Testing/01-Testing_Directory_Traversal_File_Include.md"
+        },
+        {
+          "id": 937,
+          "object_id": 9,
+          "source_type": "document",
+          "title": "Chunk 2",
+          "source_title": "Map Execution Paths Through Application",
+          "article_label": "",
+          "score": 0.492627,
+          "retrieval": "deterministic",
+          "excerpt": "oroughness, the number of testable paths grows exponentially with each decision branch. - **Data Flow (or Taint Analysis)** - tests the assignment of variables via external interaction (normally users). Focuses on mapping the flow, transformation and use of data throughout an app",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/01-Information_Gathering/07-Map_Execution_Paths_Through_Application.md"
+        },
+        {
+          "id": 979,
+          "object_id": 13,
+          "source_type": "document",
+          "title": "Chunk 5",
+          "source_title": "Test Application Platform Configuration",
+          "article_label": "",
+          "score": 0.497874,
+          "retrieval": "deterministic",
+          "excerpt": "onfiguration guidelines (either provided by the software vendor or external parties) should be followed to determine if the server has been properly secured. It is impossible to generically say how a server should be configured, however, some common guidelines should be taken int",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/02-Test_Application_Platform_Configuration.md"
+        },
+        {
+          "id": 1446,
+          "object_id": 63,
+          "source_type": "document",
+          "title": "Chunk 5",
+          "source_title": "Testing for LDAP Injection",
+          "article_label": "",
+          "score": 0.515745,
+          "retrieval": "deterministic",
+          "excerpt": "or.com) ## References - [LDAP Injection Prevention Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/LDAP_Injection_Prevention_Cheat_Sheet.html) ### Whitepapers - [Sacha Faust: LDAP Injection: Are Your Applications Vulnerable?](http://www.networkdls.com/articles/ldapinj",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/07-Input_Validation_Testing/06-Testing_for_LDAP_Injection.md"
+        },
+        {
+          "id": 1281,
+          "object_id": 51,
+          "source_type": "document",
+          "title": "Chunk 4",
+          "source_title": "Testing for Reflected Cross Site Scripting",
+          "article_label": "",
+          "score": 0.503687,
+          "retrieval": "deterministic",
+          "excerpt": "sting data can be generated by using a web application fuzzer, an automated predefined list of known attack strings, or manually. Some example of such input data are the following: - `<script>alert(123)</script>` - `\"><script>alert(document.cookie)</script>` For a comprehensive l",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/07-Input_Validation_Testing/01-Testing_for_Reflected_Cross_Site_Scripting.md"
+        }
+      ]
+    },
+    {
+      "query": "LLM Prompt Injection Prevention Cheat Sheet",
+      "category": "document",
+      "scope": "unfiltered",
+      "expected": {
+        "titles": [
+          "LLM Prompt Injection Prevention Cheat Sheet"
+        ]
+      },
+      "hit_at_5": false,
+      "reciprocal_rank": 0,
+      "latency_ms": 156.91,
+      "results": [
+        {
+          "id": 1377,
+          "object_id": 56,
+          "source_type": "document",
+          "title": "Chunk 5",
+          "source_title": "Testing for MySQL",
+          "article_label": "",
+          "score": 0.517426,
+          "retrieval": "deterministic",
+          "excerpt": "s://dev.mysql.com/doc/refman/8.0/en/information-functions.html#function_version) 3. By using comment fingerprinting with a version number `/*!40110 and 1=0*/` which means ```sql if(version >= 4.1.10) add 'and 1=0' to the query. ``` These are equivalent as the result is the same. ",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/07-Input_Validation_Testing/05.2-Testing_for_MySQL.md"
+        },
+        {
+          "id": 1351,
+          "object_id": 54,
+          "source_type": "document",
+          "title": "Chunk 33",
+          "source_title": "Testing for SQL Injection",
+          "article_label": "",
+          "score": 0.511547,
+          "retrieval": "deterministic",
+          "excerpt": "l) - Fuzzdb](https://github.com/fuzzdb-project/fuzzdb/tree/master/attack/sql-injection) - [sqlbftools](http://packetstormsecurity.org/files/43795/sqlbftools-1.2.tar.gz.html) - [Bernardo Damele A. G.: sqlmap, automatic SQL injection tool](http://sqlmap.org/) - [Muhaimin Dzulfakar:",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/07-Input_Validation_Testing/05-Testing_for_SQL_Injection.md"
+        },
+        {
+          "id": 1033,
+          "object_id": 17,
+          "source_type": "document",
+          "title": "Chunk 7",
+          "source_title": "Test HTTP Methods",
+          "article_label": "",
+          "score": 0.490632,
+          "retrieval": "deterministic",
+          "excerpt": "d debugging, instructs the web server to reflect the received message back to the client. This method, while apparently harmless, can be successfully leveraged in some scenarios to steal legitimate users' credentials. This attack technique was discovered by Jeremiah Grossman in 2",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/06-Test_HTTP_Methods.md"
+        },
+        {
+          "id": 959,
+          "object_id": 11,
+          "source_type": "document",
+          "title": "Chunk 4",
+          "source_title": "Map Application Architecture",
+          "article_label": "",
+          "score": 0.482295,
+          "retrieval": "deterministic",
+          "excerpt": "ackets for all non-listening ports). This analysis can be enhanced to determine the type of firewall used based on network packet tests. Is it a stateful firewall or is it an access list filter on a router? How is it configured? Can it be bypassed? Is it a full fledged web applic",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/01-Information_Gathering/10-Map_Application_Architecture.md"
+        },
+        {
+          "id": 45,
+          "object_id": 3,
+          "source_type": "article",
+          "title": "入侵检测系统（IDS）实战",
+          "source_title": "",
+          "article_label": "",
+          "score": 0.45,
+          "retrieval": "deterministic",
+          "excerpt": "入侵检测系统（IDS）实战 详细介绍Snort、OSSEC、Suricata等主流IDS工具的安装、配置和使用方法。 # 入侵检测系统（IDS）实战 ## 什么是IDS？ 入侵检测系统（Intrusion Detection System）用于监控网络或系统活动，检测可疑行为。 ## IDS类型 ### 1. 基于主机（HIDS） 监控单个主机的活动： - 文件完整性 - 系统调用 - 日志分析 ### 2. 基于网络（NIDS） 监控网络流量： - 数据包分析 - 协议异常 - 攻击模式 ### 3. 混合型 结合HIDS和NIDS的优点。 ## Sn",
+          "source_url": ""
+        }
+      ]
+    },
+    {
+      "query": "LLM Prompt Injection Prevention Cheat Sheet",
+      "category": "document",
+      "scope": "document",
+      "expected": {
+        "titles": [
+          "LLM Prompt Injection Prevention Cheat Sheet"
+        ]
+      },
+      "hit_at_5": false,
+      "reciprocal_rank": 0,
+      "latency_ms": 163.32,
+      "results": [
+        {
+          "id": 1377,
+          "object_id": 56,
+          "source_type": "document",
+          "title": "Chunk 5",
+          "source_title": "Testing for MySQL",
+          "article_label": "",
+          "score": 0.517426,
+          "retrieval": "deterministic",
+          "excerpt": "s://dev.mysql.com/doc/refman/8.0/en/information-functions.html#function_version) 3. By using comment fingerprinting with a version number `/*!40110 and 1=0*/` which means ```sql if(version >= 4.1.10) add 'and 1=0' to the query. ``` These are equivalent as the result is the same. ",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/07-Input_Validation_Testing/05.2-Testing_for_MySQL.md"
+        },
+        {
+          "id": 1033,
+          "object_id": 17,
+          "source_type": "document",
+          "title": "Chunk 7",
+          "source_title": "Test HTTP Methods",
+          "article_label": "",
+          "score": 0.490632,
+          "retrieval": "deterministic",
+          "excerpt": "d debugging, instructs the web server to reflect the received message back to the client. This method, while apparently harmless, can be successfully leveraged in some scenarios to steal legitimate users' credentials. This attack technique was discovered by Jeremiah Grossman in 2",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/06-Test_HTTP_Methods.md"
+        },
+        {
+          "id": 959,
+          "object_id": 11,
+          "source_type": "document",
+          "title": "Chunk 4",
+          "source_title": "Map Application Architecture",
+          "article_label": "",
+          "score": 0.482295,
+          "retrieval": "deterministic",
+          "excerpt": "ackets for all non-listening ports). This analysis can be enhanced to determine the type of firewall used based on network packet tests. Is it a stateful firewall or is it an access list filter on a router? How is it configured? Can it be bypassed? Is it a full fledged web applic",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/01-Information_Gathering/10-Map_Application_Architecture.md"
+        },
+        {
+          "id": 1351,
+          "object_id": 54,
+          "source_type": "document",
+          "title": "Chunk 33",
+          "source_title": "Testing for SQL Injection",
+          "article_label": "",
+          "score": 0.511547,
+          "retrieval": "deterministic",
+          "excerpt": "l) - Fuzzdb](https://github.com/fuzzdb-project/fuzzdb/tree/master/attack/sql-injection) - [sqlbftools](http://packetstormsecurity.org/files/43795/sqlbftools-1.2.tar.gz.html) - [Bernardo Damele A. G.: sqlmap, automatic SQL injection tool](http://sqlmap.org/) - [Muhaimin Dzulfakar:",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/07-Input_Validation_Testing/05-Testing_for_SQL_Injection.md"
+        },
+        {
+          "id": 1818,
+          "object_id": 111,
+          "source_type": "document",
+          "title": "Chunk 8",
+          "source_title": "Encoded Injection",
+          "article_label": "",
+          "score": 0.531674,
+          "retrieval": "deterministic",
+          "excerpt": "cter encoding scheme that uses codes of varying lengths to encode characters. Multi-Byte Encoding is a type of variable-width encoding that uses varying number of bytes to represent a character. Multi-byte encoding is primarily used to encode characters that belong to a large cha",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/6-Appendix/D-Encoded_Injection.md"
+        }
+      ]
+    },
+    {
+      "query": "Zero Trust Architecture Cheat Sheet",
+      "category": "document",
+      "scope": "unfiltered",
+      "expected": {
+        "titles": [
+          "Zero Trust Architecture Cheat Sheet"
+        ]
+      },
+      "hit_at_5": false,
+      "reciprocal_rank": 0,
+      "latency_ms": 153.82,
+      "results": [
+        {
+          "id": 1460,
+          "object_id": 64,
+          "source_type": "document",
+          "title": "Chunk 14",
+          "source_title": "Testing for XML Injection",
+          "article_label": "",
+          "score": 0.481306,
+          "retrieval": "deterministic",
+          "excerpt": "- `poi-3.8.jar` - `poi-ooxml-3.8.jar` The followings source code keyword may apply to C. - libxml2: xmlCtxtReadMemory,xmlCtxtUseOptions,xmlParseInNodeContext,xmlReadDoc,xmlReadFd,xmlReadFile ,xmlReadIO,xmlReadMemory, xmlCtxtReadDoc ,xmlCtxtReadFd,xmlCtxtReadFile,xmlCtxtReadIO - l",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/07-Input_Validation_Testing/07-Testing_for_XML_Injection.md"
+        },
+        {
+          "id": 1574,
+          "object_id": 80,
+          "source_type": "document",
+          "title": "Chunk 10",
+          "source_title": "Testing for Weak Transport Layer Security",
+          "article_label": "",
+          "score": 0.483322,
+          "retrieval": "deterministic",
+          "excerpt": "y will not support some outdated and insecure protocols such as SSLv2 or EXPORT ciphers. Make sure that your version supports the outdated versions before using it for testing, or you'll end up with false negatives. It can also be possible to performed limited testing using a web",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/09-Testing_for_Weak_Cryptography/01-Testing_for_Weak_Transport_Layer_Security.md"
+        },
+        {
+          "id": 958,
+          "object_id": 11,
+          "source_type": "document",
+          "title": "Chunk 3",
+          "source_title": "Map Application Architecture",
+          "article_label": "",
+          "score": 0.462339,
+          "retrieval": "deterministic",
+          "excerpt": "t they will not compromise the whole architecture. Getting knowledge of the application architecture can be easy if this information is provided to the testing team by the application developers in document form or through interviews, but can also prove to be very difficult if do",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/01-Information_Gathering/10-Map_Application_Architecture.md"
+        },
+        {
+          "id": 1563,
+          "object_id": 79,
+          "source_type": "document",
+          "title": "Chunk 6",
+          "source_title": "Testing for Improper Error Handling",
+          "article_label": "",
+          "score": 0.479927,
+          "retrieval": "deterministic",
+          "excerpt": "r the response type. Sometimes errors are returned as success with an error body, hide the error in a 302, or simply by having a custom way of representing that error. ## Remediation For remediation, check out the [Proactive Controls C10](https://owasp.org/www-project-proactive-c",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/08-Testing_for_Error_Handling/01-Testing_For_Improper_Error_Handling.md"
+        },
+        {
+          "id": 855,
+          "object_id": 1,
+          "source_type": "document",
+          "title": "Chunk 8",
+          "source_title": "The Web Security Testing Framework",
+          "article_label": "",
+          "score": 0.45,
+          "retrieval": "deterministic",
+          "excerpt": "and the UML models explaining exactly how the system works, undertake a threat modeling exercise. Develop realistic threat scenarios. Analyze the design and architecture to ensure that these threats have been mitigated, accepted by the business, or assigned to a third party, such",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/3-The_OWASP_Testing_Framework/0-The_Web_Security_Testing_Framework.md"
+        }
+      ]
+    },
+    {
+      "query": "Zero Trust Architecture Cheat Sheet",
+      "category": "document",
+      "scope": "document",
+      "expected": {
+        "titles": [
+          "Zero Trust Architecture Cheat Sheet"
+        ]
+      },
+      "hit_at_5": false,
+      "reciprocal_rank": 0,
+      "latency_ms": 188.08,
+      "results": [
+        {
+          "id": 1460,
+          "object_id": 64,
+          "source_type": "document",
+          "title": "Chunk 14",
+          "source_title": "Testing for XML Injection",
+          "article_label": "",
+          "score": 0.481306,
+          "retrieval": "deterministic",
+          "excerpt": "- `poi-3.8.jar` - `poi-ooxml-3.8.jar` The followings source code keyword may apply to C. - libxml2: xmlCtxtReadMemory,xmlCtxtUseOptions,xmlParseInNodeContext,xmlReadDoc,xmlReadFd,xmlReadFile ,xmlReadIO,xmlReadMemory, xmlCtxtReadDoc ,xmlCtxtReadFd,xmlCtxtReadFile,xmlCtxtReadIO - l",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/07-Input_Validation_Testing/07-Testing_for_XML_Injection.md"
+        },
+        {
+          "id": 958,
+          "object_id": 11,
+          "source_type": "document",
+          "title": "Chunk 3",
+          "source_title": "Map Application Architecture",
+          "article_label": "",
+          "score": 0.462339,
+          "retrieval": "deterministic",
+          "excerpt": "t they will not compromise the whole architecture. Getting knowledge of the application architecture can be easy if this information is provided to the testing team by the application developers in document form or through interviews, but can also prove to be very difficult if do",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/01-Information_Gathering/10-Map_Application_Architecture.md"
+        },
+        {
+          "id": 1574,
+          "object_id": 80,
+          "source_type": "document",
+          "title": "Chunk 10",
+          "source_title": "Testing for Weak Transport Layer Security",
+          "article_label": "",
+          "score": 0.483322,
+          "retrieval": "deterministic",
+          "excerpt": "y will not support some outdated and insecure protocols such as SSLv2 or EXPORT ciphers. Make sure that your version supports the outdated versions before using it for testing, or you'll end up with false negatives. It can also be possible to performed limited testing using a web",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/09-Testing_for_Weak_Cryptography/01-Testing_for_Weak_Transport_Layer_Security.md"
+        },
+        {
+          "id": 1563,
+          "object_id": 79,
+          "source_type": "document",
+          "title": "Chunk 6",
+          "source_title": "Testing for Improper Error Handling",
+          "article_label": "",
+          "score": 0.479927,
+          "retrieval": "deterministic",
+          "excerpt": "r the response type. Sometimes errors are returned as success with an error body, hide the error in a 302, or simply by having a custom way of representing that error. ## Remediation For remediation, check out the [Proactive Controls C10](https://owasp.org/www-project-proactive-c",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/08-Testing_for_Error_Handling/01-Testing_For_Improper_Error_Handling.md"
+        },
+        {
+          "id": 1809,
+          "object_id": 110,
+          "source_type": "document",
+          "title": "Chunk 1",
+          "source_title": "Fuzz Vectors",
+          "article_label": "",
+          "score": 0.485997,
+          "retrieval": "deterministic",
+          "excerpt": "# Fuzz Vectors The following are fuzzing vectors which can be used with [ZAP](https://www.zaproxy.org), [Burp Suite](https://portswigger.net/burp), or another testing tool. [Fuzzing](https://owasp.org/www-community/Fuzzing) is the \"kitchen sink\" approach to testing the responses ",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/6-Appendix/C-Fuzz_Vectors.md"
+        }
+      ]
+    },
+    {
+      "query": "gRPC Security Cheat Sheet",
+      "category": "document",
+      "scope": "unfiltered",
+      "expected": {
+        "titles": [
+          "gRPC Security Cheat Sheet"
+        ]
+      },
+      "hit_at_5": false,
+      "reciprocal_rank": 0,
+      "latency_ms": 155.12,
+      "results": [
+        {
+          "id": 896,
+          "object_id": 6,
+          "source_type": "document",
+          "title": "Chunk 1",
+          "source_title": "Enumerate Applications on Webserver",
+          "article_label": "",
+          "score": 0.45,
+          "retrieval": "deterministic",
+          "excerpt": "# Enumerate Applications on Webserver |ID | |------------| |WSTG-INFO-04| ## Summary A paramount step in testing for web application vulnerabilities is to find out which particular applications are hosted on a web server. Many applications have known vulnerabilities and known att",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/01-Information_Gathering/04-Enumerate_Applications_on_Webserver.md"
+        },
+        {
+          "id": 1036,
+          "object_id": 17,
+          "source_type": "document",
+          "title": "Chunk 10",
+          "source_title": "Test HTTP Methods",
+          "article_label": "",
+          "score": 0.454807,
+          "retrieval": "deterministic",
+          "excerpt": "ader`, the server responds to the request with a 200: ```bash $ ncat www.example.com 80 DELETE /resource.html HTTP/1.1 Host: www.example.com X-HTTP-Method: DELETE HTTP/1.1 200 OK Date: Sat, 04 Apr 2020 19:26:01 GMT Server: Apache ``` ## Remediation - Ensure that only the required",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/06-Test_HTTP_Methods.md"
+        },
+        {
+          "id": 1460,
+          "object_id": 64,
+          "source_type": "document",
+          "title": "Chunk 14",
+          "source_title": "Testing for XML Injection",
+          "article_label": "",
+          "score": 0.452043,
+          "retrieval": "deterministic",
+          "excerpt": "- `poi-3.8.jar` - `poi-ooxml-3.8.jar` The followings source code keyword may apply to C. - libxml2: xmlCtxtReadMemory,xmlCtxtUseOptions,xmlParseInNodeContext,xmlReadDoc,xmlReadFd,xmlReadFile ,xmlReadIO,xmlReadMemory, xmlCtxtReadDoc ,xmlCtxtReadFd,xmlCtxtReadFile,xmlCtxtReadIO - l",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/07-Input_Validation_Testing/07-Testing_for_XML_Injection.md"
+        },
+        {
+          "id": 988,
+          "object_id": 13,
+          "source_type": "document",
+          "title": "Chunk 14",
+          "source_title": "Test Application Platform Configuration",
+          "article_label": "",
+          "score": 0.45,
+          "retrieval": "deterministic",
+          "excerpt": "d if there is a possibility to fill up the log partition through these requests. In some environments where QUERY_STRING parameters are also logged regardless of whether they are produced through GET or POST requests, big queries can be simulated that will fill up the logs faster",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/02-Test_Application_Platform_Configuration.md"
+        },
+        {
+          "id": 63,
+          "object_id": 6,
+          "source_type": "article",
+          "title": "移动应用安全测试指南",
+          "source_title": "",
+          "article_label": "",
+          "score": 0.45,
+          "retrieval": "deterministic",
+          "excerpt": "put global http_proxy 127.0.0.1:8080 ``` #### 组件导出 ```xml <!-- 检查导出的组件 --> <activity android:exported=\"true\"> ``` ```bash # 使用ADB调用导出组件 adb shell am start -n com.example.app/.ExportedActivity ``` ## iOS安全测试 ### 1. 静态分析 ```bash # 解压IPA文件 unzip app.ipa # 使用Class-dump导出头文件 class-dum",
+          "source_url": ""
+        }
+      ]
+    },
+    {
+      "query": "gRPC Security Cheat Sheet",
+      "category": "document",
+      "scope": "document",
+      "expected": {
+        "titles": [
+          "gRPC Security Cheat Sheet"
+        ]
+      },
+      "hit_at_5": false,
+      "reciprocal_rank": 0,
+      "latency_ms": 163.77,
+      "results": [
+        {
+          "id": 896,
+          "object_id": 6,
+          "source_type": "document",
+          "title": "Chunk 1",
+          "source_title": "Enumerate Applications on Webserver",
+          "article_label": "",
+          "score": 0.45,
+          "retrieval": "deterministic",
+          "excerpt": "# Enumerate Applications on Webserver |ID | |------------| |WSTG-INFO-04| ## Summary A paramount step in testing for web application vulnerabilities is to find out which particular applications are hosted on a web server. Many applications have known vulnerabilities and known att",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/01-Information_Gathering/04-Enumerate_Applications_on_Webserver.md"
+        },
+        {
+          "id": 1036,
+          "object_id": 17,
+          "source_type": "document",
+          "title": "Chunk 10",
+          "source_title": "Test HTTP Methods",
+          "article_label": "",
+          "score": 0.454807,
+          "retrieval": "deterministic",
+          "excerpt": "ader`, the server responds to the request with a 200: ```bash $ ncat www.example.com 80 DELETE /resource.html HTTP/1.1 Host: www.example.com X-HTTP-Method: DELETE HTTP/1.1 200 OK Date: Sat, 04 Apr 2020 19:26:01 GMT Server: Apache ``` ## Remediation - Ensure that only the required",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/06-Test_HTTP_Methods.md"
+        },
+        {
+          "id": 852,
+          "object_id": 1,
+          "source_type": "document",
+          "title": "Chunk 5",
+          "source_title": "The Web Security Testing Framework",
+          "article_label": "",
+          "score": 0.45,
+          "retrieval": "deterministic",
+          "excerpt": "Measurement and Metrics Criteria and Ensure Traceability Before development begins, plan the measurement program. By defining criteria that need to be measured, it provides visibility into defects in both the process and product. It is essential to define the metrics before devel",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/3-The_OWASP_Testing_Framework/0-The_Web_Security_Testing_Framework.md"
+        },
+        {
+          "id": 988,
+          "object_id": 13,
+          "source_type": "document",
+          "title": "Chunk 14",
+          "source_title": "Test Application Platform Configuration",
+          "article_label": "",
+          "score": 0.45,
+          "retrieval": "deterministic",
+          "excerpt": "d if there is a possibility to fill up the log partition through these requests. In some environments where QUERY_STRING parameters are also logged regardless of whether they are produced through GET or POST requests, big queries can be simulated that will fill up the logs faster",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/02-Test_Application_Platform_Configuration.md"
+        },
+        {
+          "id": 1460,
+          "object_id": 64,
+          "source_type": "document",
+          "title": "Chunk 14",
+          "source_title": "Testing for XML Injection",
+          "article_label": "",
+          "score": 0.452043,
+          "retrieval": "deterministic",
+          "excerpt": "- `poi-3.8.jar` - `poi-ooxml-3.8.jar` The followings source code keyword may apply to C. - libxml2: xmlCtxtReadMemory,xmlCtxtUseOptions,xmlParseInNodeContext,xmlReadDoc,xmlReadFd,xmlReadFile ,xmlReadIO,xmlReadMemory, xmlCtxtReadDoc ,xmlCtxtReadFd,xmlCtxtReadFile,xmlCtxtReadIO - l",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/07-Input_Validation_Testing/07-Testing_for_XML_Injection.md"
+        }
+      ]
+    },
+    {
+      "query": "SQL注入防护",
+      "category": "document",
+      "scope": "unfiltered",
+      "expected": {
+        "titles": [
+          "Testing for SQL Injection",
+          "SQL Injection Prevention Cheat Sheet"
+        ]
+      },
+      "hit_at_5": true,
+      "reciprocal_rank": 0.25,
+      "latency_ms": 157.13,
+      "results": [
+        {
+          "id": 14,
+          "object_id": 59,
+          "source_type": "challenge",
+          "title": "SQL注入数据检索",
+          "source_title": "",
+          "article_label": "",
+          "score": 0.38,
+          "retrieval": "deterministic",
+          "excerpt": "SQL注入数据检索 利用SQL注入检索隐藏数据 Web medium",
+          "source_url": ""
+        },
+        {
+          "id": 6,
+          "object_id": 58,
+          "source_type": "challenge",
+          "title": "SQL注入检测实践",
+          "source_title": "",
+          "article_label": "",
+          "score": 0.38,
+          "retrieval": "deterministic",
+          "excerpt": "SQL注入检测实践 使用各种方法检测SQL注入漏洞 Web easy",
+          "source_url": ""
+        },
+        {
+          "id": 5,
+          "object_id": 57,
+          "source_type": "challenge",
+          "title": "SQL注入基础认知",
+          "source_title": "",
+          "article_label": "",
+          "score": 0.38,
+          "retrieval": "deterministic",
+          "excerpt": "SQL注入基础认知 识别和理解基本的SQL注入漏洞 Web easy",
+          "source_url": ""
+        },
+        {
+          "id": 1332,
+          "object_id": 54,
+          "source_type": "document",
+          "title": "Chunk 14",
+          "source_title": "Testing for SQL Injection",
+          "article_label": "",
+          "score": 0.38,
+          "retrieval": "deterministic",
+          "excerpt": ", name FROM users WHERE id=1 UNION SELECT 1, version() limit 1,1` Oracle: `ORA-00933: SQL command not properly ended` MS SQL Server: ```html Microsoft SQL Native Client error ‘80040e14’ Unclosed quotation mark after the character string SELECT id, name FROM users WHERE id=1 UNION",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/07-Input_Validation_Testing/05-Testing_for_SQL_Injection.md"
+        },
+        {
+          "id": 19,
+          "object_id": 60,
+          "source_type": "challenge",
+          "title": "SQL注入高级利用",
+          "source_title": "",
+          "article_label": "",
+          "score": 0.38,
+          "retrieval": "deterministic",
+          "excerpt": "SQL注入高级利用 在不同查询位置利用SQL注入 Web hard",
+          "source_url": ""
+        }
+      ]
+    },
+    {
+      "query": "SQL注入防护",
+      "category": "document",
+      "scope": "document",
+      "expected": {
+        "titles": [
+          "Testing for SQL Injection",
+          "SQL Injection Prevention Cheat Sheet"
+        ]
+      },
+      "hit_at_5": true,
+      "reciprocal_rank": 1.0,
+      "latency_ms": 158.07,
+      "results": [
+        {
+          "id": 1332,
+          "object_id": 54,
+          "source_type": "document",
+          "title": "Chunk 14",
+          "source_title": "Testing for SQL Injection",
+          "article_label": "",
+          "score": 0.38,
+          "retrieval": "deterministic",
+          "excerpt": ", name FROM users WHERE id=1 UNION SELECT 1, version() limit 1,1` Oracle: `ORA-00933: SQL command not properly ended` MS SQL Server: ```html Microsoft SQL Native Client error ‘80040e14’ Unclosed quotation mark after the character string SELECT id, name FROM users WHERE id=1 UNION",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/07-Input_Validation_Testing/05-Testing_for_SQL_Injection.md"
+        },
+        {
+          "id": 1360,
+          "object_id": 55,
+          "source_type": "document",
+          "title": "Chunk 6",
+          "source_title": "Testing for Oracle",
+          "article_label": "",
+          "score": 0.38,
+          "retrieval": "deterministic",
+          "excerpt": "red by Apache/1.3.22 (Unix) mod_plsql/9.0.2.0.0 Oracle_Web_Listener/4.0.7.1.0EnterpriseEdition Oracle_Web_Listener/4.0.8.2EnterpriseEdition Oracle_Web_Listener/4.0.8.1.0EnterpriseEdition Oracle_Web_listener3.0.2.0.0/2.14FC1 Oracle9iAS/9.0.2 Oracle HTTP Server Oracle9iAS/9.0.3.1 O",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/07-Input_Validation_Testing/05.1-Testing_for_Oracle.md"
+        },
+        {
+          "id": 1335,
+          "object_id": 54,
+          "source_type": "document",
+          "title": "Chunk 17",
+          "source_title": "Testing for SQL Injection",
+          "article_label": "",
+          "score": 0.38,
+          "retrieval": "deterministic",
+          "excerpt": "n can be an integer. Then the tester can move further and so on: `http://www.example.com/product.php?id=10 UNION SELECT 1,1,null--` After the successful information gathering, depending on the application, it may only show the tester the first result, because the application trea",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/07-Input_Validation_Testing/05-Testing_for_SQL_Injection.md"
+        },
+        {
+          "id": 1657,
+          "object_id": 93,
+          "source_type": "document",
+          "title": "Chunk 2",
+          "source_title": "Test Upload of Malicious Files",
+          "article_label": "",
+          "score": 0.38,
+          "retrieval": "deterministic",
+          "excerpt": "alicious files that may exploit SQL server vulnerabilities may not be considered as \"malicious\" in an environment using a NoSQL data store. The application may allow the upload of malicious files that include exploits or shellcode without submitting them to malicious file scannin",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/10-Business_Logic_Testing/09-Test_Upload_of_Malicious_Files.md"
+        },
+        {
+          "id": 1409,
+          "object_id": 58,
+          "source_type": "document",
+          "title": "Chunk 5",
+          "source_title": "Testing PostgreSQL",
+          "article_label": "",
+          "score": 0.38,
+          "retrieval": "deterministic",
+          "excerpt": "etrieves a row at a time with UNION SQL Injection ```text /store.php?id=1 UNION ALL SELECT NULL, NULL, max(id)::text FROM file_store LIMIT 1 OFFSET 1;-- /store.php?id=1 UNION ALL SELECT data, NULL, NULL FROM file_store LIMIT 1 OFFSET 1;-- /store.php?id=1 UNION ALL SELECT data, NU",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/07-Input_Validation_Testing/05.4-Testing_PostgreSQL.md"
+        }
+      ]
+    },
+    {
+      "query": "跨站脚本攻击防护",
+      "category": "document",
+      "scope": "unfiltered",
+      "expected": {
+        "titles": [
+          "Cross Site Scripting Prevention Cheat Sheet",
+          "Testing for Reflected Cross Site Scripting"
+        ]
+      },
+      "hit_at_5": true,
+      "reciprocal_rank": 1.0,
+      "latency_ms": 156.52,
+      "results": [
+        {
+          "id": 1288,
+          "object_id": 51,
+          "source_type": "document",
+          "title": "Chunk 11",
+          "source_title": "Testing for Reflected Cross Site Scripting",
+          "article_label": "",
+          "score": 0.365583,
+          "retrieval": "deterministic",
+          "excerpt": "character but the character `>` for one or more occurrences 4. Check for a `src` This is useful for filtering expressions like `<script src=\"http://attacker/xss.js\"></script>` which is a common attack. But, in this case, it is possible to bypass the sanitization by using the `>` ",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/07-Input_Validation_Testing/01-Testing_for_Reflected_Cross_Site_Scripting.md"
+        }
+      ]
+    },
+    {
+      "query": "跨站脚本攻击防护",
+      "category": "document",
+      "scope": "document",
+      "expected": {
+        "titles": [
+          "Cross Site Scripting Prevention Cheat Sheet",
+          "Testing for Reflected Cross Site Scripting"
+        ]
+      },
+      "hit_at_5": true,
+      "reciprocal_rank": 1.0,
+      "latency_ms": 160.31,
+      "results": [
+        {
+          "id": 1288,
+          "object_id": 51,
+          "source_type": "document",
+          "title": "Chunk 11",
+          "source_title": "Testing for Reflected Cross Site Scripting",
+          "article_label": "",
+          "score": 0.365583,
+          "retrieval": "deterministic",
+          "excerpt": "character but the character `>` for one or more occurrences 4. Check for a `src` This is useful for filtering expressions like `<script src=\"http://attacker/xss.js\"></script>` which is a common attack. But, in this case, it is possible to bypass the sanitization by using the `>` ",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/07-Input_Validation_Testing/01-Testing_for_Reflected_Cross_Site_Scripting.md"
+        }
+      ]
+    },
+    {
+      "query": "敏感个人信息",
+      "category": "legal_clause",
+      "scope": "unfiltered",
+      "expected": {
+        "law": "cn-personal-information-protection-law",
+        "article": "第二十八条"
+      },
+      "hit_at_5": false,
+      "reciprocal_rank": 0,
+      "latency_ms": 159.18,
+      "results": [
+        {
+          "id": 18,
+          "object_id": 53,
+          "source_type": "challenge",
+          "title": "SSRF绕过黑名单过滤",
+          "source_title": "",
+          "article_label": "",
+          "score": 0.355398,
+          "retrieval": "deterministic",
+          "excerpt": "SSRF绕过黑名单过滤 这个应用程序有SSRF漏洞但实现了黑名单过滤。绕过过滤器来访问http://localhost/admin并删除用户carlos。 尝试使用IP地址的不同表示形式或URL编码来绕过黑名单。 Web hard",
+          "source_url": ""
+        }
+      ]
+    },
+    {
+      "query": "敏感个人信息",
+      "category": "legal_clause",
+      "scope": "legal_clause",
+      "expected": {
+        "law": "cn-personal-information-protection-law",
+        "article": "第二十八条"
+      },
+      "hit_at_5": false,
+      "reciprocal_rank": 0,
+      "latency_ms": 70.97,
+      "results": [
+        {
+          "id": 4606,
+          "object_id": 794,
+          "source_type": "legal_clause",
+          "title": "第四十六条",
+          "source_title": "中华人民共和国网络安全法",
+          "article_label": "第四十六条",
+          "score": 0.45,
+          "retrieval": "deterministic",
+          "excerpt": "第四十六条 任何个人和组织不得窃取或者以其他非法方式获取个人信息，不得非法出售或者非法向他人提供个人信息。",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=021e7d7684474107b8f3febbb1c4f8b5"
+        },
+        {
+          "id": 4584,
+          "object_id": 772,
+          "source_type": "legal_clause",
+          "title": "第二十四条",
+          "source_title": "中华人民共和国网络安全法",
+          "article_label": "第二十四条",
+          "score": 0.45,
+          "retrieval": "deterministic",
+          "excerpt": "第二十四条 网络产品、服务应当符合相关国家标准的强制性要求。网络产品、服务的提供者不得设置恶意程序；发现其网络产品、服务存在安全缺陷、漏洞等风险时，应当立即采取补救措施，按照规定及时告知用户并向有关主管部门报告。 网络产品、服务的提供者应当为其产品、服务持续提供安全维护；在规定或者当事人约定的期限内，不得终止提供安全维护。 网络产品、服务具有收集用户信息功能的，其提供者应当向用户明示并取得同意；涉及用户个人信息的，还应当遵守本法和有关法律、行政法规关于个人信息保护的规定。",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=021e7d7684474107b8f3febbb1c4f8b5"
+        },
+        {
+          "id": 4719,
+          "object_id": 907,
+          "source_type": "legal_clause",
+          "title": "第二十三条",
+          "source_title": "中华人民共和国个人信息保护法",
+          "article_label": "第二十三条",
+          "score": 0.45,
+          "retrieval": "deterministic",
+          "excerpt": "第二十三条 个人信息处理者向其他个人信息处理者提供其处理的个人信息的，应当向个人告知接收方的名称或者姓名、联系方式、处理目的、处理方式和个人信息的种类，并取得个人的单独同意。接收方应当在上述处理目的、处理方式和个人信息的种类等范围内处理个人信息。接收方变更原先的处理目的、处理方式的，应当依照本法规定重新取得个人同意。",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=ff8081817b6472a3017b656cc2040044"
+        },
+        {
+          "id": 4715,
+          "object_id": 903,
+          "source_type": "legal_clause",
+          "title": "第十九条",
+          "source_title": "中华人民共和国个人信息保护法",
+          "article_label": "第十九条",
+          "score": 0.45,
+          "retrieval": "deterministic",
+          "excerpt": "第十九条 除法律、行政法规另有规定外，个人信息的保存期限应当为实现处理目的所必要的最短时间。",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=ff8081817b6472a3017b656cc2040044"
+        },
+        {
+          "id": 4725,
+          "object_id": 913,
+          "source_type": "legal_clause",
+          "title": "第二十九条",
+          "source_title": "中华人民共和国个人信息保护法",
+          "article_label": "第二十九条",
+          "score": 0.45,
+          "retrieval": "deterministic",
+          "excerpt": "第二十九条 处理敏感个人信息应当取得个人的单独同意；法律、行政法规规定处理敏感个人信息应当取得书面同意的，从其规定。",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=ff8081817b6472a3017b656cc2040044"
+        }
+      ]
+    },
+    {
+      "query": "行踪轨迹",
+      "category": "legal_clause",
+      "scope": "unfiltered",
+      "expected": {
+        "law": "cn-personal-information-protection-law",
+        "article": "第二十八条"
+      },
+      "hit_at_5": false,
+      "reciprocal_rank": 0,
+      "latency_ms": 149.28,
+      "results": []
+    },
+    {
+      "query": "行踪轨迹",
+      "category": "legal_clause",
+      "scope": "legal_clause",
+      "expected": {
+        "law": "cn-personal-information-protection-law",
+        "article": "第二十八条"
+      },
+      "hit_at_5": true,
+      "reciprocal_rank": 0.5,
+      "latency_ms": 69.34,
+      "results": [
+        {
+          "id": 4792,
+          "object_id": 980,
+          "source_type": "legal_clause",
+          "title": "第二十二条",
+          "source_title": "网络数据安全管理条例",
+          "article_label": "第二十二条",
+          "score": 0.45,
+          "retrieval": "deterministic",
+          "excerpt": "第二十二条 网络数据处理者基于个人同意处理个人信息的，应当遵守下列规定： （一）收集个人信息为提供产品或者服务所必需，不得超范围收集个人信息，不得通过误导、欺诈、胁迫等方式取得个人同意； （二）处理生物识别、宗教信仰、特定身份、医疗健康、金融账户、行踪轨迹等敏感个人信息的，应当取得个人的单独同意； （三）处理不满十四周岁未成年人个人信息的，应当取得未成年人的父母或者其他监护人的同意； （四）不得超出个人同意的个人信息处理目的、方式、种类、保存期限处理个人信息； （五）不得在个人明确表示不同意处理其个人信息后，频繁征求同意； （六）个人信息的处理目的、方式",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=ff808181927f0e7b0192949a1da4355d"
+        },
+        {
+          "id": 4724,
+          "object_id": 912,
+          "source_type": "legal_clause",
+          "title": "第二十八条",
+          "source_title": "中华人民共和国个人信息保护法",
+          "article_label": "第二十八条",
+          "score": 0.45,
+          "retrieval": "deterministic",
+          "excerpt": "第二十八条 敏感个人信息是一旦泄露或者非法使用，容易导致自然人的人格尊严受到侵害或者人身、财产安全受到危害的个人信息，包括生物识别、宗教信仰、特定身份、医疗健康、金融账户、行踪轨迹等信息，以及不满十四周岁未成年人的个人信息。 只有在具有特定的目的和充分的必要性，并采取严格保护措施的情形下，个人信息处理者方可处理敏感个人信息。",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=ff8081817b6472a3017b656cc2040044"
+        }
+      ]
+    },
+    {
+      "query": "个人信息删除",
+      "category": "legal_clause",
+      "scope": "unfiltered",
+      "expected": {
+        "law": "cn-personal-information-protection-law",
+        "article": "第四十七条"
+      },
+      "hit_at_5": false,
+      "reciprocal_rank": 0,
+      "latency_ms": 140.3,
+      "results": []
+    },
+    {
+      "query": "个人信息删除",
+      "category": "legal_clause",
+      "scope": "legal_clause",
+      "expected": {
+        "law": "cn-personal-information-protection-law",
+        "article": "第四十七条"
+      },
+      "hit_at_5": false,
+      "reciprocal_rank": 0,
+      "latency_ms": 62.93,
+      "results": [
+        {
+          "id": 4605,
+          "object_id": 793,
+          "source_type": "legal_clause",
+          "title": "第四十五条",
+          "source_title": "中华人民共和国网络安全法",
+          "article_label": "第四十五条",
+          "score": 0.45,
+          "retrieval": "deterministic",
+          "excerpt": "第四十五条 个人发现网络运营者违反法律、行政法规的规定或者双方的约定收集、使用其个人信息的，有权要求网络运营者删除其个人信息；发现网络运营者收集、存储的其个人信息有错误的，有权要求网络运营者予以更正。网络运营者应当采取措施予以删除或者更正。",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=021e7d7684474107b8f3febbb1c4f8b5"
+        },
+        {
+          "id": 4704,
+          "object_id": 892,
+          "source_type": "legal_clause",
+          "title": "第八条",
+          "source_title": "中华人民共和国个人信息保护法",
+          "article_label": "第八条",
+          "score": 0.45,
+          "retrieval": "deterministic",
+          "excerpt": "第八条 处理个人信息应当保证个人信息的质量，避免因个人信息不准确、不完整对个人权益造成不利影响。",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=ff8081817b6472a3017b656cc2040044"
+        },
+        {
+          "id": 4705,
+          "object_id": 893,
+          "source_type": "legal_clause",
+          "title": "第九条",
+          "source_title": "中华人民共和国个人信息保护法",
+          "article_label": "第九条",
+          "score": 0.45,
+          "retrieval": "deterministic",
+          "excerpt": "第九条 个人信息处理者应当对其个人信息处理活动负责，并采取必要措施保障所处理的个人信息的安全。",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=ff8081817b6472a3017b656cc2040044"
+        },
+        {
+          "id": 4710,
+          "object_id": 898,
+          "source_type": "legal_clause",
+          "title": "第十四条",
+          "source_title": "中华人民共和国个人信息保护法",
+          "article_label": "第十四条",
+          "score": 0.45,
+          "retrieval": "deterministic",
+          "excerpt": "第十四条 基于个人同意处理个人信息的，该同意应当由个人在充分知情的前提下自愿、明确作出。法律、行政法规规定处理个人信息应当取得个人单独同意或者书面同意的，从其规定。 个人信息的处理目的、处理方式和处理的个人信息种类发生变更的，应当重新取得个人同意。",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=ff8081817b6472a3017b656cc2040044"
+        },
+        {
+          "id": 4698,
+          "object_id": 886,
+          "source_type": "legal_clause",
+          "title": "第二条",
+          "source_title": "中华人民共和国个人信息保护法",
+          "article_label": "第二条",
+          "score": 0.45,
+          "retrieval": "deterministic",
+          "excerpt": "第二条 自然人的个人信息受法律保护，任何组织、个人不得侵害自然人的个人信息权益。",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=ff8081817b6472a3017b656cc2040044"
+        }
+      ]
+    },
+    {
+      "query": "不满十四周岁未成年人的个人信息",
+      "category": "legal_clause",
+      "scope": "unfiltered",
+      "expected": {
+        "law": "cn-personal-information-protection-law",
+        "article": "第三十一条"
+      },
+      "hit_at_5": false,
+      "reciprocal_rank": 0,
+      "latency_ms": 153.65,
+      "results": [
+        {
+          "id": 1424,
+          "object_id": 59,
+          "source_type": "document",
+          "title": "Chunk 11",
+          "source_title": "Testing for MS Access",
+          "article_label": "",
+          "score": 0.421332,
+          "retrieval": "deterministic",
+          "excerpt": "n.wikipedia.org/wiki/Microsoft_Access)",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/07-Input_Validation_Testing/05.5-Testing_for_MS_Access.md"
+        },
+        {
+          "id": 1597,
+          "object_id": 83,
+          "source_type": "document",
+          "title": "Chunk 8",
+          "source_title": "Testing for Weak Encryption",
+          "article_label": "",
+          "score": 0.415295,
+          "retrieval": "deterministic",
+          "excerpt": "ion-ID_Length) - [Using a broken or risky cryptographic algorithm](https://owasp.org/www-community/vulnerabilities/Using_a_broken_or_risky_cryptographic_algorithm) - [Javax.crypto.cipher API](https://docs.oracle.com/javase/8/docs/api/javax/crypto/Cipher.html) - ISO 18033-1:2015 –",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/09-Testing_for_Weak_Cryptography/04-Testing_for_Weak_Encryption.md"
+        },
+        {
+          "id": 1138,
+          "object_id": 34,
+          "source_type": "document",
+          "title": "Chunk 3",
+          "source_title": "Testing for Weak Password Policy",
+          "article_label": "",
+          "score": 0.399572,
+          "retrieval": "deterministic",
+          "excerpt": "riate for the sensitivity of the account and application? 8. Is it possible set common passwords such as `Password1` or `123456`? ## Remediation To mitigate the risk of easily guessed passwords facilitating unauthorized access there are two solutions: introduce additional authent",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/04-Authentication_Testing/07-Testing_for_Weak_Password_Policy.md"
+        },
+        {
+          "id": 1112,
+          "object_id": 30,
+          "source_type": "document",
+          "title": "Chunk 5",
+          "source_title": "Testing for Weak Lock Out Mechanism",
+          "article_label": "",
+          "score": 0.385592,
+          "retrieval": "deterministic",
+          "excerpt": "etc) while using a testing proxy (request submitted directly server-side). 5. Attempt to fuzz CAPTCHA data entry points (if present) with common injection payloads or special characters sequences. 6. Check if the solution to the CAPTCHA might be the alt-text of the image(s), file",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/04-Authentication_Testing/03-Testing_for_Weak_Lock_Out_Mechanism.md"
+        },
+        {
+          "id": 1594,
+          "object_id": 83,
+          "source_type": "document",
+          "title": "Chunk 5",
+          "source_title": "Testing for Weak Encryption",
+          "article_label": "",
+          "score": 0.385306,
+          "retrieval": "deterministic",
+          "excerpt": "of password, `PBKDF2` is suggested to be used. Review the parameters to generate the `PBKDF2` has value. The iterations should be over **10000**, and the **salt** value should be generated as **random value**. ```java private static byte[] pbkdf2(char[] password, byte[] salt, int",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/09-Testing_for_Weak_Cryptography/04-Testing_for_Weak_Encryption.md"
+        }
+      ]
+    },
+    {
+      "query": "不满十四周岁未成年人的个人信息",
+      "category": "legal_clause",
+      "scope": "legal_clause",
+      "expected": {
+        "law": "cn-personal-information-protection-law",
+        "article": "第三十一条"
+      },
+      "hit_at_5": false,
+      "reciprocal_rank": 0,
+      "latency_ms": 75.14,
+      "results": [
+        {
+          "id": 4702,
+          "object_id": 890,
+          "source_type": "legal_clause",
+          "title": "第六条",
+          "source_title": "中华人民共和国个人信息保护法",
+          "article_label": "第六条",
+          "score": 0.45,
+          "retrieval": "deterministic",
+          "excerpt": "第六条 处理个人信息应当具有明确、合理的目的，并应当与处理目的直接相关，采取对个人权益影响最小的方式。 收集个人信息，应当限于实现处理目的的最小范围，不得过度收集个人信息。",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=ff8081817b6472a3017b656cc2040044"
+        },
+        {
+          "id": 4723,
+          "object_id": 911,
+          "source_type": "legal_clause",
+          "title": "第二十七条",
+          "source_title": "中华人民共和国个人信息保护法",
+          "article_label": "第二十七条",
+          "score": 0.45,
+          "retrieval": "deterministic",
+          "excerpt": "第二十七条 个人信息处理者可以在合理的范围内处理个人自行公开或者其他已经合法公开的个人信息；个人明确拒绝的除外。个人信息处理者处理已公开的个人信息，对个人权益有重大影响的，应当依照本法规定取得个人同意。",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=ff8081817b6472a3017b656cc2040044"
+        },
+        {
+          "id": 4708,
+          "object_id": 896,
+          "source_type": "legal_clause",
+          "title": "第十二条",
+          "source_title": "中华人民共和国个人信息保护法",
+          "article_label": "第十二条",
+          "score": 0.45,
+          "retrieval": "deterministic",
+          "excerpt": "第十二条 国家积极参与个人信息保护国际规则的制定，促进个人信息保护方面的国际交流与合作，推动与其他国家、地区、国际组织之间的个人信息保护规则、标准等互认。",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=ff8081817b6472a3017b656cc2040044"
+        },
+        {
+          "id": 4584,
+          "object_id": 772,
+          "source_type": "legal_clause",
+          "title": "第二十四条",
+          "source_title": "中华人民共和国网络安全法",
+          "article_label": "第二十四条",
+          "score": 0.45,
+          "retrieval": "deterministic",
+          "excerpt": "第二十四条 网络产品、服务应当符合相关国家标准的强制性要求。网络产品、服务的提供者不得设置恶意程序；发现其网络产品、服务存在安全缺陷、漏洞等风险时，应当立即采取补救措施，按照规定及时告知用户并向有关主管部门报告。 网络产品、服务的提供者应当为其产品、服务持续提供安全维护；在规定或者当事人约定的期限内，不得终止提供安全维护。 网络产品、服务具有收集用户信息功能的，其提供者应当向用户明示并取得同意；涉及用户个人信息的，还应当遵守本法和有关法律、行政法规关于个人信息保护的规定。",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=021e7d7684474107b8f3febbb1c4f8b5"
+        },
+        {
+          "id": 4764,
+          "object_id": 952,
+          "source_type": "legal_clause",
+          "title": "第六十八条",
+          "source_title": "中华人民共和国个人信息保护法",
+          "article_label": "第六十八条",
+          "score": 0.45,
+          "retrieval": "deterministic",
+          "excerpt": "第六十八条 国家机关不履行本法规定的个人信息保护义务的，由其上级机关或者履行个人信息保护职责的部门责令改正；对直接负责的主管人员和其他直接责任人员依法给予处分。 履行个人信息保护职责的部门的工作人员玩忽职守、滥用职权、徇私舞弊，尚不构成犯罪的，依法给予处分。",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=ff8081817b6472a3017b656cc2040044"
+        }
+      ]
+    },
+    {
+      "query": "数据分类分级保护制度",
+      "category": "legal_clause",
+      "scope": "unfiltered",
+      "expected": {
+        "law": "cn-data-security-law",
+        "article": "第二十一条"
+      },
+      "hit_at_5": false,
+      "reciprocal_rank": 0,
+      "latency_ms": 154.96,
+      "results": [
+        {
+          "id": 1267,
+          "object_id": 48,
+          "source_type": "document",
+          "title": "Chunk 7",
+          "source_title": "Testing Session Timeout",
+          "article_label": "",
+          "score": 0.355728,
+          "retrieval": "deterministic",
+          "excerpt": "Clearing the cookies from the browser is advisable, but is not strictly necessary, since if the session is properly invalidated on the server, having the cookie in the browser will not help an attacker. ## References ### OWASP Resources - [Session Management Cheat Sheet](https://",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/06-Session_Management_Testing/07-Testing_Session_Timeout.md"
+        },
+        {
+          "id": 905,
+          "object_id": 6,
+          "source_type": "document",
+          "title": "Chunk 10",
+          "source_title": "Enumerate Applications on Webserver",
+          "article_label": "",
+          "score": 0.352794,
+          "retrieval": "deterministic",
+          "excerpt": "Tomcat/Coyote JSP engine 1.1 ``` From this example, one see that: - There is an Apache HTTP server running on port 80. - It looks like there is an HTTPS server on port 443 (but this needs to be confirmed, for example, by visiting `https://192.168.1.100` with a browser). - On port",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/01-Information_Gathering/04-Enumerate_Applications_on_Webserver.md"
+        },
+        {
+          "id": 1497,
+          "object_id": 70,
+          "source_type": "document",
+          "title": "Chunk 1",
+          "source_title": "Testing for Remote File Inclusion",
+          "article_label": "",
+          "score": 0.352654,
+          "retrieval": "deterministic",
+          "excerpt": "# Testing for Remote File Inclusion ## Summary The File Inclusion vulnerability allows an attacker to include a file, usually exploiting a \"dynamic file inclusion\" mechanisms implemented in the target application. The vulnerability occurs due to the use of user-supplied input wit",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/07-Input_Validation_Testing/11.2-Testing_for_Remote_File_Inclusion.md"
+        }
+      ]
+    },
+    {
+      "query": "数据分类分级保护制度",
+      "category": "legal_clause",
+      "scope": "legal_clause",
+      "expected": {
+        "law": "cn-data-security-law",
+        "article": "第二十一条"
+      },
+      "hit_at_5": false,
+      "reciprocal_rank": 0,
+      "latency_ms": 70.07,
+      "results": [
+        {
+          "id": 4583,
+          "object_id": 771,
+          "source_type": "legal_clause",
+          "title": "第二十三条",
+          "source_title": "中华人民共和国网络安全法",
+          "article_label": "第二十三条",
+          "score": 0.45,
+          "retrieval": "deterministic",
+          "excerpt": "第二十三条 国家实行网络安全等级保护制度。网络运营者应当按照网络安全等级保护制度的要求，履行下列安全保护义务，保障网络免受干扰、破坏或者未经授权的访问，防止网络数据泄露或者被窃取、篡改： （一）制定内部安全管理制度和操作规程，确定网络安全负责人，落实网络安全保护责任； （二）采取防范计算机病毒和网络攻击、网络侵入等危害网络安全行为的技术措施； （三）采取监测、记录网络运行状态、网络安全事件的技术措施，并按照规定留存相关的网络日志不少于六个月； （四）采取数据分类、重要数据备份和加密等措施； （五）法律、行政法规规定的其他义务。",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=021e7d7684474107b8f3febbb1c4f8b5"
+        },
+        {
+          "id": 4873,
+          "object_id": 1061,
+          "source_type": "legal_clause",
+          "title": "第三十九条",
+          "source_title": "关键信息基础设施安全保护条例",
+          "article_label": "第三十九条",
+          "score": 0.45,
+          "retrieval": "deterministic",
+          "excerpt": "第三十九条 运营者有下列情形之一的，由有关主管部门依据职责责令改正，给予警告；拒不改正或者导致危害网络安全等后果的，处10万元以上100万元以下罚款，对直接负责的主管人员处1万元以上10万元以下罚款： （一）在关键信息基础设施发生较大变化，可能影响其认定结果时未及时将相关情况报告保护工作部门的； （二）安全保护措施未与关键信息基础设施同步规划、同步建设、同步使用的； （三）未建立健全网络安全保护制度和责任制的； （四）未设置专门安全管理机构的； （五）未对专门安全管理机构负责人和关键岗位人员进行安全背景审查的； （六）开展与网络安全和信息化有关的决策没有",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=ff8081817b63b935017b7bcc49877e0b"
+        },
+        {
+          "id": 4593,
+          "object_id": 781,
+          "source_type": "legal_clause",
+          "title": "第三十三条",
+          "source_title": "中华人民共和国网络安全法",
+          "article_label": "第三十三条",
+          "score": 0.45,
+          "retrieval": "deterministic",
+          "excerpt": "第三十三条 国家对公共通信和信息服务、能源、交通、水利、金融、公共服务、电子政务等重要行业和领域，以及其他一旦遭到破坏、丧失功能或者数据泄露，可能严重危害国家安全、国计民生、公共利益的关键信息基础设施，在网络安全等级保护制度的基础上，实行重点保护。关键信息基础设施的具体范围和安全保护办法由国务院制定。 国家鼓励关键信息基础设施以外的网络运营者自愿参与关键信息基础设施保护体系。",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=021e7d7684474107b8f3febbb1c4f8b5"
+        },
+        {
+          "id": 4757,
+          "object_id": 945,
+          "source_type": "legal_clause",
+          "title": "第六十一条",
+          "source_title": "中华人民共和国个人信息保护法",
+          "article_label": "第六十一条",
+          "score": 0.351565,
+          "retrieval": "deterministic",
+          "excerpt": "第六十一条 履行个人信息保护职责的部门履行下列个人信息保护职责： （一）开展个人信息保护宣传教育，指导、监督个人信息处理者开展个人信息保护工作； （二）接受、处理与个人信息保护有关的投诉、举报； （三）组织对应用程序等个人信息保护情况进行测评，并公布测评结果； （四）调查、处理违法个人信息处理活动； （五）法律、行政法规规定的其他职责。",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=ff8081817b6472a3017b656cc2040044"
+        },
+        {
+          "id": 4775,
+          "object_id": 963,
+          "source_type": "legal_clause",
+          "title": "第五条",
+          "source_title": "网络数据安全管理条例",
+          "article_label": "第五条",
+          "score": 0.45,
+          "retrieval": "deterministic",
+          "excerpt": "第五条 国家根据网络数据在经济社会发展中的重要程度，以及一旦遭到篡改、破坏、泄露或者非法获取、非法利用，对国家安全、公共利益或者个人、组织合法权益造成的危害程度，对网络数据实行分类分级保护。",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=ff808181927f0e7b0192949a1da4355d"
+        }
+      ]
+    },
+    {
+      "query": "重要数据风险评估报告",
+      "category": "legal_clause",
+      "scope": "unfiltered",
+      "expected": {
+        "law": "cn-data-security-law",
+        "article": "第三十条"
+      },
+      "hit_at_5": false,
+      "reciprocal_rank": 0,
+      "latency_ms": 154.18,
+      "results": [
+        {
+          "id": 48,
+          "object_id": 8,
+          "source_type": "article",
+          "title": "安全开发生命周期（SDL）",
+          "source_title": "",
+          "article_label": "",
+          "score": 0.45,
+          "retrieval": "deterministic",
+          "excerpt": "安全开发生命周期（SDL） 详细介绍安全开发生命周期的七个阶段、威胁建模、安全编码实践和测试方法。 # 安全开发生命周期（SDL） ## 什么是SDL？ 安全开发生命周期（Security Development Lifecycle）是一套将安全集成到软件开发全过程的方法论。 ## SDL的七个阶段 ### 1. 培训阶段 **目标**：提高团队安全意识 **活动**： - 安全培训课程 - OWASP Top 10 - 安全编码实践 - 定期安全会议 ### 2. 需求阶段 **目标**：定义安全需求 **活动**： - 安全需求分析 - 威胁建模 -",
+          "source_url": ""
+        }
+      ]
+    },
+    {
+      "query": "重要数据风险评估报告",
+      "category": "legal_clause",
+      "scope": "legal_clause",
+      "expected": {
+        "law": "cn-data-security-law",
+        "article": "第三十条"
+      },
+      "hit_at_5": false,
+      "reciprocal_rank": 0,
+      "latency_ms": 67.76,
+      "results": [
+        {
+          "id": 4659,
+          "object_id": 847,
+          "source_type": "legal_clause",
+          "title": "第十八条",
+          "source_title": "中华人民共和国数据安全法",
+          "article_label": "第十八条",
+          "score": 0.45,
+          "retrieval": "deterministic",
+          "excerpt": "第十八条 国家促进数据安全检测评估、认证等服务的发展，支持数据安全检测评估、认证等专业机构依法开展服务活动。 国家支持有关部门、行业组织、企业、教育和科研机构、有关专业机构等在数据安全风险评估、防范、处置等方面开展协作。",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=ff80818179f5e0800179f885c7e70392"
+        },
+        {
+          "id": 4578,
+          "object_id": 766,
+          "source_type": "legal_clause",
+          "title": "第十八条",
+          "source_title": "中华人民共和国网络安全法",
+          "article_label": "第十八条",
+          "score": 0.45,
+          "retrieval": "deterministic",
+          "excerpt": "第十八条 国家推进网络安全社会化服务体系建设，鼓励有关企业、机构开展网络安全认证、检测和风险评估等安全服务。",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=021e7d7684474107b8f3febbb1c4f8b5"
+        },
+        {
+          "id": 4625,
+          "object_id": 813,
+          "source_type": "legal_clause",
+          "title": "第六十五条",
+          "source_title": "中华人民共和国网络安全法",
+          "article_label": "第六十五条",
+          "score": 0.45,
+          "retrieval": "deterministic",
+          "excerpt": "第六十五条 违反本法第二十八条规定，开展网络安全认证、检测、风险评估等活动，或者向社会发布系统漏洞、计算机病毒、网络攻击、网络侵入等网络安全信息的，由有关主管部门责令改正，给予警告，可以处一万元以上十万元以下罚款；拒不改正或者情节严重的，处十万元以上一百万元以下罚款，并可以责令暂停相关业务、停业整顿、关闭网站或者应用程序、吊销相关业务许可证或者吊销营业执照，对直接负责的主管人员和其他直接责任人员处一万元以上十万元以下罚款。 有前款行为，造成本法第六十一条第三款规定的后果的，依照该款规定处罚。",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=021e7d7684474107b8f3febbb1c4f8b5"
+        },
+        {
+          "id": 4662,
+          "object_id": 850,
+          "source_type": "legal_clause",
+          "title": "第二十一条",
+          "source_title": "中华人民共和国数据安全法",
+          "article_label": "第二十一条",
+          "score": 0.45,
+          "retrieval": "deterministic",
+          "excerpt": "第二十一条 国家建立数据分类分级保护制度，根据数据在经济社会发展中的重要程度，以及一旦遭到篡改、破坏、泄露或者非法获取、非法利用，对国家安全、公共利益或者个人、组织合法权益造成的危害程度，对数据实行分类分级保护。国家数据安全工作协调机制统筹协调有关部门制定重要数据目录，加强对重要数据的保护。 关系国家安全、国民经济命脉、重要民生、重大公共利益等数据属于国家核心数据，实行更加严格的管理制度。 各地区、各部门应当按照数据分类分级保护制度，确定本地区、本部门以及相关行业、领域的重要数据具体目录，对列入目录的数据进行重点保护。",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=ff80818179f5e0800179f885c7e70392"
+        },
+        {
+          "id": 4803,
+          "object_id": 991,
+          "source_type": "legal_clause",
+          "title": "第三十三条",
+          "source_title": "网络数据安全管理条例",
+          "article_label": "第三十三条",
+          "score": 0.45,
+          "retrieval": "deterministic",
+          "excerpt": "第三十三条 重要数据的处理者应当每年度对其网络数据处理活动开展风险评估，并向省级以上有关主管部门报送风险评估报告，有关主管部门应当及时通报同级网信部门、公安机关。 风险评估报告应当包括下列内容： （一）网络数据处理者基本信息、网络数据安全管理机构信息、网络数据安全负责人姓名和联系方式等； （二）处理重要数据的目的、种类、数量、方式、范围、存储期限、存储地点等，开展网络数据处理活动的情况，不包括网络数据内容本身； （三）网络数据安全管理制度及实施情况，加密、备份、标签标识、访问控制、安全认证等技术措施和其他必要措施及其有效性； （四）发现的网络数据安全风险",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=ff808181927f0e7b0192949a1da4355d"
+        }
+      ]
+    },
+    {
+      "query": "隐私权 私人生活安宁",
+      "category": "legal_clause",
+      "scope": "unfiltered",
+      "expected": {
+        "law": "cn-civil-code-privacy-excerpt",
+        "article": "第一千零三十二条"
+      },
+      "hit_at_5": false,
+      "reciprocal_rank": 0,
+      "latency_ms": 141.98,
+      "results": [
+        {
+          "id": 34,
+          "object_id": 38,
+          "source_type": "challenge",
+          "title": "格式化字符串",
+          "source_title": "",
+          "article_label": "",
+          "score": 0.416003,
+          "retrieval": "deterministic",
+          "excerpt": "格式化字符串 程序使用了不安全的printf函数，存在格式化字符串漏洞。 目标：泄露内存地址并执行任意代码。 使用 %p 泄露栈上数据，%n 写入任意地址 Pwn medium",
+          "source_url": ""
+        }
+      ]
+    },
+    {
+      "query": "隐私权 私人生活安宁",
+      "category": "legal_clause",
+      "scope": "legal_clause",
+      "expected": {
+        "law": "cn-civil-code-privacy-excerpt",
+        "article": "第一千零三十二条"
+      },
+      "hit_at_5": true,
+      "reciprocal_rank": 0.5,
+      "latency_ms": 71.0,
+      "results": [
+        {
+          "id": 4948,
+          "object_id": 1136,
+          "source_type": "legal_clause",
+          "title": "第一千零三十四条",
+          "source_title": "中华人民共和国民法典（隐私权和个人信息保护条款节选）",
+          "article_label": "第一千零三十四条",
+          "score": 0.38,
+          "retrieval": "deterministic",
+          "excerpt": "第一千零三十四条 自然人的个人信息受法律保护。 个人信息是以电子或者其他方式记录的能够单独或者与其他信息结合识别特定自然人的各种信息，包括自然人的姓名、出生日期、身份证件号码、生物识别信息、住址、电话号码、电子邮箱、健康信息、行踪信息等。 个人信息中的私密信息，适用有关隐私权的规定；没有规定的，适用有关个人信息保护的规定。",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=ff808081729d1efe01729d50b5c500bf"
+        },
+        {
+          "id": 4946,
+          "object_id": 1134,
+          "source_type": "legal_clause",
+          "title": "第一千零三十二条",
+          "source_title": "中华人民共和国民法典（隐私权和个人信息保护条款节选）",
+          "article_label": "第一千零三十二条",
+          "score": 0.45,
+          "retrieval": "deterministic",
+          "excerpt": "第一千零三十二条 自然人享有隐私权。任何组织或者个人不得以刺探、侵扰、泄露、公开等方式侵害他人的隐私权。 隐私是自然人的私人生活安宁和不愿为他人知晓的私密空间、私密活动、私密信息。",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=ff808081729d1efe01729d50b5c500bf"
+        },
+        {
+          "id": 4947,
+          "object_id": 1135,
+          "source_type": "legal_clause",
+          "title": "第一千零三十三条",
+          "source_title": "中华人民共和国民法典（隐私权和个人信息保护条款节选）",
+          "article_label": "第一千零三十三条",
+          "score": 0.45,
+          "retrieval": "deterministic",
+          "excerpt": "第一千零三十三条 除法律另有规定或者权利人明确同意外，任何组织或者个人不得实施下列行为： （一）以电话、短信、即时通讯工具、电子邮件、传单等方式侵扰他人的私人生活安宁； （二）进入、拍摄、窥视他人的住宅、宾馆房间等私密空间； （三）拍摄、窥视、窃听、公开他人的私密活动； （四）拍摄、窥视他人身体的私密部位； （五）处理他人的私密信息； （六）以其他方式侵害他人的隐私权。",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=ff808081729d1efe01729d50b5c500bf"
+        },
+        {
+          "id": 4746,
+          "object_id": 934,
+          "source_type": "legal_clause",
+          "title": "第五十条",
+          "source_title": "中华人民共和国个人信息保护法",
+          "article_label": "第五十条",
+          "score": 0.47691,
+          "retrieval": "deterministic",
+          "excerpt": "第五十条 个人信息处理者应当建立便捷的个人行使权利的申请受理和处理机制。拒绝个人行使权利的请求的，应当说明理由。 个人信息处理者拒绝个人行使权利的请求的，个人可以依法向人民法院提起诉讼。",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=ff8081817b6472a3017b656cc2040044"
+        },
+        {
+          "id": 4700,
+          "object_id": 888,
+          "source_type": "legal_clause",
+          "title": "第四条",
+          "source_title": "中华人民共和国个人信息保护法",
+          "article_label": "第四条",
+          "score": 0.387191,
+          "retrieval": "deterministic",
+          "excerpt": "第四条 个人信息是以电子或者其他方式记录的与已识别或者可识别的自然人有关的各种信息，不包括匿名化处理后的信息。 个人信息的处理包括个人信息的收集、存储、使用、加工、传输、提供、公开、删除等。",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=ff8081817b6472a3017b656cc2040044"
+        }
+      ]
+    },
+    {
+      "query": "个人信息跨境提供",
+      "category": "legal_clause",
+      "scope": "unfiltered",
+      "expected": {
+        "law": "cn-personal-information-protection-law",
+        "article": "第三十八条"
+      },
+      "hit_at_5": false,
+      "reciprocal_rank": 0,
+      "latency_ms": 153.04,
+      "results": []
+    },
+    {
+      "query": "个人信息跨境提供",
+      "category": "legal_clause",
+      "scope": "legal_clause",
+      "expected": {
+        "law": "cn-personal-information-protection-law",
+        "article": "第三十八条"
+      },
+      "hit_at_5": false,
+      "reciprocal_rank": 0,
+      "latency_ms": 67.01,
+      "results": [
+        {
+          "id": 4700,
+          "object_id": 888,
+          "source_type": "legal_clause",
+          "title": "第四条",
+          "source_title": "中华人民共和国个人信息保护法",
+          "article_label": "第四条",
+          "score": 0.45,
+          "retrieval": "deterministic",
+          "excerpt": "第四条 个人信息是以电子或者其他方式记录的与已识别或者可识别的自然人有关的各种信息，不包括匿名化处理后的信息。 个人信息的处理包括个人信息的收集、存储、使用、加工、传输、提供、公开、删除等。",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=ff8081817b6472a3017b656cc2040044"
+        },
+        {
+          "id": 4707,
+          "object_id": 895,
+          "source_type": "legal_clause",
+          "title": "第十一条",
+          "source_title": "中华人民共和国个人信息保护法",
+          "article_label": "第十一条",
+          "score": 0.45,
+          "retrieval": "deterministic",
+          "excerpt": "第十一条 国家建立健全个人信息保护制度，预防和惩治侵害个人信息权益的行为，加强个人信息保护宣传教育，推动形成政府、企业、相关社会组织、公众共同参与个人信息保护的良好环境。",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=ff8081817b6472a3017b656cc2040044"
+        },
+        {
+          "id": 4704,
+          "object_id": 892,
+          "source_type": "legal_clause",
+          "title": "第八条",
+          "source_title": "中华人民共和国个人信息保护法",
+          "article_label": "第八条",
+          "score": 0.45,
+          "retrieval": "deterministic",
+          "excerpt": "第八条 处理个人信息应当保证个人信息的质量，避免因个人信息不准确、不完整对个人权益造成不利影响。",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=ff8081817b6472a3017b656cc2040044"
+        },
+        {
+          "id": 4741,
+          "object_id": 929,
+          "source_type": "legal_clause",
+          "title": "第四十五条",
+          "source_title": "中华人民共和国个人信息保护法",
+          "article_label": "第四十五条",
+          "score": 0.45,
+          "retrieval": "deterministic",
+          "excerpt": "第四十五条 个人有权向个人信息处理者查阅、复制其个人信息；有本法第十八条第一款、第三十五条规定情形的除外。 个人请求查阅、复制其个人信息的，个人信息处理者应当及时提供。 个人请求将个人信息转移至其指定的个人信息处理者，符合国家网信部门规定条件的，个人信息处理者应当提供转移的途径。",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=ff8081817b6472a3017b656cc2040044"
+        },
+        {
+          "id": 4762,
+          "object_id": 950,
+          "source_type": "legal_clause",
+          "title": "第六十六条",
+          "source_title": "中华人民共和国个人信息保护法",
+          "article_label": "第六十六条",
+          "score": 0.45,
+          "retrieval": "deterministic",
+          "excerpt": "第六十六条 违反本法规定处理个人信息，或者处理个人信息未履行本法规定的个人信息保护义务的，由履行个人信息保护职责的部门责令改正，给予警告，没收违法所得，对违法处理个人信息的应用程序，责令暂停或者终止提供服务；拒不改正的，并处一百万元以下罚款；对直接负责的主管人员和其他直接责任人员处一万元以上十万元以下罚款。 有前款规定的违法行为，情节严重的，由省级以上履行个人信息保护职责的部门责令改正，没收违法所得，并处五千万元以下或者上一年度营业额百分之五以下罚款，并可以责令暂停相关业务或者停业整顿、通报有关主管部门吊销相关业务许可或者吊销营业执照；对直接负责的主管人",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=ff8081817b6472a3017b656cc2040044"
+        }
+      ]
+    }
+  ],
+  "api_checks": [
+    {
+      "role": "admin",
+      "endpoint": "/api/legal-kb/retrieve/",
+      "status": 200,
+      "citations": 5,
+      "raw_results_present": true,
+      "provider": "local",
+      "answer_nonempty": true
+    },
+    {
+      "role": "teacher",
+      "endpoint": "/api/legal-kb/retrieve/",
+      "status": 200,
+      "citations": 5,
+      "raw_results_present": false,
+      "provider": "local",
+      "answer_nonempty": true
+    },
+    {
+      "role": "student",
+      "endpoint": "/api/legal-kb/retrieve/",
+      "status": 403,
+      "citations": 0,
+      "raw_results_present": false,
+      "provider": null,
+      "answer_nonempty": false
+    },
+    {
+      "role": "anonymous",
+      "endpoint": "/api/legal-kb/retrieve/",
+      "status": 403,
+      "citations": 0,
+      "raw_results_present": false,
+      "provider": null,
+      "answer_nonempty": false
+    },
+    {
+      "role": "teacher",
+      "endpoint": "/api/legal-kb/library/",
+      "status": 404
+    },
+    {
+      "role": "teacher",
+      "endpoint": "/api/legal-kb/documents/",
+      "status": 200
+    },
+    {
+      "role": "teacher",
+      "endpoint": "/api/legal-kb/library/document/208/",
+      "status": 404
+    }
+  ],
+  "permissions": [
+    {
+      "role": "admin",
+      "returned_document_chunks": 5,
+      "expected_access": true,
+      "passed": true
+    },
+    {
+      "role": "teacher",
+      "returned_document_chunks": 5,
+      "expected_access": true,
+      "passed": true
+    },
+    {
+      "role": "student",
+      "returned_document_chunks": 0,
+      "expected_access": false,
+      "passed": true
+    },
+    {
+      "role": "anonymous",
+      "returned_document_chunks": 0,
+      "expected_access": false,
+      "passed": true
+    }
+  ],
+  "learning_agent": [
+    {
+      "role": "admin",
+      "query": "SQL injection",
+      "safe_source_types": [
+        "knowledge_concept",
+        "article",
+        "resource",
+        "legal_clause"
+      ],
+      "returned_types": {
+        "article": 2,
+        "resource": 3
+      },
+      "imported_owasp_returned": false
+    },
+    {
+      "role": "admin",
+      "query": "敏感个人信息",
+      "safe_source_types": [
+        "knowledge_concept",
+        "article",
+        "resource",
+        "legal_clause"
+      ],
+      "returned_types": {
+        "legal_clause": 5
+      },
+      "imported_owasp_returned": false
+    },
+    {
+      "role": "student",
+      "query": "SQL injection",
+      "safe_source_types": [
+        "knowledge_concept",
+        "article",
+        "resource",
+        "legal_clause"
+      ],
+      "returned_types": {
+        "article": 2,
+        "resource": 3
+      },
+      "imported_owasp_returned": false
+    },
+    {
+      "role": "student",
+      "query": "敏感个人信息",
+      "safe_source_types": [
+        "knowledge_concept",
+        "article",
+        "resource",
+        "legal_clause"
+      ],
+      "returned_types": {
+        "legal_clause": 5
+      },
+      "imported_owasp_returned": false
+    }
+  ],
+  "metric_definition": "hit@5 means an explicitly labelled source document or exact legal article is in the first five chunks; MRR uses its first rank. This is a small diagnostic sample, not a corpus-wide quality estimate.",
+  "pre_merge_inventory": {
+    "database": "D:\\aaa10\\16015478源码\\database\\db.sqlite3.before-knowledge-merge-20261112-012356",
+    "index_counts": {
+      "article": 26,
+      "challenge": 41,
+      "legal_clause": 269,
+      "resource": 32
+    },
+    "total_chunks": 368,
+    "scope": "inventory comparison only; baseline query ranking was not evaluated"
+  },
+  "unanswerable_probes": [
+    {
+      "query": "zxqv987654_no_matching_corpus",
+      "scope": "document",
+      "returned": 5,
+      "results": [
+        {
+          "id": 1496,
+          "object_id": 69,
+          "source_type": "document",
+          "title": "Chunk 11",
+          "source_title": "Testing for Local File Inclusion",
+          "article_label": "",
+          "score": 0.518476,
+          "retrieval": "deterministic",
+          "excerpt": "rg/rfcs/rfc2397.html)",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/07-Input_Validation_Testing/11.1-Testing_for_Local_File_Inclusion.md"
+        },
+        {
+          "id": 1582,
+          "object_id": 81,
+          "source_type": "document",
+          "title": "Chunk 8",
+          "source_title": "Testing for Padding Oracle",
+          "article_label": "",
+          "score": 0.460922,
+          "retrieval": "deterministic",
+          "excerpt": "ikipedia.org/wiki/Padding_oracle_attack) - [Juliano Rizzo, Thai Duong, \"Practical Padding Oracle Attacks\"](https://www.usenix.org/event/woot10/tech/full_papers/Rizzo.pdf)",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/09-Testing_for_Weak_Cryptography/02-Testing_for_Padding_Oracle.md"
+        },
+        {
+          "id": 1704,
+          "object_id": 101,
+          "source_type": "document",
+          "title": "Chunk 1",
+          "source_title": "Testing for Cross Site Flashing",
+          "article_label": "",
+          "score": 0.371839,
+          "retrieval": "deterministic",
+          "excerpt": "# Testing for Cross Site Flashing |ID | |------------| |WSTG-CLNT-08| ## Summary ActionScript, based on ECMAScript, is the language used by Flash applications when dealing with interactive needs. There are three versions of the ActionScript language. ActionScript 1.0 and ActionSc",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/11-Client-side_Testing/08-Testing_for_Cross_Site_Flashing.md"
+        },
+        {
+          "id": 1294,
+          "object_id": 52,
+          "source_type": "document",
+          "title": "Chunk 2",
+          "source_title": "Testing for Stored Cross Site Scripting",
+          "article_label": "",
+          "score": 0.366627,
+          "retrieval": "deterministic",
+          "excerpt": "ks including: - Hijacking another user's browser - Capturing sensitive information viewed by application users - Pseudo defacement of the application - Port scanning of internal hosts (\"internal\" in relation to the users of the web application) - Directed delivery of browser-base",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/07-Input_Validation_Testing/02-Testing_for_Stored_Cross_Site_Scripting.md"
+        },
+        {
+          "id": 1357,
+          "object_id": 55,
+          "source_type": "document",
+          "title": "Chunk 3",
+          "source_title": "Testing for Oracle",
+          "article_label": "",
+          "score": 0.365569,
+          "retrieval": "deterministic",
+          "excerpt": "While the second and third of these examples represent URLs from older versions of the PL/SQL Gateway, the first is from more recent versions running on Apache. In the plsql.conf Apache configuration file, /pls is the default, specified as a Location with the PLS module as the ha",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/07-Input_Validation_Testing/05.1-Testing_for_Oracle.md"
+        }
+      ]
+    },
+    {
+      "query": "zxqv987654_no_matching_corpus",
+      "scope": "legal_clause",
+      "returned": 5,
+      "results": [
+        {
+          "id": 4731,
+          "object_id": 919,
+          "source_type": "legal_clause",
+          "title": "第三十五条",
+          "source_title": "中华人民共和国个人信息保护法",
+          "article_label": "第三十五条",
+          "score": 0.368932,
+          "retrieval": "deterministic",
+          "excerpt": "第三十五条 国家机关为履行法定职责处理个人信息，应当依照本法规定履行告知义务；有本法第十八条第一款规定的情形，或者告知将妨碍国家机关履行法定职责的除外。",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=ff8081817b6472a3017b656cc2040044"
+        },
+        {
+          "id": 4756,
+          "object_id": 944,
+          "source_type": "legal_clause",
+          "title": "第六十条",
+          "source_title": "中华人民共和国个人信息保护法",
+          "article_label": "第六十条",
+          "score": 0.368115,
+          "retrieval": "deterministic",
+          "excerpt": "第六十条 国家网信部门负责统筹协调个人信息保护工作和相关监督管理工作。国务院有关部门依照本法和有关法律、行政法规的规定，在各自职责范围内负责个人信息保护和监督管理工作。 县级以上地方人民政府有关部门的个人信息保护和监督管理职责，按照国家有关规定确定。 前两款规定的部门统称为履行个人信息保护职责的部门。",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=ff8081817b6472a3017b656cc2040044"
+        },
+        {
+          "id": 4598,
+          "object_id": 786,
+          "source_type": "legal_clause",
+          "title": "第三十八条",
+          "source_title": "中华人民共和国网络安全法",
+          "article_label": "第三十八条",
+          "score": 0.365339,
+          "retrieval": "deterministic",
+          "excerpt": "第三十八条 关键信息基础设施的运营者采购网络产品和服务，应当按照规定与提供者签订安全保密协议，明确安全和保密义务与责任。",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=021e7d7684474107b8f3febbb1c4f8b5"
+        },
+        {
+          "id": 4579,
+          "object_id": 767,
+          "source_type": "legal_clause",
+          "title": "第十九条",
+          "source_title": "中华人民共和国网络安全法",
+          "article_label": "第十九条",
+          "score": 0.357771,
+          "retrieval": "deterministic",
+          "excerpt": "第十九条 国家鼓励开发网络数据安全保护和利用技术，促进公共数据资源开放，推动技术创新和经济社会发展。",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=021e7d7684474107b8f3febbb1c4f8b5"
+        },
+        {
+          "id": 4904,
+          "object_id": 1092,
+          "source_type": "legal_clause",
+          "title": "第十九条",
+          "source_title": "未成年人网络保护条例",
+          "article_label": "第十九条",
+          "score": 0.355181,
+          "retrieval": "deterministic",
+          "excerpt": "第十九条 未成年人网络保护软件、专门供未成年人使用的智能终端产品应当具有有效识别违法信息和可能影响未成年人身心健康的信息、保护未成年人个人信息权益、预防未成年人沉迷网络、便于监护人履行监护职责等功能。 国家网信部门会同国务院有关部门根据未成年人网络保护工作的需要，明确未成年人网络保护软件、专门供未成年人使用的智能终端产品的相关技术标准或者要求，指导监督网络相关行业组织按照有关技术标准和要求对未成年人网络保护软件、专门供未成年人使用的智能终端产品的使用效果进行评估。 智能终端产品制造者应当在产品出厂前安装未成年人网络保护软件，或者采用显著方式告知用户安装渠",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=ff8081818c24e05b018c8d0817b31915"
+        }
+      ]
+    },
+    {
+      "query": "火星量子香蕉税法",
+      "scope": "document",
+      "returned": 0,
+      "results": []
+    },
+    {
+      "query": "火星量子香蕉税法",
+      "scope": "legal_clause",
+      "returned": 0,
+      "results": []
+    }
+  ],
+  "targeted_probes": [
+    {
+      "query": "SQL Injection Prevention Cheat Sheet",
+      "object_id": 208,
+      "returned": 5,
+      "expected_source_returned": true,
+      "results": [
+        {
+          "id": 3735,
+          "object_id": 208,
+          "source_type": "document",
+          "title": "Chunk 5",
+          "source_title": "SQL Injection Prevention Cheat Sheet",
+          "article_label": "",
+          "score": 0.481392,
+          "retrieval": "deterministic",
+          "excerpt": "g/data/definitions/564.html)): ```java // UNSAFE: HQL injection! Query unsafeHQLQuery = session.createQuery(\"from Inventory where productID='\"+userSuppliedParameter+\"'\"); ``` Parameterized queries are the recommended solution here as well: ```java // Here is a safe version of the",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.md"
+        },
+        {
+          "id": 3732,
+          "object_id": 208,
+          "source_type": "document",
+          "title": "Chunk 2",
+          "source_title": "SQL Injection Prevention Cheat Sheet",
+          "article_label": "",
+          "score": 0.458842,
+          "retrieval": "deterministic",
+          "excerpt": "values; - use fixed application-owned choices for dynamic table names, column names, sort order (`ASC`, `DESC`), etc. These controls apply regardless of whether data comes from an HTTP request, another service, or previously stored data. A related class of vulnerability affects o",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.md"
+        },
+        {
+          "id": 3734,
+          "object_id": 208,
+          "source_type": "document",
+          "title": "Chunk 4",
+          "source_title": "SQL Injection Prevention Cheat Sheet",
+          "article_label": "",
+          "score": 0.455061,
+          "retrieval": "deterministic",
+          "excerpt": "can happen as well in procedure calls: ```java // UNSAFE CallableStatement statement = connection.prepareCall(\"{call sp_updateAccountBalance('\" + customerName + \"' , \" + amount + \")}\"); statement.execute(); ``` As below, the recommended implementation uses parameterized queries: ",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.md"
+        },
+        {
+          "id": 3744,
+          "object_id": 208,
+          "source_type": "document",
+          "title": "Chunk 14",
+          "source_title": "SQL Injection Prevention Cheat Sheet",
+          "article_label": "",
+          "score": 0.468397,
+          "retrieval": "deterministic",
+          "excerpt": "into SQL, and that dynamic identifiers and sort directions come from the query's fixed mapping. Preparing the outer call is not evidence that a procedure's internal SQL is safe. Use the [OWASP Web Security Testing Guide's SQL injection tests](https://wstg.owasp.org/v4.2/4-Web_App",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.md"
+        },
+        {
+          "id": 3731,
+          "object_id": 208,
+          "source_type": "document",
+          "title": "Chunk 1",
+          "source_title": "SQL Injection Prevention Cheat Sheet",
+          "article_label": "",
+          "score": 0.45,
+          "retrieval": "deterministic",
+          "excerpt": "# SQL Injection Prevention Cheat Sheet ## Introduction A SQL injection attack occurs when untrusted data (usually strings) becomes part of a query's SQL syntax, modifying the logic of the SQL request. The malicious data can come from various sources such as: - an HTTP request (fo",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.md"
+        }
+      ]
+    },
+    {
+      "query": "Zero Trust Architecture Cheat Sheet",
+      "object_id": 245,
+      "returned": 5,
+      "expected_source_returned": true,
+      "results": [
+        {
+          "id": 4516,
+          "object_id": 245,
+          "source_type": "document",
+          "title": "Chunk 6",
+          "source_title": "Zero Trust Architecture Cheat Sheet",
+          "article_label": "",
+          "score": 0.450296,
+          "retrieval": "deterministic",
+          "excerpt": ", monitor, and terminate resource access according to policy; this does not require a new interactive login at every enforcement point. ## How Zero Trust Addresses Modern Security Challenges Zero Trust tackles security problems that traditional approaches can't handle effectively",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/Zero_Trust_Architecture_Cheat_Sheet.md"
+        },
+        {
+          "id": 4514,
+          "object_id": 245,
+          "source_type": "document",
+          "title": "Chunk 4",
+          "source_title": "Zero Trust Architecture Cheat Sheet",
+          "article_label": "",
+          "score": 0.45,
+          "retrieval": "deterministic",
+          "excerpt": "tly Enforced Enforce authentication and authorization before granting access, and reevaluate ongoing sessions according to policy. Trigger reauthentication or reauthorization when policy requires it, such as after a time limit, a request for another resource, or suspicious activi",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/Zero_Trust_Architecture_Cheat_Sheet.md"
+        },
+        {
+          "id": 4522,
+          "object_id": 245,
+          "source_type": "document",
+          "title": "Chunk 12",
+          "source_title": "Zero Trust Architecture Cheat Sheet",
+          "article_label": "",
+          "score": 0.46443,
+          "retrieval": "deterministic",
+          "excerpt": "trols, and kept detailed records for compliance and investigation. This smart approach is what separates good Zero Trust implementations from basic access control. The technology adapts to the situation instead of forcing users to work around rigid security rules. Now that you un",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/Zero_Trust_Architecture_Cheat_Sheet.md"
+        },
+        {
+          "id": 4518,
+          "object_id": 245,
+          "source_type": "document",
+          "title": "Chunk 8",
+          "source_title": "Zero Trust Architecture Cheat Sheet",
+          "article_label": "",
+          "score": 0.45,
+          "retrieval": "deterministic",
+          "excerpt": "tional network boundaries. Zero Trust uses policy-as-code, continuous compliance monitoring, and resource-level access controls to prevent unauthorized data access. **API-First Attacks** - Direct attacks on APIs bypass network security entirely. Zero Trust requires authentication",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/Zero_Trust_Architecture_Cheat_Sheet.md"
+        },
+        {
+          "id": 4517,
+          "object_id": 245,
+          "source_type": "document",
+          "title": "Chunk 7",
+          "source_title": "Zero Trust Architecture Cheat Sheet",
+          "article_label": "",
+          "score": 0.45,
+          "retrieval": "deterministic",
+          "excerpt": "**Compromised device** | VPN access grants network access | Device health continuously monitored, access immediately revoked if compromise detected | | **Privileged account abuse** | Permanent admin rights with periodic reviews | Just-in-time access with automatic expiration and ",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/Zero_Trust_Architecture_Cheat_Sheet.md"
+        }
+      ]
+    },
+    {
+      "query": "敏感个人信息",
+      "object_id": 912,
+      "returned": 1,
+      "expected_source_returned": true,
+      "results": [
+        {
+          "id": 4724,
+          "object_id": 912,
+          "source_type": "legal_clause",
+          "title": "第二十八条",
+          "source_title": "中华人民共和国个人信息保护法",
+          "article_label": "第二十八条",
+          "score": 0.45,
+          "retrieval": "deterministic",
+          "excerpt": "第二十八条 敏感个人信息是一旦泄露或者非法使用，容易导致自然人的人格尊严受到侵害或者人身、财产安全受到危害的个人信息，包括生物识别、宗教信仰、特定身份、医疗健康、金融账户、行踪轨迹等信息，以及不满十四周岁未成年人的个人信息。 只有在具有特定的目的和充分的必要性，并采取严格保护措施的情形下，个人信息处理者方可处理敏感个人信息。",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=ff8081817b6472a3017b656cc2040044"
+        }
+      ]
+    }
+  ],
+  "sensitive_definition_rank_at_50": null,
+  "metrics": {
+    "document/unfiltered": {
+      "questions": 13,
+      "hits_at_5": 3,
+      "hit_rate_at_5": 0.23076923076923078,
+      "mrr_at_5": 0.1346153846153846,
+      "p50_ms": 155.85,
+      "p95_ms": 161.64
+    },
+    "document/document": {
+      "questions": 13,
+      "hits_at_5": 3,
+      "hit_rate_at_5": 0.23076923076923078,
+      "mrr_at_5": 0.23076923076923078,
+      "p50_ms": 158.17,
+      "p95_ms": 188.08
+    },
+    "legal_clause/unfiltered": {
+      "questions": 8,
+      "hits_at_5": 0,
+      "hit_rate_at_5": 0,
+      "mrr_at_5": 0,
+      "p50_ms": 153.345,
+      "p95_ms": 159.18
+    },
+    "legal_clause/legal_clause": {
+      "questions": 8,
+      "hits_at_5": 2,
+      "hit_rate_at_5": 0.25,
+      "mrr_at_5": 0.125,
+      "p50_ms": 69.705,
+      "p95_ms": 75.14
+    }
+  }
+}

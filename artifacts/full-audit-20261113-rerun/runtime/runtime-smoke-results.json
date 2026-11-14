@@ -1,0 +1,27 @@
+{
+  "scope": "isolated nginx 1.28.0 Windows; loopback fixtures, generated one-hour TLS certificate",
+  "checks": {
+    "nginx_configuration_valid": true,
+    "spa_deep_link": true,
+    "tls_and_hsts": true,
+    "django_static_alias_over_regex": true,
+    "media_alias_over_regex": true,
+    "feedback_attachment_public_path_denied": true,
+    "resource_public_path_denied": true,
+    "challenge_static_forwarded": true,
+    "upstream_secure_scheme": true,
+    "two_mib_upload_forwarded": true,
+    "private_proxy_temporary_files_absent": true,
+    "oversized_upload_denied": true,
+    "http_redirects_to_https": true,
+    "readiness_probe_success": true,
+    "readiness_probe_host_and_scheme": true,
+    "readiness_probe_connection_failure": true
+  },
+  "all_passed": true,
+  "production_data_accessed": false,
+  "docker_executed": false,
+  "real_django_gunicorn_chain_verified": false,
+  "temporary_tls_key_removed": true,
+  "nginx_stopped": true
+}

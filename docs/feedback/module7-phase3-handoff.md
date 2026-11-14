@@ -1,6 +1,6 @@
 # 模块七第三阶段交接清单
 
-状态：**接口契约已定义，功能未启用。** 本轮只交付反馈采集、人工处理与事件核对；候选管理、审批发布和回退保留后续交接。
+状态：**第三阶段服务与接口已实现，写入和发布默认关闭。** 当前代码已提供问题组、候选管理、审批、发布、观察与回退；分别由 `FEEDBACK_PHASE3_ENABLED` 和 `FEEDBACK_PHASE3_RELEASE_ENABLED` 控制。默认关闭不代表接口缺失，也不代表真实教学联调或正式开放已经验收。下文保留交接契约和人工验收要求；实际路由与服务见 `backend/feedback_center/urls.py`、`services/issue_groups.py`、`services/candidates.py`。
 
 ## 1. 不可违反的边界
 
@@ -15,7 +15,7 @@
 
 ## 2. 跨尝试问题组
 
-建议接口：`POST /api/feedback/teacher/phase3/issue-groups/`（本轮未实现，固定不可用）。
+实际接口：`POST /api/feedback/teacher/phase3/issue-groups/`（已实现；默认写入门禁关闭，需在隔离评测或已批准的第三阶段环境配置开关）。
 
 请求/响应字段：
 
@@ -137,13 +137,15 @@
 - 模块八开发/回归/终验集合隔离；终验案例用于调参后退出终验并补新版本；
 - 首期全程不触发实际导出、生产配额或生产策略修改。
 
-## 8. 本轮已提供但未启用的契约
+## 8. 当前已实现但默认未启用的接口
 
 - `GET /api/feedback/teacher/phase3/contracts/`：返回完整字段、状态机、边界和后续任务清单；
-- `POST /api/feedback/teacher/phase3/candidates/`：固定返回 `409 phase3_not_enabled`；
-- 没有候选、审批、发布或回退数据表；不会制造虚假审批记录。
+- `POST /api/feedback/teacher/phase3/candidates/`：已实现；写入开关关闭时返回 `409 phase3_write_disabled`，开启后仍须通过权限与业务校验；
+- 问题组、候选及状态事件表已由迁移 `0002_feedbackcandidate_feedbackcandidateevent_and_more` 提供。审批、生效、观察与回退均有服务和路由；发布开关关闭时返回 `409 phase3_release_disabled`。真实评测、独立审批和部署验收仍须另外完成。
 
-## 9. 后续任务
+## 9. 原任务清单与当前验收状态
+
+M7-P3-1 至 M7-P3-6 已有实现，代码位置见下节；清单保留用于逐项验收，不能据此认定功能缺失。M7-P3-7 至 M7-P3-9 仍需按真实业务和部署条件确认。
 
 - M7-P3-1 跨尝试问题组与人工成员确认；
 - M7-P3-2 候选与配置版本状态机；
@@ -172,4 +174,4 @@
 - `FEEDBACK_PHASE3_ENABLED`：候选写入、评测登记、审批。
 - `FEEDBACK_PHASE3_RELEASE_ENABLED`：生效、观察、稳定、回退。
 
-未变：模块八仍只提供报告引用契约，报告本身不在本仓库生成；真实发布需要显式开启开关并填入真实报告。
+模块八现已提供持久化 `EvaluationRun`、`EvaluationCaseResult`、`EvaluationReport` 和报告读取/校验服务；隔离运行仅在其测试配置和权限门槛满足时允许。真实发布仍需显式开启第三阶段开关，并将确切候选、配置版本与完整报告核对；本交接文档不代替服务端校验回归或实际教学验收。详见 `backend/evaluation_center/README.md`。

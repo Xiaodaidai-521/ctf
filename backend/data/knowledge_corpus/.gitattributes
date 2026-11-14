@@ -1,0 +1,4 @@
+**/*.md text eol=lf
+**/*.json text eol=lf
+**/*.jsonl text eol=lf
+**/licenses/*.txt -text

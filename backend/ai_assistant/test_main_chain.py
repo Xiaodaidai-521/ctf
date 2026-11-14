@@ -272,7 +272,7 @@ class StreamingHistoryTests(TransactionTestCase):
         async def fake_chat(self, agent_id, message, context=None, conversation_history=None):
             return {"agent_id": agent_id, "agent_name": "Agent", "content": "stream answer", "provider": "fake"}
 
-        def fake_knowledge(self, query, challenge_info=None, scope="category", limit=5):
+        def fake_knowledge(self, query, challenge_info=None, scope="category", limit=5, *, user=None):
             return {"context_text": "", "scope": scope, "resolved_scope": scope, "items": [], "keywords": [], "cache_hit": False}
 
         with patch.object(MultiAgentChatService, "chat_with_agent", fake_chat), patch.object(MultiAgentChatService, "build_knowledge_context", fake_knowledge):

@@ -1,0 +1,109 @@
+{
+  "schema_version": 1,
+  "as_of_date": "2026-11-12",
+  "sources": [
+    {
+      "id": "cn-cybersecurity-law-2025",
+      "title": "中华人民共和国网络安全法",
+      "bbbs": "021e7d7684474107b8f3febbb1c4f8b5",
+      "published_date": "2025-10-28",
+      "effective_date": "2026-01-01",
+      "document_type": "law",
+      "expected_articles": 81,
+      "summary": "网络运营者安全义务、等级保护、个人信息保护、网络安全事件处置及法律责任；采用2025年修正版。",
+      "captured_at": "2026-11-11T16:57:08.267225+00:00",
+      "attachment_sha256": "9e575cff7451bbc373e122103bd1c7627285fb470be1cae468d0fd06bab56e03",
+      "details_sha256": "4cf79066923b9bfdc50725a7c6482832541f0293901947c7270e503ab36e9a99",
+      "attachment_url": "https://flkoss.obs-bj2.cucloud.cn/prod/20251028/1867f38fdf004977b613f89099c7b13e.docx"
+    },
+    {
+      "id": "cn-data-security-law",
+      "title": "中华人民共和国数据安全法",
+      "bbbs": "ff80818179f5e0800179f885c7e70392",
+      "published_date": "2021-06-10",
+      "effective_date": "2021-09-01",
+      "document_type": "law",
+      "expected_articles": 55,
+      "summary": "数据分类分级、重要数据保护、风险监测、数据处理安全义务与法律责任。",
+      "captured_at": "2026-11-11T16:57:08.894135+00:00",
+      "attachment_sha256": "722d29084fef73485e45485309daef570cee2cdee5c1ed19dcac95b0a28a065b",
+      "details_sha256": "e163f4600837221e7f68c03a810af790e135c5bb932302cf29ec878ffdaa3b6c",
+      "attachment_url": "https://flkoss.obs-bj2.cucloud.cn/prod/20210610/422b9468ce0d47c389637959a68517bc.docx"
+    },
+    {
+      "id": "cn-personal-information-protection-law",
+      "title": "中华人民共和国个人信息保护法",
+      "bbbs": "ff8081817b6472a3017b656cc2040044",
+      "published_date": "2021-08-20",
+      "effective_date": "2021-11-01",
+      "document_type": "law",
+      "expected_articles": 74,
+      "summary": "个人信息处理依据、告知同意、敏感个人信息、个人权利、跨境提供和处理者义务。",
+      "captured_at": "2026-11-11T16:57:09.569787+00:00",
+      "attachment_sha256": "1815f84f43dd5011442c817a197d745c9aef631f5db3b6c7a75be1acc2b5cd8b",
+      "details_sha256": "684e21366f78fa136818cceb14380a278d498046c185e272ba58d72ff7759daa",
+      "attachment_url": "https://flkoss.obs-bj2.cucloud.cn/prod/20210820/25a02f9550c14835aa178b7c2610360f.docx"
+    },
+    {
+      "id": "cn-network-data-security-regulation",
+      "title": "网络数据安全管理条例",
+      "bbbs": "ff808181927f0e7b0192949a1da4355d",
+      "published_date": "2024-09-24",
+      "effective_date": "2025-01-01",
+      "document_type": "regulation",
+      "expected_articles": 64,
+      "summary": "网络数据处理的一般要求、个人信息和重要数据保护、数据跨境安全管理、网络平台责任。",
+      "captured_at": "2026-11-11T16:57:10.394388+00:00",
+      "attachment_sha256": "331f4d18c167c81c390bd7ca727453a40dc137716fef19b93fbfc5b0e81bd55b",
+      "details_sha256": "069402ac76feb9ec8cada3d087d57f885014acef573a56a9fe6267daea9aa3eb",
+      "attachment_url": "https://flkoss.obs-bj2.cucloud.cn/prod/20240924/4fc6b5abf7f9483886f748701b9a4b92.docx"
+    },
+    {
+      "id": "cn-critical-infrastructure-security-regulation",
+      "title": "关键信息基础设施安全保护条例",
+      "bbbs": "ff8081817b63b935017b7bcc49877e0b",
+      "published_date": "2021-07-30",
+      "effective_date": "2021-09-01",
+      "document_type": "regulation",
+      "expected_articles": 51,
+      "summary": "关键信息基础设施认定、运营者安全保护职责、安全检测评估和监督管理。",
+      "captured_at": "2026-11-11T16:57:11.138519+00:00",
+      "attachment_sha256": "a25c1b1c4c702ec1a8dc9ddee8c7b0d69e0467bacd64182e23ff5ea07453f498",
+      "details_sha256": "c5a08ae2db83d12abf859c01d753a1317df153e113bf86247e2cc5be8a687b9d",
+      "attachment_url": "https://flkoss.obs-bj2.cucloud.cn/prod/20210730/f0060ccf8e7546909af167bf8f2d9a66.docx"
+    },
+    {
+      "id": "cn-minors-online-protection-regulation",
+      "title": "未成年人网络保护条例",
+      "bbbs": "ff8081818c24e05b018c8d0817b31915",
+      "published_date": "2023-10-16",
+      "effective_date": "2024-01-01",
+      "document_type": "regulation",
+      "expected_articles": 60,
+      "summary": "未成年人网络素养、网络信息内容、个人信息保护和网络沉迷防治。",
+      "captured_at": "2026-11-11T16:57:12.018215+00:00",
+      "attachment_sha256": "7121823b7f2c7e1568601a44fbf4bdb7b96f6c9a4caeba0f8a558d65b1c74907",
+      "details_sha256": "6944ed6cd2769d196602af66751789f228ce178303fefe3c0d17e759c39b02d4",
+      "attachment_url": "https://flkoss.obs-bj2.cucloud.cn/prod/20231016/946cb0047f2741f19367fd3451eb2cb4.docx"
+    },
+    {
+      "id": "cn-civil-code-privacy-excerpt",
+      "title": "中华人民共和国民法典",
+      "display_title": "中华人民共和国民法典（隐私权和个人信息保护条款节选）",
+      "bbbs": "ff808081729d1efe01729d50b5c500bf",
+      "published_date": "2020-05-28",
+      "effective_date": "2021-01-01",
+      "document_type": "law",
+      "expected_articles": 1260,
+      "article_range": [
+        1032,
+        1039
+      ],
+      "summary": "节选第一千零三十二条至第一千零三十九条，涵盖隐私权、个人信息定义、处理原则和信息保密义务。",
+      "captured_at": "2026-11-11T16:57:13.224192+00:00",
+      "attachment_sha256": "6926a597a66c5aad4803591ce9a51a8eebe847260f5ba2805210b608ded78353",
+      "details_sha256": "e7f9f5402f6dc8a05f7bc4486b685b19b290c84a2a509b18034ef36704a612e3",
+      "attachment_url": "https://flkoss.obs-bj2.cucloud.cn/prod/20200528/827f65fcb68f40cb941eed996c5212b0.docx"
+    }
+  ]
+}

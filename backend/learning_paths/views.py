@@ -1,7 +1,8 @@
 from rest_framework import viewsets, status, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from django.db.models import Q, Count, F, Sum, Avg, Max
+from django.db.models import Q, Count, F, Sum, Avg, Max, Case, When, IntegerField
+from rest_framework.exceptions import ValidationError
 from django.utils import timezone
 from django.contrib.contenttypes.models import ContentType
 from django.db import transaction
@@ -22,9 +23,14 @@ from .serializers import (
     ResourceRecommendationSerializer, LabAttemptSerializer
 )
 from users.permissions import IsTeacherOrAdmin
+from users.pagination import positive_query_integer
 
 
 MANAGEMENT_ACTIONS = {'create', 'update', 'partial_update', 'destroy'}
+
+
+def can_manage_paths(user):
+    return bool(user.is_authenticated and (user.is_staff or user.role in ('teacher', 'admin')))
 
 
 class LearningPathViewSet(viewsets.ModelViewSet):
@@ -34,10 +40,14 @@ class LearningPathViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         if self.action in MANAGEMENT_ACTIONS:
             return [IsTeacherOrAdmin()]
+        if self.action in ('start', 'progress'):
+            return [permissions.IsAuthenticated()]
         return [permissions.IsAuthenticatedOrReadOnly()]
 
     def get_queryset(self):
-        queryset = LearningPath.objects.filter(is_published=True)
+        queryset = LearningPath.objects.all()
+        if not can_manage_paths(self.request.user):
+            queryset = queryset.filter(is_published=True)
 
         # 搜索
         search = self.request.query_params.get('search', '')
@@ -50,9 +60,10 @@ class LearningPathViewSet(viewsets.ModelViewSet):
         # 排序
         ordering = self.request.query_params.get('ordering', 'order')
         if ordering == 'difficulty':
-            difficulty_order = {'AP': 0, 'PR': 1, 'EX': 2}
-            queryset = sorted(queryset, key=lambda x: difficulty_order[x.difficulty])
+            queryset = queryset.order_by(Case(When(difficulty='AP', then=0), When(difficulty='PR', then=1), When(difficulty='EX', then=2), output_field=IntegerField()), 'order', 'id')
         else:
+            if ordering.lstrip('-') not in ('id', 'order', 'title', 'created_at', 'updated_at', 'estimated_hours'):
+                raise ValidationError({'ordering': '不支持的排序字段。'})
             queryset = queryset.order_by(ordering)
 
         return queryset
@@ -60,7 +71,7 @@ class LearningPathViewSet(viewsets.ModelViewSet):
     def get_serializer_class(self):
         if self.action == 'list':
             return LearningPathListSerializer
-        elif self.action == 'create':
+        elif self.action in ('create', 'update', 'partial_update'):
             return LearningPathCreateSerializer
         return LearningPathDetailSerializer
 
@@ -114,10 +125,14 @@ class PathModuleViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         queryset = PathModule.objects.select_related('learning_path', 'parent_module').prefetch_related('requires_modules', 'module_labs__lab')
+        if not can_manage_paths(self.request.user):
+            queryset = queryset.filter(learning_path__is_published=True)
 
         # 学习路径筛选
         path_id = self.request.query_params.get('learning_path') or self.request.query_params.get('path')
         if path_id:
+            key = 'learning_path' if 'learning_path' in self.request.query_params else 'path'
+            path_id = positive_query_integer(self.request.query_params, key, 1)
             queryset = queryset.filter(learning_path_id=path_id)
 
         # 模块类型筛选
@@ -133,7 +148,7 @@ class PathModuleViewSet(viewsets.ModelViewSet):
         return queryset.order_by('order', 'id')
 
     def get_serializer_class(self):
-        if self.action == 'create':
+        if self.action in ('create', 'update', 'partial_update'):
             return PathModuleCreateSerializer
         return PathModuleSerializer
 
@@ -155,7 +170,7 @@ class PathModuleViewSet(viewsets.ModelViewSet):
             return Response({'error': '请先完成前置模块'}, status=400)
 
         # 更新状态
-        if created or user_module.status == 'AVAILABLE':
+        if created or user_module.status in ('LOCKED', 'AVAILABLE'):
             user_module.status = 'IN_PROGRESS'
             user_module.started_at = timezone.now()
             user_module.save()
@@ -184,15 +199,21 @@ class PathModuleViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     @action(detail=True, methods=['post'])
+    @transaction.atomic
     def complete(self, request, pk=None):
         """完成模块"""
         module = self.get_object()
         user = request.user
 
         try:
-            user_module = UserModuleProgress.objects.get(user=user, module=module)
+            user_module = UserModuleProgress.objects.select_for_update().get(user=user, module=module)
         except UserModuleProgress.DoesNotExist:
             return Response({'error': '未找到模块进度'}, status=404)
+
+        if user_module.status == 'COMPLETED':
+            return Response(UserModuleProgressSerializer(user_module).data)
+        if user_module.status != 'IN_PROGRESS' or not user_module.check_prerequisites():
+            return Response({'error': '请先满足前置条件并开始模块。'}, status=400)
 
         # 更新状态
         user_module.status = 'COMPLETED'
@@ -264,7 +285,9 @@ class RecommendationViewSet(viewsets.ViewSet):
         recommendations = engine.get_recommendations(request.user)
 
         return Response({
-            'recommendations': recommendations
+            'recommendations': recommendations,
+            'provider': 'deterministic_learning_rules',
+            'status': 'available' if recommendations else 'no_data',
         })
 
     def _challenge_payload(self, challenge):
@@ -406,21 +429,25 @@ class LabAttemptViewSet(viewsets.ModelViewSet):
     """实验尝试视图"""
     serializer_class = LabAttemptSerializer
     permission_classes = [permissions.IsAuthenticated]
+    http_method_names = ['get', 'post', 'head', 'options']
 
     def get_queryset(self):
-        return LabAttempt.objects.filter(user=self.request.user).select_related('lab_progress', 'user')
+        return LabAttempt.objects.filter(user=self.request.user).select_related('lab', 'user')
 
+    @transaction.atomic
     def create(self, request):
         """提交实验答案"""
-        lab_id = request.data.get('lab_id')
+        from rest_framework import serializers
+        from challenges.utils import check_flag
+        lab_id = serializers.IntegerField(min_value=1).run_validation(request.data.get('lab_id'))
         answer = request.data.get('answer')
         user = request.user
 
-        if not lab_id or not answer:
+        if not isinstance(answer, str) or not answer.strip():
             return Response({'error': '缺少必要参数'}, status=400)
 
         try:
-            lab_progress = UserLabProgress.objects.get(
+            lab_progress = UserLabProgress.objects.select_for_update().select_related('lab').get(
                 user=user,
                 lab_id=lab_id,
                 status='IN_PROGRESS'
@@ -428,18 +455,23 @@ class LabAttemptViewSet(viewsets.ModelViewSet):
         except UserLabProgress.DoesNotExist:
             return Response({'error': '未找到进行中的实验'}, status=404)
 
-        # 创建尝试记录
+        if lab_progress.lab.submission_mode != 'flag':
+            return Response({'error': '自由练习需要独立的服务端核验。'}, status=400)
+        correct = check_flag(answer.strip(), lab_progress.lab.read_protected('flag'))
+        # Store the server result without copying submitted flags into legacy JSON.
         attempt = LabAttempt.objects.create(
-            lab_progress=lab_progress,
+            lab=lab_progress.lab,
             user=user,
-            answer=answer,
-            is_correct=answer == lab_progress.lab.expected_answer
+            success=correct,
+            payload={'submitted': True},
+            response_summary={'verification': 'server_flag_comparison'},
         )
 
         # 如果正确，更新进度
-        if attempt.is_correct:
+        if attempt.success:
             lab_progress.status = 'COMPLETED'
-            lab_progress.completed_at = timezone.now()
+            if lab_progress.first_completed_at is None:
+                lab_progress.first_completed_at = timezone.now()
             lab_progress.save()
 
             # 记录行为

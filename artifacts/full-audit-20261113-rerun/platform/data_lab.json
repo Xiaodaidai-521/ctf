@@ -1,0 +1,190 @@
+{
+  "tests": 57,
+  "passed": [
+    "data_lab.tests.test_acceptance.AcceptanceTests.test_stale_compare_and_swap_loses_no_update",
+    "data_lab.tests.test_acceptance.RegistrationTests.test_candidate_registration_never_fabricates_signoff",
+    "data_lab.tests.test_api.ApiTests.test_authentication_and_private_material",
+    "data_lab.tests.test_api.ApiTests.test_claim_pause_resume_withdrawal",
+    "data_lab.tests.test_api.ApiTests.test_database_failure_is_retryable",
+    "data_lab.tests.test_api.ApiTests.test_execution_urls_absent_and_missing_evidence_rejected",
+    "data_lab.tests.test_api.ApiTests.test_hint_request_display_and_exposure_acl",
+    "data_lab.tests.test_api.ApiTests.test_retest_and_draft_gates",
+    "data_lab.tests.test_api.ApiTests.test_student_and_teacher_object_isolation",
+    "data_lab.tests.test_handoff.HandoffTests.test_failed_old_revision_retry_does_not_replace_current_fact_id_map",
+    "data_lab.tests.test_handoff.HandoffTests.test_other_validator_keeps_legacy_dispatch",
+    "data_lab.tests.test_handoff.HandoffTests.test_same_fact_id_rejects_all_changed_content_including_first_attempt_and_json",
+    "data_lab.tests.test_handoff.HandoffTests.test_uuid_strings_and_objects_are_equivalent_including_retest",
+    "data_lab.tests.test_scanning.ScanningTests.test_event_failure_rolls_back_scan_request",
+    "data_lab.tests.test_scanning.ScanningTests.test_parse_failure_is_saved_not_knowledge_error",
+    "data_lab.tests.test_materials.MaterialTests.test_resource_reference_is_closed",
+    "data_lab.tests.test_materials.MaterialTests.test_student_contract_does_not_include_answers_or_hints"
+  ],
+  "failures": [
+    {
+      "id": "data_lab.tests.test_acceptance.AcceptanceTests.test_all_models_disabled_full_flow",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_lab\\tests\\test_acceptance.py\", line 96, in test_all_models_disabled_full_flow\n    self.no_ai_flow(AssertionError('all generation, embedding, retrieval/ranking disabled'))\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_lab\\tests\\test_acceptance.py\", line 40, in no_ai_flow\n    data = complete_evidence(self)\n           ^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_lab\\tests\\flows.py\", line 11, in complete_evidence\n    scan = test.scan(lab)\n           ^^^^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_lab\\tests\\base.py\", line 59, in scan\n    self.assertEqual(scan.status, 'completed', scan.failure_code)\nAssertionError: 'failed' != 'completed'\n- failed\n+ completed\n : PARSER_FAILED\n"
+    },
+    {
+      "id": "data_lab.tests.test_acceptance.AcceptanceTests.test_disconnected_full_flow",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_lab\\tests\\test_acceptance.py\", line 82, in test_disconnected_full_flow\n    self.no_ai_flow(ConnectionError('disconnected'))\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_lab\\tests\\test_acceptance.py\", line 40, in no_ai_flow\n    data = complete_evidence(self)\n           ^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_lab\\tests\\flows.py\", line 11, in complete_evidence\n    scan = test.scan(lab)\n           ^^^^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_lab\\tests\\base.py\", line 59, in scan\n    self.assertEqual(scan.status, 'completed', scan.failure_code)\nAssertionError: 'failed' != 'completed'\n- failed\n+ completed\n : PARSER_FAILED\n"
+    },
+    {
+      "id": "data_lab.tests.test_acceptance.AcceptanceTests.test_lost_scan_finalization_recovers_without_replaying_same_key",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_lab\\tests\\test_acceptance.py\", line 106, in test_lost_scan_finalization_recovers_without_replaying_same_key\n    with patch('data_lab.services.emit', side_effect=fail_finalization), self.assertRaises(IntegrityError):\n                                                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: IntegrityError not raised\n"
+    },
+    {
+      "id": "data_lab.tests.test_acceptance.AcceptanceTests.test_missing_or_corrupt_evidence_is_not_knowledge_failure",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_lab\\tests\\test_acceptance.py\", line 127, in test_missing_or_corrupt_evidence_is_not_knowledge_failure\n    data = complete_evidence(self)\n           ^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_lab\\tests\\flows.py\", line 11, in complete_evidence\n    scan = test.scan(lab)\n           ^^^^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_lab\\tests\\base.py\", line 59, in scan\n    self.assertEqual(scan.status, 'completed', scan.failure_code)\nAssertionError: 'failed' != 'completed'\n- failed\n+ completed\n : PARSER_FAILED\n"
+    },
+    {
+      "id": "data_lab.tests.test_acceptance.AcceptanceTests.test_quota_exhausted_full_flow",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_lab\\tests\\test_acceptance.py\", line 93, in test_quota_exhausted_full_flow\n    self.no_ai_flow(RuntimeError('model quota exhausted'))\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_lab\\tests\\test_acceptance.py\", line 40, in no_ai_flow\n    data = complete_evidence(self)\n           ^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_lab\\tests\\flows.py\", line 11, in complete_evidence\n    scan = test.scan(lab)\n           ^^^^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_lab\\tests\\base.py\", line 59, in scan\n    self.assertEqual(scan.status, 'completed', scan.failure_code)\nAssertionError: 'failed' != 'completed'\n- failed\n+ completed\n : PARSER_FAILED\n"
+    },
+    {
+      "id": "data_lab.tests.test_acceptance.AcceptanceTests.test_rate_limit_full_flow",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_lab\\tests\\test_acceptance.py\", line 90, in test_rate_limit_full_flow\n    self.no_ai_flow(failure)\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_lab\\tests\\test_acceptance.py\", line 40, in no_ai_flow\n    data = complete_evidence(self)\n           ^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_lab\\tests\\flows.py\", line 11, in complete_evidence\n    scan = test.scan(lab)\n           ^^^^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_lab\\tests\\base.py\", line 59, in scan\n    self.assertEqual(scan.status, 'completed', scan.failure_code)\nAssertionError: 'failed' != 'completed'\n- failed\n+ completed\n : PARSER_FAILED\n"
+    },
+    {
+      "id": "data_lab.tests.test_acceptance.AcceptanceTests.test_timeout_full_flow",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_lab\\tests\\test_acceptance.py\", line 85, in test_timeout_full_flow\n    self.no_ai_flow(TimeoutError('timeout'))\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_lab\\tests\\test_acceptance.py\", line 40, in no_ai_flow\n    data = complete_evidence(self)\n           ^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_lab\\tests\\flows.py\", line 11, in complete_evidence\n    scan = test.scan(lab)\n           ^^^^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_lab\\tests\\base.py\", line 59, in scan\n    self.assertEqual(scan.status, 'completed', scan.failure_code)\nAssertionError: 'failed' != 'completed'\n- failed\n+ completed\n : PARSER_FAILED\n"
+    },
+    {
+      "id": "data_lab.tests.test_acceptance.AcceptanceTests.test_withdrawal_prevents_help_replays_and_material_reads",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_lab\\tests\\test_acceptance.py\", line 139, in test_withdrawal_prevents_help_replays_and_material_reads\n    data = complete_evidence(self)\n           ^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_lab\\tests\\flows.py\", line 11, in complete_evidence\n    scan = test.scan(lab)\n           ^^^^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_lab\\tests\\base.py\", line 59, in scan\n    self.assertEqual(scan.status, 'completed', scan.failure_code)\nAssertionError: 'failed' != 'completed'\n- failed\n+ completed\n : PARSER_FAILED\n"
+    },
+    {
+      "id": "data_lab.tests.test_api.ApiTests.test_scan_pagination_and_unknown_fields",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_lab\\tests\\test_api.py\", line 70, in test_scan_pagination_and_unknown_fields\n    scan = self.scan()\n           ^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_lab\\tests\\base.py\", line 59, in scan\n    self.assertEqual(scan.status, 'completed', scan.failure_code)\nAssertionError: 'failed' != 'completed'\n- failed\n+ completed\n : PARSER_FAILED\n"
+    },
+    {
+      "id": "data_lab.tests.test_handoff.HandoffTests.test_first_delivery_repeat_and_sent_retry_are_idempotent_and_bounded",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_lab\\tests\\test_handoff.py\", line 63, in test_first_delivery_repeat_and_sent_retry_are_idempotent_and_bounded\n    self.assertTrue(sent, notices[0].last_error)\nAssertionError: False is not true : DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD: value too long for type character varying(96)\n\n"
+    },
+    {
+      "id": "data_lab.tests.test_handoff.HandoffTests.test_m1_fact_event_failure_keeps_failed_notice_and_recovers",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_lab\\tests\\test_handoff.py\", line 144, in test_m1_fact_event_failure_keeps_failed_notice_and_recovers\n    self.assertEqual(self.counts(), (0, 0, 0, 0, 3))\nAssertionError: Tuples differ: (0, 0, 0, 1, 3) != (0, 0, 0, 0, 3)\n\nFirst differing element 3:\n1\n0\n\n- (0, 0, 0, 1, 3)\n?           ^\n\n+ (0, 0, 0, 0, 3)\n?           ^\n\n"
+    },
+    {
+      "id": "data_lab.tests.test_handoff.HandoffTests.test_no_capabilities_is_failed_not_vacuously_sent",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_lab\\tests\\test_handoff.py\", line 296, in test_no_capabilities_is_failed_not_vacuously_sent\n    self.assertFalse(sent)\nAssertionError: True is not false\n"
+    },
+    {
+      "id": "data_lab.tests.test_handoff.HandoffTests.test_path_event_failure_also_rolls_back_and_can_retry",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_lab\\tests\\test_handoff.py\", line 164, in test_path_event_failure_also_rolls_back_and_can_retry\n    self.assertEqual(self.counts(), (0, 0, 0, 0, 3))\nAssertionError: Tuples differ: (0, 0, 0, 1, 3) != (0, 0, 0, 0, 3)\n\nFirst differing element 3:\n1\n0\n\n- (0, 0, 0, 1, 3)\n?           ^\n\n+ (0, 0, 0, 0, 3)\n?           ^\n\n"
+    },
+    {
+      "id": "data_lab.tests.test_handoff.HandoffTests.test_revision_appends_facts_and_notices_without_overwriting_old_evidence",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_lab\\tests\\test_handoff.py\", line 239, in test_revision_appends_facts_and_notices_without_overwriting_old_evidence\n    self.assertEqual(DownstreamNotice.objects.count(), 6)\nAssertionError: 3 != 6\n"
+    },
+    {
+      "id": "data_lab.tests.test_handoff.HandoffTests.test_teacher_assisted_zero_level_is_at_least_one_never_independent",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_lab\\tests\\test_handoff.py\", line 273, in test_teacher_assisted_zero_level_is_at_least_one_never_independent\n    self.assertTrue(sent, notices[0].last_error)\nAssertionError: False is not true : DS-005: 受助状态必须记录实际展示的帮助层级（1—4）。\n"
+    },
+    {
+      "id": "data_lab.tests.test_replay.ReplayTests.test_four_rounds_frozen_and_readonly_sentinels",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_lab\\tests\\test_replay.py\", line 27, in test_four_rounds_frozen_and_readonly_sentinels\n    self.prepare()\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_lab\\tests\\test_replay.py\", line 16, in prepare\n    scan = self.scan()\n           ^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_lab\\tests\\base.py\", line 59, in scan\n    self.assertEqual(scan.status, 'completed', scan.failure_code)\nAssertionError: 'failed' != 'completed'\n- failed\n+ completed\n : PARSER_FAILED\n"
+    },
+    {
+      "id": "data_lab.tests.test_replay.ReplayTests.test_replay_idempotency_and_judgment_freeze",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_lab\\tests\\test_replay.py\", line 57, in test_replay_idempotency_and_judgment_freeze\n    self.prepare()\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_lab\\tests\\test_replay.py\", line 16, in prepare\n    scan = self.scan()\n           ^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_lab\\tests\\base.py\", line 59, in scan\n    self.assertEqual(scan.status, 'completed', scan.failure_code)\nAssertionError: 'failed' != 'completed'\n- failed\n+ completed\n : PARSER_FAILED\n"
+    },
+    {
+      "id": "data_lab.tests.test_replay.ReplayTests.test_trusted_fields_cannot_be_overridden",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_lab\\tests\\test_replay.py\", line 50, in test_trusted_fields_cannot_be_overridden\n    self.prepare()\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_lab\\tests\\test_replay.py\", line 16, in prepare\n    scan = self.scan()\n           ^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_lab\\tests\\base.py\", line 59, in scan\n    self.assertEqual(scan.status, 'completed', scan.failure_code)\nAssertionError: 'failed' != 'completed'\n- failed\n+ completed\n : PARSER_FAILED\n"
+    },
+    {
+      "id": "data_lab.tests.test_scanning.ScanningTests.test_foreign_scans_and_profiles_are_not_found",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_lab\\tests\\test_scanning.py\", line 81, in test_foreign_scans_and_profiles_are_not_found\n    scan = self.scan(self.new_lab(self.other))\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_lab\\tests\\base.py\", line 59, in scan\n    self.assertEqual(scan.status, 'completed', scan.failure_code)\nAssertionError: 'failed' != 'completed'\n- failed\n+ completed\n : PARSER_FAILED\n"
+    },
+    {
+      "id": "data_lab.tests.test_scanning.ScanningTests.test_four_actions_persist_and_original_is_immutable",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_lab\\tests\\test_scanning.py\", line 41, in test_four_actions_persist_and_original_is_immutable\n    scan = self.scan()\n           ^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_lab\\tests\\base.py\", line 59, in scan\n    self.assertEqual(scan.status, 'completed', scan.failure_code)\nAssertionError: 'failed' != 'completed'\n- failed\n+ completed\n : PARSER_FAILED\n"
+    },
+    {
+      "id": "data_lab.tests.test_scanning.ScanningTests.test_idempotency_and_stale_profile_conflicts",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_lab\\tests\\test_scanning.py\", line 61, in test_idempotency_and_stale_profile_conflicts\n    scan = self.scan()\n           ^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_lab\\tests\\base.py\", line 59, in scan\n    self.assertEqual(scan.status, 'completed', scan.failure_code)\nAssertionError: 'failed' != 'completed'\n- failed\n+ completed\n : PARSER_FAILED\n"
+    },
+    {
+      "id": "data_lab.tests.test_scanning.ScanningTests.test_log_has_hard_negative_and_fullwidth_gap",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_lab\\tests\\test_scanning.py\", line 102, in test_log_has_hard_negative_and_fullwidth_gap\n    scan = self.scan(self.new_lab(task_key=TASK_B))\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_lab\\tests\\base.py\", line 59, in scan\n    self.assertEqual(scan.status, 'completed', scan.failure_code)\nAssertionError: 'failed' != 'completed'\n- failed\n+ completed\n : PARSER_FAILED\n"
+    },
+    {
+      "id": "data_lab.tests.test_scanning.ScanningTests.test_rescan_does_not_inherit_reviews",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_lab\\tests\\test_scanning.py\", line 73, in test_rescan_does_not_inherit_reviews\n    scan = self.scan()\n           ^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_lab\\tests\\base.py\", line 59, in scan\n    self.assertEqual(scan.status, 'completed', scan.failure_code)\nAssertionError: 'failed' != 'completed'\n- failed\n+ completed\n : PARSER_FAILED\n"
+    },
+    {
+      "id": "data_lab.tests.test_scanning.ScanningTests.test_scanner_has_partial_coverage_and_unicode_roundtrip",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_lab\\tests\\test_scanning.py\", line 24, in test_scanner_has_partial_coverage_and_unicode_roundtrip\n    scan = self.scan()\n           ^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_lab\\tests\\base.py\", line 59, in scan\n    self.assertEqual(scan.status, 'completed', scan.failure_code)\nAssertionError: 'failed' != 'completed'\n- failed\n+ completed\n : PARSER_FAILED\n"
+    },
+    {
+      "id": "data_lab.tests.test_submissions.SubmissionTests.test_client_cannot_replay_evidence_through_module6",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_lab\\tests\\test_submissions.py\", line 61, in test_client_cannot_replay_evidence_through_module6\n    data = complete_evidence(self)\n           ^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_lab\\tests\\flows.py\", line 11, in complete_evidence\n    scan = test.scan(lab)\n           ^^^^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_lab\\tests\\base.py\", line 59, in scan\n    self.assertEqual(scan.status, 'completed', scan.failure_code)\nAssertionError: 'failed' != 'completed'\n- failed\n+ completed\n : PARSER_FAILED\n"
+    },
+    {
+      "id": "data_lab.tests.test_submissions.SubmissionTests.test_evidence_event_failure_rolls_back_snapshot",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_lab\\tests\\test_submissions.py\", line 53, in test_evidence_event_failure_rolls_back_snapshot\n    data = complete_evidence(self)\n           ^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_lab\\tests\\flows.py\", line 11, in complete_evidence\n    scan = test.scan(lab)\n           ^^^^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_lab\\tests\\base.py\", line 59, in scan\n    self.assertEqual(scan.status, 'completed', scan.failure_code)\nAssertionError: 'failed' != 'completed'\n- failed\n+ completed\n : PARSER_FAILED\n"
+    },
+    {
+      "id": "data_lab.tests.test_submissions.SubmissionTests.test_foreign_replays_and_duplicate_variants_rejected",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_lab\\tests\\test_submissions.py\", line 69, in test_foreign_replays_and_duplicate_variants_rejected\n    data = complete_evidence(self)\n           ^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_lab\\tests\\flows.py\", line 11, in complete_evidence\n    scan = test.scan(lab)\n           ^^^^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_lab\\tests\\base.py\", line 59, in scan\n    self.assertEqual(scan.status, 'completed', scan.failure_code)\nAssertionError: 'failed' != 'completed'\n- failed\n+ completed\n : PARSER_FAILED\n"
+    },
+    {
+      "id": "data_lab.tests.test_submissions.SubmissionTests.test_real_module6_result_and_module1_ack_idempotent",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_lab\\tests\\test_submissions.py\", line 18, in test_real_module6_result_and_module1_ack_idempotent\n    data = complete_evidence(self)\n           ^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_lab\\tests\\flows.py\", line 11, in complete_evidence\n    scan = test.scan(lab)\n           ^^^^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_lab\\tests\\base.py\", line 59, in scan\n    self.assertEqual(scan.status, 'completed', scan.failure_code)\nAssertionError: 'failed' != 'completed'\n- failed\n+ completed\n : PARSER_FAILED\n"
+    },
+    {
+      "id": "data_lab.tests.test_submissions.SubmissionTests.test_saved_evidence_survives_module6_event_failure",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_lab\\tests\\test_submissions.py\", line 41, in test_saved_evidence_survives_module6_event_failure\n    data = complete_evidence(self)\n           ^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_lab\\tests\\flows.py\", line 11, in complete_evidence\n    scan = test.scan(lab)\n           ^^^^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_lab\\tests\\base.py\", line 59, in scan\n    self.assertEqual(scan.status, 'completed', scan.failure_code)\nAssertionError: 'failed' != 'completed'\n- failed\n+ completed\n : PARSER_FAILED\n"
+    },
+    {
+      "id": "data_lab.tests.test_submissions.SubmissionTests.test_teacher_help_and_old_analysis_never_independent",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_lab\\tests\\test_submissions.py\", line 80, in test_teacher_help_and_old_analysis_never_independent\n    saved = submit(self.student, self.lab.attempt.attempt_id, complete_evidence(self))\n                                                              ^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_lab\\tests\\flows.py\", line 11, in complete_evidence\n    scan = test.scan(lab)\n           ^^^^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_lab\\tests\\base.py\", line 59, in scan\n    self.assertEqual(scan.status, 'completed', scan.failure_code)\nAssertionError: 'failed' != 'completed'\n- failed\n+ completed\n : PARSER_FAILED\n"
+    }
+  ],
+  "errors": [
+    {
+      "id": "data_lab.tests.test_handoff.HandoffTests.test_conflicting_dispatch_event_fails_without_overwriting_and_can_recover",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_lab\\tests\\test_handoff.py\", line 183, in test_conflicting_dispatch_event_fails_without_overwriting_and_can_recover\n    event = LearningEvent.objects.get(event_id=notice.payload['event_id'])\n                                               ~~~~~~~~~~~~~~^^^^^^^^^^^^\nKeyError: 'event_id'\n"
+    },
+    {
+      "id": "data_lab.tests.test_handoff.HandoffTests.test_correction_links_old_fact_without_overwriting_it",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_lab\\tests\\test_handoff.py\", line 320, in test_correction_links_old_fact_without_overwriting_it\n    self.assertEqual(new_fact.payload['correction_of_fact_id'], old_id)\n                     ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^\nKeyError: 'correction_of_fact_id'\n"
+    },
+    {
+      "id": "data_lab.tests.test_handoff.HandoffTests.test_dispatch_event_failure_rolls_back_whole_batch_and_recovers",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_lab\\tests\\test_handoff.py\", line 171, in test_dispatch_event_failure_rolls_back_whole_batch_and_recovers\n    sent, notices = dispatch_result(result)\n                    ^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\skill_review\\services\\handoff.py\", line 210, in dispatch_result\n    events.emit_event(\n  File \"C:\\Users\\29681\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\unittest\\mock.py\", line 1139, in __call__\n    return self._mock_call(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\29681\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\unittest\\mock.py\", line 1143, in _mock_call\n    return self._execute_mock_call(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\29681\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\unittest\\mock.py\", line 1198, in _execute_mock_call\n    raise effect\ndjango.db.utils.DatabaseError: M6 event unavailable\n"
+    },
+    {
+      "id": "data_lab.tests.test_handoff.HandoffTests.test_modules_seven_and_eight_are_not_connected_and_never_retried",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_lab\\tests\\test_handoff.py\", line 291, in test_modules_seven_and_eight_are_not_connected_and_never_retried\n    self.assertEqual(notices[2].payload['reason'], 'not_connected')\n                     ~~~~~~~~~~~~~~~~~~^^^^^^^^^^\nKeyError: 'reason'\n"
+    },
+    {
+      "id": "data_lab.tests.test_handoff.HandoffTests.test_redispatch_different_first_attempt_is_failed_without_replacing_payload",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_lab\\tests\\test_handoff.py\", line 221, in test_redispatch_different_first_attempt_is_failed_without_replacing_payload\n    self.assertEqual(repeated[0].status, 'failed')\n                     ~~~~~~~~^^^\nIndexError: list index out of range\n"
+    },
+    {
+      "id": "data_lab.tests.test_handoff.HandoffTests.test_retry_uses_frozen_content_not_mutated_result",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_lab\\tests\\test_handoff.py\", line 211, in test_retry_uses_frozen_content_not_mutated_result\n    self.assertEqual(LearningEvent.objects.get(event_id=frozen['event_id']).metadata['overall_status'], 'passed')\n                                                        ~~~~~~^^^^^^^^^^^^\nKeyError: 'event_id'\n"
+    },
+    {
+      "id": "data_lab.tests.test_materials.MaterialTests.test_customer_newline_empty_and_repeated_contact",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_lab\\tests\\test_materials.py\", line 19, in test_customer_newline_empty_and_repeated_contact\n    rows = list(csv.reader(io.StringIO(asset_bytes(TASK_A).decode())))\n                                       ^^^^^^^^^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_lab\\catalog.py\", line 79, in asset_bytes\n    raise ValueError(\"ASSET_DIGEST_MISMATCH\")\nValueError: ASSET_DIGEST_MISMATCH\n"
+    },
+    {
+      "id": "data_lab.tests.test_materials.MaterialTests.test_log_retest_is_separate_nested_scenario",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_lab\\tests\\test_materials.py\", line 36, in test_log_retest_is_separate_nested_scenario\n    raw = asset_bytes(TASK_B).decode()\n          ^^^^^^^^^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_lab\\catalog.py\", line 79, in asset_bytes\n    raise ValueError(\"ASSET_DIGEST_MISMATCH\")\nValueError: ASSET_DIGEST_MISMATCH\n"
+    },
+    {
+      "id": "data_lab.tests.test_materials.MaterialTests.test_registered_assets_have_pinned_hashes_and_six_rows",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_lab\\tests\\test_materials.py\", line 12, in test_registered_assets_have_pinned_hashes_and_six_rows\n    raw = asset_bytes(key)\n          ^^^^^^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_lab\\catalog.py\", line 79, in asset_bytes\n    raise ValueError(\"ASSET_DIGEST_MISMATCH\")\nValueError: ASSET_DIGEST_MISMATCH\n"
+    },
+    {
+      "id": "data_lab.tests.test_materials.MaterialTests.test_teacher_positions_are_logical_and_distinct",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_lab\\tests\\test_materials.py\", line 28, in test_teacher_positions_are_logical_and_distinct\n    rows = list(csv.reader(io.StringIO(asset_bytes(key).decode())))\n                                       ^^^^^^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_lab\\catalog.py\", line 79, in asset_bytes\n    raise ValueError(\"ASSET_DIGEST_MISMATCH\")\nValueError: ASSET_DIGEST_MISMATCH\n"
+    }
+  ],
+  "skipped": [],
+  "expected_failures": 0,
+  "unexpected_successes": 0,
+  "synthetic_database_only": true
+}

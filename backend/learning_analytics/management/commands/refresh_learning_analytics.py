@@ -22,4 +22,6 @@ class Command(BaseCommand):
             except ValueError as exc:
                 raise CommandError('--date must use YYYY-MM-DD.') from exc
         job = run_analytics_job(job_type=options['job_type'], days=options['days'], reference_date=reference_date, user_id=options['user_id'])
+        if job.status != 'completed':
+            raise CommandError(f'job={job.job_id} status={job.status} users={job.success_count} errors={job.error_count}')
         self.stdout.write(self.style.SUCCESS(f'job={job.job_id} status={job.status} users={job.success_count} errors={job.error_count}'))

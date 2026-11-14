@@ -81,7 +81,7 @@ def run_worker(scan):
         actor_id=scan.lab.attempt.student_id, created_at=scan.created_at.isoformat())
     try:
         result = subprocess.run([sys.executable, '-I', '-B', str(Path(__file__).with_name('worker.py'))],
-            input=json.dumps(request), text=True, capture_output=True, timeout=6,
+            input=json.dumps(request), text=True, encoding='utf-8', capture_output=True, timeout=6,
             cwd=Path(__file__).resolve().parents[2], check=False)
     except (subprocess.TimeoutExpired, OSError):
         raise ScanFailure('PARSER_TIMEOUT_OR_UNAVAILABLE') from None

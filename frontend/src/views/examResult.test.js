@@ -18,11 +18,11 @@ const examAdapters = (() => {
   })`, { asList, finiteNumber, URLSearchParams })
 })()
 
-function resultPage(exams) {
+function resultPage(exams, query = {}) {
   const routes = []
-  const page = runInNewContext(`${script}\n;({ loadResult, record, error, loading, answers, questionCount, accuracyText, formatDateTime, goToPracticeExam, backToRecords, retakeExam })`, {
+  const page = runInNewContext(`${script}\n;({ loadResult, record, error, loading, answers, questionCount, accuracyText, formatDateTime, goToPracticeExam, backToRecords, retakeExam, unsavedAtExpiry })`, {
     ref, computed, onMounted() {}, watch() {}, defineExpose() {},
-    useRoute: () => ({ params: { id: 12 } }),
+    useRoute: () => ({ params: { id: 12 }, query }),
     useRouter: () => ({ push: route => routes.push(route) }),
     ...examAdapters,
     examsApi: { result: id => exams.getExamResult(id) },
@@ -47,6 +47,15 @@ test('result fetch failure stays on the page with a working retry instead of red
   await page.loadResult()
   assert.equal(page.record.value.score, 0)
   assert.equal(page.error.value, '')
+})
+
+test('expiry with unconfirmed choices displays the saved-only settlement warning on the result page', async () => {
+  const { page } = resultPage({ getExamResult: async () => ({ score: 5, answers: [] }) }, { unsaved: '1' })
+  await page.loadResult()
+  assert.equal(page.unsavedAtExpiry.value, true)
+  assert.match(source, /v-if="unsavedAtExpiry"[^>]*role="alert"/)
+  assert.match(source, /本次成绩仅包含截止前保存成功的答案/)
+  assert.equal(resultPage({}).page.unsavedAtExpiry.value, false)
 })
 
 test('answer detail failure retains result and never borrows answers from another endpoint', async () => {

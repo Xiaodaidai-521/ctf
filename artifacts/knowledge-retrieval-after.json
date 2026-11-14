@@ -1,0 +1,3883 @@
+{
+  "evaluated_at": "2026-11-12T07:39:36.325528+08:00",
+  "database": "D:\\aaa10\\16015478源码\\database\\db.sqlite3",
+  "database_access": "read-only source, temporary SQLite snapshot",
+  "django_version": "6.0.5",
+  "embedding_provider_setting": "dashscope",
+  "embedding_model_setting": "text-embedding-v4",
+  "actual_retrieval": "portable lexical BM25 with source titles and explicit terminology aliases",
+  "remote_calls": 0,
+  "llm_answer_quality_evaluated": false,
+  "integrity": {
+    "owasp_documents": 246,
+    "legal_documents": 7,
+    "legal_articles": 393,
+    "index_counts": {
+      "article": 26,
+      "challenge": 41,
+      "document": 3713,
+      "legal_clause": 393,
+      "resource": 32
+    },
+    "original_clause_texts_match": true,
+    "owasp_source_hashes_match": true,
+    "indexed_text_hashes_match": true,
+    "owasp_internal_documents": 246
+  },
+  "candidate_coverage": {
+    "unfiltered": {
+      "available_chunks": 4205,
+      "considered_chunks": 4205,
+      "considered_source_types": {
+        "article": 26,
+        "challenge": 41,
+        "document": 3713,
+        "legal_clause": 393,
+        "resource": 32
+      },
+      "represented_document_ids": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        49,
+        50,
+        51,
+        52,
+        53,
+        54,
+        55,
+        56,
+        57,
+        58,
+        59,
+        60,
+        61,
+        62,
+        63,
+        64,
+        65,
+        66,
+        67,
+        68,
+        69,
+        70,
+        71,
+        72,
+        73,
+        74,
+        75,
+        76,
+        77,
+        78,
+        79,
+        80,
+        81,
+        82,
+        83,
+        84,
+        85,
+        86,
+        87,
+        88,
+        89,
+        90,
+        91,
+        92,
+        93,
+        94,
+        95,
+        96,
+        97,
+        98,
+        99,
+        100,
+        101,
+        102,
+        103,
+        104,
+        105,
+        106,
+        107,
+        108,
+        109,
+        110,
+        111,
+        112,
+        113,
+        114,
+        115,
+        116,
+        117,
+        118,
+        119,
+        120,
+        121,
+        122,
+        123,
+        124,
+        125,
+        126,
+        127,
+        128,
+        129,
+        130,
+        131,
+        132,
+        133,
+        134,
+        135,
+        136,
+        137,
+        138,
+        139,
+        140,
+        141,
+        142,
+        143,
+        144,
+        145,
+        146,
+        147,
+        148,
+        149,
+        150,
+        151,
+        152,
+        153,
+        154,
+        155,
+        156,
+        157,
+        158,
+        159,
+        160,
+        161,
+        162,
+        163,
+        164,
+        165,
+        166,
+        167,
+        168,
+        169,
+        170,
+        171,
+        172,
+        173,
+        174,
+        175,
+        176,
+        177,
+        178,
+        179,
+        180,
+        181,
+        182,
+        183,
+        184,
+        185,
+        186,
+        187,
+        188,
+        189,
+        190,
+        191,
+        192,
+        193,
+        194,
+        195,
+        196,
+        197,
+        198,
+        199,
+        200,
+        201,
+        202,
+        203,
+        204,
+        205,
+        206,
+        207,
+        208,
+        209,
+        210,
+        211,
+        212,
+        213,
+        214,
+        215,
+        216,
+        217,
+        218,
+        219,
+        220,
+        221,
+        222,
+        223,
+        224,
+        225,
+        226,
+        227,
+        228,
+        229,
+        230,
+        231,
+        232,
+        233,
+        234,
+        235,
+        236,
+        237,
+        238,
+        239,
+        240,
+        241,
+        242,
+        243,
+        244,
+        245,
+        246
+      ]
+    },
+    "document": {
+      "available_chunks": 3713,
+      "considered_chunks": 3713,
+      "considered_source_types": {
+        "document": 3713
+      },
+      "represented_document_ids": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        49,
+        50,
+        51,
+        52,
+        53,
+        54,
+        55,
+        56,
+        57,
+        58,
+        59,
+        60,
+        61,
+        62,
+        63,
+        64,
+        65,
+        66,
+        67,
+        68,
+        69,
+        70,
+        71,
+        72,
+        73,
+        74,
+        75,
+        76,
+        77,
+        78,
+        79,
+        80,
+        81,
+        82,
+        83,
+        84,
+        85,
+        86,
+        87,
+        88,
+        89,
+        90,
+        91,
+        92,
+        93,
+        94,
+        95,
+        96,
+        97,
+        98,
+        99,
+        100,
+        101,
+        102,
+        103,
+        104,
+        105,
+        106,
+        107,
+        108,
+        109,
+        110,
+        111,
+        112,
+        113,
+        114,
+        115,
+        116,
+        117,
+        118,
+        119,
+        120,
+        121,
+        122,
+        123,
+        124,
+        125,
+        126,
+        127,
+        128,
+        129,
+        130,
+        131,
+        132,
+        133,
+        134,
+        135,
+        136,
+        137,
+        138,
+        139,
+        140,
+        141,
+        142,
+        143,
+        144,
+        145,
+        146,
+        147,
+        148,
+        149,
+        150,
+        151,
+        152,
+        153,
+        154,
+        155,
+        156,
+        157,
+        158,
+        159,
+        160,
+        161,
+        162,
+        163,
+        164,
+        165,
+        166,
+        167,
+        168,
+        169,
+        170,
+        171,
+        172,
+        173,
+        174,
+        175,
+        176,
+        177,
+        178,
+        179,
+        180,
+        181,
+        182,
+        183,
+        184,
+        185,
+        186,
+        187,
+        188,
+        189,
+        190,
+        191,
+        192,
+        193,
+        194,
+        195,
+        196,
+        197,
+        198,
+        199,
+        200,
+        201,
+        202,
+        203,
+        204,
+        205,
+        206,
+        207,
+        208,
+        209,
+        210,
+        211,
+        212,
+        213,
+        214,
+        215,
+        216,
+        217,
+        218,
+        219,
+        220,
+        221,
+        222,
+        223,
+        224,
+        225,
+        226,
+        227,
+        228,
+        229,
+        230,
+        231,
+        232,
+        233,
+        234,
+        235,
+        236,
+        237,
+        238,
+        239,
+        240,
+        241,
+        242,
+        243,
+        244,
+        245,
+        246
+      ]
+    },
+    "legal_clause": {
+      "available_chunks": 393,
+      "considered_chunks": 393,
+      "considered_source_types": {
+        "legal_clause": 393
+      },
+      "represented_document_ids": []
+    }
+  },
+  "queries": [
+    {
+      "query": "SQL injection",
+      "category": "document",
+      "scope": "unfiltered",
+      "expected": {
+        "titles": [
+          "Testing for SQL Injection",
+          "SQL Injection Prevention Cheat Sheet"
+        ]
+      },
+      "hit_at_5": true,
+      "reciprocal_rank": 0.3333333333333333,
+      "latency_ms": 2009.88,
+      "results": [
+        {
+          "id": 7,
+          "object_id": 62,
+          "source_type": "challenge",
+          "title": "SQL Injection Basics",
+          "source_title": "",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "SQL Injection Basics A login form concatenates user input into a SQL WHERE clause. Analyze why parameterized queries are required and identify the injection point. Focus on quote closure, boolean conditions, and SQL comments. Web easy",
+          "source_url": ""
+        },
+        {
+          "id": 20,
+          "object_id": 64,
+          "source_type": "challenge",
+          "title": "Blind SQL Injection Timing",
+          "source_title": "",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "Blind SQL Injection Timing The target does not show database errors, but response latency changes when SQL predicates are true. Use timing behavior to reason about blind SQL injection and defensive logging. Compare true and false predicates with database-specific sleep functions.",
+          "source_url": ""
+        },
+        {
+          "id": 1319,
+          "object_id": 54,
+          "source_type": "document",
+          "title": "Testing for SQL Injection",
+          "source_title": "Testing for SQL Injection",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "# Testing for SQL Injection |ID | |------------| |WSTG-INPV-05| ## Summary SQL injection testing checks if it is possible to inject data into the application so that it executes a user-controlled SQL query in the database. Testers find a SQL injection vulnerability if the applica",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/07-Input_Validation_Testing/05-Testing_for_SQL_Injection.md"
+        },
+        {
+          "id": 1320,
+          "object_id": 54,
+          "source_type": "document",
+          "title": "Testing for SQL Injection",
+          "source_title": "Testing for SQL Injection",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "S file system or write files into the file system, and, in some cases, issue commands to the operating system. SQL injection attacks are a type of injection attack, in which SQL commands are injected into data-plane input in order to affect the execution of predefined SQL command",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/07-Input_Validation_Testing/05-Testing_for_SQL_Injection.md"
+        },
+        {
+          "id": 3731,
+          "object_id": 208,
+          "source_type": "document",
+          "title": "SQL Injection Prevention Cheat Sheet",
+          "source_title": "SQL Injection Prevention Cheat Sheet",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "# SQL Injection Prevention Cheat Sheet ## Introduction A SQL injection attack occurs when untrusted data (usually strings) becomes part of a query's SQL syntax, modifying the logic of the SQL request. The malicious data can come from various sources such as: - an HTTP request (fo",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.md"
+        }
+      ]
+    },
+    {
+      "query": "SQL injection",
+      "category": "document",
+      "scope": "document",
+      "expected": {
+        "titles": [
+          "Testing for SQL Injection",
+          "SQL Injection Prevention Cheat Sheet"
+        ]
+      },
+      "hit_at_5": true,
+      "reciprocal_rank": 1.0,
+      "latency_ms": 211.99,
+      "results": [
+        {
+          "id": 1319,
+          "object_id": 54,
+          "source_type": "document",
+          "title": "Testing for SQL Injection",
+          "source_title": "Testing for SQL Injection",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "# Testing for SQL Injection |ID | |------------| |WSTG-INPV-05| ## Summary SQL injection testing checks if it is possible to inject data into the application so that it executes a user-controlled SQL query in the database. Testers find a SQL injection vulnerability if the applica",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/07-Input_Validation_Testing/05-Testing_for_SQL_Injection.md"
+        },
+        {
+          "id": 1320,
+          "object_id": 54,
+          "source_type": "document",
+          "title": "Testing for SQL Injection",
+          "source_title": "Testing for SQL Injection",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "S file system or write files into the file system, and, in some cases, issue commands to the operating system. SQL injection attacks are a type of injection attack, in which SQL commands are injected into data-plane input in order to affect the execution of predefined SQL command",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/07-Input_Validation_Testing/05-Testing_for_SQL_Injection.md"
+        },
+        {
+          "id": 3731,
+          "object_id": 208,
+          "source_type": "document",
+          "title": "SQL Injection Prevention Cheat Sheet",
+          "source_title": "SQL Injection Prevention Cheat Sheet",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "# SQL Injection Prevention Cheat Sheet ## Introduction A SQL injection attack occurs when untrusted data (usually strings) becomes part of a query's SQL syntax, modifying the logic of the SQL request. The malicious data can come from various sources such as: - an HTTP request (fo",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.md"
+        },
+        {
+          "id": 1425,
+          "object_id": 60,
+          "source_type": "document",
+          "title": "Testing for NoSQL Injection",
+          "source_title": "Testing for NoSQL Injection",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "# Testing for NoSQL Injection ## Summary NoSQL databases provide looser consistency restrictions than traditional SQL databases. By requiring fewer relational constraints and consistency checks, NoSQL databases often offer performance and scaling benefits. Yet these databases are",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/07-Input_Validation_Testing/05.6-Testing_for_NoSQL_Injection.md"
+        },
+        {
+          "id": 1427,
+          "object_id": 60,
+          "source_type": "document",
+          "title": "Testing for NoSQL Injection",
+          "source_title": "Testing for NoSQL Injection",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "SQL injection attacks will execute where the attack string is parsed, evaluated, or concatenated into a NoSQL API call. Additional timing attacks may be relevant to the lack of concurrency checks within a NoSQL database. These are not covered under injection testing. At the time ",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/07-Input_Validation_Testing/05.6-Testing_for_NoSQL_Injection.md"
+        }
+      ]
+    },
+    {
+      "query": "SQL Injection Prevention Cheat Sheet",
+      "category": "document",
+      "scope": "unfiltered",
+      "expected": {
+        "titles": [
+          "SQL Injection Prevention Cheat Sheet"
+        ]
+      },
+      "hit_at_5": true,
+      "reciprocal_rank": 1.0,
+      "latency_ms": 281.43,
+      "results": [
+        {
+          "id": 3731,
+          "object_id": 208,
+          "source_type": "document",
+          "title": "SQL Injection Prevention Cheat Sheet",
+          "source_title": "SQL Injection Prevention Cheat Sheet",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "# SQL Injection Prevention Cheat Sheet ## Introduction A SQL injection attack occurs when untrusted data (usually strings) becomes part of a query's SQL syntax, modifying the logic of the SQL request. The malicious data can come from various sources such as: - an HTTP request (fo",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.md"
+        },
+        {
+          "id": 3732,
+          "object_id": 208,
+          "source_type": "document",
+          "title": "SQL Injection Prevention Cheat Sheet",
+          "source_title": "SQL Injection Prevention Cheat Sheet",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "values; - use fixed application-owned choices for dynamic table names, column names, sort order (`ASC`, `DESC`), etc. These controls apply regardless of whether data comes from an HTTP request, another service, or previously stored data. A related class of vulnerability affects o",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.md"
+        },
+        {
+          "id": 2696,
+          "object_id": 155,
+          "source_type": "document",
+          "title": "FastAPI Security Cheat Sheet",
+          "source_title": "FastAPI Security Cheat Sheet",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "bind parameters. Never build raw SQL queries using string formatting with user input. See the [SQL Injection Prevention Cheat Sheet](https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.md). ## Cr",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/FastAPI_Security_Cheat_Sheet.md"
+        },
+        {
+          "id": 3593,
+          "object_id": 202,
+          "source_type": "document",
+          "title": "Query Parameterization Cheat Sheet",
+          "source_title": "Query Parameterization Cheat Sheet",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "# Query Parameterization Cheat Sheet ## Introduction [SQL Injection](https://owasp.org/www-community/attacks/SQL_Injection) is one of the most dangerous web vulnerabilities. As of the [OWASP Top 10:2025](https://owasp.org/Top10/2025/A05_2025-Injection/), it is categorized under A",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/Query_Parameterization_Cheat_Sheet.md"
+        },
+        {
+          "id": 77,
+          "object_id": 10,
+          "source_type": "resource",
+          "title": "SQL注入攻击与防御 - 张老师",
+          "source_title": "",
+          "article_label": "",
+          "score": 0.965065,
+          "retrieval": "lexical",
+          "excerpt": "SQL注入攻击与防御 - 张老师 这是一份关于SQL注入攻击与防御的学习资料，由浙江大学 网络安全的张老师上传。 密码学 密码学,学习资料,CTF video",
+          "source_url": ""
+        }
+      ]
+    },
+    {
+      "query": "SQL Injection Prevention Cheat Sheet",
+      "category": "document",
+      "scope": "document",
+      "expected": {
+        "titles": [
+          "SQL Injection Prevention Cheat Sheet"
+        ]
+      },
+      "hit_at_5": true,
+      "reciprocal_rank": 1.0,
+      "latency_ms": 204.4,
+      "results": [
+        {
+          "id": 3731,
+          "object_id": 208,
+          "source_type": "document",
+          "title": "SQL Injection Prevention Cheat Sheet",
+          "source_title": "SQL Injection Prevention Cheat Sheet",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "# SQL Injection Prevention Cheat Sheet ## Introduction A SQL injection attack occurs when untrusted data (usually strings) becomes part of a query's SQL syntax, modifying the logic of the SQL request. The malicious data can come from various sources such as: - an HTTP request (fo",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.md"
+        },
+        {
+          "id": 3732,
+          "object_id": 208,
+          "source_type": "document",
+          "title": "SQL Injection Prevention Cheat Sheet",
+          "source_title": "SQL Injection Prevention Cheat Sheet",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "values; - use fixed application-owned choices for dynamic table names, column names, sort order (`ASC`, `DESC`), etc. These controls apply regardless of whether data comes from an HTTP request, another service, or previously stored data. A related class of vulnerability affects o",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.md"
+        },
+        {
+          "id": 2696,
+          "object_id": 155,
+          "source_type": "document",
+          "title": "FastAPI Security Cheat Sheet",
+          "source_title": "FastAPI Security Cheat Sheet",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "bind parameters. Never build raw SQL queries using string formatting with user input. See the [SQL Injection Prevention Cheat Sheet](https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.md). ## Cr",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/FastAPI_Security_Cheat_Sheet.md"
+        },
+        {
+          "id": 3593,
+          "object_id": 202,
+          "source_type": "document",
+          "title": "Query Parameterization Cheat Sheet",
+          "source_title": "Query Parameterization Cheat Sheet",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "# Query Parameterization Cheat Sheet ## Introduction [SQL Injection](https://owasp.org/www-community/attacks/SQL_Injection) is one of the most dangerous web vulnerabilities. As of the [OWASP Top 10:2025](https://owasp.org/Top10/2025/A05_2025-Injection/), it is categorized under A",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/Query_Parameterization_Cheat_Sheet.md"
+        },
+        {
+          "id": 1413,
+          "object_id": 58,
+          "source_type": "document",
+          "title": "Testing PostgreSQL",
+          "source_title": "Testing PostgreSQL",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "function: `/store.php?id=1; CREATE FUNCTION proxyshell(text) RETURNS text AS 'open(FD,\"$_[0] |\");return join(\"\",<FD>);' LANGUAGE plperlu;` - Run an OS Command: `/store.php?id=1 UNION ALL SELECT NULL, proxyshell('whoami'), NULL OFFSET 1;--` ## References - [Testing for SQL Injecti",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/07-Input_Validation_Testing/05.4-Testing_PostgreSQL.md"
+        }
+      ]
+    },
+    {
+      "query": "Cross Site Scripting Prevention Cheat Sheet",
+      "category": "document",
+      "scope": "unfiltered",
+      "expected": {
+        "titles": [
+          "Cross Site Scripting Prevention Cheat Sheet"
+        ]
+      },
+      "hit_at_5": true,
+      "reciprocal_rank": 1.0,
+      "latency_ms": 234.72,
+      "results": [
+        {
+          "id": 2416,
+          "object_id": 140,
+          "source_type": "document",
+          "title": "Cross Site Scripting Prevention Cheat Sheet",
+          "source_title": "Cross Site Scripting Prevention Cheat Sheet",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "# Cross Site Scripting Prevention Cheat Sheet ## Introduction This cheat sheet helps developers prevent XSS vulnerabilities. Cross-Site Scripting (XSS) is a misnomer. Originally this term was derived from early versions of the attack that were primarily focused on stealing data c",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/Cross_Site_Scripting_Prevention_Cheat_Sheet.md"
+        },
+        {
+          "id": 2448,
+          "object_id": 140,
+          "source_type": "document",
+          "title": "Cross Site Scripting Prevention Cheat Sheet",
+          "source_title": "Cross Site Scripting Prevention Cheat Sheet",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "(https://developer.mozilla.org/en-US/docs/Web/API/Trusted_Types_API)",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/Cross_Site_Scripting_Prevention_Cheat_Sheet.md"
+        },
+        {
+          "id": 2921,
+          "object_id": 170,
+          "source_type": "document",
+          "title": "JavaScript and TypeScript Security Cheat Sheet",
+          "source_title": "JavaScript and TypeScript Security Cheat Sheet",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "e028b9d7eb853872082d6d3382/cheatsheets/Nodejs_Security_Cheat_Sheet.md) - backend and runtime guidance. - [Cross Site Scripting Prevention Cheat Sheet](https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/Cross_Site_Scripting_Preventi",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/JavaScript_and_TypeScript_Security_Cheat_Sheet.md"
+        },
+        {
+          "id": 4302,
+          "object_id": 234,
+          "source_type": "document",
+          "title": "WebSocket Security Cheat Sheet",
+          "source_title": "WebSocket Security Cheat Sheet",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "atsheets/Input_Validation_Cheat_Sheet.md), [Cross Site Scripting Prevention Cheat Sheet](https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/Cross_Site_Scripting_Prevention_Cheat_Sheet.md), and [SQL Injection Prevention Cheat Sheet]",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/WebSocket_Security_Cheat_Sheet.md"
+        },
+        {
+          "id": 4360,
+          "object_id": 238,
+          "source_type": "document",
+          "title": "Webhook Security Cheat Sheet",
+          "source_title": "Webhook Security Cheat Sheet",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "ed as HTML ([Cross Site Scripting Prevention Cheat Sheet](https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/Cross_Site_Scripting_Prevention_Cheat_Sheet.md)). ### HTTP Method Restriction - Accept `POST` only and answer every other ",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/Webhook_Security_Cheat_Sheet.md"
+        }
+      ]
+    },
+    {
+      "query": "Cross Site Scripting Prevention Cheat Sheet",
+      "category": "document",
+      "scope": "document",
+      "expected": {
+        "titles": [
+          "Cross Site Scripting Prevention Cheat Sheet"
+        ]
+      },
+      "hit_at_5": true,
+      "reciprocal_rank": 1.0,
+      "latency_ms": 196.26,
+      "results": [
+        {
+          "id": 2416,
+          "object_id": 140,
+          "source_type": "document",
+          "title": "Cross Site Scripting Prevention Cheat Sheet",
+          "source_title": "Cross Site Scripting Prevention Cheat Sheet",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "# Cross Site Scripting Prevention Cheat Sheet ## Introduction This cheat sheet helps developers prevent XSS vulnerabilities. Cross-Site Scripting (XSS) is a misnomer. Originally this term was derived from early versions of the attack that were primarily focused on stealing data c",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/Cross_Site_Scripting_Prevention_Cheat_Sheet.md"
+        },
+        {
+          "id": 2448,
+          "object_id": 140,
+          "source_type": "document",
+          "title": "Cross Site Scripting Prevention Cheat Sheet",
+          "source_title": "Cross Site Scripting Prevention Cheat Sheet",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "(https://developer.mozilla.org/en-US/docs/Web/API/Trusted_Types_API)",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/Cross_Site_Scripting_Prevention_Cheat_Sheet.md"
+        },
+        {
+          "id": 2921,
+          "object_id": 170,
+          "source_type": "document",
+          "title": "JavaScript and TypeScript Security Cheat Sheet",
+          "source_title": "JavaScript and TypeScript Security Cheat Sheet",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "e028b9d7eb853872082d6d3382/cheatsheets/Nodejs_Security_Cheat_Sheet.md) - backend and runtime guidance. - [Cross Site Scripting Prevention Cheat Sheet](https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/Cross_Site_Scripting_Preventi",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/JavaScript_and_TypeScript_Security_Cheat_Sheet.md"
+        },
+        {
+          "id": 4302,
+          "object_id": 234,
+          "source_type": "document",
+          "title": "WebSocket Security Cheat Sheet",
+          "source_title": "WebSocket Security Cheat Sheet",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "atsheets/Input_Validation_Cheat_Sheet.md), [Cross Site Scripting Prevention Cheat Sheet](https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/Cross_Site_Scripting_Prevention_Cheat_Sheet.md), and [SQL Injection Prevention Cheat Sheet]",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/WebSocket_Security_Cheat_Sheet.md"
+        },
+        {
+          "id": 4360,
+          "object_id": 238,
+          "source_type": "document",
+          "title": "Webhook Security Cheat Sheet",
+          "source_title": "Webhook Security Cheat Sheet",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "ed as HTML ([Cross Site Scripting Prevention Cheat Sheet](https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/Cross_Site_Scripting_Prevention_Cheat_Sheet.md)). ### HTTP Method Restriction - Accept `POST` only and answer every other ",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/Webhook_Security_Cheat_Sheet.md"
+        }
+      ]
+    },
+    {
+      "query": "Cross-Site Request Forgery Prevention Cheat Sheet",
+      "category": "document",
+      "scope": "unfiltered",
+      "expected": {
+        "titles": [
+          "Cross-Site Request Forgery Prevention Cheat Sheet"
+        ]
+      },
+      "hit_at_5": true,
+      "reciprocal_rank": 1.0,
+      "latency_ms": 270.65,
+      "results": [
+        {
+          "id": 2361,
+          "object_id": 139,
+          "source_type": "document",
+          "title": "Cross-Site Request Forgery Prevention Cheat Sheet",
+          "source_title": "Cross-Site Request Forgery Prevention Cheat Sheet",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "# Cross-Site Request Forgery Prevention Cheat Sheet ## Introduction A [Cross-Site Request Forgery (CSRF)](https://owasp.org/www-project-web-security-testing-guide/v42/4-Web_Application_Security_Testing/06-Session_Management_Testing/05-Testing_for_Cross_Site_Request_Forgery) attac",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.md"
+        },
+        {
+          "id": 2415,
+          "object_id": 139,
+          "source_type": "document",
+          "title": "Cross-Site Request Forgery Prevention Cheat Sheet",
+          "source_title": "Cross-Site Request Forgery Prevention Cheat Sheet",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "_Cross_Site_Request_Forgery/)",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.md"
+        },
+        {
+          "id": 3168,
+          "object_id": 179,
+          "source_type": "document",
+          "title": "Application Logging Vocabulary Cheat Sheet",
+          "source_title": "Application Logging Vocabulary Cheat Sheet",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "tempted to access an object to which they are not authorized\", ... } ``` --- ### malicious_csrf:[userid|IP] **Description** When a state-changing request arrives without a valid anti-CSRF token (or with a mismatched token, Origin, or Referer) it may indicate a cross-site request ",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/Logging_Vocabulary_Cheat_Sheet.md"
+        },
+        {
+          "id": 3458,
+          "object_id": 193,
+          "source_type": "document",
+          "title": "NodeJS Security Cheat Sheet",
+          "source_title": "NodeJS Security Cheat Sheet",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "uilt-in CSRF defenses, validate anti-CSRF tokens on all state-changing requests that rely on those credentials using actively maintained middleware. Avoid deprecated legacy packages such as [csurf](https://www.npmjs.com/package/csurf), whose upstream repository is archived. Setti",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/Nodejs_Security_Cheat_Sheet.md"
+        },
+        {
+          "id": 3525,
+          "object_id": 197,
+          "source_type": "document",
+          "title": "Passkey Security Cheat Sheet",
+          "source_title": "Passkey Security Cheat Sheet",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "## Secure Passkey Registration ### Establish an Authorized Account Context Registration attaches a new authenticator to an account and must be treated as a sensitive account change. - For an existing account, require a recently authenticated session and reauthenticate the user be",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/Passkey_Security_Cheat_Sheet.md"
+        }
+      ]
+    },
+    {
+      "query": "Cross-Site Request Forgery Prevention Cheat Sheet",
+      "category": "document",
+      "scope": "document",
+      "expected": {
+        "titles": [
+          "Cross-Site Request Forgery Prevention Cheat Sheet"
+        ]
+      },
+      "hit_at_5": true,
+      "reciprocal_rank": 1.0,
+      "latency_ms": 205.56,
+      "results": [
+        {
+          "id": 2361,
+          "object_id": 139,
+          "source_type": "document",
+          "title": "Cross-Site Request Forgery Prevention Cheat Sheet",
+          "source_title": "Cross-Site Request Forgery Prevention Cheat Sheet",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "# Cross-Site Request Forgery Prevention Cheat Sheet ## Introduction A [Cross-Site Request Forgery (CSRF)](https://owasp.org/www-project-web-security-testing-guide/v42/4-Web_Application_Security_Testing/06-Session_Management_Testing/05-Testing_for_Cross_Site_Request_Forgery) attac",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.md"
+        },
+        {
+          "id": 2415,
+          "object_id": 139,
+          "source_type": "document",
+          "title": "Cross-Site Request Forgery Prevention Cheat Sheet",
+          "source_title": "Cross-Site Request Forgery Prevention Cheat Sheet",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "_Cross_Site_Request_Forgery/)",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.md"
+        },
+        {
+          "id": 3168,
+          "object_id": 179,
+          "source_type": "document",
+          "title": "Application Logging Vocabulary Cheat Sheet",
+          "source_title": "Application Logging Vocabulary Cheat Sheet",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "tempted to access an object to which they are not authorized\", ... } ``` --- ### malicious_csrf:[userid|IP] **Description** When a state-changing request arrives without a valid anti-CSRF token (or with a mismatched token, Origin, or Referer) it may indicate a cross-site request ",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/Logging_Vocabulary_Cheat_Sheet.md"
+        },
+        {
+          "id": 3458,
+          "object_id": 193,
+          "source_type": "document",
+          "title": "NodeJS Security Cheat Sheet",
+          "source_title": "NodeJS Security Cheat Sheet",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "uilt-in CSRF defenses, validate anti-CSRF tokens on all state-changing requests that rely on those credentials using actively maintained middleware. Avoid deprecated legacy packages such as [csurf](https://www.npmjs.com/package/csurf), whose upstream repository is archived. Setti",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/Nodejs_Security_Cheat_Sheet.md"
+        },
+        {
+          "id": 3525,
+          "object_id": 197,
+          "source_type": "document",
+          "title": "Passkey Security Cheat Sheet",
+          "source_title": "Passkey Security Cheat Sheet",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "## Secure Passkey Registration ### Establish an Authorized Account Context Registration attaches a new authenticator to an account and must be treated as a sensitive account change. - For an existing account, require a recently authenticated session and reauthenticate the user be",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/Passkey_Security_Cheat_Sheet.md"
+        }
+      ]
+    },
+    {
+      "query": "Cryptographic Storage Cheat Sheet",
+      "category": "document",
+      "scope": "unfiltered",
+      "expected": {
+        "titles": [
+          "Cryptographic Storage Cheat Sheet"
+        ]
+      },
+      "hit_at_5": true,
+      "reciprocal_rank": 1.0,
+      "latency_ms": 227.75,
+      "results": [
+        {
+          "id": 2449,
+          "object_id": 141,
+          "source_type": "document",
+          "title": "Cryptographic Storage Cheat Sheet",
+          "source_title": "Cryptographic Storage Cheat Sheet",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "# Cryptographic Storage Cheat Sheet ## Introduction This article provides a simple model to follow when implementing solutions to protect data at rest. Passwords should not be stored using reversible encryption - secure password hashing algorithms should be used instead. The [Pas",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/Cryptographic_Storage_Cheat_Sheet.md"
+        },
+        {
+          "id": 2458,
+          "object_id": 141,
+          "source_type": "document",
+          "title": "Cryptographic Storage Cheat Sheet",
+          "source_title": "Cryptographic Storage Cheat Sheet",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "sted. As such, if large amounts of non-security related randomness are needed, they may not be appropriate. The table below shows the recommended algorithms for each language, as well as insecure functions that should not be used. | Language | Unsafe Functions | Cryptographically",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/Cryptographic_Storage_Cheat_Sheet.md"
+        },
+        {
+          "id": 3545,
+          "object_id": 198,
+          "source_type": "document",
+          "title": "Password Storage Cheat Sheet",
+          "source_title": "Password Storage Cheat Sheet",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "sed to avoid the need to store passwords in an encrypted form. For further guidance on encryption, see the [Cryptographic Storage Cheat Sheet](https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/Cryptographic_Storage_Cheat_Sheet.md)",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/Password_Storage_Cheat_Sheet.md"
+        },
+        {
+          "id": 1596,
+          "object_id": 83,
+          "source_type": "document",
+          "title": "Testing for Weak Encryption",
+          "source_title": "Testing for Weak Encryption",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "zation_vector) - [Secure Coding - Generating Strong Random Numbers](https://www.securecoding.cert.org/confluence/display/java/MSC02-J.+Generate+strong+random+numbers) - [Optimal Asymmetric Encryption Padding](https://en.wikipedia.org/wiki/Optimal_asymmetric_encryption_padding) - ",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/09-Testing_for_Weak_Cryptography/04-Testing_for_Weak_Encryption.md"
+        },
+        {
+          "id": 3803,
+          "object_id": 209,
+          "source_type": "document",
+          "title": "Secrets Management Cheat Sheet",
+          "source_title": "Secrets Management Cheat Sheet",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "hat all necessary information is logged. ## 10 Related Cheat Sheets & further reading - [CI/CD Security Cheat Sheet](https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/CI_CD_Security_Cheat_Sheet.md) - [Key Management Cheat Sheet](h",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/Secrets_Management_Cheat_Sheet.md"
+        }
+      ]
+    },
+    {
+      "query": "Cryptographic Storage Cheat Sheet",
+      "category": "document",
+      "scope": "document",
+      "expected": {
+        "titles": [
+          "Cryptographic Storage Cheat Sheet"
+        ]
+      },
+      "hit_at_5": true,
+      "reciprocal_rank": 1.0,
+      "latency_ms": 248.5,
+      "results": [
+        {
+          "id": 2449,
+          "object_id": 141,
+          "source_type": "document",
+          "title": "Cryptographic Storage Cheat Sheet",
+          "source_title": "Cryptographic Storage Cheat Sheet",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "# Cryptographic Storage Cheat Sheet ## Introduction This article provides a simple model to follow when implementing solutions to protect data at rest. Passwords should not be stored using reversible encryption - secure password hashing algorithms should be used instead. The [Pas",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/Cryptographic_Storage_Cheat_Sheet.md"
+        },
+        {
+          "id": 2458,
+          "object_id": 141,
+          "source_type": "document",
+          "title": "Cryptographic Storage Cheat Sheet",
+          "source_title": "Cryptographic Storage Cheat Sheet",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "sted. As such, if large amounts of non-security related randomness are needed, they may not be appropriate. The table below shows the recommended algorithms for each language, as well as insecure functions that should not be used. | Language | Unsafe Functions | Cryptographically",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/Cryptographic_Storage_Cheat_Sheet.md"
+        },
+        {
+          "id": 3545,
+          "object_id": 198,
+          "source_type": "document",
+          "title": "Password Storage Cheat Sheet",
+          "source_title": "Password Storage Cheat Sheet",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "sed to avoid the need to store passwords in an encrypted form. For further guidance on encryption, see the [Cryptographic Storage Cheat Sheet](https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/Cryptographic_Storage_Cheat_Sheet.md)",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/Password_Storage_Cheat_Sheet.md"
+        },
+        {
+          "id": 1596,
+          "object_id": 83,
+          "source_type": "document",
+          "title": "Testing for Weak Encryption",
+          "source_title": "Testing for Weak Encryption",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "zation_vector) - [Secure Coding - Generating Strong Random Numbers](https://www.securecoding.cert.org/confluence/display/java/MSC02-J.+Generate+strong+random+numbers) - [Optimal Asymmetric Encryption Padding](https://en.wikipedia.org/wiki/Optimal_asymmetric_encryption_padding) - ",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/09-Testing_for_Weak_Cryptography/04-Testing_for_Weak_Encryption.md"
+        },
+        {
+          "id": 3803,
+          "object_id": 209,
+          "source_type": "document",
+          "title": "Secrets Management Cheat Sheet",
+          "source_title": "Secrets Management Cheat Sheet",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "hat all necessary information is logged. ## 10 Related Cheat Sheets & further reading - [CI/CD Security Cheat Sheet](https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/CI_CD_Security_Cheat_Sheet.md) - [Key Management Cheat Sheet](h",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/Secrets_Management_Cheat_Sheet.md"
+        }
+      ]
+    },
+    {
+      "query": "Authentication Cheat Sheet",
+      "category": "document",
+      "scope": "unfiltered",
+      "expected": {
+        "titles": [
+          "Authentication Cheat Sheet"
+        ]
+      },
+      "hit_at_5": true,
+      "reciprocal_rank": 1.0,
+      "latency_ms": 233.63,
+      "results": [
+        {
+          "id": 1960,
+          "object_id": 119,
+          "source_type": "document",
+          "title": "Authentication Cheat Sheet",
+          "source_title": "Authentication Cheat Sheet",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "# Authentication Cheat Sheet ## Introduction **Authentication** (**AuthN**) is the process of verifying that an individual, entity, or website is who or what it claims to be by determining the validity of one or more authenticators (like passwords, fingerprints, or security token",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/Authentication_Cheat_Sheet.md"
+        },
+        {
+          "id": 1982,
+          "object_id": 119,
+          "source_type": "document",
+          "title": "Authentication Cheat Sheet",
+          "source_title": "Authentication Cheat Sheet",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "For further guidance on defending against credential stuffing and password spraying, see the [Credential Stuffing Cheat Sheet](https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/Credential_Stuffing_Prevention_Cheat_Sheet.md). #### ",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/Authentication_Cheat_Sheet.md"
+        },
+        {
+          "id": 3317,
+          "object_id": 187,
+          "source_type": "document",
+          "title": "Multifactor Authentication Cheat Sheet",
+          "source_title": "Multifactor Authentication Cheat Sheet",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "ting them. The [Authentication Cheat Sheet](https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/Authentication_Cheat_Sheet.md#implement-proper-password-strength-controls) has guidance on how to implement a strong password policy, an",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/Multifactor_Authentication_Cheat_Sheet.md"
+        },
+        {
+          "id": 3304,
+          "object_id": 187,
+          "source_type": "document",
+          "title": "Multifactor Authentication Cheat Sheet",
+          "source_title": "Multifactor Authentication Cheat Sheet",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "# Multifactor Authentication Cheat Sheet ## Introduction Multifactor Authentication (MFA) requires evidence from at least two distinct authentication factors: something you know, something you have, and something you are. Location and other risk signals can inform authentication ",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/Multifactor_Authentication_Cheat_Sheet.md"
+        },
+        {
+          "id": 2006,
+          "object_id": 120,
+          "source_type": "document",
+          "title": "Authentication Patterns Cheat Sheet",
+          "source_title": "Authentication Patterns Cheat Sheet",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": ", and implements the authentication workflows, typically with username/password or API keys. All authentication logic and subject data storage live inside the service, in custom code or built-in libraries. If you have to maintain such a service, the credential handling must follo",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/Authentication_Patterns_Cheat_Sheet.md"
+        }
+      ]
+    },
+    {
+      "query": "Authentication Cheat Sheet",
+      "category": "document",
+      "scope": "document",
+      "expected": {
+        "titles": [
+          "Authentication Cheat Sheet"
+        ]
+      },
+      "hit_at_5": true,
+      "reciprocal_rank": 1.0,
+      "latency_ms": 203.09,
+      "results": [
+        {
+          "id": 1960,
+          "object_id": 119,
+          "source_type": "document",
+          "title": "Authentication Cheat Sheet",
+          "source_title": "Authentication Cheat Sheet",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "# Authentication Cheat Sheet ## Introduction **Authentication** (**AuthN**) is the process of verifying that an individual, entity, or website is who or what it claims to be by determining the validity of one or more authenticators (like passwords, fingerprints, or security token",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/Authentication_Cheat_Sheet.md"
+        },
+        {
+          "id": 1982,
+          "object_id": 119,
+          "source_type": "document",
+          "title": "Authentication Cheat Sheet",
+          "source_title": "Authentication Cheat Sheet",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "For further guidance on defending against credential stuffing and password spraying, see the [Credential Stuffing Cheat Sheet](https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/Credential_Stuffing_Prevention_Cheat_Sheet.md). #### ",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/Authentication_Cheat_Sheet.md"
+        },
+        {
+          "id": 3317,
+          "object_id": 187,
+          "source_type": "document",
+          "title": "Multifactor Authentication Cheat Sheet",
+          "source_title": "Multifactor Authentication Cheat Sheet",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "ting them. The [Authentication Cheat Sheet](https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/Authentication_Cheat_Sheet.md#implement-proper-password-strength-controls) has guidance on how to implement a strong password policy, an",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/Multifactor_Authentication_Cheat_Sheet.md"
+        },
+        {
+          "id": 3304,
+          "object_id": 187,
+          "source_type": "document",
+          "title": "Multifactor Authentication Cheat Sheet",
+          "source_title": "Multifactor Authentication Cheat Sheet",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "# Multifactor Authentication Cheat Sheet ## Introduction Multifactor Authentication (MFA) requires evidence from at least two distinct authentication factors: something you know, something you have, and something you are. Location and other risk signals can inform authentication ",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/Multifactor_Authentication_Cheat_Sheet.md"
+        },
+        {
+          "id": 2006,
+          "object_id": 120,
+          "source_type": "document",
+          "title": "Authentication Patterns Cheat Sheet",
+          "source_title": "Authentication Patterns Cheat Sheet",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": ", and implements the authentication workflows, typically with username/password or API keys. All authentication logic and subject data storage live inside the service, in custom code or built-in libraries. If you have to maintain such a service, the credential handling must follo",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/Authentication_Patterns_Cheat_Sheet.md"
+        }
+      ]
+    },
+    {
+      "query": "Server-Side Request Forgery Prevention Cheat Sheet",
+      "category": "document",
+      "scope": "unfiltered",
+      "expected": {
+        "titles": [
+          "Server-Side Request Forgery Prevention Cheat Sheet"
+        ]
+      },
+      "hit_at_5": true,
+      "reciprocal_rank": 1.0,
+      "latency_ms": 237.81,
+      "results": [
+        {
+          "id": 3917,
+          "object_id": 216,
+          "source_type": "document",
+          "title": "Server-Side Request Forgery Prevention Cheat Sheet",
+          "source_title": "Server-Side Request Forgery Prevention Cheat Sheet",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "# Server-Side Request Forgery Prevention Cheat Sheet ## Introduction The objective of the cheat sheet is to provide advice regarding the protection against [Server Side Request Forgery](https://www.acunetix.com/blog/articles/server-side-request-forgery-vulnerability/) (SSRF) atta",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/Server_Side_Request_Forgery_Prevention_Cheat_Sheet.md"
+        },
+        {
+          "id": 3949,
+          "object_id": 216,
+          "source_type": "document",
+          "title": "Server-Side Request Forgery Prevention Cheat Sheet",
+          "source_title": "Server-Side Request Forgery Prevention Cheat Sheet",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "d3382/assets/Server_Side_Request_Forgery_Prevention_Cheat_Sheet_Case1_NetworkLayer_PreventFlow.xml)\" schema (printscreen are used to capture PNG image inserted into this cheat sheet). ## References - [CWE-918: Server-Side Request Forgery (SSRF)](https://cwe.mitre.org/data/definit",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/Server_Side_Request_Forgery_Prevention_Cheat_Sheet.md"
+        },
+        {
+          "id": 4356,
+          "object_id": 238,
+          "source_type": "document",
+          "title": "Webhook Security Cheat Sheet",
+          "source_title": "Webhook Security Cheat Sheet",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "r delivery workers as a proxy into your network. Webhook senders are [especially exposed](https://github.com/standard-webhooks/standard-webhooks/blob/main/spec/standard-webhooks.md#server-side-request-forgery-ssrf) because accepting arbitrary URLs is the feature. - Allowlist the ",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/Webhook_Security_Cheat_Sheet.md"
+        },
+        {
+          "id": 1557,
+          "object_id": 78,
+          "source_type": "document",
+          "title": "Testing for Server-Side Request Forgery",
+          "source_title": "Testing for Server-Side Request Forgery",
+          "article_label": "",
+          "score": 0.982875,
+          "retrieval": "lexical",
+          "excerpt": "ty-703c5706eefb) - [Abusing the AWS Metadata Service Using SSRF Vulnerabilities](https://blog.christophetd.fr/abusing-aws-metadata-service-using-ssrf-vulnerabilities/) - [OWASP Server Side Request Forgery Prevention Cheatsheet](https://cheatsheetseries.owasp.org/cheatsheets/Serve",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/07-Input_Validation_Testing/19-Testing_for_Server-Side_Request_Forgery.md"
+        },
+        {
+          "id": 1556,
+          "object_id": 78,
+          "source_type": "document",
+          "title": "Testing for Server-Side Request Forgery",
+          "source_title": "Testing for Server-Side Request Forgery",
+          "article_label": "",
+          "score": 0.982875,
+          "retrieval": "lexical",
+          "excerpt": "c3986#section-7.6). - Using the `@` character to separate between the userinfo and the host: `https://expected-domain@attacker-domain` - URL fragmentation with the `#` character: `https://attacker-domain#expected-domain` - URL encoding - Fuzzing - Combinations of all of the above",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/07-Input_Validation_Testing/19-Testing_for_Server-Side_Request_Forgery.md"
+        }
+      ]
+    },
+    {
+      "query": "Server-Side Request Forgery Prevention Cheat Sheet",
+      "category": "document",
+      "scope": "document",
+      "expected": {
+        "titles": [
+          "Server-Side Request Forgery Prevention Cheat Sheet"
+        ]
+      },
+      "hit_at_5": true,
+      "reciprocal_rank": 1.0,
+      "latency_ms": 244.14,
+      "results": [
+        {
+          "id": 3917,
+          "object_id": 216,
+          "source_type": "document",
+          "title": "Server-Side Request Forgery Prevention Cheat Sheet",
+          "source_title": "Server-Side Request Forgery Prevention Cheat Sheet",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "# Server-Side Request Forgery Prevention Cheat Sheet ## Introduction The objective of the cheat sheet is to provide advice regarding the protection against [Server Side Request Forgery](https://www.acunetix.com/blog/articles/server-side-request-forgery-vulnerability/) (SSRF) atta",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/Server_Side_Request_Forgery_Prevention_Cheat_Sheet.md"
+        },
+        {
+          "id": 3949,
+          "object_id": 216,
+          "source_type": "document",
+          "title": "Server-Side Request Forgery Prevention Cheat Sheet",
+          "source_title": "Server-Side Request Forgery Prevention Cheat Sheet",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "d3382/assets/Server_Side_Request_Forgery_Prevention_Cheat_Sheet_Case1_NetworkLayer_PreventFlow.xml)\" schema (printscreen are used to capture PNG image inserted into this cheat sheet). ## References - [CWE-918: Server-Side Request Forgery (SSRF)](https://cwe.mitre.org/data/definit",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/Server_Side_Request_Forgery_Prevention_Cheat_Sheet.md"
+        },
+        {
+          "id": 4356,
+          "object_id": 238,
+          "source_type": "document",
+          "title": "Webhook Security Cheat Sheet",
+          "source_title": "Webhook Security Cheat Sheet",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "r delivery workers as a proxy into your network. Webhook senders are [especially exposed](https://github.com/standard-webhooks/standard-webhooks/blob/main/spec/standard-webhooks.md#server-side-request-forgery-ssrf) because accepting arbitrary URLs is the feature. - Allowlist the ",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/Webhook_Security_Cheat_Sheet.md"
+        },
+        {
+          "id": 1557,
+          "object_id": 78,
+          "source_type": "document",
+          "title": "Testing for Server-Side Request Forgery",
+          "source_title": "Testing for Server-Side Request Forgery",
+          "article_label": "",
+          "score": 0.987458,
+          "retrieval": "lexical",
+          "excerpt": "ty-703c5706eefb) - [Abusing the AWS Metadata Service Using SSRF Vulnerabilities](https://blog.christophetd.fr/abusing-aws-metadata-service-using-ssrf-vulnerabilities/) - [OWASP Server Side Request Forgery Prevention Cheatsheet](https://cheatsheetseries.owasp.org/cheatsheets/Serve",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/07-Input_Validation_Testing/19-Testing_for_Server-Side_Request_Forgery.md"
+        },
+        {
+          "id": 1556,
+          "object_id": 78,
+          "source_type": "document",
+          "title": "Testing for Server-Side Request Forgery",
+          "source_title": "Testing for Server-Side Request Forgery",
+          "article_label": "",
+          "score": 0.987458,
+          "retrieval": "lexical",
+          "excerpt": "c3986#section-7.6). - Using the `@` character to separate between the userinfo and the host: `https://expected-domain@attacker-domain` - URL fragmentation with the `#` character: `https://attacker-domain#expected-domain` - URL encoding - Fuzzing - Combinations of all of the above",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/07-Input_Validation_Testing/19-Testing_for_Server-Side_Request_Forgery.md"
+        }
+      ]
+    },
+    {
+      "query": "XML External Entity Prevention Cheat Sheet",
+      "category": "document",
+      "scope": "unfiltered",
+      "expected": {
+        "titles": [
+          "XML External Entity Prevention Cheat Sheet"
+        ]
+      },
+      "hit_at_5": true,
+      "reciprocal_rank": 1.0,
+      "latency_ms": 239.88,
+      "results": [
+        {
+          "id": 4376,
+          "object_id": 240,
+          "source_type": "document",
+          "title": "XML External Entity Prevention Cheat Sheet",
+          "source_title": "XML External Entity Prevention Cheat Sheet",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "# XML External Entity Prevention Cheat Sheet ## Introduction XML External Entity (XXE) injection occurs when an XML processor resolves an external entity from untrusted input. This can expose local files, cause server-side request forgery (SSRF), or exhaust resources. [CWE-611](h",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/XML_External_Entity_Prevention_Cheat_Sheet.md"
+        },
+        {
+          "id": 4408,
+          "object_id": 240,
+          "source_type": "document",
+          "title": "XML External Entity Prevention Cheat Sheet",
+          "source_title": "XML External Entity Prevention Cheat Sheet",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "axparserfactory-disallow-doctype-decl-missing](https://semgrep.dev/r/java.lang.security.audit.xxe.saxparserfactory-disallow-doctype-decl-missing.saxparserfactory-disallow-doctype-decl-missing). #### XMLInputFactory Identifying XXE vulnerability in the `javax.xml.stream.XMLInputFa",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/XML_External_Entity_Prevention_Cheat_Sheet.md"
+        },
+        {
+          "id": 3853,
+          "object_id": 212,
+          "source_type": "document",
+          "title": "Secure Code Review Cheat Sheet",
+          "source_title": "Secure Code Review Cheat Sheet",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "XML parsing configurations and external entity processing. For more information, see [XML External Entity Prevention Cheat Sheet](https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/XML_External_Entity_Prevention_Cheat_Sheet.md). ##",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/Secure_Code_Review_Cheat_Sheet.md"
+        },
+        {
+          "id": 4443,
+          "object_id": 242,
+          "source_type": "document",
+          "title": "XPath Injection Prevention Cheat Sheet",
+          "source_title": "XPath Injection Prevention Cheat Sheet",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "ow the [Authorization Cheat Sheet](https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/Authorization_Cheat_Sheet.md#validate-the-permissions-on-every-request) and the [principle of least privilege](https://owasp.org/www-community/Ac",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/XPath_Injection_Prevention_Cheat_Sheet.md"
+        },
+        {
+          "id": 4439,
+          "object_id": 241,
+          "source_type": "document",
+          "title": "XML Security Cheat Sheet",
+          "source_title": "XML Security Cheat Sheet",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "rity Guide](https://docs.oracle.com/en/java/javase/25/security/java-api-xml-processing-jaxp-security-guide.html)). Parser-specific settings are in the [XML External Entity Prevention Cheat Sheet](https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/XML_Security_Cheat_Sheet.md"
+        }
+      ]
+    },
+    {
+      "query": "XML External Entity Prevention Cheat Sheet",
+      "category": "document",
+      "scope": "document",
+      "expected": {
+        "titles": [
+          "XML External Entity Prevention Cheat Sheet"
+        ]
+      },
+      "hit_at_5": true,
+      "reciprocal_rank": 1.0,
+      "latency_ms": 217.84,
+      "results": [
+        {
+          "id": 4376,
+          "object_id": 240,
+          "source_type": "document",
+          "title": "XML External Entity Prevention Cheat Sheet",
+          "source_title": "XML External Entity Prevention Cheat Sheet",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "# XML External Entity Prevention Cheat Sheet ## Introduction XML External Entity (XXE) injection occurs when an XML processor resolves an external entity from untrusted input. This can expose local files, cause server-side request forgery (SSRF), or exhaust resources. [CWE-611](h",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/XML_External_Entity_Prevention_Cheat_Sheet.md"
+        },
+        {
+          "id": 4408,
+          "object_id": 240,
+          "source_type": "document",
+          "title": "XML External Entity Prevention Cheat Sheet",
+          "source_title": "XML External Entity Prevention Cheat Sheet",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "axparserfactory-disallow-doctype-decl-missing](https://semgrep.dev/r/java.lang.security.audit.xxe.saxparserfactory-disallow-doctype-decl-missing.saxparserfactory-disallow-doctype-decl-missing). #### XMLInputFactory Identifying XXE vulnerability in the `javax.xml.stream.XMLInputFa",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/XML_External_Entity_Prevention_Cheat_Sheet.md"
+        },
+        {
+          "id": 3853,
+          "object_id": 212,
+          "source_type": "document",
+          "title": "Secure Code Review Cheat Sheet",
+          "source_title": "Secure Code Review Cheat Sheet",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "XML parsing configurations and external entity processing. For more information, see [XML External Entity Prevention Cheat Sheet](https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/XML_External_Entity_Prevention_Cheat_Sheet.md). ##",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/Secure_Code_Review_Cheat_Sheet.md"
+        },
+        {
+          "id": 4443,
+          "object_id": 242,
+          "source_type": "document",
+          "title": "XPath Injection Prevention Cheat Sheet",
+          "source_title": "XPath Injection Prevention Cheat Sheet",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "ow the [Authorization Cheat Sheet](https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/Authorization_Cheat_Sheet.md#validate-the-permissions-on-every-request) and the [principle of least privilege](https://owasp.org/www-community/Ac",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/XPath_Injection_Prevention_Cheat_Sheet.md"
+        },
+        {
+          "id": 4439,
+          "object_id": 241,
+          "source_type": "document",
+          "title": "XML Security Cheat Sheet",
+          "source_title": "XML Security Cheat Sheet",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "rity Guide](https://docs.oracle.com/en/java/javase/25/security/java-api-xml-processing-jaxp-security-guide.html)). Parser-specific settings are in the [XML External Entity Prevention Cheat Sheet](https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/XML_Security_Cheat_Sheet.md"
+        }
+      ]
+    },
+    {
+      "query": "LLM Prompt Injection Prevention Cheat Sheet",
+      "category": "document",
+      "scope": "unfiltered",
+      "expected": {
+        "titles": [
+          "LLM Prompt Injection Prevention Cheat Sheet"
+        ]
+      },
+      "hit_at_5": true,
+      "reciprocal_rank": 1.0,
+      "latency_ms": 280.36,
+      "results": [
+        {
+          "id": 3040,
+          "object_id": 175,
+          "source_type": "document",
+          "title": "LLM Prompt Injection Prevention Cheat Sheet",
+          "source_title": "LLM Prompt Injection Prevention Cheat Sheet",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "# LLM Prompt Injection Prevention Cheat Sheet ## Introduction Prompt injection is a vulnerability in Large Language Model (LLM) applications that allows attackers to manipulate the model's behavior by injecting malicious input that changes its intended output. Unlike traditional ",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/LLM_Prompt_Injection_Prevention_Cheat_Sheet.md"
+        },
+        {
+          "id": 3074,
+          "object_id": 175,
+          "source_type": "document",
+          "title": "LLM Prompt Injection Prevention Cheat Sheet",
+          "source_title": "LLM Prompt Injection Prevention Cheat Sheet",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "te defenses accordingly - [ ] Review and analyze security logs regularly - [ ] Update system prompts based on discovered vulnerabilities - [ ] Stay informed about latest research and industry best practices - [ ] Test against remote injection vectors in external content ## Refere",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/LLM_Prompt_Injection_Prevention_Cheat_Sheet.md"
+        },
+        {
+          "id": 3871,
+          "object_id": 213,
+          "source_type": "document",
+          "title": "Secure Coding with AI Cheat Sheet",
+          "source_title": "Secure Coding with AI Cheat Sheet",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "p.org/cheatsheets/AI_Agent_Security_Cheat_Sheet.html). For prompt injection prevention, see the [LLM Prompt Injection Prevention Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/LLM_Prompt_Injection_Prevention_Cheat_Sheet.html). For MCP protocol security, see the [MCP ",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/Secure_Coding_with_AI_Cheat_Sheet.md"
+        },
+        {
+          "id": 1867,
+          "object_id": 115,
+          "source_type": "document",
+          "title": "AI Agent Security Cheat Sheet",
+          "source_title": "AI Agent Security Cheat Sheet",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/Transaction_Authorization_Cheat_Sheet.md). Fail closed for unknown tools or missing approval requirements. ### 2. Input Validation & Prompt Injection Defense - Treat all external data as untrusted (user messages, retrieved doc",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/AI_Agent_Security_Cheat_Sheet.md"
+        },
+        {
+          "id": 1863,
+          "object_id": 115,
+          "source_type": "document",
+          "title": "AI Agent Security Cheat Sheet",
+          "source_title": "AI Agent Security Cheat Sheet",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "# AI Agent Security Cheat Sheet ## Introduction AI agents are autonomous systems powered by Large Language Models (LLMs) that can reason, plan, use tools, maintain memory, and take actions to accomplish goals. This expanded capability introduces unique security risks beyond tradi",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/AI_Agent_Security_Cheat_Sheet.md"
+        }
+      ]
+    },
+    {
+      "query": "LLM Prompt Injection Prevention Cheat Sheet",
+      "category": "document",
+      "scope": "document",
+      "expected": {
+        "titles": [
+          "LLM Prompt Injection Prevention Cheat Sheet"
+        ]
+      },
+      "hit_at_5": true,
+      "reciprocal_rank": 1.0,
+      "latency_ms": 197.81,
+      "results": [
+        {
+          "id": 3040,
+          "object_id": 175,
+          "source_type": "document",
+          "title": "LLM Prompt Injection Prevention Cheat Sheet",
+          "source_title": "LLM Prompt Injection Prevention Cheat Sheet",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "# LLM Prompt Injection Prevention Cheat Sheet ## Introduction Prompt injection is a vulnerability in Large Language Model (LLM) applications that allows attackers to manipulate the model's behavior by injecting malicious input that changes its intended output. Unlike traditional ",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/LLM_Prompt_Injection_Prevention_Cheat_Sheet.md"
+        },
+        {
+          "id": 3074,
+          "object_id": 175,
+          "source_type": "document",
+          "title": "LLM Prompt Injection Prevention Cheat Sheet",
+          "source_title": "LLM Prompt Injection Prevention Cheat Sheet",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "te defenses accordingly - [ ] Review and analyze security logs regularly - [ ] Update system prompts based on discovered vulnerabilities - [ ] Stay informed about latest research and industry best practices - [ ] Test against remote injection vectors in external content ## Refere",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/LLM_Prompt_Injection_Prevention_Cheat_Sheet.md"
+        },
+        {
+          "id": 3871,
+          "object_id": 213,
+          "source_type": "document",
+          "title": "Secure Coding with AI Cheat Sheet",
+          "source_title": "Secure Coding with AI Cheat Sheet",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "p.org/cheatsheets/AI_Agent_Security_Cheat_Sheet.html). For prompt injection prevention, see the [LLM Prompt Injection Prevention Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/LLM_Prompt_Injection_Prevention_Cheat_Sheet.html). For MCP protocol security, see the [MCP ",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/Secure_Coding_with_AI_Cheat_Sheet.md"
+        },
+        {
+          "id": 1867,
+          "object_id": 115,
+          "source_type": "document",
+          "title": "AI Agent Security Cheat Sheet",
+          "source_title": "AI Agent Security Cheat Sheet",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/Transaction_Authorization_Cheat_Sheet.md). Fail closed for unknown tools or missing approval requirements. ### 2. Input Validation & Prompt Injection Defense - Treat all external data as untrusted (user messages, retrieved doc",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/AI_Agent_Security_Cheat_Sheet.md"
+        },
+        {
+          "id": 1863,
+          "object_id": 115,
+          "source_type": "document",
+          "title": "AI Agent Security Cheat Sheet",
+          "source_title": "AI Agent Security Cheat Sheet",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "# AI Agent Security Cheat Sheet ## Introduction AI agents are autonomous systems powered by Large Language Models (LLMs) that can reason, plan, use tools, maintain memory, and take actions to accomplish goals. This expanded capability introduces unique security risks beyond tradi",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/AI_Agent_Security_Cheat_Sheet.md"
+        }
+      ]
+    },
+    {
+      "query": "Zero Trust Architecture Cheat Sheet",
+      "category": "document",
+      "scope": "unfiltered",
+      "expected": {
+        "titles": [
+          "Zero Trust Architecture Cheat Sheet"
+        ]
+      },
+      "hit_at_5": true,
+      "reciprocal_rank": 1.0,
+      "latency_ms": 223.94,
+      "results": [
+        {
+          "id": 4511,
+          "object_id": 245,
+          "source_type": "document",
+          "title": "Zero Trust Architecture Cheat Sheet",
+          "source_title": "Zero Trust Architecture Cheat Sheet",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "# Zero Trust Architecture Cheat Sheet ## Introduction This cheat sheet will help you implement Zero Trust Architecture (ZTA) in your organization. Zero Trust means \"never trust, always verify\" - you don't trust anyone or anything by default, even if they're inside your network. T",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/Zero_Trust_Architecture_Cheat_Sheet.md"
+        },
+        {
+          "id": 4544,
+          "object_id": 245,
+          "source_type": "document",
+          "title": "Zero Trust Architecture Cheat Sheet",
+          "source_title": "Zero Trust Architecture Cheat Sheet",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "- Cilium Hubble - Falco or Tetragon (eBPF-based runtime signals) - OpenTelemetry (OTel) - Istio / Linkerd telemetry #### 4. Zero Trust Security Loop 1. **Policy-as-Code** → Policies are defined in code repositories and tested. 2. **Continuous Verification** → Every change and dep",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/Zero_Trust_Architecture_Cheat_Sheet.md"
+        },
+        {
+          "id": 3845,
+          "object_id": 211,
+          "source_type": "document",
+          "title": "Cloud Architecture Security Cheat Sheet",
+          "source_title": "Cloud Architecture Security Cheat Sheet",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "ase of serverless functions: - [AWS Lambda](https://docs.aws.amazon.com/lambda/latest/dg/lambda-security.html) - [GCP Cloud Functions](https://cloud.google.com/functions/docs/securing) - [Azure Functions](https://learn.microsoft.com/en-us/azure/architecture/serverless-quest/funct",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/Secure_Cloud_Architecture_Cheat_Sheet.md"
+        },
+        {
+          "id": 3830,
+          "object_id": 211,
+          "source_type": "document",
+          "title": "Cloud Architecture Security Cheat Sheet",
+          "source_title": "Cloud Architecture Security Cheat Sheet",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "//raw.githubusercontent.com/OWASP/CheatSheetSeries/9c87d0a0e9411de028b9d7eb853872082d6d3382/assets/Secure_Cloud_Architecture_Trust_Boundaries_4.png) By nature, this approach limits the pros and cons of both previous examples. This model will likely be used for most applications, ",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/Secure_Cloud_Architecture_Cheat_Sheet.md"
+        },
+        {
+          "id": 2016,
+          "object_id": 120,
+          "source_type": "document",
+          "title": "Authentication Patterns Cheat Sheet",
+          "source_title": "Authentication Patterns Cheat Sheet",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "orresponds to the gateway or portal placement of the policy enforcement point described in [NIST SP 800-207 (Zero Trust Architecture)](https://csrc.nist.gov/pubs/sp/800/207/final). ### Pros - **Improved consistency:** Authentication is performed uniformly at a single entry point,",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/Authentication_Patterns_Cheat_Sheet.md"
+        }
+      ]
+    },
+    {
+      "query": "Zero Trust Architecture Cheat Sheet",
+      "category": "document",
+      "scope": "document",
+      "expected": {
+        "titles": [
+          "Zero Trust Architecture Cheat Sheet"
+        ]
+      },
+      "hit_at_5": true,
+      "reciprocal_rank": 1.0,
+      "latency_ms": 201.89,
+      "results": [
+        {
+          "id": 4511,
+          "object_id": 245,
+          "source_type": "document",
+          "title": "Zero Trust Architecture Cheat Sheet",
+          "source_title": "Zero Trust Architecture Cheat Sheet",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "# Zero Trust Architecture Cheat Sheet ## Introduction This cheat sheet will help you implement Zero Trust Architecture (ZTA) in your organization. Zero Trust means \"never trust, always verify\" - you don't trust anyone or anything by default, even if they're inside your network. T",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/Zero_Trust_Architecture_Cheat_Sheet.md"
+        },
+        {
+          "id": 4544,
+          "object_id": 245,
+          "source_type": "document",
+          "title": "Zero Trust Architecture Cheat Sheet",
+          "source_title": "Zero Trust Architecture Cheat Sheet",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "- Cilium Hubble - Falco or Tetragon (eBPF-based runtime signals) - OpenTelemetry (OTel) - Istio / Linkerd telemetry #### 4. Zero Trust Security Loop 1. **Policy-as-Code** → Policies are defined in code repositories and tested. 2. **Continuous Verification** → Every change and dep",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/Zero_Trust_Architecture_Cheat_Sheet.md"
+        },
+        {
+          "id": 3845,
+          "object_id": 211,
+          "source_type": "document",
+          "title": "Cloud Architecture Security Cheat Sheet",
+          "source_title": "Cloud Architecture Security Cheat Sheet",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "ase of serverless functions: - [AWS Lambda](https://docs.aws.amazon.com/lambda/latest/dg/lambda-security.html) - [GCP Cloud Functions](https://cloud.google.com/functions/docs/securing) - [Azure Functions](https://learn.microsoft.com/en-us/azure/architecture/serverless-quest/funct",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/Secure_Cloud_Architecture_Cheat_Sheet.md"
+        },
+        {
+          "id": 3830,
+          "object_id": 211,
+          "source_type": "document",
+          "title": "Cloud Architecture Security Cheat Sheet",
+          "source_title": "Cloud Architecture Security Cheat Sheet",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "//raw.githubusercontent.com/OWASP/CheatSheetSeries/9c87d0a0e9411de028b9d7eb853872082d6d3382/assets/Secure_Cloud_Architecture_Trust_Boundaries_4.png) By nature, this approach limits the pros and cons of both previous examples. This model will likely be used for most applications, ",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/Secure_Cloud_Architecture_Cheat_Sheet.md"
+        },
+        {
+          "id": 2016,
+          "object_id": 120,
+          "source_type": "document",
+          "title": "Authentication Patterns Cheat Sheet",
+          "source_title": "Authentication Patterns Cheat Sheet",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "orresponds to the gateway or portal placement of the policy enforcement point described in [NIST SP 800-207 (Zero Trust Architecture)](https://csrc.nist.gov/pubs/sp/800/207/final). ### Pros - **Improved consistency:** Authentication is performed uniformly at a single entry point,",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/Authentication_Patterns_Cheat_Sheet.md"
+        }
+      ]
+    },
+    {
+      "query": "gRPC Security Cheat Sheet",
+      "category": "document",
+      "scope": "unfiltered",
+      "expected": {
+        "titles": [
+          "gRPC Security Cheat Sheet"
+        ]
+      },
+      "hit_at_5": true,
+      "reciprocal_rank": 1.0,
+      "latency_ms": 267.98,
+      "results": [
+        {
+          "id": 4545,
+          "object_id": 246,
+          "source_type": "document",
+          "title": "gRPC Security Cheat Sheet",
+          "source_title": "gRPC Security Cheat Sheet",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "# gRPC Security Cheat Sheet ## Introduction gRPC (gRPC Remote Procedure Call) is a high-performance, language-neutral RPC framework that uses HTTP/2 for transport and Protocol Buffers for serialization. While gRPC offers significant performance advantages for microservices and di",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/gRPC_Security_Cheat_Sheet.md"
+        },
+        {
+          "id": 4560,
+          "object_id": 246,
+          "source_type": "document",
+          "title": "gRPC Security Cheat Sheet",
+          "source_title": "gRPC Security Cheat Sheet",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "- Leverage ASP.NET Core's built-in security features - Use the `[Authorize]` attribute on service methods - Configure HTTPS properly in production environments ## References - [gRPC Authentication Documentation](https://grpc.io/docs/guides/auth/) - [gRPC: Deadlines](https://grpc.",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/gRPC_Security_Cheat_Sheet.md"
+        },
+        {
+          "id": 3241,
+          "object_id": 184,
+          "source_type": "document",
+          "title": "Microservices based Security Arch Doc Cheat Sheet",
+          "source_title": "Microservices based Security Arch Doc Cheat Sheet",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "| :--- | | Service name (ID) | Specify service name (ID) defined above | | Storage name (ID) | Specify storage name (ID) defined above | | Access type | Specify access type, e.g. \"Read\" or \"Read/Write\" | #### Identify \"service-to-service\" synchronous communications Collect inform",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/Microservices_based_Security_Arch_Doc_Cheat_Sheet.md"
+        }
+      ]
+    },
+    {
+      "query": "gRPC Security Cheat Sheet",
+      "category": "document",
+      "scope": "document",
+      "expected": {
+        "titles": [
+          "gRPC Security Cheat Sheet"
+        ]
+      },
+      "hit_at_5": true,
+      "reciprocal_rank": 1.0,
+      "latency_ms": 200.96,
+      "results": [
+        {
+          "id": 4545,
+          "object_id": 246,
+          "source_type": "document",
+          "title": "gRPC Security Cheat Sheet",
+          "source_title": "gRPC Security Cheat Sheet",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "# gRPC Security Cheat Sheet ## Introduction gRPC (gRPC Remote Procedure Call) is a high-performance, language-neutral RPC framework that uses HTTP/2 for transport and Protocol Buffers for serialization. While gRPC offers significant performance advantages for microservices and di",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/gRPC_Security_Cheat_Sheet.md"
+        },
+        {
+          "id": 4560,
+          "object_id": 246,
+          "source_type": "document",
+          "title": "gRPC Security Cheat Sheet",
+          "source_title": "gRPC Security Cheat Sheet",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "- Leverage ASP.NET Core's built-in security features - Use the `[Authorize]` attribute on service methods - Configure HTTPS properly in production environments ## References - [gRPC Authentication Documentation](https://grpc.io/docs/guides/auth/) - [gRPC: Deadlines](https://grpc.",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/gRPC_Security_Cheat_Sheet.md"
+        },
+        {
+          "id": 3241,
+          "object_id": 184,
+          "source_type": "document",
+          "title": "Microservices based Security Arch Doc Cheat Sheet",
+          "source_title": "Microservices based Security Arch Doc Cheat Sheet",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "| :--- | | Service name (ID) | Specify service name (ID) defined above | | Storage name (ID) | Specify storage name (ID) defined above | | Access type | Specify access type, e.g. \"Read\" or \"Read/Write\" | #### Identify \"service-to-service\" synchronous communications Collect inform",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/Microservices_based_Security_Arch_Doc_Cheat_Sheet.md"
+        }
+      ]
+    },
+    {
+      "query": "SQL注入防护",
+      "category": "document",
+      "scope": "unfiltered",
+      "expected": {
+        "titles": [
+          "Testing for SQL Injection",
+          "SQL Injection Prevention Cheat Sheet"
+        ]
+      },
+      "hit_at_5": true,
+      "reciprocal_rank": 0.3333333333333333,
+      "latency_ms": 220.09,
+      "results": [
+        {
+          "id": 51,
+          "object_id": 8,
+          "source_type": "article",
+          "title": "安全开发生命周期（SDL）",
+          "source_title": "",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "eplace(\"'\", \"\\'\") # URL编码 from urllib.parse import quote safe_url = quote(user_input, safe='') ``` ### 3. 安全认证 ```python from datetime import datetime, timedelta import secrets def generate_session_token(): '''生成安全的会话令牌''' return secrets.token_urlsafe(32) def validate_session_exp",
+          "source_url": ""
+        },
+        {
+          "id": 77,
+          "object_id": 10,
+          "source_type": "resource",
+          "title": "SQL注入攻击与防御 - 张老师",
+          "source_title": "",
+          "article_label": "",
+          "score": 0.757797,
+          "retrieval": "lexical",
+          "excerpt": "SQL注入攻击与防御 - 张老师 这是一份关于SQL注入攻击与防御的学习资料，由浙江大学 网络安全的张老师上传。 密码学 密码学,学习资料,CTF video",
+          "source_url": ""
+        },
+        {
+          "id": 3731,
+          "object_id": 208,
+          "source_type": "document",
+          "title": "SQL Injection Prevention Cheat Sheet",
+          "source_title": "SQL Injection Prevention Cheat Sheet",
+          "article_label": "",
+          "score": 0.757797,
+          "retrieval": "lexical",
+          "excerpt": "# SQL Injection Prevention Cheat Sheet ## Introduction A SQL injection attack occurs when untrusted data (usually strings) becomes part of a query's SQL syntax, modifying the logic of the SQL request. The malicious data can come from various sources such as: - an HTTP request (fo",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.md"
+        },
+        {
+          "id": 3732,
+          "object_id": 208,
+          "source_type": "document",
+          "title": "SQL Injection Prevention Cheat Sheet",
+          "source_title": "SQL Injection Prevention Cheat Sheet",
+          "article_label": "",
+          "score": 0.757797,
+          "retrieval": "lexical",
+          "excerpt": "values; - use fixed application-owned choices for dynamic table names, column names, sort order (`ASC`, `DESC`), etc. These controls apply regardless of whether data comes from an HTTP request, another service, or previously stored data. A related class of vulnerability affects o",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.md"
+        },
+        {
+          "id": 2844,
+          "object_id": 165,
+          "source_type": "document",
+          "title": "Injection Prevention Cheat Sheet",
+          "source_title": "Injection Prevention Cheat Sheet",
+          "article_label": "",
+          "score": 0.757797,
+          "retrieval": "lexical",
+          "excerpt": "# Injection Prevention Cheat Sheet ## Introduction This article is focused on providing clear, simple, actionable guidance for preventing injection flaws in your applications. Injection attacks, for example [SQL Injection](https://owasp.org/www-community/attacks/SQL_Injection), a",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/Injection_Prevention_Cheat_Sheet.md"
+        }
+      ]
+    },
+    {
+      "query": "SQL注入防护",
+      "category": "document",
+      "scope": "document",
+      "expected": {
+        "titles": [
+          "Testing for SQL Injection",
+          "SQL Injection Prevention Cheat Sheet"
+        ]
+      },
+      "hit_at_5": true,
+      "reciprocal_rank": 1.0,
+      "latency_ms": 246.95,
+      "results": [
+        {
+          "id": 3731,
+          "object_id": 208,
+          "source_type": "document",
+          "title": "SQL Injection Prevention Cheat Sheet",
+          "source_title": "SQL Injection Prevention Cheat Sheet",
+          "article_label": "",
+          "score": 0.731463,
+          "retrieval": "lexical",
+          "excerpt": "# SQL Injection Prevention Cheat Sheet ## Introduction A SQL injection attack occurs when untrusted data (usually strings) becomes part of a query's SQL syntax, modifying the logic of the SQL request. The malicious data can come from various sources such as: - an HTTP request (fo",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.md"
+        },
+        {
+          "id": 3732,
+          "object_id": 208,
+          "source_type": "document",
+          "title": "SQL Injection Prevention Cheat Sheet",
+          "source_title": "SQL Injection Prevention Cheat Sheet",
+          "article_label": "",
+          "score": 0.731463,
+          "retrieval": "lexical",
+          "excerpt": "values; - use fixed application-owned choices for dynamic table names, column names, sort order (`ASC`, `DESC`), etc. These controls apply regardless of whether data comes from an HTTP request, another service, or previously stored data. A related class of vulnerability affects o",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.md"
+        },
+        {
+          "id": 2844,
+          "object_id": 165,
+          "source_type": "document",
+          "title": "Injection Prevention Cheat Sheet",
+          "source_title": "Injection Prevention Cheat Sheet",
+          "article_label": "",
+          "score": 0.731463,
+          "retrieval": "lexical",
+          "excerpt": "# Injection Prevention Cheat Sheet ## Introduction This article is focused on providing clear, simple, actionable guidance for preventing injection flaws in your applications. Injection attacks, for example [SQL Injection](https://owasp.org/www-community/attacks/SQL_Injection), a",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/Injection_Prevention_Cheat_Sheet.md"
+        },
+        {
+          "id": 2846,
+          "object_id": 165,
+          "source_type": "document",
+          "title": "Injection Prevention Cheat Sheet",
+          "source_title": "Injection Prevention Cheat Sheet",
+          "article_label": "",
+          "score": 0.731463,
+          "retrieval": "lexical",
+          "excerpt": "tion A productive application which cannot or only with difficulty be modified. ## Forms of Injection Use the guidance for the query language or interpreter your application uses: | Type | When | Reference | |------|------|-----------| | SQL injection | Builds SQL queries | [SQL ",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/Injection_Prevention_Cheat_Sheet.md"
+        },
+        {
+          "id": 3028,
+          "object_id": 174,
+          "source_type": "document",
+          "title": "LDAP Injection Prevention Cheat Sheet",
+          "source_title": "LDAP Injection Prevention Cheat Sheet",
+          "article_label": "",
+          "score": 0.731463,
+          "retrieval": "lexical",
+          "excerpt": "# LDAP Injection Prevention Cheat Sheet ## Introduction The Lightweight Directory Access Protocol (LDAP) allows an application to remotely perform operations such as searching and modifying records in directories. LDAP injection results from inadequate input sanitization and vali",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/LDAP_Injection_Prevention_Cheat_Sheet.md"
+        }
+      ]
+    },
+    {
+      "query": "跨站脚本攻击防护",
+      "category": "document",
+      "scope": "unfiltered",
+      "expected": {
+        "titles": [
+          "Cross Site Scripting Prevention Cheat Sheet",
+          "Testing for Reflected Cross Site Scripting"
+        ]
+      },
+      "hit_at_5": true,
+      "reciprocal_rank": 0.3333333333333333,
+      "latency_ms": 240.16,
+      "results": [
+        {
+          "id": 78,
+          "object_id": 9,
+          "source_type": "resource",
+          "title": "XSS攻击原理与防护 - 陈老师",
+          "source_title": "",
+          "article_label": "",
+          "score": 0.818568,
+          "retrieval": "lexical",
+          "excerpt": "XSS攻击原理与防护 - 陈老师 这是一份关于XSS攻击原理与防护的学习资料，由上海交通大学 人工智能的陈老师上传。 系统安全 系统安全,学习资料,CTF zip",
+          "source_url": ""
+        },
+        {
+          "id": 2486,
+          "object_id": 143,
+          "source_type": "document",
+          "title": "DOM based XSS Prevention Cheat Sheet",
+          "source_title": "DOM based XSS Prevention Cheat Sheet",
+          "article_label": "",
+          "score": 0.721548,
+          "retrieval": "lexical",
+          "excerpt": "# DOM based XSS Prevention Cheat Sheet ## Introduction Commonly discussed, overlapping categories of [XSS (Cross-Site Scripting)](https://owasp.org/www-community/attacks/xss/) include: - [Reflected or Stored](https://owasp.org/www-community/attacks/xss/#stored-and-reflected-xss-a",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/DOM_based_XSS_Prevention_Cheat_Sheet.md"
+        },
+        {
+          "id": 2416,
+          "object_id": 140,
+          "source_type": "document",
+          "title": "Cross Site Scripting Prevention Cheat Sheet",
+          "source_title": "Cross Site Scripting Prevention Cheat Sheet",
+          "article_label": "",
+          "score": 0.721548,
+          "retrieval": "lexical",
+          "excerpt": "# Cross Site Scripting Prevention Cheat Sheet ## Introduction This cheat sheet helps developers prevent XSS vulnerabilities. Cross-Site Scripting (XSS) is a misnomer. Originally this term was derived from early versions of the attack that were primarily focused on stealing data c",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/Cross_Site_Scripting_Prevention_Cheat_Sheet.md"
+        },
+        {
+          "id": 2447,
+          "object_id": 140,
+          "source_type": "document",
+          "title": "Cross Site Scripting Prevention Cheat Sheet",
+          "source_title": "Cross Site Scripting Prevention Cheat Sheet",
+          "article_label": "",
+          "score": 0.721548,
+          "retrieval": "lexical",
+          "excerpt": "lert box to display \"1\" or \"XSS\" or \"pwn'd\". ### Summary One final note: If deploying interceptors / filters as an XSS defense was a useful approach against XSS attacks, don't you think that it would be incorporated into all commercial Web Application Firewalls (WAFs) and be an a",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/Cross_Site_Scripting_Prevention_Cheat_Sheet.md"
+        },
+        {
+          "id": 1306,
+          "object_id": 52,
+          "source_type": "document",
+          "title": "Testing for Stored Cross Site Scripting",
+          "source_title": "Testing for Stored Cross Site Scripting",
+          "article_label": "",
+          "score": 0.721548,
+          "retrieval": "lexical",
+          "excerpt": "- Jeremiah Grossman, Robert \"RSnake\" Hansen, Petko \"pdp\" D. Petkov, Anton Rager, Seth Fogie - \"Cross Site Scripting Attacks: XSS Exploits and Defense\", 2007, Syngress, ISBN-10: 1-59749-154-3 ### Whitepapers - [CERT: \"CERT Advisory CA-2000-02 Malicious HTML Tags Embedded in Client",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/07-Input_Validation_Testing/02-Testing_for_Stored_Cross_Site_Scripting.md"
+        }
+      ]
+    },
+    {
+      "query": "跨站脚本攻击防护",
+      "category": "document",
+      "scope": "document",
+      "expected": {
+        "titles": [
+          "Cross Site Scripting Prevention Cheat Sheet",
+          "Testing for Reflected Cross Site Scripting"
+        ]
+      },
+      "hit_at_5": true,
+      "reciprocal_rank": 0.5,
+      "latency_ms": 201.0,
+      "results": [
+        {
+          "id": 2486,
+          "object_id": 143,
+          "source_type": "document",
+          "title": "DOM based XSS Prevention Cheat Sheet",
+          "source_title": "DOM based XSS Prevention Cheat Sheet",
+          "article_label": "",
+          "score": 0.660305,
+          "retrieval": "lexical",
+          "excerpt": "# DOM based XSS Prevention Cheat Sheet ## Introduction Commonly discussed, overlapping categories of [XSS (Cross-Site Scripting)](https://owasp.org/www-community/attacks/xss/) include: - [Reflected or Stored](https://owasp.org/www-community/attacks/xss/#stored-and-reflected-xss-a",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/DOM_based_XSS_Prevention_Cheat_Sheet.md"
+        },
+        {
+          "id": 2416,
+          "object_id": 140,
+          "source_type": "document",
+          "title": "Cross Site Scripting Prevention Cheat Sheet",
+          "source_title": "Cross Site Scripting Prevention Cheat Sheet",
+          "article_label": "",
+          "score": 0.660305,
+          "retrieval": "lexical",
+          "excerpt": "# Cross Site Scripting Prevention Cheat Sheet ## Introduction This cheat sheet helps developers prevent XSS vulnerabilities. Cross-Site Scripting (XSS) is a misnomer. Originally this term was derived from early versions of the attack that were primarily focused on stealing data c",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/Cross_Site_Scripting_Prevention_Cheat_Sheet.md"
+        },
+        {
+          "id": 2447,
+          "object_id": 140,
+          "source_type": "document",
+          "title": "Cross Site Scripting Prevention Cheat Sheet",
+          "source_title": "Cross Site Scripting Prevention Cheat Sheet",
+          "article_label": "",
+          "score": 0.660305,
+          "retrieval": "lexical",
+          "excerpt": "lert box to display \"1\" or \"XSS\" or \"pwn'd\". ### Summary One final note: If deploying interceptors / filters as an XSS defense was a useful approach against XSS attacks, don't you think that it would be incorporated into all commercial Web Application Firewalls (WAFs) and be an a",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/Cross_Site_Scripting_Prevention_Cheat_Sheet.md"
+        },
+        {
+          "id": 1306,
+          "object_id": 52,
+          "source_type": "document",
+          "title": "Testing for Stored Cross Site Scripting",
+          "source_title": "Testing for Stored Cross Site Scripting",
+          "article_label": "",
+          "score": 0.660305,
+          "retrieval": "lexical",
+          "excerpt": "- Jeremiah Grossman, Robert \"RSnake\" Hansen, Petko \"pdp\" D. Petkov, Anton Rager, Seth Fogie - \"Cross Site Scripting Attacks: XSS Exploits and Defense\", 2007, Syngress, ISBN-10: 1-59749-154-3 ### Whitepapers - [CERT: \"CERT Advisory CA-2000-02 Malicious HTML Tags Embedded in Client",
+          "source_url": "https://github.com/OWASP/wstg/blob/dd33419e10edb22b78d89325a6c2aad9f184e3a2/document/4-Web_Application_Security_Testing/07-Input_Validation_Testing/02-Testing_for_Stored_Cross_Site_Scripting.md"
+        },
+        {
+          "id": 2501,
+          "object_id": 143,
+          "source_type": "document",
+          "title": "DOM based XSS Prevention Cheat Sheet",
+          "source_title": "DOM based XSS Prevention Cheat Sheet",
+          "article_label": "",
+          "score": 0.660305,
+          "retrieval": "lexical",
+          "excerpt": "OM based cross-site scripting vulnerabilities. ## Guidelines for Developing Secure Applications Utilizing JavaScript DOM based XSS is extremely difficult to mitigate against because of its large attack surface and lack of standardization across browsers. The guidelines below are ",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/DOM_based_XSS_Prevention_Cheat_Sheet.md"
+        }
+      ]
+    },
+    {
+      "query": "敏感个人信息",
+      "category": "legal_clause",
+      "scope": "unfiltered",
+      "expected": {
+        "law": "cn-personal-information-protection-law",
+        "article": "第二十八条"
+      },
+      "hit_at_5": true,
+      "reciprocal_rank": 0.25,
+      "latency_ms": 283.89,
+      "results": [
+        {
+          "id": 4725,
+          "object_id": 913,
+          "source_type": "legal_clause",
+          "title": "中华人民共和国个人信息保护法 第二十九条",
+          "source_title": "中华人民共和国个人信息保护法",
+          "article_label": "第二十九条",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "第二十九条 处理敏感个人信息应当取得个人的单独同意；法律、行政法规规定处理敏感个人信息应当取得书面同意的，从其规定。",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=ff8081817b6472a3017b656cc2040044"
+        },
+        {
+          "id": 4726,
+          "object_id": 914,
+          "source_type": "legal_clause",
+          "title": "中华人民共和国个人信息保护法 第三十条",
+          "source_title": "中华人民共和国个人信息保护法",
+          "article_label": "第三十条",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "第三十条 个人信息处理者处理敏感个人信息的，除本法第十七条第一款规定的事项外，还应当向个人告知处理敏感个人信息的必要性以及对个人权益的影响；依照本法规定可以不向个人告知的除外。",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=ff8081817b6472a3017b656cc2040044"
+        },
+        {
+          "id": 4728,
+          "object_id": 916,
+          "source_type": "legal_clause",
+          "title": "中华人民共和国个人信息保护法 第三十二条",
+          "source_title": "中华人民共和国个人信息保护法",
+          "article_label": "第三十二条",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "第三十二条 法律、行政法规对处理敏感个人信息规定应当取得相关行政许可或者作出其他限制的，从其规定。",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=ff8081817b6472a3017b656cc2040044"
+        },
+        {
+          "id": 4724,
+          "object_id": 912,
+          "source_type": "legal_clause",
+          "title": "中华人民共和国个人信息保护法 第二十八条",
+          "source_title": "中华人民共和国个人信息保护法",
+          "article_label": "第二十八条",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "第二十八条 敏感个人信息是一旦泄露或者非法使用，容易导致自然人的人格尊严受到侵害或者人身、财产安全受到危害的个人信息，包括生物识别、宗教信仰、特定身份、医疗健康、金融账户、行踪轨迹等信息，以及不满十四周岁未成年人的个人信息。 只有在具有特定的目的和充分的必要性，并采取严格保护措施的情形下，个人信息处理者方可处理敏感个人信息。",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=ff8081817b6472a3017b656cc2040044"
+        },
+        {
+          "id": 4751,
+          "object_id": 939,
+          "source_type": "legal_clause",
+          "title": "中华人民共和国个人信息保护法 第五十五条",
+          "source_title": "中华人民共和国个人信息保护法",
+          "article_label": "第五十五条",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "第五十五条 有下列情形之一的，个人信息处理者应当事前进行个人信息保护影响评估，并对处理情况进行记录： （一）处理敏感个人信息； （二）利用个人信息进行自动化决策； （三）委托处理个人信息、向其他个人信息处理者提供个人信息、公开个人信息； （四）向境外提供个人信息； （五）其他对个人权益有重大影响的个人信息处理活动。",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=ff8081817b6472a3017b656cc2040044"
+        }
+      ]
+    },
+    {
+      "query": "敏感个人信息",
+      "category": "legal_clause",
+      "scope": "legal_clause",
+      "expected": {
+        "law": "cn-personal-information-protection-law",
+        "article": "第二十八条"
+      },
+      "hit_at_5": true,
+      "reciprocal_rank": 0.25,
+      "latency_ms": 36.81,
+      "results": [
+        {
+          "id": 4725,
+          "object_id": 913,
+          "source_type": "legal_clause",
+          "title": "中华人民共和国个人信息保护法 第二十九条",
+          "source_title": "中华人民共和国个人信息保护法",
+          "article_label": "第二十九条",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "第二十九条 处理敏感个人信息应当取得个人的单独同意；法律、行政法规规定处理敏感个人信息应当取得书面同意的，从其规定。",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=ff8081817b6472a3017b656cc2040044"
+        },
+        {
+          "id": 4726,
+          "object_id": 914,
+          "source_type": "legal_clause",
+          "title": "中华人民共和国个人信息保护法 第三十条",
+          "source_title": "中华人民共和国个人信息保护法",
+          "article_label": "第三十条",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "第三十条 个人信息处理者处理敏感个人信息的，除本法第十七条第一款规定的事项外，还应当向个人告知处理敏感个人信息的必要性以及对个人权益的影响；依照本法规定可以不向个人告知的除外。",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=ff8081817b6472a3017b656cc2040044"
+        },
+        {
+          "id": 4728,
+          "object_id": 916,
+          "source_type": "legal_clause",
+          "title": "中华人民共和国个人信息保护法 第三十二条",
+          "source_title": "中华人民共和国个人信息保护法",
+          "article_label": "第三十二条",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "第三十二条 法律、行政法规对处理敏感个人信息规定应当取得相关行政许可或者作出其他限制的，从其规定。",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=ff8081817b6472a3017b656cc2040044"
+        },
+        {
+          "id": 4724,
+          "object_id": 912,
+          "source_type": "legal_clause",
+          "title": "中华人民共和国个人信息保护法 第二十八条",
+          "source_title": "中华人民共和国个人信息保护法",
+          "article_label": "第二十八条",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "第二十八条 敏感个人信息是一旦泄露或者非法使用，容易导致自然人的人格尊严受到侵害或者人身、财产安全受到危害的个人信息，包括生物识别、宗教信仰、特定身份、医疗健康、金融账户、行踪轨迹等信息，以及不满十四周岁未成年人的个人信息。 只有在具有特定的目的和充分的必要性，并采取严格保护措施的情形下，个人信息处理者方可处理敏感个人信息。",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=ff8081817b6472a3017b656cc2040044"
+        },
+        {
+          "id": 4792,
+          "object_id": 980,
+          "source_type": "legal_clause",
+          "title": "网络数据安全管理条例 第二十二条",
+          "source_title": "网络数据安全管理条例",
+          "article_label": "第二十二条",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "第二十二条 网络数据处理者基于个人同意处理个人信息的，应当遵守下列规定： （一）收集个人信息为提供产品或者服务所必需，不得超范围收集个人信息，不得通过误导、欺诈、胁迫等方式取得个人同意； （二）处理生物识别、宗教信仰、特定身份、医疗健康、金融账户、行踪轨迹等敏感个人信息的，应当取得个人的单独同意； （三）处理不满十四周岁未成年人个人信息的，应当取得未成年人的父母或者其他监护人的同意； （四）不得超出个人同意的个人信息处理目的、方式、种类、保存期限处理个人信息； （五）不得在个人明确表示不同意处理其个人信息后，频繁征求同意； （六）个人信息的处理目的、方式",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=ff808181927f0e7b0192949a1da4355d"
+        }
+      ]
+    },
+    {
+      "query": "行踪轨迹",
+      "category": "legal_clause",
+      "scope": "unfiltered",
+      "expected": {
+        "law": "cn-personal-information-protection-law",
+        "article": "第二十八条"
+      },
+      "hit_at_5": true,
+      "reciprocal_rank": 1.0,
+      "latency_ms": 220.1,
+      "results": [
+        {
+          "id": 4724,
+          "object_id": 912,
+          "source_type": "legal_clause",
+          "title": "中华人民共和国个人信息保护法 第二十八条",
+          "source_title": "中华人民共和国个人信息保护法",
+          "article_label": "第二十八条",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "第二十八条 敏感个人信息是一旦泄露或者非法使用，容易导致自然人的人格尊严受到侵害或者人身、财产安全受到危害的个人信息，包括生物识别、宗教信仰、特定身份、医疗健康、金融账户、行踪轨迹等信息，以及不满十四周岁未成年人的个人信息。 只有在具有特定的目的和充分的必要性，并采取严格保护措施的情形下，个人信息处理者方可处理敏感个人信息。",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=ff8081817b6472a3017b656cc2040044"
+        },
+        {
+          "id": 4792,
+          "object_id": 980,
+          "source_type": "legal_clause",
+          "title": "网络数据安全管理条例 第二十二条",
+          "source_title": "网络数据安全管理条例",
+          "article_label": "第二十二条",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "第二十二条 网络数据处理者基于个人同意处理个人信息的，应当遵守下列规定： （一）收集个人信息为提供产品或者服务所必需，不得超范围收集个人信息，不得通过误导、欺诈、胁迫等方式取得个人同意； （二）处理生物识别、宗教信仰、特定身份、医疗健康、金融账户、行踪轨迹等敏感个人信息的，应当取得个人的单独同意； （三）处理不满十四周岁未成年人个人信息的，应当取得未成年人的父母或者其他监护人的同意； （四）不得超出个人同意的个人信息处理目的、方式、种类、保存期限处理个人信息； （五）不得在个人明确表示不同意处理其个人信息后，频繁征求同意； （六）个人信息的处理目的、方式",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=ff808181927f0e7b0192949a1da4355d"
+        },
+        {
+          "id": 4948,
+          "object_id": 1136,
+          "source_type": "legal_clause",
+          "title": "中华人民共和国民法典（隐私权和个人信息保护条款节选） 第一千零三十四条",
+          "source_title": "中华人民共和国民法典（隐私权和个人信息保护条款节选）",
+          "article_label": "第一千零三十四条",
+          "score": 0.323113,
+          "retrieval": "lexical",
+          "excerpt": "第一千零三十四条 自然人的个人信息受法律保护。 个人信息是以电子或者其他方式记录的能够单独或者与其他信息结合识别特定自然人的各种信息，包括自然人的姓名、出生日期、身份证件号码、生物识别信息、住址、电话号码、电子邮箱、健康信息、行踪信息等。 个人信息中的私密信息，适用有关隐私权的规定；没有规定的，适用有关个人信息保护的规定。",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=ff808081729d1efe01729d50b5c500bf"
+        }
+      ]
+    },
+    {
+      "query": "行踪轨迹",
+      "category": "legal_clause",
+      "scope": "legal_clause",
+      "expected": {
+        "law": "cn-personal-information-protection-law",
+        "article": "第二十八条"
+      },
+      "hit_at_5": true,
+      "reciprocal_rank": 1.0,
+      "latency_ms": 31.95,
+      "results": [
+        {
+          "id": 4724,
+          "object_id": 912,
+          "source_type": "legal_clause",
+          "title": "中华人民共和国个人信息保护法 第二十八条",
+          "source_title": "中华人民共和国个人信息保护法",
+          "article_label": "第二十八条",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "第二十八条 敏感个人信息是一旦泄露或者非法使用，容易导致自然人的人格尊严受到侵害或者人身、财产安全受到危害的个人信息，包括生物识别、宗教信仰、特定身份、医疗健康、金融账户、行踪轨迹等信息，以及不满十四周岁未成年人的个人信息。 只有在具有特定的目的和充分的必要性，并采取严格保护措施的情形下，个人信息处理者方可处理敏感个人信息。",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=ff8081817b6472a3017b656cc2040044"
+        },
+        {
+          "id": 4792,
+          "object_id": 980,
+          "source_type": "legal_clause",
+          "title": "网络数据安全管理条例 第二十二条",
+          "source_title": "网络数据安全管理条例",
+          "article_label": "第二十二条",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "第二十二条 网络数据处理者基于个人同意处理个人信息的，应当遵守下列规定： （一）收集个人信息为提供产品或者服务所必需，不得超范围收集个人信息，不得通过误导、欺诈、胁迫等方式取得个人同意； （二）处理生物识别、宗教信仰、特定身份、医疗健康、金融账户、行踪轨迹等敏感个人信息的，应当取得个人的单独同意； （三）处理不满十四周岁未成年人个人信息的，应当取得未成年人的父母或者其他监护人的同意； （四）不得超出个人同意的个人信息处理目的、方式、种类、保存期限处理个人信息； （五）不得在个人明确表示不同意处理其个人信息后，频繁征求同意； （六）个人信息的处理目的、方式",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=ff808181927f0e7b0192949a1da4355d"
+        },
+        {
+          "id": 4948,
+          "object_id": 1136,
+          "source_type": "legal_clause",
+          "title": "中华人民共和国民法典（隐私权和个人信息保护条款节选） 第一千零三十四条",
+          "source_title": "中华人民共和国民法典（隐私权和个人信息保护条款节选）",
+          "article_label": "第一千零三十四条",
+          "score": 0.318222,
+          "retrieval": "lexical",
+          "excerpt": "第一千零三十四条 自然人的个人信息受法律保护。 个人信息是以电子或者其他方式记录的能够单独或者与其他信息结合识别特定自然人的各种信息，包括自然人的姓名、出生日期、身份证件号码、生物识别信息、住址、电话号码、电子邮箱、健康信息、行踪信息等。 个人信息中的私密信息，适用有关隐私权的规定；没有规定的，适用有关个人信息保护的规定。",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=ff808081729d1efe01729d50b5c500bf"
+        }
+      ]
+    },
+    {
+      "query": "个人信息删除",
+      "category": "legal_clause",
+      "scope": "unfiltered",
+      "expected": {
+        "law": "cn-personal-information-protection-law",
+        "article": "第四十七条"
+      },
+      "hit_at_5": true,
+      "reciprocal_rank": 1.0,
+      "latency_ms": 226.05,
+      "results": [
+        {
+          "id": 4743,
+          "object_id": 931,
+          "source_type": "legal_clause",
+          "title": "中华人民共和国个人信息保护法 第四十七条",
+          "source_title": "中华人民共和国个人信息保护法",
+          "article_label": "第四十七条",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "第四十七条 有下列情形之一的，个人信息处理者应当主动删除个人信息；个人信息处理者未删除的，个人有权请求删除： （一）处理目的已实现、无法实现或者为实现处理目的不再必要； （二）个人信息处理者停止提供产品或者服务，或者保存期限已届满； （三）个人撤回同意； （四）个人信息处理者违反法律、行政法规或者违反约定处理个人信息； （五）法律、行政法规规定的其他情形。 法律、行政法规规定的保存期限未届满，或者删除个人信息从技术上难以实现的，个人信息处理者应当停止除存储和采取必要的安全保护措施之外的处理。",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=ff8081817b6472a3017b656cc2040044"
+        },
+        {
+          "id": 4745,
+          "object_id": 933,
+          "source_type": "legal_clause",
+          "title": "中华人民共和国个人信息保护法 第四十九条",
+          "source_title": "中华人民共和国个人信息保护法",
+          "article_label": "第四十九条",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "第四十九条 自然人死亡的，其近亲属为了自身的合法、正当利益，可以对死者的相关个人信息行使本章规定的查阅、复制、更正、删除等权利；死者生前另有安排的除外。",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=ff8081817b6472a3017b656cc2040044"
+        },
+        {
+          "id": 4918,
+          "object_id": 1106,
+          "source_type": "legal_clause",
+          "title": "未成年人网络保护条例 第三十三条",
+          "source_title": "未成年人网络保护条例",
+          "article_label": "第三十三条",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "第三十三条 未成年人的监护人应当教育引导未成年人增强个人信息保护意识和能力、掌握个人信息范围、了解个人信息安全风险，指导未成年人行使其在个人信息处理活动中的查阅、复制、更正、补充、删除等权利，保护未成年人个人信息权益。",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=ff8081818c24e05b018c8d0817b31915"
+        },
+        {
+          "id": 4605,
+          "object_id": 793,
+          "source_type": "legal_clause",
+          "title": "中华人民共和国网络安全法 第四十五条",
+          "source_title": "中华人民共和国网络安全法",
+          "article_label": "第四十五条",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "第四十五条 个人发现网络运营者违反法律、行政法规的规定或者双方的约定收集、使用其个人信息的，有权要求网络运营者删除其个人信息；发现网络运营者收集、存储的其个人信息有错误的，有权要求网络运营者予以更正。网络运营者应当采取措施予以删除或者更正。",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=021e7d7684474107b8f3febbb1c4f8b5"
+        },
+        {
+          "id": 4919,
+          "object_id": 1107,
+          "source_type": "legal_clause",
+          "title": "未成年人网络保护条例 第三十四条",
+          "source_title": "未成年人网络保护条例",
+          "article_label": "第三十四条",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "第三十四条 未成年人或者其监护人依法请求查阅、复制、更正、补充、删除未成年人个人信息的，个人信息处理者应当遵守以下规定： （一）提供便捷的支持未成年人或者其监护人查阅未成年人个人信息种类、数量等的方法和途径，不得对未成年人或者其监护人的合理请求进行限制； （二）提供便捷的支持未成年人或者其监护人复制、更正、补充、删除未成年人个人信息的功能，不得设置不合理条件； （三）及时受理并处理未成年人或者其监护人查阅、复制、更正、补充、删除未成年人个人信息的申请，拒绝未成年人或者其监护人行使权利的请求的，应当书面告知申请人并说明理由。 对未成年人或者其监护人依法提出",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=ff8081818c24e05b018c8d0817b31915"
+        }
+      ]
+    },
+    {
+      "query": "个人信息删除",
+      "category": "legal_clause",
+      "scope": "legal_clause",
+      "expected": {
+        "law": "cn-personal-information-protection-law",
+        "article": "第四十七条"
+      },
+      "hit_at_5": true,
+      "reciprocal_rank": 1.0,
+      "latency_ms": 41.84,
+      "results": [
+        {
+          "id": 4743,
+          "object_id": 931,
+          "source_type": "legal_clause",
+          "title": "中华人民共和国个人信息保护法 第四十七条",
+          "source_title": "中华人民共和国个人信息保护法",
+          "article_label": "第四十七条",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "第四十七条 有下列情形之一的，个人信息处理者应当主动删除个人信息；个人信息处理者未删除的，个人有权请求删除： （一）处理目的已实现、无法实现或者为实现处理目的不再必要； （二）个人信息处理者停止提供产品或者服务，或者保存期限已届满； （三）个人撤回同意； （四）个人信息处理者违反法律、行政法规或者违反约定处理个人信息； （五）法律、行政法规规定的其他情形。 法律、行政法规规定的保存期限未届满，或者删除个人信息从技术上难以实现的，个人信息处理者应当停止除存储和采取必要的安全保护措施之外的处理。",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=ff8081817b6472a3017b656cc2040044"
+        },
+        {
+          "id": 4745,
+          "object_id": 933,
+          "source_type": "legal_clause",
+          "title": "中华人民共和国个人信息保护法 第四十九条",
+          "source_title": "中华人民共和国个人信息保护法",
+          "article_label": "第四十九条",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "第四十九条 自然人死亡的，其近亲属为了自身的合法、正当利益，可以对死者的相关个人信息行使本章规定的查阅、复制、更正、删除等权利；死者生前另有安排的除外。",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=ff8081817b6472a3017b656cc2040044"
+        },
+        {
+          "id": 4605,
+          "object_id": 793,
+          "source_type": "legal_clause",
+          "title": "中华人民共和国网络安全法 第四十五条",
+          "source_title": "中华人民共和国网络安全法",
+          "article_label": "第四十五条",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "第四十五条 个人发现网络运营者违反法律、行政法规的规定或者双方的约定收集、使用其个人信息的，有权要求网络运营者删除其个人信息；发现网络运营者收集、存储的其个人信息有错误的，有权要求网络运营者予以更正。网络运营者应当采取措施予以删除或者更正。",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=021e7d7684474107b8f3febbb1c4f8b5"
+        },
+        {
+          "id": 4918,
+          "object_id": 1106,
+          "source_type": "legal_clause",
+          "title": "未成年人网络保护条例 第三十三条",
+          "source_title": "未成年人网络保护条例",
+          "article_label": "第三十三条",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "第三十三条 未成年人的监护人应当教育引导未成年人增强个人信息保护意识和能力、掌握个人信息范围、了解个人信息安全风险，指导未成年人行使其在个人信息处理活动中的查阅、复制、更正、补充、删除等权利，保护未成年人个人信息权益。",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=ff8081818c24e05b018c8d0817b31915"
+        },
+        {
+          "id": 4919,
+          "object_id": 1107,
+          "source_type": "legal_clause",
+          "title": "未成年人网络保护条例 第三十四条",
+          "source_title": "未成年人网络保护条例",
+          "article_label": "第三十四条",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "第三十四条 未成年人或者其监护人依法请求查阅、复制、更正、补充、删除未成年人个人信息的，个人信息处理者应当遵守以下规定： （一）提供便捷的支持未成年人或者其监护人查阅未成年人个人信息种类、数量等的方法和途径，不得对未成年人或者其监护人的合理请求进行限制； （二）提供便捷的支持未成年人或者其监护人复制、更正、补充、删除未成年人个人信息的功能，不得设置不合理条件； （三）及时受理并处理未成年人或者其监护人查阅、复制、更正、补充、删除未成年人个人信息的申请，拒绝未成年人或者其监护人行使权利的请求的，应当书面告知申请人并说明理由。 对未成年人或者其监护人依法提出",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=ff8081818c24e05b018c8d0817b31915"
+        }
+      ]
+    },
+    {
+      "query": "不满十四周岁未成年人的个人信息",
+      "category": "legal_clause",
+      "scope": "unfiltered",
+      "expected": {
+        "law": "cn-personal-information-protection-law",
+        "article": "第三十一条"
+      },
+      "hit_at_5": true,
+      "reciprocal_rank": 0.5,
+      "latency_ms": 270.05,
+      "results": [
+        {
+          "id": 4724,
+          "object_id": 912,
+          "source_type": "legal_clause",
+          "title": "中华人民共和国个人信息保护法 第二十八条",
+          "source_title": "中华人民共和国个人信息保护法",
+          "article_label": "第二十八条",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "第二十八条 敏感个人信息是一旦泄露或者非法使用，容易导致自然人的人格尊严受到侵害或者人身、财产安全受到危害的个人信息，包括生物识别、宗教信仰、特定身份、医疗健康、金融账户、行踪轨迹等信息，以及不满十四周岁未成年人的个人信息。 只有在具有特定的目的和充分的必要性，并采取严格保护措施的情形下，个人信息处理者方可处理敏感个人信息。",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=ff8081817b6472a3017b656cc2040044"
+        },
+        {
+          "id": 4727,
+          "object_id": 915,
+          "source_type": "legal_clause",
+          "title": "中华人民共和国个人信息保护法 第三十一条",
+          "source_title": "中华人民共和国个人信息保护法",
+          "article_label": "第三十一条",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "第三十一条 个人信息处理者处理不满十四周岁未成年人个人信息的，应当取得未成年人的父母或者其他监护人的同意。 个人信息处理者处理不满十四周岁未成年人个人信息的，应当制定专门的个人信息处理规则。",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=ff8081817b6472a3017b656cc2040044"
+        },
+        {
+          "id": 4792,
+          "object_id": 980,
+          "source_type": "legal_clause",
+          "title": "网络数据安全管理条例 第二十二条",
+          "source_title": "网络数据安全管理条例",
+          "article_label": "第二十二条",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "第二十二条 网络数据处理者基于个人同意处理个人信息的，应当遵守下列规定： （一）收集个人信息为提供产品或者服务所必需，不得超范围收集个人信息，不得通过误导、欺诈、胁迫等方式取得个人同意； （二）处理生物识别、宗教信仰、特定身份、医疗健康、金融账户、行踪轨迹等敏感个人信息的，应当取得个人的单独同意； （三）处理不满十四周岁未成年人个人信息的，应当取得未成年人的父母或者其他监护人的同意； （四）不得超出个人同意的个人信息处理目的、方式、种类、保存期限处理个人信息； （五）不得在个人明确表示不同意处理其个人信息后，频繁征求同意； （六）个人信息的处理目的、方式",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=ff808181927f0e7b0192949a1da4355d"
+        },
+        {
+          "id": 4791,
+          "object_id": 979,
+          "source_type": "legal_clause",
+          "title": "网络数据安全管理条例 第二十一条",
+          "source_title": "网络数据安全管理条例",
+          "article_label": "第二十一条",
+          "score": 0.93025,
+          "retrieval": "lexical",
+          "excerpt": "第二十一条 网络数据处理者在处理个人信息前，通过制定个人信息处理规则的方式依法向个人告知的，个人信息处理规则应当集中公开展示、易于访问并置于醒目位置，内容明确具体、清晰易懂，包括但不限于下列内容： （一）网络数据处理者的名称或者姓名和联系方式； （二）处理个人信息的目的、方式、种类，处理敏感个人信息的必要性以及对个人权益的影响； （三）个人信息保存期限和到期后的处理方式，保存期限难以确定的，应当明确保存期限的确定方法； （四）个人查阅、复制、转移、更正、补充、删除、限制处理个人信息以及注销账号、撤回同意的方法和途径等。 网络数据处理者按照前款规定向个人告",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=ff808181927f0e7b0192949a1da4355d"
+        },
+        {
+          "id": 4919,
+          "object_id": 1107,
+          "source_type": "legal_clause",
+          "title": "未成年人网络保护条例 第三十四条",
+          "source_title": "未成年人网络保护条例",
+          "article_label": "第三十四条",
+          "score": 0.503361,
+          "retrieval": "lexical",
+          "excerpt": "第三十四条 未成年人或者其监护人依法请求查阅、复制、更正、补充、删除未成年人个人信息的，个人信息处理者应当遵守以下规定： （一）提供便捷的支持未成年人或者其监护人查阅未成年人个人信息种类、数量等的方法和途径，不得对未成年人或者其监护人的合理请求进行限制； （二）提供便捷的支持未成年人或者其监护人复制、更正、补充、删除未成年人个人信息的功能，不得设置不合理条件； （三）及时受理并处理未成年人或者其监护人查阅、复制、更正、补充、删除未成年人个人信息的申请，拒绝未成年人或者其监护人行使权利的请求的，应当书面告知申请人并说明理由。 对未成年人或者其监护人依法提出",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=ff8081818c24e05b018c8d0817b31915"
+        }
+      ]
+    },
+    {
+      "query": "不满十四周岁未成年人的个人信息",
+      "category": "legal_clause",
+      "scope": "legal_clause",
+      "expected": {
+        "law": "cn-personal-information-protection-law",
+        "article": "第三十一条"
+      },
+      "hit_at_5": true,
+      "reciprocal_rank": 0.5,
+      "latency_ms": 34.03,
+      "results": [
+        {
+          "id": 4724,
+          "object_id": 912,
+          "source_type": "legal_clause",
+          "title": "中华人民共和国个人信息保护法 第二十八条",
+          "source_title": "中华人民共和国个人信息保护法",
+          "article_label": "第二十八条",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "第二十八条 敏感个人信息是一旦泄露或者非法使用，容易导致自然人的人格尊严受到侵害或者人身、财产安全受到危害的个人信息，包括生物识别、宗教信仰、特定身份、医疗健康、金融账户、行踪轨迹等信息，以及不满十四周岁未成年人的个人信息。 只有在具有特定的目的和充分的必要性，并采取严格保护措施的情形下，个人信息处理者方可处理敏感个人信息。",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=ff8081817b6472a3017b656cc2040044"
+        },
+        {
+          "id": 4727,
+          "object_id": 915,
+          "source_type": "legal_clause",
+          "title": "中华人民共和国个人信息保护法 第三十一条",
+          "source_title": "中华人民共和国个人信息保护法",
+          "article_label": "第三十一条",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "第三十一条 个人信息处理者处理不满十四周岁未成年人个人信息的，应当取得未成年人的父母或者其他监护人的同意。 个人信息处理者处理不满十四周岁未成年人个人信息的，应当制定专门的个人信息处理规则。",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=ff8081817b6472a3017b656cc2040044"
+        },
+        {
+          "id": 4792,
+          "object_id": 980,
+          "source_type": "legal_clause",
+          "title": "网络数据安全管理条例 第二十二条",
+          "source_title": "网络数据安全管理条例",
+          "article_label": "第二十二条",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "第二十二条 网络数据处理者基于个人同意处理个人信息的，应当遵守下列规定： （一）收集个人信息为提供产品或者服务所必需，不得超范围收集个人信息，不得通过误导、欺诈、胁迫等方式取得个人同意； （二）处理生物识别、宗教信仰、特定身份、医疗健康、金融账户、行踪轨迹等敏感个人信息的，应当取得个人的单独同意； （三）处理不满十四周岁未成年人个人信息的，应当取得未成年人的父母或者其他监护人的同意； （四）不得超出个人同意的个人信息处理目的、方式、种类、保存期限处理个人信息； （五）不得在个人明确表示不同意处理其个人信息后，频繁征求同意； （六）个人信息的处理目的、方式",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=ff808181927f0e7b0192949a1da4355d"
+        },
+        {
+          "id": 4791,
+          "object_id": 979,
+          "source_type": "legal_clause",
+          "title": "网络数据安全管理条例 第二十一条",
+          "source_title": "网络数据安全管理条例",
+          "article_label": "第二十一条",
+          "score": 0.93223,
+          "retrieval": "lexical",
+          "excerpt": "第二十一条 网络数据处理者在处理个人信息前，通过制定个人信息处理规则的方式依法向个人告知的，个人信息处理规则应当集中公开展示、易于访问并置于醒目位置，内容明确具体、清晰易懂，包括但不限于下列内容： （一）网络数据处理者的名称或者姓名和联系方式； （二）处理个人信息的目的、方式、种类，处理敏感个人信息的必要性以及对个人权益的影响； （三）个人信息保存期限和到期后的处理方式，保存期限难以确定的，应当明确保存期限的确定方法； （四）个人查阅、复制、转移、更正、补充、删除、限制处理个人信息以及注销账号、撤回同意的方法和途径等。 网络数据处理者按照前款规定向个人告",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=ff808181927f0e7b0192949a1da4355d"
+        },
+        {
+          "id": 4919,
+          "object_id": 1107,
+          "source_type": "legal_clause",
+          "title": "未成年人网络保护条例 第三十四条",
+          "source_title": "未成年人网络保护条例",
+          "article_label": "第三十四条",
+          "score": 0.377743,
+          "retrieval": "lexical",
+          "excerpt": "第三十四条 未成年人或者其监护人依法请求查阅、复制、更正、补充、删除未成年人个人信息的，个人信息处理者应当遵守以下规定： （一）提供便捷的支持未成年人或者其监护人查阅未成年人个人信息种类、数量等的方法和途径，不得对未成年人或者其监护人的合理请求进行限制； （二）提供便捷的支持未成年人或者其监护人复制、更正、补充、删除未成年人个人信息的功能，不得设置不合理条件； （三）及时受理并处理未成年人或者其监护人查阅、复制、更正、补充、删除未成年人个人信息的申请，拒绝未成年人或者其监护人行使权利的请求的，应当书面告知申请人并说明理由。 对未成年人或者其监护人依法提出",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=ff8081818c24e05b018c8d0817b31915"
+        }
+      ]
+    },
+    {
+      "query": "数据分类分级保护制度",
+      "category": "legal_clause",
+      "scope": "unfiltered",
+      "expected": {
+        "law": "cn-data-security-law",
+        "article": "第二十一条"
+      },
+      "hit_at_5": true,
+      "reciprocal_rank": 1.0,
+      "latency_ms": 233.12,
+      "results": [
+        {
+          "id": 4662,
+          "object_id": 850,
+          "source_type": "legal_clause",
+          "title": "中华人民共和国数据安全法 第二十一条",
+          "source_title": "中华人民共和国数据安全法",
+          "article_label": "第二十一条",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "第二十一条 国家建立数据分类分级保护制度，根据数据在经济社会发展中的重要程度，以及一旦遭到篡改、破坏、泄露或者非法获取、非法利用，对国家安全、公共利益或者个人、组织合法权益造成的危害程度，对数据实行分类分级保护。国家数据安全工作协调机制统筹协调有关部门制定重要数据目录，加强对重要数据的保护。 关系国家安全、国民经济命脉、重要民生、重大公共利益等数据属于国家核心数据，实行更加严格的管理制度。 各地区、各部门应当按照数据分类分级保护制度，确定本地区、本部门以及相关行业、领域的重要数据具体目录，对列入目录的数据进行重点保护。",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=ff80818179f5e0800179f885c7e70392"
+        },
+        {
+          "id": 4799,
+          "object_id": 987,
+          "source_type": "legal_clause",
+          "title": "网络数据安全管理条例 第二十九条",
+          "source_title": "网络数据安全管理条例",
+          "article_label": "第二十九条",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "第二十九条 国家数据安全工作协调机制统筹协调有关部门制定重要数据目录，加强对重要数据的保护。各地区、各部门应当按照数据分类分级保护制度，确定本地区、本部门以及相关行业、领域的重要数据具体目录，对列入目录的网络数据进行重点保护。 网络数据处理者应当按照国家有关规定识别、申报重要数据。对确认为重要数据的，相关地区、部门应当及时向网络数据处理者告知或者公开发布。网络数据处理者应当履行网络数据安全保护责任。 国家鼓励网络数据处理者使用数据标签标识等技术和产品，提高重要数据安全管理水平。",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=ff808181927f0e7b0192949a1da4355d"
+        },
+        {
+          "id": 4583,
+          "object_id": 771,
+          "source_type": "legal_clause",
+          "title": "中华人民共和国网络安全法 第二十三条",
+          "source_title": "中华人民共和国网络安全法",
+          "article_label": "第二十三条",
+          "score": 0.723543,
+          "retrieval": "lexical",
+          "excerpt": "第二十三条 国家实行网络安全等级保护制度。网络运营者应当按照网络安全等级保护制度的要求，履行下列安全保护义务，保障网络免受干扰、破坏或者未经授权的访问，防止网络数据泄露或者被窃取、篡改： （一）制定内部安全管理制度和操作规程，确定网络安全负责人，落实网络安全保护责任； （二）采取防范计算机病毒和网络攻击、网络侵入等危害网络安全行为的技术措施； （三）采取监测、记录网络运行状态、网络安全事件的技术措施，并按照规定留存相关的网络日志不少于六个月； （四）采取数据分类、重要数据备份和加密等措施； （五）法律、行政法规规定的其他义务。",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=021e7d7684474107b8f3febbb1c4f8b5"
+        },
+        {
+          "id": 4775,
+          "object_id": 963,
+          "source_type": "legal_clause",
+          "title": "网络数据安全管理条例 第五条",
+          "source_title": "网络数据安全管理条例",
+          "article_label": "第五条",
+          "score": 0.641934,
+          "retrieval": "lexical",
+          "excerpt": "第五条 国家根据网络数据在经济社会发展中的重要程度，以及一旦遭到篡改、破坏、泄露或者非法获取、非法利用，对国家安全、公共利益或者个人、组织合法权益造成的危害程度，对网络数据实行分类分级保护。",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=ff808181927f0e7b0192949a1da4355d"
+        },
+        {
+          "id": 4668,
+          "object_id": 856,
+          "source_type": "legal_clause",
+          "title": "中华人民共和国数据安全法 第二十七条",
+          "source_title": "中华人民共和国数据安全法",
+          "article_label": "第二十七条",
+          "score": 0.459706,
+          "retrieval": "lexical",
+          "excerpt": "第二十七条 开展数据处理活动应当依照法律、法规的规定，建立健全全流程数据安全管理制度，组织开展数据安全教育培训，采取相应的技术措施和其他必要措施，保障数据安全。利用互联网等信息网络开展数据处理活动，应当在网络安全等级保护制度的基础上，履行上述数据安全保护义务。 重要数据的处理者应当明确数据安全负责人和管理机构，落实数据安全保护责任。",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=ff80818179f5e0800179f885c7e70392"
+        }
+      ]
+    },
+    {
+      "query": "数据分类分级保护制度",
+      "category": "legal_clause",
+      "scope": "legal_clause",
+      "expected": {
+        "law": "cn-data-security-law",
+        "article": "第二十一条"
+      },
+      "hit_at_5": true,
+      "reciprocal_rank": 1.0,
+      "latency_ms": 35.8,
+      "results": [
+        {
+          "id": 4662,
+          "object_id": 850,
+          "source_type": "legal_clause",
+          "title": "中华人民共和国数据安全法 第二十一条",
+          "source_title": "中华人民共和国数据安全法",
+          "article_label": "第二十一条",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "第二十一条 国家建立数据分类分级保护制度，根据数据在经济社会发展中的重要程度，以及一旦遭到篡改、破坏、泄露或者非法获取、非法利用，对国家安全、公共利益或者个人、组织合法权益造成的危害程度，对数据实行分类分级保护。国家数据安全工作协调机制统筹协调有关部门制定重要数据目录，加强对重要数据的保护。 关系国家安全、国民经济命脉、重要民生、重大公共利益等数据属于国家核心数据，实行更加严格的管理制度。 各地区、各部门应当按照数据分类分级保护制度，确定本地区、本部门以及相关行业、领域的重要数据具体目录，对列入目录的数据进行重点保护。",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=ff80818179f5e0800179f885c7e70392"
+        },
+        {
+          "id": 4799,
+          "object_id": 987,
+          "source_type": "legal_clause",
+          "title": "网络数据安全管理条例 第二十九条",
+          "source_title": "网络数据安全管理条例",
+          "article_label": "第二十九条",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "第二十九条 国家数据安全工作协调机制统筹协调有关部门制定重要数据目录，加强对重要数据的保护。各地区、各部门应当按照数据分类分级保护制度，确定本地区、本部门以及相关行业、领域的重要数据具体目录，对列入目录的网络数据进行重点保护。 网络数据处理者应当按照国家有关规定识别、申报重要数据。对确认为重要数据的，相关地区、部门应当及时向网络数据处理者告知或者公开发布。网络数据处理者应当履行网络数据安全保护责任。 国家鼓励网络数据处理者使用数据标签标识等技术和产品，提高重要数据安全管理水平。",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=ff808181927f0e7b0192949a1da4355d"
+        },
+        {
+          "id": 4775,
+          "object_id": 963,
+          "source_type": "legal_clause",
+          "title": "网络数据安全管理条例 第五条",
+          "source_title": "网络数据安全管理条例",
+          "article_label": "第五条",
+          "score": 0.629969,
+          "retrieval": "lexical",
+          "excerpt": "第五条 国家根据网络数据在经济社会发展中的重要程度，以及一旦遭到篡改、破坏、泄露或者非法获取、非法利用，对国家安全、公共利益或者个人、组织合法权益造成的危害程度，对网络数据实行分类分级保护。",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=ff808181927f0e7b0192949a1da4355d"
+        },
+        {
+          "id": 4583,
+          "object_id": 771,
+          "source_type": "legal_clause",
+          "title": "中华人民共和国网络安全法 第二十三条",
+          "source_title": "中华人民共和国网络安全法",
+          "article_label": "第二十三条",
+          "score": 0.688977,
+          "retrieval": "lexical",
+          "excerpt": "第二十三条 国家实行网络安全等级保护制度。网络运营者应当按照网络安全等级保护制度的要求，履行下列安全保护义务，保障网络免受干扰、破坏或者未经授权的访问，防止网络数据泄露或者被窃取、篡改： （一）制定内部安全管理制度和操作规程，确定网络安全负责人，落实网络安全保护责任； （二）采取防范计算机病毒和网络攻击、网络侵入等危害网络安全行为的技术措施； （三）采取监测、记录网络运行状态、网络安全事件的技术措施，并按照规定留存相关的网络日志不少于六个月； （四）采取数据分类、重要数据备份和加密等措施； （五）法律、行政法规规定的其他义务。",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=021e7d7684474107b8f3febbb1c4f8b5"
+        },
+        {
+          "id": 4668,
+          "object_id": 856,
+          "source_type": "legal_clause",
+          "title": "中华人民共和国数据安全法 第二十七条",
+          "source_title": "中华人民共和国数据安全法",
+          "article_label": "第二十七条",
+          "score": 0.390391,
+          "retrieval": "lexical",
+          "excerpt": "第二十七条 开展数据处理活动应当依照法律、法规的规定，建立健全全流程数据安全管理制度，组织开展数据安全教育培训，采取相应的技术措施和其他必要措施，保障数据安全。利用互联网等信息网络开展数据处理活动，应当在网络安全等级保护制度的基础上，履行上述数据安全保护义务。 重要数据的处理者应当明确数据安全负责人和管理机构，落实数据安全保护责任。",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=ff80818179f5e0800179f885c7e70392"
+        }
+      ]
+    },
+    {
+      "query": "重要数据风险评估报告",
+      "category": "legal_clause",
+      "scope": "unfiltered",
+      "expected": {
+        "law": "cn-data-security-law",
+        "article": "第三十条"
+      },
+      "hit_at_5": true,
+      "reciprocal_rank": 1.0,
+      "latency_ms": 238.99,
+      "results": [
+        {
+          "id": 4671,
+          "object_id": 859,
+          "source_type": "legal_clause",
+          "title": "中华人民共和国数据安全法 第三十条",
+          "source_title": "中华人民共和国数据安全法",
+          "article_label": "第三十条",
+          "score": 0.833487,
+          "retrieval": "lexical",
+          "excerpt": "第三十条 重要数据的处理者应当按照规定对其数据处理活动定期开展风险评估，并向有关主管部门报送风险评估报告。 风险评估报告应当包括处理的重要数据的种类、数量，开展数据处理活动的情况，面临的数据安全风险及其应对措施等。",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=ff80818179f5e0800179f885c7e70392"
+        },
+        {
+          "id": 4803,
+          "object_id": 991,
+          "source_type": "legal_clause",
+          "title": "网络数据安全管理条例 第三十三条",
+          "source_title": "网络数据安全管理条例",
+          "article_label": "第三十三条",
+          "score": 0.833487,
+          "retrieval": "lexical",
+          "excerpt": "第三十三条 重要数据的处理者应当每年度对其网络数据处理活动开展风险评估，并向省级以上有关主管部门报送风险评估报告，有关主管部门应当及时通报同级网信部门、公安机关。 风险评估报告应当包括下列内容： （一）网络数据处理者基本信息、网络数据安全管理机构信息、网络数据安全负责人姓名和联系方式等； （二）处理重要数据的目的、种类、数量、方式、范围、存储期限、存储地点等，开展网络数据处理活动的情况，不包括网络数据内容本身； （三）网络数据安全管理制度及实施情况，加密、备份、标签标识、访问控制、安全认证等技术措施和其他必要措施及其有效性； （四）发现的网络数据安全风险",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=ff808181927f0e7b0192949a1da4355d"
+        },
+        {
+          "id": 4822,
+          "object_id": 1010,
+          "source_type": "legal_clause",
+          "title": "网络数据安全管理条例 第五十二条",
+          "source_title": "网络数据安全管理条例",
+          "article_label": "第五十二条",
+          "score": 0.754886,
+          "retrieval": "lexical",
+          "excerpt": "第五十二条 有关主管部门在开展网络数据安全监督检查时，应当加强协同配合、信息沟通，合理确定检查频次和检查方式，避免不必要的检查和交叉重复检查。 个人信息保护合规审计、重要数据风险评估、重要数据出境安全评估等应当加强衔接，避免重复评估、审计。重要数据风险评估和网络安全等级测评的内容重合的，相关结果可以互相采信。",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=ff808181927f0e7b0192949a1da4355d"
+        },
+        {
+          "id": 4801,
+          "object_id": 989,
+          "source_type": "legal_clause",
+          "title": "网络数据安全管理条例 第三十一条",
+          "source_title": "网络数据安全管理条例",
+          "article_label": "第三十一条",
+          "score": 0.588373,
+          "retrieval": "lexical",
+          "excerpt": "第三十一条 重要数据的处理者提供、委托处理、共同处理重要数据前，应当进行风险评估，但是属于履行法定职责或者法定义务的除外。 风险评估应当重点评估下列内容： （一）提供、委托处理、共同处理网络数据，以及网络数据接收方处理网络数据的目的、方式、范围等是否合法、正当、必要； （二）提供、委托处理、共同处理的网络数据遭到篡改、破坏、泄露或者非法获取、非法利用的风险，以及对国家安全、公共利益或者个人、组织合法权益带来的风险； （三）网络数据接收方的诚信、守法等情况； （四）与网络数据接收方订立或者拟订立的相关合同中关于网络数据安全的要求能否有效约束网络数据接收方履",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=ff808181927f0e7b0192949a1da4355d"
+        },
+        {
+          "id": 4800,
+          "object_id": 988,
+          "source_type": "legal_clause",
+          "title": "网络数据安全管理条例 第三十条",
+          "source_title": "网络数据安全管理条例",
+          "article_label": "第三十条",
+          "score": 0.684746,
+          "retrieval": "lexical",
+          "excerpt": "第三十条 重要数据的处理者应当明确网络数据安全负责人和网络数据安全管理机构。网络数据安全管理机构应当履行下列网络数据安全保护责任： （一）制定实施网络数据安全管理制度、操作规程和网络数据安全事件应急预案； （二）定期组织开展网络数据安全风险监测、风险评估、应急演练、宣传教育培训等活动，及时处置网络数据安全风险和事件； （三）受理并处理网络数据安全投诉、举报。 网络数据安全负责人应当具备网络数据安全专业知识和相关管理工作经历，由网络数据处理者管理层成员担任，有权直接向有关主管部门报告网络数据安全情况。 掌握有关主管部门规定的特定种类、规模的重要数据的网络数",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=ff808181927f0e7b0192949a1da4355d"
+        }
+      ]
+    },
+    {
+      "query": "重要数据风险评估报告",
+      "category": "legal_clause",
+      "scope": "legal_clause",
+      "expected": {
+        "law": "cn-data-security-law",
+        "article": "第三十条"
+      },
+      "hit_at_5": true,
+      "reciprocal_rank": 1.0,
+      "latency_ms": 34.21,
+      "results": [
+        {
+          "id": 4671,
+          "object_id": 859,
+          "source_type": "legal_clause",
+          "title": "中华人民共和国数据安全法 第三十条",
+          "source_title": "中华人民共和国数据安全法",
+          "article_label": "第三十条",
+          "score": 0.795402,
+          "retrieval": "lexical",
+          "excerpt": "第三十条 重要数据的处理者应当按照规定对其数据处理活动定期开展风险评估，并向有关主管部门报送风险评估报告。 风险评估报告应当包括处理的重要数据的种类、数量，开展数据处理活动的情况，面临的数据安全风险及其应对措施等。",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=ff80818179f5e0800179f885c7e70392"
+        },
+        {
+          "id": 4803,
+          "object_id": 991,
+          "source_type": "legal_clause",
+          "title": "网络数据安全管理条例 第三十三条",
+          "source_title": "网络数据安全管理条例",
+          "article_label": "第三十三条",
+          "score": 0.795402,
+          "retrieval": "lexical",
+          "excerpt": "第三十三条 重要数据的处理者应当每年度对其网络数据处理活动开展风险评估，并向省级以上有关主管部门报送风险评估报告，有关主管部门应当及时通报同级网信部门、公安机关。 风险评估报告应当包括下列内容： （一）网络数据处理者基本信息、网络数据安全管理机构信息、网络数据安全负责人姓名和联系方式等； （二）处理重要数据的目的、种类、数量、方式、范围、存储期限、存储地点等，开展网络数据处理活动的情况，不包括网络数据内容本身； （三）网络数据安全管理制度及实施情况，加密、备份、标签标识、访问控制、安全认证等技术措施和其他必要措施及其有效性； （四）发现的网络数据安全风险",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=ff808181927f0e7b0192949a1da4355d"
+        },
+        {
+          "id": 4822,
+          "object_id": 1010,
+          "source_type": "legal_clause",
+          "title": "网络数据安全管理条例 第五十二条",
+          "source_title": "网络数据安全管理条例",
+          "article_label": "第五十二条",
+          "score": 0.735997,
+          "retrieval": "lexical",
+          "excerpt": "第五十二条 有关主管部门在开展网络数据安全监督检查时，应当加强协同配合、信息沟通，合理确定检查频次和检查方式，避免不必要的检查和交叉重复检查。 个人信息保护合规审计、重要数据风险评估、重要数据出境安全评估等应当加强衔接，避免重复评估、审计。重要数据风险评估和网络安全等级测评的内容重合的，相关结果可以互相采信。",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=ff808181927f0e7b0192949a1da4355d"
+        },
+        {
+          "id": 4801,
+          "object_id": 989,
+          "source_type": "legal_clause",
+          "title": "网络数据安全管理条例 第三十一条",
+          "source_title": "网络数据安全管理条例",
+          "article_label": "第三十一条",
+          "score": 0.531399,
+          "retrieval": "lexical",
+          "excerpt": "第三十一条 重要数据的处理者提供、委托处理、共同处理重要数据前，应当进行风险评估，但是属于履行法定职责或者法定义务的除外。 风险评估应当重点评估下列内容： （一）提供、委托处理、共同处理网络数据，以及网络数据接收方处理网络数据的目的、方式、范围等是否合法、正当、必要； （二）提供、委托处理、共同处理的网络数据遭到篡改、破坏、泄露或者非法获取、非法利用的风险，以及对国家安全、公共利益或者个人、组织合法权益带来的风险； （三）网络数据接收方的诚信、守法等情况； （四）与网络数据接收方订立或者拟订立的相关合同中关于网络数据安全的要求能否有效约束网络数据接收方履",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=ff808181927f0e7b0192949a1da4355d"
+        },
+        {
+          "id": 4800,
+          "object_id": 988,
+          "source_type": "legal_clause",
+          "title": "网络数据安全管理条例 第三十条",
+          "source_title": "网络数据安全管理条例",
+          "article_label": "第三十条",
+          "score": 0.621922,
+          "retrieval": "lexical",
+          "excerpt": "第三十条 重要数据的处理者应当明确网络数据安全负责人和网络数据安全管理机构。网络数据安全管理机构应当履行下列网络数据安全保护责任： （一）制定实施网络数据安全管理制度、操作规程和网络数据安全事件应急预案； （二）定期组织开展网络数据安全风险监测、风险评估、应急演练、宣传教育培训等活动，及时处置网络数据安全风险和事件； （三）受理并处理网络数据安全投诉、举报。 网络数据安全负责人应当具备网络数据安全专业知识和相关管理工作经历，由网络数据处理者管理层成员担任，有权直接向有关主管部门报告网络数据安全情况。 掌握有关主管部门规定的特定种类、规模的重要数据的网络数",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=ff808181927f0e7b0192949a1da4355d"
+        }
+      ]
+    },
+    {
+      "query": "隐私权 私人生活安宁",
+      "category": "legal_clause",
+      "scope": "unfiltered",
+      "expected": {
+        "law": "cn-civil-code-privacy-excerpt",
+        "article": "第一千零三十二条"
+      },
+      "hit_at_5": true,
+      "reciprocal_rank": 1.0,
+      "latency_ms": 265.73,
+      "results": [
+        {
+          "id": 4946,
+          "object_id": 1134,
+          "source_type": "legal_clause",
+          "title": "中华人民共和国民法典（隐私权和个人信息保护条款节选） 第一千零三十二条",
+          "source_title": "中华人民共和国民法典（隐私权和个人信息保护条款节选）",
+          "article_label": "第一千零三十二条",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "第一千零三十二条 自然人享有隐私权。任何组织或者个人不得以刺探、侵扰、泄露、公开等方式侵害他人的隐私权。 隐私是自然人的私人生活安宁和不愿为他人知晓的私密空间、私密活动、私密信息。",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=ff808081729d1efe01729d50b5c500bf"
+        },
+        {
+          "id": 4947,
+          "object_id": 1135,
+          "source_type": "legal_clause",
+          "title": "中华人民共和国民法典（隐私权和个人信息保护条款节选） 第一千零三十三条",
+          "source_title": "中华人民共和国民法典（隐私权和个人信息保护条款节选）",
+          "article_label": "第一千零三十三条",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "第一千零三十三条 除法律另有规定或者权利人明确同意外，任何组织或者个人不得实施下列行为： （一）以电话、短信、即时通讯工具、电子邮件、传单等方式侵扰他人的私人生活安宁； （二）进入、拍摄、窥视他人的住宅、宾馆房间等私密空间； （三）拍摄、窥视、窃听、公开他人的私密活动； （四）拍摄、窥视他人身体的私密部位； （五）处理他人的私密信息； （六）以其他方式侵害他人的隐私权。",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=ff808081729d1efe01729d50b5c500bf"
+        }
+      ]
+    },
+    {
+      "query": "隐私权 私人生活安宁",
+      "category": "legal_clause",
+      "scope": "legal_clause",
+      "expected": {
+        "law": "cn-civil-code-privacy-excerpt",
+        "article": "第一千零三十二条"
+      },
+      "hit_at_5": true,
+      "reciprocal_rank": 1.0,
+      "latency_ms": 35.06,
+      "results": [
+        {
+          "id": 4946,
+          "object_id": 1134,
+          "source_type": "legal_clause",
+          "title": "中华人民共和国民法典（隐私权和个人信息保护条款节选） 第一千零三十二条",
+          "source_title": "中华人民共和国民法典（隐私权和个人信息保护条款节选）",
+          "article_label": "第一千零三十二条",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "第一千零三十二条 自然人享有隐私权。任何组织或者个人不得以刺探、侵扰、泄露、公开等方式侵害他人的隐私权。 隐私是自然人的私人生活安宁和不愿为他人知晓的私密空间、私密活动、私密信息。",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=ff808081729d1efe01729d50b5c500bf"
+        },
+        {
+          "id": 4947,
+          "object_id": 1135,
+          "source_type": "legal_clause",
+          "title": "中华人民共和国民法典（隐私权和个人信息保护条款节选） 第一千零三十三条",
+          "source_title": "中华人民共和国民法典（隐私权和个人信息保护条款节选）",
+          "article_label": "第一千零三十三条",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "第一千零三十三条 除法律另有规定或者权利人明确同意外，任何组织或者个人不得实施下列行为： （一）以电话、短信、即时通讯工具、电子邮件、传单等方式侵扰他人的私人生活安宁； （二）进入、拍摄、窥视他人的住宅、宾馆房间等私密空间； （三）拍摄、窥视、窃听、公开他人的私密活动； （四）拍摄、窥视他人身体的私密部位； （五）处理他人的私密信息； （六）以其他方式侵害他人的隐私权。",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=ff808081729d1efe01729d50b5c500bf"
+        }
+      ]
+    },
+    {
+      "query": "个人信息跨境提供",
+      "category": "legal_clause",
+      "scope": "unfiltered",
+      "expected": {
+        "law": "cn-personal-information-protection-law",
+        "article": "第三十八条"
+      },
+      "hit_at_5": true,
+      "reciprocal_rank": 0.2,
+      "latency_ms": 230.07,
+      "results": [
+        {
+          "id": 4732,
+          "object_id": 920,
+          "source_type": "legal_clause",
+          "title": "中华人民共和国个人信息保护法 第三十六条",
+          "source_title": "中华人民共和国个人信息保护法",
+          "article_label": "第三十六条",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "第三十六条 国家机关处理的个人信息应当在中华人民共和国境内存储；确需向境外提供的，应当进行安全评估。安全评估可以要求有关部门提供支持与协助。",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=ff8081817b6472a3017b656cc2040044"
+        },
+        {
+          "id": 4805,
+          "object_id": 993,
+          "source_type": "legal_clause",
+          "title": "网络数据安全管理条例 第三十五条",
+          "source_title": "网络数据安全管理条例",
+          "article_label": "第三十五条",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "第三十五条 符合下列条件之一的，网络数据处理者可以向境外提供个人信息： （一）通过国家网信部门组织的数据出境安全评估； （二）按照国家网信部门的规定经专业机构进行个人信息保护认证； （三）符合国家网信部门制定的关于个人信息出境标准合同的规定； （四）为订立、履行个人作为一方当事人的合同，确需向境外提供个人信息； （五）按照依法制定的劳动规章制度和依法签订的集体合同实施跨境人力资源管理，确需向境外提供员工个人信息； （六）为履行法定职责或者法定义务，确需向境外提供个人信息； （七）紧急情况下为保护自然人的生命健康和财产安全，确需向境外提供个人信息； （八）",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=ff808181927f0e7b0192949a1da4355d"
+        },
+        {
+          "id": 4808,
+          "object_id": 996,
+          "source_type": "legal_clause",
+          "title": "网络数据安全管理条例 第三十八条",
+          "source_title": "网络数据安全管理条例",
+          "article_label": "第三十八条",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "第三十八条 通过数据出境安全评估后，网络数据处理者向境外提供个人信息和重要数据的，不得超出评估时明确的数据出境目的、方式、范围和种类、规模等。",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=ff808181927f0e7b0192949a1da4355d"
+        },
+        {
+          "id": 4806,
+          "object_id": 994,
+          "source_type": "legal_clause",
+          "title": "网络数据安全管理条例 第三十六条",
+          "source_title": "网络数据安全管理条例",
+          "article_label": "第三十六条",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "第三十六条 中华人民共和国缔结或者参加的国际条约、协定对向中华人民共和国境外提供个人信息的条件等有规定的，可以按照其规定执行。",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=ff808181927f0e7b0192949a1da4355d"
+        },
+        {
+          "id": 4734,
+          "object_id": 922,
+          "source_type": "legal_clause",
+          "title": "中华人民共和国个人信息保护法 第三十八条",
+          "source_title": "中华人民共和国个人信息保护法",
+          "article_label": "第三十八条",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "第三十八条 个人信息处理者因业务等需要，确需向中华人民共和国境外提供个人信息的，应当具备下列条件之一： （一）依照本法第四十条的规定通过国家网信部门组织的安全评估； （二）按照国家网信部门的规定经专业机构进行个人信息保护认证； （三）按照国家网信部门制定的标准合同与境外接收方订立合同，约定双方的权利和义务； （四）法律、行政法规或者国家网信部门规定的其他条件。 中华人民共和国缔结或者参加的国际条约、协定对向中华人民共和国境外提供个人信息的条件等有规定的，可以按照其规定执行。 个人信息处理者应当采取必要措施，保障境外接收方处理个人信息的活动达到本法规定的个",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=ff8081817b6472a3017b656cc2040044"
+        }
+      ]
+    },
+    {
+      "query": "个人信息跨境提供",
+      "category": "legal_clause",
+      "scope": "legal_clause",
+      "expected": {
+        "law": "cn-personal-information-protection-law",
+        "article": "第三十八条"
+      },
+      "hit_at_5": true,
+      "reciprocal_rank": 0.2,
+      "latency_ms": 38.19,
+      "results": [
+        {
+          "id": 4808,
+          "object_id": 996,
+          "source_type": "legal_clause",
+          "title": "网络数据安全管理条例 第三十八条",
+          "source_title": "网络数据安全管理条例",
+          "article_label": "第三十八条",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "第三十八条 通过数据出境安全评估后，网络数据处理者向境外提供个人信息和重要数据的，不得超出评估时明确的数据出境目的、方式、范围和种类、规模等。",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=ff808181927f0e7b0192949a1da4355d"
+        },
+        {
+          "id": 4732,
+          "object_id": 920,
+          "source_type": "legal_clause",
+          "title": "中华人民共和国个人信息保护法 第三十六条",
+          "source_title": "中华人民共和国个人信息保护法",
+          "article_label": "第三十六条",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "第三十六条 国家机关处理的个人信息应当在中华人民共和国境内存储；确需向境外提供的，应当进行安全评估。安全评估可以要求有关部门提供支持与协助。",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=ff8081817b6472a3017b656cc2040044"
+        },
+        {
+          "id": 4805,
+          "object_id": 993,
+          "source_type": "legal_clause",
+          "title": "网络数据安全管理条例 第三十五条",
+          "source_title": "网络数据安全管理条例",
+          "article_label": "第三十五条",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "第三十五条 符合下列条件之一的，网络数据处理者可以向境外提供个人信息： （一）通过国家网信部门组织的数据出境安全评估； （二）按照国家网信部门的规定经专业机构进行个人信息保护认证； （三）符合国家网信部门制定的关于个人信息出境标准合同的规定； （四）为订立、履行个人作为一方当事人的合同，确需向境外提供个人信息； （五）按照依法制定的劳动规章制度和依法签订的集体合同实施跨境人力资源管理，确需向境外提供员工个人信息； （六）为履行法定职责或者法定义务，确需向境外提供个人信息； （七）紧急情况下为保护自然人的生命健康和财产安全，确需向境外提供个人信息； （八）",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=ff808181927f0e7b0192949a1da4355d"
+        },
+        {
+          "id": 4806,
+          "object_id": 994,
+          "source_type": "legal_clause",
+          "title": "网络数据安全管理条例 第三十六条",
+          "source_title": "网络数据安全管理条例",
+          "article_label": "第三十六条",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "第三十六条 中华人民共和国缔结或者参加的国际条约、协定对向中华人民共和国境外提供个人信息的条件等有规定的，可以按照其规定执行。",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=ff808181927f0e7b0192949a1da4355d"
+        },
+        {
+          "id": 4734,
+          "object_id": 922,
+          "source_type": "legal_clause",
+          "title": "中华人民共和国个人信息保护法 第三十八条",
+          "source_title": "中华人民共和国个人信息保护法",
+          "article_label": "第三十八条",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "第三十八条 个人信息处理者因业务等需要，确需向中华人民共和国境外提供个人信息的，应当具备下列条件之一： （一）依照本法第四十条的规定通过国家网信部门组织的安全评估； （二）按照国家网信部门的规定经专业机构进行个人信息保护认证； （三）按照国家网信部门制定的标准合同与境外接收方订立合同，约定双方的权利和义务； （四）法律、行政法规或者国家网信部门规定的其他条件。 中华人民共和国缔结或者参加的国际条约、协定对向中华人民共和国境外提供个人信息的条件等有规定的，可以按照其规定执行。 个人信息处理者应当采取必要措施，保障境外接收方处理个人信息的活动达到本法规定的个",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=ff8081817b6472a3017b656cc2040044"
+        }
+      ]
+    }
+  ],
+  "api_checks": [
+    {
+      "role": "admin",
+      "endpoint": "/api/legal-kb/retrieve/",
+      "status": 200,
+      "citations": 5,
+      "raw_results_present": true,
+      "provider": "local",
+      "answer_nonempty": true
+    },
+    {
+      "role": "teacher",
+      "endpoint": "/api/legal-kb/retrieve/",
+      "status": 200,
+      "citations": 5,
+      "raw_results_present": false,
+      "provider": "local",
+      "answer_nonempty": true
+    },
+    {
+      "role": "student",
+      "endpoint": "/api/legal-kb/retrieve/",
+      "status": 403,
+      "citations": 0,
+      "raw_results_present": false,
+      "provider": null,
+      "answer_nonempty": false
+    },
+    {
+      "role": "anonymous",
+      "endpoint": "/api/legal-kb/retrieve/",
+      "status": 403,
+      "citations": 0,
+      "raw_results_present": false,
+      "provider": null,
+      "answer_nonempty": false
+    },
+    {
+      "role": "teacher",
+      "endpoint": "/api/legal-kb/library/",
+      "status": 200
+    },
+    {
+      "role": "teacher",
+      "endpoint": "/api/legal-kb/documents/",
+      "status": 200
+    },
+    {
+      "role": "teacher",
+      "endpoint": "/api/legal-kb/library/document/208/",
+      "status": 200
+    }
+  ],
+  "permissions": [
+    {
+      "role": "admin",
+      "returned_document_chunks": 5,
+      "expected_access": true,
+      "passed": true
+    },
+    {
+      "role": "teacher",
+      "returned_document_chunks": 5,
+      "expected_access": true,
+      "passed": true
+    },
+    {
+      "role": "student",
+      "returned_document_chunks": 0,
+      "expected_access": false,
+      "passed": true
+    },
+    {
+      "role": "anonymous",
+      "returned_document_chunks": 0,
+      "expected_access": false,
+      "passed": true
+    }
+  ],
+  "learning_agent": [
+    {
+      "role": "admin",
+      "query": "SQL injection",
+      "safe_source_types": [
+        "knowledge_concept",
+        "article",
+        "resource",
+        "legal_clause"
+      ],
+      "returned_types": {
+        "document": 5
+      },
+      "imported_owasp_returned": true
+    },
+    {
+      "role": "admin",
+      "query": "敏感个人信息",
+      "safe_source_types": [
+        "knowledge_concept",
+        "article",
+        "resource",
+        "legal_clause"
+      ],
+      "returned_types": {
+        "legal_clause": 5
+      },
+      "imported_owasp_returned": false
+    },
+    {
+      "role": "student",
+      "query": "SQL injection",
+      "safe_source_types": [
+        "knowledge_concept",
+        "article",
+        "resource",
+        "legal_clause"
+      ],
+      "returned_types": {
+        "resource": 4,
+        "article": 1
+      },
+      "imported_owasp_returned": false
+    },
+    {
+      "role": "student",
+      "query": "敏感个人信息",
+      "safe_source_types": [
+        "knowledge_concept",
+        "article",
+        "resource",
+        "legal_clause"
+      ],
+      "returned_types": {
+        "legal_clause": 5
+      },
+      "imported_owasp_returned": false
+    }
+  ],
+  "metric_definition": "hit@5 means an explicitly labelled source document or exact legal article is in the first five chunks; MRR uses its first rank. This is a small diagnostic sample, not a corpus-wide quality estimate.",
+  "unanswerable_probes": [
+    {
+      "query": "zxqv987654_no_matching_corpus",
+      "scope": "document",
+      "returned": 0,
+      "results": []
+    },
+    {
+      "query": "zxqv987654_no_matching_corpus",
+      "scope": "legal_clause",
+      "returned": 0,
+      "results": []
+    },
+    {
+      "query": "火星量子香蕉税法",
+      "scope": "document",
+      "returned": 0,
+      "results": []
+    },
+    {
+      "query": "火星量子香蕉税法",
+      "scope": "legal_clause",
+      "returned": 0,
+      "results": []
+    }
+  ],
+  "targeted_probes": [
+    {
+      "query": "SQL Injection Prevention Cheat Sheet",
+      "object_id": 208,
+      "returned": 5,
+      "expected_source_returned": true,
+      "results": [
+        {
+          "id": 3731,
+          "object_id": 208,
+          "source_type": "document",
+          "title": "SQL Injection Prevention Cheat Sheet",
+          "source_title": "SQL Injection Prevention Cheat Sheet",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "# SQL Injection Prevention Cheat Sheet ## Introduction A SQL injection attack occurs when untrusted data (usually strings) becomes part of a query's SQL syntax, modifying the logic of the SQL request. The malicious data can come from various sources such as: - an HTTP request (fo",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.md"
+        },
+        {
+          "id": 3732,
+          "object_id": 208,
+          "source_type": "document",
+          "title": "SQL Injection Prevention Cheat Sheet",
+          "source_title": "SQL Injection Prevention Cheat Sheet",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "values; - use fixed application-owned choices for dynamic table names, column names, sort order (`ASC`, `DESC`), etc. These controls apply regardless of whether data comes from an HTTP request, another service, or previously stored data. A related class of vulnerability affects o",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.md"
+        },
+        {
+          "id": 3739,
+          "object_id": 208,
+          "source_type": "document",
+          "title": "SQL Injection Prevention Cheat Sheet",
+          "source_title": "SQL Injection Prevention Cheat Sheet",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "efman/9.7/en/sql-mode.html#sqlmode_no_backslash_escapes)). Replace escaping-based query construction with parameter binding. ## Hardening We also recommend adopting all of these additional defenses to provide defense in depth to limit damage in case of successful SQL injection at",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.md"
+        },
+        {
+          "id": 3734,
+          "object_id": 208,
+          "source_type": "document",
+          "title": "SQL Injection Prevention Cheat Sheet",
+          "source_title": "SQL Injection Prevention Cheat Sheet",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "can happen as well in procedure calls: ```java // UNSAFE CallableStatement statement = connection.prepareCall(\"{call sp_updateAccountBalance('\" + customerName + \"' , \" + amount + \")}\"); statement.execute(); ``` As below, the recommended implementation uses parameterized queries: ",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.md"
+        },
+        {
+          "id": 3744,
+          "object_id": 208,
+          "source_type": "document",
+          "title": "SQL Injection Prevention Cheat Sheet",
+          "source_title": "SQL Injection Prevention Cheat Sheet",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "into SQL, and that dynamic identifiers and sort directions come from the query's fixed mapping. Preparing the outer call is not evidence that a procedure's internal SQL is safe. Use the [OWASP Web Security Testing Guide's SQL injection tests](https://wstg.owasp.org/v4.2/4-Web_App",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.md"
+        }
+      ]
+    },
+    {
+      "query": "Zero Trust Architecture Cheat Sheet",
+      "object_id": 245,
+      "returned": 5,
+      "expected_source_returned": true,
+      "results": [
+        {
+          "id": 4511,
+          "object_id": 245,
+          "source_type": "document",
+          "title": "Zero Trust Architecture Cheat Sheet",
+          "source_title": "Zero Trust Architecture Cheat Sheet",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "# Zero Trust Architecture Cheat Sheet ## Introduction This cheat sheet will help you implement Zero Trust Architecture (ZTA) in your organization. Zero Trust means \"never trust, always verify\" - you don't trust anyone or anything by default, even if they're inside your network. T",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/Zero_Trust_Architecture_Cheat_Sheet.md"
+        },
+        {
+          "id": 4544,
+          "object_id": 245,
+          "source_type": "document",
+          "title": "Zero Trust Architecture Cheat Sheet",
+          "source_title": "Zero Trust Architecture Cheat Sheet",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "- Cilium Hubble - Falco or Tetragon (eBPF-based runtime signals) - OpenTelemetry (OTel) - Istio / Linkerd telemetry #### 4. Zero Trust Security Loop 1. **Policy-as-Code** → Policies are defined in code repositories and tested. 2. **Continuous Verification** → Every change and dep",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/Zero_Trust_Architecture_Cheat_Sheet.md"
+        },
+        {
+          "id": 4516,
+          "object_id": 245,
+          "source_type": "document",
+          "title": "Zero Trust Architecture Cheat Sheet",
+          "source_title": "Zero Trust Architecture Cheat Sheet",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": ", monitor, and terminate resource access according to policy; this does not require a new interactive login at every enforcement point. ## How Zero Trust Addresses Modern Security Challenges Zero Trust tackles security problems that traditional approaches can't handle effectively",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/Zero_Trust_Architecture_Cheat_Sheet.md"
+        },
+        {
+          "id": 4541,
+          "object_id": 245,
+          "source_type": "document",
+          "title": "Zero Trust Architecture Cheat Sheet",
+          "source_title": "Zero Trust Architecture Cheat Sheet",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "d Access Management**: Strong authentication (MFA) and risk-based access decisions - **Zero Trust Network Access (ZTNA)**: Resource-specific access controls, with restricted legacy access paths during migration - **Web Application Security**: Protect applications and APIs from OW",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/Zero_Trust_Architecture_Cheat_Sheet.md"
+        },
+        {
+          "id": 4537,
+          "object_id": 245,
+          "source_type": "document",
+          "title": "Zero Trust Architecture Cheat Sheet",
+          "source_title": "Zero Trust Architecture Cheat Sheet",
+          "article_label": "",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "ons think they can just add network controls and call it Zero Trust. But Zero Trust is fundamentally about identity-based security, not network security. If you're still thinking in terms of \"inside\" and \"outside\" the network, you're missing the point. Focus on verifying identity",
+          "source_url": "https://github.com/OWASP/CheatSheetSeries/blob/9c87d0a0e9411de028b9d7eb853872082d6d3382/cheatsheets/Zero_Trust_Architecture_Cheat_Sheet.md"
+        }
+      ]
+    },
+    {
+      "query": "敏感个人信息",
+      "object_id": 912,
+      "returned": 1,
+      "expected_source_returned": true,
+      "results": [
+        {
+          "id": 4724,
+          "object_id": 912,
+          "source_type": "legal_clause",
+          "title": "中华人民共和国个人信息保护法 第二十八条",
+          "source_title": "中华人民共和国个人信息保护法",
+          "article_label": "第二十八条",
+          "score": 1.0,
+          "retrieval": "lexical",
+          "excerpt": "第二十八条 敏感个人信息是一旦泄露或者非法使用，容易导致自然人的人格尊严受到侵害或者人身、财产安全受到危害的个人信息，包括生物识别、宗教信仰、特定身份、医疗健康、金融账户、行踪轨迹等信息，以及不满十四周岁未成年人的个人信息。 只有在具有特定的目的和充分的必要性，并采取严格保护措施的情形下，个人信息处理者方可处理敏感个人信息。",
+          "source_url": "https://flk.npc.gov.cn/law-search/search/flfgDetails?bbbs=ff8081817b6472a3017b656cc2040044"
+        }
+      ]
+    }
+  ],
+  "sensitive_definition_rank_at_50": 4,
+  "metrics": {
+    "document/unfiltered": {
+      "questions": 13,
+      "hits_at_5": 13,
+      "hit_rate_at_5": 1,
+      "mrr_at_5": 0.8461538461538461,
+      "p50_ms": 239.88,
+      "p95_ms": 2009.88
+    },
+    "document/document": {
+      "questions": 13,
+      "hits_at_5": 13,
+      "hit_rate_at_5": 1,
+      "mrr_at_5": 0.9615384615384616,
+      "p50_ms": 204.4,
+      "p95_ms": 248.5
+    },
+    "legal_clause/unfiltered": {
+      "questions": 8,
+      "hits_at_5": 8,
+      "hit_rate_at_5": 1,
+      "mrr_at_5": 0.74375,
+      "p50_ms": 236.055,
+      "p95_ms": 283.89
+    },
+    "legal_clause/legal_clause": {
+      "questions": 8,
+      "hits_at_5": 8,
+      "hit_rate_at_5": 1,
+      "mrr_at_5": 0.74375,
+      "p50_ms": 35.43,
+      "p95_ms": 41.84
+    }
+  }
+}

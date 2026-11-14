@@ -376,7 +376,7 @@ class LegalApiTests(TestCase):
 
         self.assertEqual(response.status_code, 403)
 
-    def test_admin_can_export_report(self):
+    def test_report_without_file_generator_cannot_be_marked_exported(self):
         report = LegalReport.objects.create(
             title='Monthly compliance report',
             report_type='periodic',
@@ -387,7 +387,8 @@ class LegalApiTests(TestCase):
         self.client.force_authenticate(self.admin)
         response = self.client.post(f'/api/legal/reports/{report.id}/export/')
 
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 409)
+        self.assertEqual(response.data['code'], 'EXPORT_NOT_AVAILABLE')
         report.refresh_from_db()
-        self.assertEqual(report.status, 'exported')
-        self.assertEqual(AuditLedgerEntry.objects.filter(event_category='report_export').count(), 1)
+        self.assertNotEqual(report.status, 'exported')
+        self.assertEqual(AuditLedgerEntry.objects.filter(event_category='report_export').count(), 0)

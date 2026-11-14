@@ -15,6 +15,7 @@
     </div>
 
     <template v-else>
+      <p v-if="unsavedAtExpiry" class="page-state is-error" role="alert">考试到期时仍有选择未保存；本次成绩仅包含截止前保存成功的答案。请联系教师核对。</p>
       <p v-if="error" class="page-state is-error" role="alert">
         {{ error }}<button type="button" class="text-action" @click="loadResult">重试</button>
       </p>
@@ -42,6 +43,7 @@
         <header class="section-heading">
           <h2 id="answers-heading">答题详情</h2>
           <p class="section-note">{{ answers.length }} 条答题记录</p>
+          <ProtectionBadge :status="record.protection?.user_answer" label="你提交的考试答案加密保存" />
         </header>
         <p v-if="!answers.length" class="page-state">暂无答题明细。</p>
         <ol v-else class="answers-list">
@@ -59,7 +61,7 @@
             <dl class="answer-comparison">
               <div>
                 <dt>你的答案</dt>
-                <dd>{{ answer.answer === null || answer.answer === '' ? '未作答' : answer.answer }}</dd>
+                <dd>{{ answer.answer === null || answer.answer === '' ? '未作答' : answer.answer }} <ProtectionBadge :status="answer.protection?.user_answer" label="答案加密保存" /></dd>
               </div>
               <div v-if="answer.correctAnswer !== null">
                 <dt>后台提供的答案</dt>
@@ -87,6 +89,7 @@
   </div>
 </template>
 <script setup>
+import ProtectionBadge from '@/shared/privacy/ProtectionBadge.vue'
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import AppIcon from '@/shared/design/AppIcon.vue'
@@ -96,6 +99,7 @@ import { RECORDS_PATH, accuracy, examTypeLabel, examsApi, formatDuration, passCo
 const route = useRoute()
 const router = useRouter()
 const recordId = computed(() => route.params.id)
+const unsavedAtExpiry = computed(() => route.query?.unsaved === '1')
 const record = ref(null)
 const loading = ref(true)
 const error = ref('')

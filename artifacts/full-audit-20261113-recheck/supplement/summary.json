@@ -1,0 +1,99 @@
+{
+  "recheck-rt-mainline-pure": {
+    "command": [
+      "D:\\aaa10\\16015478\u6e90\u7801\\project-code\\.state\\full-audit-20261113\\venv\\Scripts\\python.exe",
+      "-B",
+      "D:\\aaa10\\16015478\u6e90\u7801\\project-code\\tools\\full_audit\\batch.py",
+      "--entry",
+      "unit",
+      "discover",
+      "-s",
+      "mainline1/tests",
+      "-p",
+      "test*.py"
+    ],
+    "synthetic_only": true,
+    "test_database": "test_audit_batch_recheck-rt-mainline-pure",
+    "exit_code": 0,
+    "elapsed_seconds": 10.25,
+    "source_changes": [],
+    "counts": {
+      "tests": 157,
+      "passed": 157,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  },
+  "recheck-rt-tool-pure": {
+    "command": [
+      "D:\\aaa10\\16015478\u6e90\u7801\\project-code\\.state\\full-audit-20261113\\venv\\Scripts\\python.exe",
+      "-B",
+      "D:\\aaa10\\16015478\u6e90\u7801\\project-code\\tools\\full_audit\\batch.py",
+      "--entry",
+      "unit",
+      "tools.data_security.test_phase4_evidence",
+      "tools.data_security.test_phase6_plaintext_scan"
+    ],
+    "synthetic_only": true,
+    "test_database": "test_audit_batch_recheck-rt-tool-pure",
+    "exit_code": 1,
+    "elapsed_seconds": 6.09,
+    "source_changes": [],
+    "counts": {
+      "tests": 12,
+      "passed": 11,
+      "failures": 2,
+      "errors": 0,
+      "skipped": 0
+    }
+  },
+  "recheck-rt-check": {
+    "command": [
+      "D:\\aaa10\\16015478\u6e90\u7801\\project-code\\.state\\full-audit-20261113\\venv\\Scripts\\python.exe",
+      "-B",
+      "D:\\aaa10\\16015478\u6e90\u7801\\project-code\\tools\\full_audit\\batch.py",
+      "--entry",
+      "django",
+      "check"
+    ],
+    "synthetic_only": true,
+    "test_database": "test_audit_batch_recheck-rt-check",
+    "exit_code": 0,
+    "elapsed_seconds": 8.39,
+    "source_changes": []
+  },
+  "recheck-rt-migration-check": {
+    "command": [
+      "D:\\aaa10\\16015478\u6e90\u7801\\project-code\\.state\\full-audit-20261113\\venv\\Scripts\\python.exe",
+      "-B",
+      "D:\\aaa10\\16015478\u6e90\u7801\\project-code\\tools\\full_audit\\batch.py",
+      "--entry",
+      "django",
+      "makemigrations",
+      "--check",
+      "--dry-run"
+    ],
+    "synthetic_only": true,
+    "test_database": "test_audit_batch_recheck-rt-migration-check",
+    "exit_code": 0,
+    "elapsed_seconds": 8.88,
+    "source_changes": []
+  },
+  "recheck-rt-migration-plan": {
+    "command": [
+      "D:\\aaa10\\16015478\u6e90\u7801\\project-code\\.state\\full-audit-20261113\\venv\\Scripts\\python.exe",
+      "-B",
+      "D:\\aaa10\\16015478\u6e90\u7801\\project-code\\tools\\full_audit\\batch.py",
+      "--entry",
+      "django",
+      "showmigrations",
+      "--plan"
+    ],
+    "synthetic_only": true,
+    "test_database": "test_audit_batch_recheck-rt-migration-plan",
+    "exit_code": 0,
+    "elapsed_seconds": 9.02,
+    "source_changes": []
+  }
+}

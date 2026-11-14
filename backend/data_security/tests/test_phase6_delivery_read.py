@@ -4,6 +4,7 @@ from datetime import timedelta
 import hashlib
 from unittest import TestCase
 from unittest.mock import Mock
+from types import SimpleNamespace
 
 from data_security.contracts import (
     AuditReceipt, CipherEnvelope, Durability, EventKind, MediaType, PolicyStatus,
@@ -44,6 +45,43 @@ class DeliveryReadTests(ExportFlowFixture, TestCase):
 
     def read(self):
         return self.flow.open_delivery(self.record.binding, attempt_ref='test/download-1')
+
+    def test_status_inspection_authenticates_without_delivery_effects(self):
+        record, receipt, payload, _envelope, _evidence = self.flow.inspect_delivery(self.record.binding)
+        self.assertEqual((record, receipt, payload), (self.record, self.receipt, self.output))
+        self.store.read.assert_called_once()
+        self.crypto.open.assert_called_once()
+        self.authenticator.verify.assert_called_once()
+        self.reports.lock_delivery.assert_not_called()
+        self.audit.record.assert_not_called()
+        self.quota.commit.assert_not_called()
+        self.store.publish.assert_not_called()
+        self.work.commit.assert_not_called()
+
+    def test_status_inspection_refuses_tampered_output(self):
+        self.crypto.open.return_value = binary(b'tampered output')
+        self.assertEqual(self.flow.inspect_delivery(self.record.binding).code, ReasonCode.HASH_MISMATCH)
+        self.audit.record.assert_not_called()
+        self.work.commit.assert_not_called()
+
+    def test_owner_description_requires_authenticated_output_and_keeps_inspection_read_only(self):
+        from data_security.adapters.persistence.export_delivery import DjangoResourceExports
+        owner = DjangoResourceExports(sources=Mock(), risks=Mock(), targets=Mock(),
+            flow_factory=lambda user, owned: self.flow, clock=lambda: AT, ttl_seconds=60,
+            identity=Mock(), uploads=Mock())
+        owner._bound = Mock(return_value=SimpleNamespace(binding=self.record.binding))
+        arguments = {'user': object(), 'source_ref': 'source/test', 'permission_ref': 'grant/test'}
+        result = owner.describe(**arguments)
+        self.assertEqual(result['state'], 'generated')
+        self.assertTrue(result['can_download'])
+        self.assertEqual(result['protection'], {'redaction': 'completed', 'storage': 'encrypted'})
+        self.crypto.open.return_value = binary(b'tampered output')
+        result = owner.describe(**arguments)
+        self.assertEqual(result['state'], 'unknown')
+        self.assertFalse(result['can_download'])
+        self.assertEqual(result['protection'], {'redaction': 'unknown', 'storage': 'unknown'})
+        self.audit.record.assert_not_called()
+        self.work.commit.assert_not_called()
 
     def test_fresh_checks_and_attempt_audit_without_new_logical_delivery(self):
         calls = Mock()

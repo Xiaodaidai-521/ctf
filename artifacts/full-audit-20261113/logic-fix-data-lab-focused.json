@@ -1,0 +1,27 @@
+{
+  "tests": 16,
+  "passed": [
+    "data_lab.tests.test_submissions.SubmissionTests.test_client_cannot_replay_evidence_through_module6",
+    "data_lab.tests.test_submissions.SubmissionTests.test_evidence_event_failure_rolls_back_snapshot",
+    "data_lab.tests.test_submissions.SubmissionTests.test_foreign_replays_and_duplicate_variants_rejected",
+    "data_lab.tests.test_submissions.SubmissionTests.test_real_module6_result_and_module1_ack_idempotent",
+    "data_lab.tests.test_submissions.SubmissionTests.test_saved_evidence_survives_module6_event_failure",
+    "data_lab.tests.test_submissions.SubmissionTests.test_teacher_help_and_old_analysis_never_independent",
+    "data_lab.tests.test_acceptance.AcceptanceTests.test_all_models_disabled_full_flow",
+    "data_lab.tests.test_acceptance.AcceptanceTests.test_disconnected_full_flow",
+    "data_lab.tests.test_acceptance.AcceptanceTests.test_lost_scan_finalization_recovers_without_replaying_same_key",
+    "data_lab.tests.test_acceptance.AcceptanceTests.test_missing_or_corrupt_evidence_is_not_knowledge_failure",
+    "data_lab.tests.test_acceptance.AcceptanceTests.test_quota_exhausted_full_flow",
+    "data_lab.tests.test_acceptance.AcceptanceTests.test_rate_limit_full_flow",
+    "data_lab.tests.test_acceptance.AcceptanceTests.test_stale_compare_and_swap_loses_no_update",
+    "data_lab.tests.test_acceptance.AcceptanceTests.test_timeout_full_flow",
+    "data_lab.tests.test_acceptance.AcceptanceTests.test_withdrawal_prevents_help_replays_and_material_reads",
+    "data_lab.tests.test_acceptance.RegistrationTests.test_candidate_registration_never_fabricates_signoff"
+  ],
+  "failures": [],
+  "errors": [],
+  "skipped": [],
+  "expected_failures": 0,
+  "unexpected_successes": 0,
+  "synthetic_database_only": true
+}

@@ -30,7 +30,7 @@ const unsubscribe = subscribeTutorDrawer(snapshot => {
   if (snapshot.open && !visible.value) returnFocus = document.activeElement
   const closing = !snapshot.open && visible.value
   visible.value = snapshot.open
-  // 关闭后回到唤起点（“请给一点提示”按钮或宠物），键盘用户不丢失位置。
+  // 关闭后回到唤起点（“请给一点提示”按钮），键盘用户不丢失位置。
   if (closing) {
     const target = returnFocus
     returnFocus = null

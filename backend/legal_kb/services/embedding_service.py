@@ -30,8 +30,11 @@ class EmbeddingService:
         },
     }
 
-    def __init__(self, dimension: int = None, model: str = None):
-        self.provider = str(getattr(settings, 'EMBEDDING_PROVIDER', '') or '').strip().lower()
+    def __init__(self, dimension: int = None, model: str = None, *, local_only: bool = False):
+        # Explicit offline indexing never masquerades as a configured remote model.
+        if local_only:
+            dimension, model = 128, 'local-hash-v1'
+        self.provider = '' if local_only else str(getattr(settings, 'EMBEDDING_PROVIDER', '') or '').strip().lower()
         self.provider = {'dashscope': 'qwen', 'ark': 'volcano'}.get(self.provider, self.provider)
         if self.provider and self.provider not in self.REMOTE_PROVIDER_DEFAULTS:
             raise RuntimeError('EMBEDDING_PROVIDER_DISABLED')

@@ -1,0 +1,15 @@
+{
+  "passed": 9,
+  "checks": [
+    "Real cookie login works after default runtime encryption startup",
+    "Removed privacy page and navigation stay absent",
+    "Memory page decrypts real stored content and verifies encryption",
+    "Conversation readback works and metadata is redacted",
+    "Profile update preserves encrypted email through actual UI",
+    "Encrypted resource cover renders through authenticated endpoint",
+    "Legal report button downloads a real redacted file",
+    "Export record confirms encrypted server storage and downloads identical redacted content",
+    "Export records fit mobile viewport"
+  ],
+  "pageErrors": []
+}

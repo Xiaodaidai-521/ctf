@@ -33,6 +33,6 @@ onBeforeUnmount(() => dialog.value?.close())
 .dialog-body { overflow-wrap: anywhere; }
 .dialog-footer { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--space-2); margin-top: var(--space-3); }
 /* 与应用共享的 compact 状态一致，模态层仍保留在本页 DOM 内。 */
-.is-compact .dialog-content { padding: var(--space-2); }
-.is-compact .dialog-footer { display: grid; grid-template-columns: minmax(0, 1fr); }
+:global(.is-compact) .dialog-content { padding: var(--space-2); }
+:global(.is-compact) .dialog-footer { display: grid; grid-template-columns: minmax(0, 1fr); }
 </style>

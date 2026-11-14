@@ -1,0 +1,45 @@
+{
+  "tests": 11,
+  "passed": [
+    "feedback_center.tests.test_report_integrity.CandidateReportIntegrityTests.test_real_report_passes_every_gate",
+    "feedback_center.tests.test_forged_report_repro.ForgedReportAdvanceTests.test_forged_report_omitted_digest_advances_through_activate",
+    "feedback_center.tests.test_forged_report_repro.ForgedReportAdvanceTests.test_forged_report_self_supplied_digest_advances",
+    "feedback_center.tests.test_forged_report_repro.ForgedReportAdvanceTests.test_mismatched_digest_is_rejected"
+  ],
+  "failures": [
+    {
+      "id": "feedback_center.tests.test_report_integrity.CandidateReportIntegrityTests.test_activation_rechecks_report_payload_integrity",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\feedback_center\\tests\\test_report_integrity.py\", line 98, in test_activation_rechecks_report_payload_integrity\n    with self.assertRaises(candidates.CandidateError):\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: CandidateError not raised\n"
+    },
+    {
+      "id": "feedback_center.tests.test_report_integrity.CandidateReportIntegrityTests.test_activation_rechecks_task_scope",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\feedback_center\\tests\\test_report_integrity.py\", line 88, in test_activation_rechecks_task_scope\n    with self.assertRaises(candidates.CandidateError):\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: CandidateError not raised\n"
+    },
+    {
+      "id": "feedback_center.tests.test_report_integrity.CandidateReportIntegrityTests.test_approval_rechecks_persistent_report_existence",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\feedback_center\\tests\\test_report_integrity.py\", line 80, in test_approval_rechecks_persistent_report_existence\n    with self.assertRaises(candidates.CandidateError):\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: CandidateError not raised\n"
+    },
+    {
+      "id": "feedback_center.tests.test_report_integrity.CandidateReportIntegrityTests.test_complete_evaluation_rechecks_stored_report",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\feedback_center\\tests\\test_report_integrity.py\", line 73, in test_complete_evaluation_rechecks_stored_report\n    with self.assertRaises(candidates.CandidateError):\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: CandidateError not raised\n"
+    },
+    {
+      "id": "feedback_center.tests.test_report_integrity.CandidateReportIntegrityTests.test_fabricated_report_without_candidate_digest_is_rejected",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\feedback_center\\tests\\test_report_integrity.py\", line 50, in test_fabricated_report_without_candidate_digest_is_rejected\n    with self.assertRaises(candidates.CandidateError):\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: CandidateError not raised\n"
+    },
+    {
+      "id": "feedback_center.tests.test_report_integrity.CandidateReportIntegrityTests.test_modified_real_report_conclusion_is_rejected",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\feedback_center\\tests\\test_report_integrity.py\", line 66, in test_modified_real_report_conclusion_is_rejected\n    with self.assertRaises(candidates.CandidateError):\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: CandidateError not raised\n"
+    }
+  ],
+  "errors": [
+    {
+      "id": "feedback_center.tests.test_report_integrity.CandidateReportIntegrityTests.test_minimal_real_reference_is_canonicalized_by_server",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\feedback_center\\tests\\test_report_integrity.py\", line 59, in test_minimal_real_reference_is_canonicalized_by_server\n    candidates.attach_report(self.candidate, actor=self.owner, report=minimal)\n  File \"C:\\Users\\29681\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\contextlib.py\", line 81, in inner\n    return func(*args, **kwds)\n           ^^^^^^^^^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\feedback_center\\services\\candidates.py\", line 156, in attach_report\n    raise CandidateError(f'报告引用缺少字段：{\", \".join(missing)}')\nfeedback_center.services.candidates.CandidateError: 报告引用缺少字段：report_version, recommendation\n"
+    }
+  ],
+  "skipped": [],
+  "expected_failures": 0,
+  "unexpected_successes": 0,
+  "synthetic_database_only": true
+}

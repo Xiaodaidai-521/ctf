@@ -1,0 +1,13 @@
+{
+  "tests": 2,
+  "passed": [
+    "controlled_export.tests.test_windows_bootstrap.WindowsPreparationConfigTests.test_chmod_without_private_dacl_is_rejected",
+    "controlled_export.tests.test_windows_bootstrap.WindowsPreparationConfigTests.test_native_private_config_reaches_schema_validation"
+  ],
+  "failures": [],
+  "errors": [],
+  "skipped": [],
+  "expected_failures": 0,
+  "unexpected_successes": 0,
+  "synthetic_database_only": true
+}

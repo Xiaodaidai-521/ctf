@@ -1,0 +1,38 @@
+{
+  "tests": 7,
+  "passed": [
+    "learning_analytics.test_audit_scheduler.AnalyticsJobRecoveryTests.test_failed_job_can_retry_without_retaining_failed_counters"
+  ],
+  "failures": [
+    {
+      "id": "learning_analytics.test_audit_scheduler.AnalyticsJobRecoveryTests.test_command_does_not_announce_running_job_as_completed",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\learning_analytics\\test_audit_scheduler.py\", line 117, in test_command_does_not_announce_running_job_as_completed\n    with self.assertRaises(CommandError):\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: CommandError not raised\n"
+    },
+    {
+      "id": "learning_analytics.test_audit_scheduler.AnalyticsJobRecoveryTests.test_failed_user_work_rolls_back_and_command_reports_failure",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\learning_analytics\\test_audit_scheduler.py\", line 60, in test_failed_user_work_rolls_back_and_command_reports_failure\n    with self.assertRaises(CommandError):\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: CommandError not raised\n"
+    },
+    {
+      "id": "learning_analytics.test_audit_scheduler.AnalyticsJobRecoveryTests.test_live_job_is_not_reclaimed",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\learning_analytics\\test_audit_scheduler.py\", line 47, in test_live_job_is_not_reclaimed\n    rebuild.assert_not_called()\n  File \"C:\\Users\\29681\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\unittest\\mock.py\", line 910, in assert_not_called\n    raise AssertionError(msg)\nAssertionError: Expected 'rebuild_user_analytics' to not have been called. Called 1 times.\nCalls: [call(<CTFUser: audit-job-student (用户)>, datetime.datetime(2026, 10, 15, 0, 0, tzinfo=zoneinfo.ZoneInfo(key='Asia/Shanghai')), datetime.datetime(2026, 11, 14, 0, 0, tzinfo=zoneinfo.ZoneInfo(key='Asia/Shanghai')))].\n"
+    },
+    {
+      "id": "learning_analytics.test_audit_scheduler.AnalyticsJobRecoveryTests.test_stale_job_retries_and_resets_old_progress",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\learning_analytics\\test_audit_scheduler.py\", line 35, in test_stale_job_retries_and_resets_old_progress\n    self.assertEqual(result.pk, original.pk)\nAssertionError: 7 != 6\n"
+    },
+    {
+      "id": "learning_analytics.test_audit_scheduler.AnalyticsJobRecoveryTests.test_superseded_worker_cannot_rebuild_or_overwrite_new_attempt",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\learning_analytics\\test_audit_scheduler.py\", line 108, in test_superseded_worker_cannot_rebuild_or_overwrite_new_attempt\n    self.assertEqual(result.attempt_count, 2)\nAssertionError: 1 != 2\n"
+    }
+  ],
+  "errors": [
+    {
+      "id": "skill_review.tests.test_audit_handoff.CorrectionHandoffEventTests.test_correction_dispatch_ids_fit_and_retry_keeps_original_event",
+      "traceback": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\skill_review\\tests\\test_audit_handoff.py\", line 21, in test_correction_dispatch_ids_fit_and_retry_keeps_original_event\n    changed = correction.create_correction(\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\29681\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\contextlib.py\", line 81, in inner\n    return func(*args, **kwds)\n           ^^^^^^^^^^^^^^^^^^^\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\skill_review\\services\\correction.py\", line 74, in create_correction\n    raise CorrectionError('更正为受助时必须同时提供实际展示的帮助层级和来源。')\nskill_review.services.correction.CorrectionError: 更正为受助时必须同时提供实际展示的帮助层级和来源。\n"
+    }
+  ],
+  "skipped": [],
+  "expected_failures": 0,
+  "unexpected_successes": 0,
+  "synthetic_database_only": true
+}

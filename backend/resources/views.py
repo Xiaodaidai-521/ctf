@@ -1,9 +1,13 @@
 from rest_framework import generics, status, viewsets, pagination
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from django.db.models import Case, IntegerField, Q, Value, When
 from django.http import FileResponse
+from django.core.exceptions import SuspiciousFileOperation
+from django.utils import timezone
+from users.permissions import IsAdminRole, IsTeacherOrAdmin
 from data_security.contracts import ProtectionError
 from data_security.adapters.django.private_files import (
     create_private_share, operation_response, private_file_error, private_file_response, private_files, upload_operation_id,
@@ -16,11 +20,21 @@ from .serializers import (
 )
 
 
+def resource_ordering(params):
+    value = params.get('ordering', '-created_at')
+    allowed = {'id', 'title', 'created_at', 'updated_at', 'reviewed_at',
+               'download_count', 'view_count', 'file_size'}
+    field = value[1:] if value.startswith('-') else value
+    if field not in allowed:
+        raise ValidationError({'ordering': '不支持的排序字段。'})
+    return value
+
+
 class ResourceAdminListView(generics.ListAPIView):
     """管理员资源列表（用于审核）"""
     queryset = Resource.objects.all()
     serializer_class = ResourceSerializer
-    permission_classes = [IsAuthenticated, IsAdminUser]
+    permission_classes = [IsAuthenticated, IsAdminRole]
     pagination_class = pagination.PageNumberPagination
 
     def get_queryset(self):
@@ -51,9 +65,7 @@ class ResourceAdminListView(generics.ListAPIView):
             queryset = queryset.filter(category=category)
 
         # 排序
-        ordering = self.request.query_params.get('ordering', '-created_at')
-        if ordering:
-            queryset = queryset.order_by(ordering)
+        queryset = queryset.order_by(resource_ordering(self.request.query_params))
 
         return queryset
 
@@ -95,7 +107,7 @@ class ResourceListView(generics.ListAPIView):
             queryset = (queryset | highlighted).distinct()
         
         # 排序
-        ordering = self.request.query_params.get('ordering', '-created_at')
+        ordering = resource_ordering(self.request.query_params)
         if highlight_resource_ids:
             whens = [
                 When(id=resource_id, then=Value(index))
@@ -190,16 +202,9 @@ class ResourceUploadView(generics.CreateAPIView):
     """资源上传（仅教师和管理员）"""
     queryset = Resource.objects.all()
     serializer_class = ResourceUploadSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsTeacherOrAdmin]
 
     def post(self, request, *args, **kwargs):
-        # 检查用户权限
-        if request.user.role not in ['teacher', 'admin']:
-            return Response(
-                {'error': '只有教师和管理员可以上传资源'},
-                status=status.HTTP_403_FORBIDDEN
-            )
-        
         owner = private_files('resources')
         if isinstance(owner, ProtectionError):
             return private_file_error(owner)
@@ -231,7 +236,7 @@ class ResourceMyListView(generics.ListAPIView):
 
 
 @api_view(['POST'])
-@permission_classes([IsAuthenticated, IsAdminUser])
+@permission_classes([IsAuthenticated, IsAdminRole])
 def resource_review_view(request):
     """资源审核（仅管理员）"""
     serializer = ResourceReviewSerializer(data=request.data)
@@ -249,6 +254,7 @@ def resource_review_view(request):
     resource.status = serializer.validated_data['status']
     resource.reviewer = request.user
     resource.review_comment = serializer.validated_data.get('review_comment', '')
+    resource.reviewed_at = timezone.now()
     resource.save()
     
     return Response({
@@ -270,7 +276,7 @@ def resource_download_view(request, resource_id):
             return private_file_error(payload)
         return private_file_response(payload, filename=f'resource-{resource_id}.bin')
     try:
-        resource = Resource.objects.get(id=resource_id, status='approved')
+        resource = Resource.objects.get(id=resource_id)
     except Resource.DoesNotExist:
         return Response(
             {'error': '资源不存在或未通过审核'},
@@ -282,7 +288,11 @@ def resource_download_view(request, resource_id):
         highlight_resource_id = int(raw_highlight)
     except (TypeError, ValueError):
         highlight_resource_id = None
-    if resource.is_tutoring_reserved and highlight_resource_id != resource.id:
+    manager = (resource.uploader_id == request.user.pk
+        or request.user.role == 'admin' or request.user.is_staff)
+    if (resource.status != 'approved' and not manager) or (
+            resource.status == 'approved' and resource.is_tutoring_reserved
+            and highlight_resource_id != resource.id):
         return Response(
             {'error': '资源不存在或未通过审核'},
             status=status.HTTP_404_NOT_FOUND
@@ -293,16 +303,22 @@ def resource_download_view(request, resource_id):
 
     try:
         resource.file.open('rb')
-    except OSError:
+    except (OSError, ValueError, SuspiciousFileOperation):
         return Response({'error': 'The resource file is unavailable.'}, status=status.HTTP_404_NOT_FOUND)
 
     resource.increment_download_count()
     from learning_analytics.events import record_learning_event
     record_learning_event(request.user, 'resource_downloaded', {'resource_id': resource.id})
 
-    response = FileResponse(resource.file, as_attachment=True, filename=resource.file.name.rsplit('/', 1)[-1])
-    response['Content-Type'] = 'application/octet-stream'
+    extension = ResourceSerializer(resource).get_file_type(resource)
+    inline_types = {'.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png',
+                    '.gif': 'image/gif', '.webp': 'image/webp', '.mp4': 'video/mp4'}
+    content_type = inline_types.get(extension, 'application/octet-stream')
+    filename = f'resource-{resource.pk}{extension}'
+    response = FileResponse(resource.file, as_attachment=extension not in inline_types,
+                            filename=filename, content_type=content_type)
     response['X-Content-Type-Options'] = 'nosniff'
+    response['Cache-Control'] = 'no-store, private'
     return response
 
 
@@ -310,6 +326,26 @@ def resource_download_view(request, resource_id):
 @permission_classes([IsAuthenticated])
 def resource_cover_download_view(request, resource_id):
     owner = private_files('resources')
+    if owner is None:
+        resource = Resource.objects.filter(pk=resource_id).first()
+        manager = resource is not None and (resource.uploader_id == request.user.pk
+            or request.user.role == 'admin' or request.user.is_staff)
+        highlighted = str(request.query_params.get('highlight_resource', '')) == str(resource_id)
+        if resource is None or not resource.cover_image or not (manager or (
+                resource.status == 'approved' and (not resource.is_tutoring_reserved or highlighted))):
+            return Response({'detail': '封面不存在或无权访问。'}, status=404)
+        try:
+            resource.cover_image.open('rb')
+        except (OSError, ValueError, SuspiciousFileOperation):
+            return Response({'detail': '封面暂不可用。'}, status=409)
+        import mimetypes
+        content_type = mimetypes.guess_type(resource.cover_image.name)[0]
+        if content_type not in ('image/jpeg', 'image/png', 'image/gif', 'image/webp'):
+            content_type = 'application/octet-stream'
+        response = FileResponse(resource.cover_image, as_attachment=False, content_type=content_type)
+        response['Cache-Control'] = 'no-store, private'
+        response['X-Content-Type-Options'] = 'nosniff'
+        return response
     if owner is None or isinstance(owner, ProtectionError):
         return private_file_error(owner)
     payload = owner.open_download(user=request.user, resource_id=resource_id, field='cover_image')

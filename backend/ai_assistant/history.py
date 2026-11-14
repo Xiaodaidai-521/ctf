@@ -2,8 +2,8 @@
 
 New user bodies are direct user input (we cannot identify manually pasted text).
 Assistant origins cover preparation plus the whole answer-chain dependency union,
-including practice retrieval and earlier tutoring steps. Existing history replay
-remains disabled. Legacy rows, opaque summaries/knowledge, unknown source kinds,
+including practice retrieval and earlier tutoring steps. History replay requires
+current-source verification. Legacy rows, opaque summaries/knowledge, unknown source kinds,
 and malformed origins fail closed; no inference from timestamps or client flags.
 
 Only bodies are restored. Stored metadata/display names are deliberately never
@@ -84,6 +84,8 @@ def _matches_projection(kind, item, snapshot):
         if key not in item or item[key] in (None, ''):
             continue
         actual = normalized(item[key])
+        if key == 'summary' and actual.endswith('...'):
+            actual = actual[:-3].rstrip()
         if key == 'summary':
             candidates = [snapshot.get(field) for field in ('summary', 'content', 'description')]
         else:
@@ -98,6 +100,15 @@ class Origin:
     user: object
     complete: bool = True
     sources: dict = field(default_factory=dict)
+
+    def inherit(self, message):
+        """Propagate all dependencies of a verified replayed body to the new answer."""
+        if not readable(message, self.user):
+            self.complete = False
+            return
+        data = signing.loads(message.history_origin, salt=_SALT)
+        for kind, pk, _fingerprint in data['sources']:
+            self.add(kind, pk)
 
     def add(self, kind, pk, *, projection=None):
         if not isinstance(pk, (str, int)) or isinstance(pk, bool) or not str(pk):
@@ -129,7 +140,7 @@ class Origin:
             kind = item.get('source_type') or item.get('type')
             if kind in _RESOURCE_TYPES:
                 kind = 'resource'
-            self.add(kind, item.get('id') or item.get('object_id'), projection=item)
+            self.add(kind, item.get('object_id') or item.get('source_id') or item.get('id'), projection=item)
 
 
 def preparation_origin(user, specialists, challenge_info=None, request_data=None):
@@ -174,6 +185,10 @@ def record_items(items):
         origin.items(items)
 
 
+def tracking_origin():
+    return _CURRENT.get()
+
+
 def seal_origin(origin, *, conversation, role, content):
     if not isinstance(origin, Origin):
         return {}
@@ -194,7 +209,8 @@ def readable(message, user):
         data = signing.loads(message.history_origin, salt=_SALT)
         if (not isinstance(data, dict) or set(data) != {'v', 'complete', 'binding', 'sources'}
                 or type(data['v']) is not int or data['v'] != 1 or data['complete'] is not True
-                or data['binding'] != _digest([message.conversation_id, user.pk, message.role, message.content])
+                or data['binding'] != _digest([message.conversation_id, user.pk, message.role,
+                                              message.read_protected('content')])
                 or not isinstance(data['sources'], list) or len(data['sources']) > 128):
             return False
         for source in data['sources']:
@@ -211,7 +227,7 @@ def history_message(message, user):
     allowed = readable(message, user)
     return {
         'id': message.id, 'role': message.role,
-        'content': message.content if allowed else REDACTED,
+        'content': message.read_protected('content') if allowed else REDACTED,
         # Agent identity comes from the static registry, never stored display text.
         'agent_id': message.agent_id if message.agent_id in {
             'tutor', 'assessor', 'code_mentor', 'analyst', 'security', 'developer',

@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models
 
 from .canary_catalog import CanaryRegistration
@@ -96,9 +97,9 @@ class ExportReport(models.Model):
 class RevealRequest(models.Model):
     """Protected reason and owner scope; only server-issued grants may be consumed."""
     request_ref = models.CharField(max_length=160, unique=True, null=True)
-    requested_by = models.ForeignKey('users.CTFUser', on_delete=models.PROTECT,
+    requested_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT,
                                      related_name='reveal_requests')
-    approved_by = models.ForeignKey('users.CTFUser', on_delete=models.PROTECT, null=True,
+    approved_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, null=True,
                                     related_name='reveal_approvals')
     course_id = models.PositiveBigIntegerField(null=True)
     object_ref = models.CharField(max_length=160)

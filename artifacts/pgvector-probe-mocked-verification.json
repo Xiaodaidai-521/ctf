@@ -1,0 +1,52 @@
+{
+  "started_at": "2026-11-13T15:07:54.216481+00:00",
+  "source_database": "D:\\aaa10\\16015478源码\\project-code\\.state\\nonexistent-probe-source.sqlite3",
+  "source_access": "not accessed; isolated native PostgreSQL cluster",
+  "postgres_port": 56767,
+  "evaluation_mode": "probe_only",
+  "providers": [
+    {
+      "provider": "qwen",
+      "model": "text-embedding-v4",
+      "status": "success",
+      "latency_ms": 0.14,
+      "dimension": 1024,
+      "finite": true
+    },
+    {
+      "provider": "volcano",
+      "status": "not_configured"
+    },
+    {
+      "provider": "deepseek",
+      "model": "mock-chat",
+      "status": "success",
+      "latency_ms": 2.9,
+      "content": "模拟连接成功",
+      "usage": {}
+    }
+  ],
+  "retrieval": {},
+  "answers": [],
+  "errors": [],
+  "production_settings_changed": false,
+  "postgres_version": "PostgreSQL 16.14, compiled by Visual C++ build 1944, 64-bit",
+  "pgvector_version": "0.8.2",
+  "initial_index": {
+    "remote_vectors": 0,
+    "unbound_remote_error": "EMBEDDING_NOT_CONFIGURED"
+  },
+  "completed": true,
+  "remote_probe_succeeded": true,
+  "remote_quality_evaluated": false,
+  "status": "complete_probe",
+  "isolated_postgres_stopped": true,
+  "temporary_keys_deleted": true,
+  "isolated_workspace": "C:\\Users\\29681\\AppData\\Local\\Temp\\knowledge-remote-pg-eg4doi9w",
+  "finished_at": "2026-11-13T15:08:52.737794+00:00",
+  "verification_kind": "mocked provider orchestration; no real model requests",
+  "verified_call_counts": {
+    "embedding": 1,
+    "chat": 1
+  }
+}

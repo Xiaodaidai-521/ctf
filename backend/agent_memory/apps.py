@@ -23,6 +23,8 @@ class AgentMemoryConfig(AppConfig):
         from .prompt import HistorySummary
 
         build_key = MultiAgentChatService._build_response_cache_key
+        if getattr(build_key, '_agent_memory_history_key_bound', False):
+            return
 
         @wraps(build_key)
         def memory_cache_key(service, question, challenge_id, agent_ids, mode,
@@ -32,4 +34,5 @@ class AgentMemoryConfig(AppConfig):
             return build_key(service, question, challenge_id, agent_ids, mode,
                              force_ai, knowledge_scope, context_summary)
 
+        memory_cache_key._agent_memory_history_key_bound = True
         MultiAgentChatService._build_response_cache_key = memory_cache_key

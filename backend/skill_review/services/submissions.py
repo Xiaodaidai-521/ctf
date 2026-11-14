@@ -100,6 +100,7 @@ def create_submission(
     payload,
     assistance_tracking=constants.ASSISTANCE_TRACKING_COMPLETE,
     now=None,
+    data_lab_evidence=None,
 ):
     now = now or timezone.now()
     if attempt.student_id != student.id:
@@ -113,12 +114,20 @@ def create_submission(
     if not isinstance(payload, dict):
         raise SubmissionError('提交内容必须是 JSON 对象。')
 
+    # The JSON API cannot attest server observations. Validate the locked,
+    # persisted evidence even on retries before returning an existing snapshot.
+    if (attempt.task.validator or {}).get('type') == 'data_lab':
+        from data_lab.verification import validate_context
+        data_lab_evidence = validate_context(data_lab_evidence, student, attempt, payload)
+    elif data_lab_evidence is not None:
+        raise SubmissionError('证据上下文与任务核验器不匹配。')
+
     digest = payload_hash(payload)
     existing = SubmissionSnapshot.objects.filter(
         student=student, client_submission_id=client_submission_id,
     ).first()
     if existing:
-        if existing.payload_hash != digest:
+        if existing.attempt_id != attempt.pk or existing.payload_hash != digest:
             raise SubmissionConflict('相同提交标识对应不同内容，请使用新的提交标识。')
         return existing, False
 
@@ -179,7 +188,9 @@ def create_submission(
             'payload_keys': sorted(payload.keys()),
         },
     )
-    result = verification.create_result_for_submission(submission, now=now)
+    result = verification.create_result_for_submission(
+        submission, now=now, data_lab_evidence=data_lab_evidence,
+    )
     return submission, True
 
 

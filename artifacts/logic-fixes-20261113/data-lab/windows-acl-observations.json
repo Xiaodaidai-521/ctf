@@ -1,0 +1,296 @@
+{
+  "native_acl_attempted": true,
+  "business_checks_unchanged": true,
+  "fixture_attempts": [
+    {
+      "directory_native_private": true,
+      "configuration_native_private": true,
+      "key_native_private": true,
+      "manifest_native_private": true,
+      "configuration_absolute": true,
+      "configuration_posix_mode": "0o666",
+      "bootstrap_posix_group_other_write_bits": "0o22",
+      "business_permission_checks_unchanged": true
+    },
+    {
+      "directory_native_private": true,
+      "configuration_native_private": true,
+      "key_native_private": true,
+      "manifest_native_private": true,
+      "configuration_absolute": true,
+      "configuration_posix_mode": "0o666",
+      "bootstrap_posix_group_other_write_bits": "0o22",
+      "business_permission_checks_unchanged": true
+    },
+    {
+      "directory_native_private": true,
+      "configuration_native_private": true,
+      "key_native_private": true,
+      "manifest_native_private": true,
+      "configuration_absolute": true,
+      "configuration_posix_mode": "0o666",
+      "bootstrap_posix_group_other_write_bits": "0o22",
+      "business_permission_checks_unchanged": true
+    },
+    {
+      "directory_native_private": true,
+      "configuration_native_private": true,
+      "key_native_private": true,
+      "manifest_native_private": true,
+      "configuration_absolute": true,
+      "configuration_posix_mode": "0o666",
+      "bootstrap_posix_group_other_write_bits": "0o22",
+      "business_permission_checks_unchanged": true
+    },
+    {
+      "directory_native_private": true,
+      "configuration_native_private": true,
+      "key_native_private": true,
+      "manifest_native_private": true,
+      "configuration_absolute": true,
+      "configuration_posix_mode": "0o666",
+      "bootstrap_posix_group_other_write_bits": "0o22",
+      "business_permission_checks_unchanged": true
+    },
+    {
+      "directory_native_private": true,
+      "configuration_native_private": true,
+      "key_native_private": true,
+      "manifest_native_private": true,
+      "configuration_absolute": true,
+      "configuration_posix_mode": "0o666",
+      "bootstrap_posix_group_other_write_bits": "0o22",
+      "business_permission_checks_unchanged": true
+    },
+    {
+      "directory_native_private": true,
+      "configuration_native_private": true,
+      "key_native_private": true,
+      "manifest_native_private": true,
+      "configuration_absolute": true,
+      "configuration_posix_mode": "0o666",
+      "bootstrap_posix_group_other_write_bits": "0o22",
+      "business_permission_checks_unchanged": true
+    },
+    {
+      "directory_native_private": true,
+      "configuration_native_private": true,
+      "key_native_private": true,
+      "manifest_native_private": true,
+      "configuration_absolute": true,
+      "configuration_posix_mode": "0o666",
+      "bootstrap_posix_group_other_write_bits": "0o22",
+      "business_permission_checks_unchanged": true
+    },
+    {
+      "directory_native_private": true,
+      "configuration_native_private": true,
+      "key_native_private": true,
+      "manifest_native_private": true,
+      "configuration_absolute": true,
+      "configuration_posix_mode": "0o666",
+      "bootstrap_posix_group_other_write_bits": "0o22",
+      "business_permission_checks_unchanged": true
+    },
+    {
+      "directory_native_private": true,
+      "configuration_native_private": true,
+      "key_native_private": true,
+      "manifest_native_private": true,
+      "configuration_absolute": true,
+      "configuration_posix_mode": "0o666",
+      "bootstrap_posix_group_other_write_bits": "0o22",
+      "business_permission_checks_unchanged": true
+    },
+    {
+      "directory_native_private": true,
+      "configuration_native_private": true,
+      "key_native_private": true,
+      "manifest_native_private": true,
+      "configuration_absolute": true,
+      "configuration_posix_mode": "0o666",
+      "bootstrap_posix_group_other_write_bits": "0o22",
+      "business_permission_checks_unchanged": true
+    },
+    {
+      "directory_native_private": true,
+      "configuration_native_private": true,
+      "key_native_private": true,
+      "manifest_native_private": true,
+      "configuration_absolute": true,
+      "configuration_posix_mode": "0o666",
+      "bootstrap_posix_group_other_write_bits": "0o22",
+      "business_permission_checks_unchanged": true
+    },
+    {
+      "directory_native_private": true,
+      "configuration_native_private": true,
+      "key_native_private": true,
+      "manifest_native_private": true,
+      "configuration_absolute": true,
+      "configuration_posix_mode": "0o666",
+      "bootstrap_posix_group_other_write_bits": "0o22",
+      "business_permission_checks_unchanged": true
+    },
+    {
+      "directory_native_private": true,
+      "configuration_native_private": true,
+      "key_native_private": true,
+      "manifest_native_private": true,
+      "configuration_absolute": true,
+      "configuration_posix_mode": "0o666",
+      "bootstrap_posix_group_other_write_bits": "0o22",
+      "business_permission_checks_unchanged": true
+    },
+    {
+      "directory_native_private": true,
+      "configuration_native_private": true,
+      "key_native_private": true,
+      "manifest_native_private": true,
+      "configuration_absolute": true,
+      "configuration_posix_mode": "0o666",
+      "bootstrap_posix_group_other_write_bits": "0o22",
+      "business_permission_checks_unchanged": true
+    },
+    {
+      "directory_native_private": true,
+      "configuration_native_private": true,
+      "key_native_private": true,
+      "manifest_native_private": true,
+      "configuration_absolute": true,
+      "configuration_posix_mode": "0o666",
+      "bootstrap_posix_group_other_write_bits": "0o22",
+      "business_permission_checks_unchanged": true
+    },
+    {
+      "directory_native_private": true,
+      "configuration_native_private": true,
+      "key_native_private": true,
+      "manifest_native_private": true,
+      "configuration_absolute": true,
+      "configuration_posix_mode": "0o666",
+      "bootstrap_posix_group_other_write_bits": "0o22",
+      "business_permission_checks_unchanged": true
+    },
+    {
+      "directory_native_private": true,
+      "configuration_native_private": true,
+      "key_native_private": true,
+      "manifest_native_private": true,
+      "configuration_absolute": true,
+      "configuration_posix_mode": "0o666",
+      "bootstrap_posix_group_other_write_bits": "0o22",
+      "business_permission_checks_unchanged": true
+    },
+    {
+      "directory_native_private": true,
+      "configuration_native_private": true,
+      "key_native_private": true,
+      "manifest_native_private": true,
+      "configuration_absolute": true,
+      "configuration_posix_mode": "0o666",
+      "bootstrap_posix_group_other_write_bits": "0o22",
+      "business_permission_checks_unchanged": true
+    },
+    {
+      "directory_native_private": true,
+      "configuration_native_private": true,
+      "key_native_private": true,
+      "manifest_native_private": true,
+      "configuration_absolute": true,
+      "configuration_posix_mode": "0o666",
+      "bootstrap_posix_group_other_write_bits": "0o22",
+      "business_permission_checks_unchanged": true
+    },
+    {
+      "directory_native_private": true,
+      "configuration_native_private": true,
+      "key_native_private": true,
+      "manifest_native_private": true,
+      "configuration_absolute": true,
+      "configuration_posix_mode": "0o666",
+      "bootstrap_posix_group_other_write_bits": "0o22",
+      "business_permission_checks_unchanged": true
+    },
+    {
+      "directory_native_private": true,
+      "configuration_native_private": true,
+      "key_native_private": true,
+      "manifest_native_private": true,
+      "configuration_absolute": true,
+      "configuration_posix_mode": "0o666",
+      "bootstrap_posix_group_other_write_bits": "0o22",
+      "business_permission_checks_unchanged": true
+    },
+    {
+      "directory_native_private": true,
+      "configuration_native_private": true,
+      "key_native_private": true,
+      "manifest_native_private": true,
+      "configuration_absolute": true,
+      "configuration_posix_mode": "0o666",
+      "bootstrap_posix_group_other_write_bits": "0o22",
+      "business_permission_checks_unchanged": true
+    },
+    {
+      "directory_native_private": true,
+      "configuration_native_private": true,
+      "key_native_private": true,
+      "manifest_native_private": true,
+      "configuration_absolute": true,
+      "configuration_posix_mode": "0o666",
+      "bootstrap_posix_group_other_write_bits": "0o22",
+      "business_permission_checks_unchanged": true
+    },
+    {
+      "directory_native_private": true,
+      "configuration_native_private": true,
+      "key_native_private": true,
+      "manifest_native_private": true,
+      "configuration_absolute": true,
+      "configuration_posix_mode": "0o666",
+      "bootstrap_posix_group_other_write_bits": "0o22",
+      "business_permission_checks_unchanged": true
+    },
+    {
+      "directory_native_private": true,
+      "configuration_native_private": true,
+      "key_native_private": true,
+      "manifest_native_private": true,
+      "configuration_absolute": true,
+      "configuration_posix_mode": "0o666",
+      "bootstrap_posix_group_other_write_bits": "0o22",
+      "business_permission_checks_unchanged": true
+    },
+    {
+      "directory_native_private": true,
+      "configuration_native_private": true,
+      "key_native_private": true,
+      "manifest_native_private": true,
+      "configuration_absolute": true,
+      "configuration_posix_mode": "0o666",
+      "bootstrap_posix_group_other_write_bits": "0o22",
+      "business_permission_checks_unchanged": true
+    },
+    {
+      "directory_native_private": true,
+      "configuration_native_private": true,
+      "key_native_private": true,
+      "manifest_native_private": true,
+      "configuration_absolute": true,
+      "configuration_posix_mode": "0o666",
+      "bootstrap_posix_group_other_write_bits": "0o22",
+      "business_permission_checks_unchanged": true
+    },
+    {
+      "directory_native_private": true,
+      "configuration_native_private": true,
+      "key_native_private": true,
+      "manifest_native_private": true,
+      "configuration_absolute": true,
+      "configuration_posix_mode": "0o666",
+      "bootstrap_posix_group_other_write_bits": "0o22",
+      "business_permission_checks_unchanged": true
+    }
+  ]
+}

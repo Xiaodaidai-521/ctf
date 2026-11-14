@@ -148,8 +148,12 @@ test('guest Home uses only public challenges and keeps login/register/path/pract
   assert.equal(toRaw(instance.state.featuredChallenges.value[0]), challengeStore.challenges[0])
   let rendered = await html('home', instance)
   assert.ok(rendered.includes('guest-layout'))
-  for (const href of ['/login', '/register', '/learning-paths', '/challenges']) assert.ok(rendered.includes(`href="${href}"`))
+  for (const href of ['/guide', '/register', '/learning-paths', '/challenges', '/dashboard']) assert.ok(rendered.includes(`href="${href}"`))
   assert.equal((rendered.match(/data-challenge-id=/g) || []).length, 6)
+  assert.match(source('home'), /<ChallengeCard\b[^>]*@click="openChallenge"/)
+  instance.state.openChallenge({ id: 7 })
+  assert.equal(instance.routes[0].name, 'ChallengeDetail')
+  assert.equal(instance.routes[0].params.id, 7)
   challengeStore.challenges = []
   await instance.state.load()
   assert.ok((await html('home', instance)).includes('暂时没有公开练习'))

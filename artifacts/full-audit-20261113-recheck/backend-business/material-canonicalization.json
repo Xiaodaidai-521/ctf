@@ -1,0 +1,14 @@
+[
+  {
+    "path": "backend/data_lab/materials/customer-v1.csv",
+    "before_sha256": "1cdf24de76469298608f616de117cea5026155f59866a812f9adbacdc4f7ace9",
+    "crlf_count": 8,
+    "canonical_sha256": "dcf4ffff7bdce31f886a90750125384c4c761b98fb0a9d38cad13d7b5011f02d"
+  },
+  {
+    "path": "backend/data_lab/materials/log-v1.csv",
+    "before_sha256": "f3feeae210cff3e5d04327f0f4572db778d650009c6dfc198a67dd794b918c47",
+    "crlf_count": 8,
+    "canonical_sha256": "943ba09621a17c3b7b5c5a5d79ffc38204ce6f918979d17e6e64b170e41f3368"
+  }
+]

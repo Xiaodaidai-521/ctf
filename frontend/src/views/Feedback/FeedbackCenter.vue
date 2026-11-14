@@ -40,6 +40,8 @@
         </p>
 
         <form @submit.prevent="submit">
+          <ReferenceImport v-if="isTeacher" title="原任务关联" :fields="teacherFields" :model-value="teacherReferences" @update:model-value="applyTeacherReferences" />
+          <ReferenceImport title="原始判定" :fields="decisionFields" :model-value="{ original_decision_ref: form.original_decision_ref }" @update:model-value="Object.assign(form, $event)" />
           <div class="fb-form-grid">
             <label>
               反馈类别
@@ -113,6 +115,7 @@
           </p>
           <div v-for="slot in requiredSlots" :key="slot.slot" class="fb-slot" style="margin-bottom: 10px;">
             <h4>{{ slot.label }}</h4>
+            <ReferenceImport :title="slot.label" :fields="referenceFields" :model-value="{ ref: evidenceDraft[slot.slot]?.ref || '' }" @update:model-value="updateEvidence(slot.slot, 'ref', $event.ref)" />
             <div class="fb-form-grid">
               <label>
                 证据引用
@@ -210,6 +213,8 @@
 <script setup>
 import { computed, onMounted, reactive, ref, watch } from 'vue'
 import service from '@/api'
+import ReferenceImport from '@/shared/forms/ReferenceImport.vue'
+import { feedbackError } from '@/shared/feedback/presentation.js'
 import { useUserStore } from '@/store/user'
 
 const userStore = useUserStore()
@@ -245,6 +250,19 @@ const form = reactive({
   original_decision_version: '',
 })
 
+const decisionFields = [{ key: 'original_decision_ref', label: '原始判定引用' }]
+const referenceFields = [{ key: 'ref', label: '证据引用' }]
+const teacherFields = [
+  { key: 'student', label: '反馈所属学生', type: 'number' },
+  { key: 'task_key', label: '任务键' }, { key: 'task_version', label: '任务版本' },
+  { key: 'catalog_version', label: '目录版本' }, { key: 'attempt_id', label: '原尝试' },
+]
+const teacherReferences = computed(() => ({ student: form.student_id, task_key: form.task_key, task_version: form.task_version, catalog_version: form.catalog_version, attempt_id: form.attempt_uuid }))
+function applyTeacherReferences(value) {
+  form.student_id = value.student === '' ? '' : String(value.student)
+  form.task_key = value.task_key; form.task_version = value.task_version
+  form.catalog_version = value.catalog_version; form.attempt_uuid = value.attempt_id
+}
 const listFilters = reactive({ status: '', category: '' })
 
 const issueTypes = computed(() => {
@@ -333,6 +351,7 @@ async function loadList() {
 }
 
 async function submit() {
+  if (submitting.value) return
   error.value = ''
   message.value = ''
   if (!form.dispute.trim()) {

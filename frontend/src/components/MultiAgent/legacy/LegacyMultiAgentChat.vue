@@ -510,7 +510,7 @@ const rememberConversation = (id) => {
 }
 
 const restoreConversation = async () => {
-  // 无协作 ID 时不取全局最近会话：它可能是宠物共用的教学会话。
+  // 无协作 ID 时不取全局最近会话：它可能是其他入口共用的教学会话。
   if (!userStore.isAuthenticated || !conversationId.value) return
   const version = sessionVersion.value
   const owner = userStore.userInfo?.id

@@ -15,7 +15,7 @@ import { consumeTeachingTransfer, teachingIdentity } from '../shared/knowledge/t
 const read = file => readFileSync(new URL(file, import.meta.url), 'utf8')
 const pageSource = read('./TeachingKnowledge.vue')
 const pageDescriptor = parse(pageSource).descriptor
-const withoutImports = script => script.replace(/^import .+ from .+\n/gm, '')
+const withoutImports = script => script.replace(/^import .+ from .+\r?\n/gm, '')
 function component(file) {
   const descriptor = parse(read(file)).descriptor
   const code = compileScript(descriptor, { id: file }).content

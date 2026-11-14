@@ -1,0 +1,774 @@
+{
+  "mode": "synthetic API mocks; no live service or data changed",
+  "routes": [
+    {
+      "role": "guest",
+      "target": "/privacy",
+      "landed": "/privacy",
+      "errors": [],
+      "contentLength": 484,
+      "head": "跳到页面内容\n智航网络安全学习\n搜索页面\n消息\n登录\n智航\n靶场\n智库\n成长图谱\n试炼场\n正式测评\n隐私与数据保护\n\n以下介绍系统支持的保护能力。具体内容是否已加密，以对应页面的核验状态为准。\n\n当前功能配置暂时无法确认，请以具体记录的保护状态为准。\n\n保护对象\t支持的保护方式\n邮箱\t邮箱加密保存；页面展示可以另行脱敏。\n对话与 AI 记忆\t对话正文、消息扩",
+      "apiCalls": [
+        {
+          "method": "GET",
+          "path": "/api/announcements/announcements/pinned/"
+        },
+        {
+          "method": "GET",
+          "path": "/api/data-security/privacy/capabilities/"
+        }
+      ]
+    },
+    {
+      "role": "guest",
+      "target": "/login",
+      "landed": "/login",
+      "errors": [],
+      "contentLength": 88,
+      "head": "跳到页面内容\n智航网络安全学习\n搜索页面\n消息\n登录\n智航\n靶场\n智库\n成长图谱\n试炼场\n正式测评\n用户登录\n\n欢迎回到在线学习平台\n\n用户名\n密码\n登录\n还没有账号？立即注册",
+      "apiCalls": [
+        {
+          "method": "GET",
+          "path": "/api/announcements/announcements/pinned/"
+        }
+      ]
+    },
+    {
+      "role": "guest",
+      "target": "/register",
+      "landed": "/register",
+      "errors": [],
+      "contentLength": 231,
+      "head": "跳到页面内容\n智航网络安全学习\n搜索页面\n消息\n登录\n智航\n靶场\n智库\n成长图谱\n试炼场\n正式测评\nCreate an account\n\nJoin the learning platform.\n\nAccount type *\nStudent\nTeacher\nUsername *\nPassword *\nConfirm password *\nEmail *\nDi",
+      "apiCalls": [
+        {
+          "method": "GET",
+          "path": "/api/announcements/announcements/pinned/"
+        }
+      ]
+    },
+    {
+      "role": "guest",
+      "target": "/challenges",
+      "landed": "/challenges",
+      "errors": [],
+      "contentLength": 346,
+      "head": "跳到页面内容\n智航网络安全学习\n搜索页面\n消息\n登录\n智航\n靶场\n智库\n成长图谱\n试炼场\n正式测评\n\nVIEW 02 / Challenge Selection\n\n题目矩阵\n随机一题\n题目分类：\n全部\n合成分类\n难度筛选：\n全部\n简单\n中等\n困难\n专家\n状态筛选：\n全部\n未解出\n已解出\n📭\n\n暂无符合条件的题目\n\nLAB BRIEF\nLIVE\n解题统计\n\n",
+      "apiCalls": [
+        {
+          "method": "GET",
+          "path": "/api/announcements/announcements/pinned/"
+        },
+        {
+          "method": "GET",
+          "path": "/api/challenges/categories/"
+        },
+        {
+          "method": "GET",
+          "path": "/api/challenges/challenges/"
+        }
+      ]
+    },
+    {
+      "role": "guest",
+      "target": "/resources",
+      "landed": "/resources",
+      "errors": [],
+      "contentLength": 229,
+      "head": "跳到页面内容\n智航网络安全学习\n搜索页面\n消息\n登录\n智航\n靶场\n智库\n成长图谱\n试炼场\n正式测评\n\nRESOURCE INDEX / Knowledge Shelf\n\n学习资源中心\n\n把文档、视频、报告、压缩包和 AI 学习辅助资料整理成可检索的训练资料索引。\n\n类型：\n全部\n文档\n视频\n报告\n压缩包\nAI资源\n分类：\n全部\n网络安全\nWeb安全\n逆向工程",
+      "apiCalls": [
+        {
+          "method": "GET",
+          "path": "/api/announcements/announcements/pinned/"
+        },
+        {
+          "method": "GET",
+          "path": "/api/resources/"
+        }
+      ]
+    },
+    {
+      "role": "guest",
+      "target": "/community",
+      "landed": "/community",
+      "errors": [],
+      "contentLength": 104,
+      "head": "跳到页面内容\n智航网络安全学习\n搜索页面\n消息\n登录\n智航\n靶场\n智库\n成长图谱\n试炼场\n正式测评\n最新\n热门\n推荐\n我的\n写文章\n暂无文章\n\n快来发布第一篇文章吧\n\n热门文章\n更多\n精选推荐\n更多\n分类导航",
+      "apiCalls": [
+        {
+          "method": "GET",
+          "path": "/api/announcements/announcements/pinned/"
+        },
+        {
+          "method": "GET",
+          "path": "/api/articles/categories/"
+        },
+        {
+          "method": "GET",
+          "path": "/api/articles/articles/"
+        },
+        {
+          "method": "GET",
+          "path": "/api/articles/articles/hot/"
+        },
+        {
+          "method": "GET",
+          "path": "/api/articles/articles/recommend/"
+        }
+      ]
+    },
+    {
+      "role": "guest",
+      "target": "/missing-audit-route",
+      "landed": "/missing-audit-route",
+      "errors": [],
+      "contentLength": 84,
+      "head": "跳到页面内容\n智航网络安全学习\n搜索页面\n消息\n登录\n智航\n靶场\n智库\n成长图谱\n试炼场\n正式测评\n404\n页面不存在\n\n抱歉，您访问的页面不存在或已被删除\n\n返回首页",
+      "apiCalls": [
+        {
+          "method": "GET",
+          "path": "/api/announcements/announcements/pinned/"
+        }
+      ]
+    },
+    {
+      "role": "student",
+      "target": "/guide",
+      "landed": "/guide",
+      "errors": [],
+      "contentLength": 657,
+      "head": "跳到页面内容\n智航网络安全学习\n找学习内容，或问智能体\n消息\n合\n合成测试用户\n智航\n靶场\n智库\n成长图谱\n试炼场\n正式测评\n\n智航 · 你的学习工作台\n\n今天，想学会什么？\n\n从一个问题开始，让教学智能体陪你理解、尝试，再独立完成。\n\n说说你的学习目标或卡住的地方\n 先给思路与分级提示，不代做答案\n开始导学\n帮我梳理今天的学习目标\n用提问检查我的理解\n继续",
+      "apiCalls": [
+        {
+          "method": "GET",
+          "path": "/api/ai/list/"
+        },
+        {
+          "method": "GET",
+          "path": "/api/announcements/announcements/pinned/"
+        },
+        {
+          "method": "GET",
+          "path": "/api/learning-paths/progress/"
+        },
+        {
+          "method": "GET",
+          "path": "/api/learning-paths/recommendations/review-reminders/"
+        },
+        {
+          "method": "GET",
+          "path": "/api/ai/list/"
+        },
+        {
+          "method": "GET",
+          "path": "/api/analytics/teaching-plan/"
+        },
+        {
+          "method": "GET",
+          "path": "/api/learning-paths/progress/"
+        },
+        {
+          "method": "GET",
+          "path": "/api/learning-paths/recommendations/review-reminders/"
+        },
+        {
+          "method": "GET",
+          "path": "/api/learning-paths/modules/"
+        }
+      ]
+    },
+    {
+      "role": "student",
+      "target": "/dashboard",
+      "landed": "/dashboard",
+      "errors": [],
+      "contentLength": 335,
+      "head": "跳到页面内容\n智航网络安全学习\n找学习内容，或问智能体\n消息\n合\n合成测试用户\n智航\n靶场\n智库\n成长图谱\n试炼场\n正式测评\n成长总览\n\n成长图谱 · 成长总览\n\n早上好，合成测试用户\n查看个人画像与能力依据 →\n进度与画像\n模块进度 · 本人已产生模块进度的记录\n—\n— / — 个模块\n做题记录 · 本人做题与模块记录\n—\n— / —\n\n模块进度与做题记录",
+      "apiCalls": [
+        {
+          "method": "GET",
+          "path": "/api/ai/list/"
+        },
+        {
+          "method": "GET",
+          "path": "/api/announcements/announcements/pinned/"
+        },
+        {
+          "method": "GET",
+          "path": "/api/analytics/learning/effect/"
+        },
+        {
+          "method": "GET",
+          "path": "/api/analytics/weekly-summary/"
+        },
+        {
+          "method": "GET",
+          "path": "/api/learning-paths/recommendations/review-reminders/"
+        },
+        {
+          "method": "GET",
+          "path": "/api/ai/learning/recommend/"
+        },
+        {
+          "method": "GET",
+          "path": "/api/analytics/insights/"
+        },
+        {
+          "method": "GET",
+          "path": "/api/learning-paths/paths/"
+        },
+        {
+          "method": "GET",
+          "path": "/api/articles/articles/recommend/"
+        },
+        {
+          "method": "GET",
+          "path": "/api/resources/"
+        },
+        {
+          "method": "GET",
+          "path": "/api/skill-review/me/retests/"
+        },
+        {
+          "method": "GET",
+          "path": "/api/skill-review/me/submissions/"
+        },
+        {
+          "method": "GET",
+          "path": "/api/skill-review/me/disputes/"
+        },
+        {
+          "method": "GET",
+          "path": "/api/student-profiles/me/"
+        },
+        {
+          "method": "GET",
+          "path": "/api/student-profiles/me/persona/"
+        },
+        {
+          "method": "GET",
+          "path": "/api/student-profiles/me/growth/"
+        },
+        {
+          "method": "GET",
+          "path": "/api/student-profiles/learning-directions/"
+        },
+        {
+          "method": "GET",
+          "path": "/api/analytics/teaching-plan/"
+        },
+        {
+          "method": "GET",
+          "path": "/api/analytics/progress-report/"
+        },
+        {
+          "method": "GET",
+          "path": "/api/submissions/stats/"
+        },
+        {
+          "method": "GET",
+          "path": "/api/exams/records/my_history/"
+        }
+      ]
+    },
+    {
+      "role": "student",
+      "target": "/learning-paths/7",
+      "landed": "/learning-paths/7",
+      "errors": [],
+      "contentLength": 252,
+      "head": "跳到页面内容\n智航网络安全学习\n找学习内容，或问智能体\n消息\n合\n合成测试用户\n智航\n靶场\n智库\n成长图谱\n试炼场\n正式测评\n返回学习航线\n刷新\n审计测试航线\n\n合成航线说明\n\n难度\n入门\n章节\n1 章\n实验\n0 个\n预计时长\n2 小时\n加入学习航线\n章节目录\n\n进入章节不会自动开始学习；开始学习和标记完成由你在章节页操作。\n\n1. 审计测试章节\n\n合成章节",
+      "apiCalls": [
+        {
+          "method": "GET",
+          "path": "/api/ai/list/"
+        },
+        {
+          "method": "GET",
+          "path": "/api/announcements/announcements/pinned/"
+        },
+        {
+          "method": "GET",
+          "path": "/api/learning-paths/modules/"
+        },
+        {
+          "method": "GET",
+          "path": "/api/learning-paths/paths/7/progress/"
+        },
+        {
+          "method": "GET",
+          "path": "/api/learning-paths/paths/7/"
+        }
+      ]
+    },
+    {
+      "role": "student",
+      "target": "/learning-paths/7/modules/12",
+      "landed": "/learning-paths/7/modules/12",
+      "errors": [],
+      "contentLength": 505,
+      "head": "跳到页面内容\n智航网络安全学习\n找学习内容，或问智能体\n消息\n合\n合成测试用户\n智航\n靶场\n智库\n成长图谱\n试炼场\n正式测评\n返回学习航线\n审计测试航线\n审计测试章节\n刷新\n开始学习\n标记完成\n审计测试章节\n\n合成章节说明\n\n理论 · 20 分钟 · 第 1 / 1 章\n\n本章无先修要求。\n\n尚未读取到本章节进度 · 开始：— · 完成：—\n\n点击“开始学习",
+      "apiCalls": [
+        {
+          "method": "GET",
+          "path": "/api/ai/list/"
+        },
+        {
+          "method": "GET",
+          "path": "/api/announcements/announcements/pinned/"
+        },
+        {
+          "method": "GET",
+          "path": "/api/learning-paths/paths/7/"
+        },
+        {
+          "method": "GET",
+          "path": "/api/learning-paths/modules/12/"
+        },
+        {
+          "method": "GET",
+          "path": "/api/learning-paths/modules/"
+        }
+      ]
+    },
+    {
+      "role": "student",
+      "target": "/exam-center",
+      "landed": "/exam-center",
+      "errors": [],
+      "contentLength": 331,
+      "head": "跳到页面内容\n智航网络安全学习\n找学习内容，或问智能体\n消息\n合\n合成测试用户\n智航\n靶场\n智库\n成长图谱\n试炼场\n正式测评\n测试中心\n\n参加理论考试和实战训练，检验你的学习成果\n\nD\n初学者\n继续努力，多加练习\n距离下一等级还需 分\n成绩趋势\n历次考试成绩变化\n暂无考试记录\n完成考试后将显示成绩趋势图\n0\n考试总数\n0\n通过考试\n0.0%\n平均成绩\n0.0",
+      "apiCalls": [
+        {
+          "method": "GET",
+          "path": "/api/ai/list/"
+        },
+        {
+          "method": "GET",
+          "path": "/api/announcements/announcements/pinned/"
+        },
+        {
+          "method": "GET",
+          "path": "/api/exams/level-rules/"
+        },
+        {
+          "method": "GET",
+          "path": "/api/exams/records/statistics/"
+        }
+      ]
+    },
+    {
+      "role": "student",
+      "target": "/exam-taking/12",
+      "landed": "/exam-taking/12",
+      "errors": [],
+      "contentLength": 177,
+      "head": "跳到页面内容\n智航网络安全学习\n找学习内容，或问智能体\n消息\n合\n合成测试用户\n智航\n靶场\n智库\n成长图谱\n试炼场\n正式测评\n合成考试\n理论测试\n1 / 2\n28:00\n退出\n单选题\n第 1 题\n(10分)\n单选题\nA\n选项一\nB\n选项二\n上一题\n下一题\n题目导航\n当前\n已答\n未答\n1\n2\n已答题:\n0/2\n正确率:\n0%\n跳转未答\n提交考试\n智航伙伴",
+      "apiCalls": [
+        {
+          "method": "GET",
+          "path": "/api/ai/list/"
+        },
+        {
+          "method": "GET",
+          "path": "/api/announcements/announcements/pinned/"
+        },
+        {
+          "method": "GET",
+          "path": "/api/exams/records/12/result/"
+        },
+        {
+          "method": "GET",
+          "path": "/api/exams/theory-exams/6/"
+        },
+        {
+          "method": "GET",
+          "path": "/api/exams/theory-exams/6/questions/"
+        }
+      ]
+    },
+    {
+      "role": "student",
+      "target": "/profile",
+      "landed": "/profile",
+      "errors": [],
+      "contentLength": 224,
+      "head": "跳到页面内容\n智航网络安全学习\n找学习内容，或问智能体\n消息\n合\n合成测试用户\n智航\n靶场\n智库\n成长图谱\n试炼场\n正式测评\n合\n合成测试用户\n\nUID: 17\n\n用户\n0\n积分\n0\n解题\n0\n提交\n0%\n正确率\n0\n收藏\n0%\n进度\n收藏\n完成题目\n学习进度\n提交记录\n个人资料\n学习画像\n完成题目\n我的 AI 记忆 · 导出记录 · 隐私与数据保护\n0\n已",
+      "apiCalls": [
+        {
+          "method": "GET",
+          "path": "/api/ai/list/"
+        },
+        {
+          "method": "GET",
+          "path": "/api/announcements/announcements/pinned/"
+        },
+        {
+          "method": "GET",
+          "path": "/api/users/profile/"
+        },
+        {
+          "method": "GET",
+          "path": "/api/submissions/my/"
+        },
+        {
+          "method": "GET",
+          "path": "/api/articles/articles/my_favorites/"
+        },
+        {
+          "method": "GET",
+          "path": "/api/challenges/challenges/my_solved/"
+        },
+        {
+          "method": "GET",
+          "path": "/api/learning-paths/progress/"
+        },
+        {
+          "method": "GET",
+          "path": "/api/submissions/stats/"
+        },
+        {
+          "method": "GET",
+          "path": "/api/student-profiles/me/"
+        },
+        {
+          "method": "GET",
+          "path": "/api/student-profiles/me/persona/"
+        },
+        {
+          "method": "GET",
+          "path": "/api/student-profiles/me/reports/"
+        },
+        {
+          "method": "GET",
+          "path": "/api/student-profiles/me/growth/"
+        }
+      ]
+    },
+    {
+      "role": "teacher",
+      "target": "/teacher",
+      "landed": "/teacher",
+      "errors": [],
+      "contentLength": 772,
+      "head": "跳到页面内容\n智航网络安全学习\n搜索页面\n消息\n合\n合成测试用户\n\n教学\n\n教学驾驶舱\n\n备课\n\n题目管理\n学习航线\n数据安全案例\n资源审核\n知识基座\n材料工坊\n\n布置与验收\n\n教学安排\n验收与抽查\n能力图谱审核\n\n跟踪与评测\n\n学情洞察\n动态评测\n\n反馈\n\n反馈处理\n事件核对\n\n教学工作区\n\n教学驾驶舱\n\n先处理待办，再把资料与学情转成下一步教学安排。\n\n",
+      "apiCalls": [
+        {
+          "method": "GET",
+          "path": "/api/ai/list/"
+        },
+        {
+          "method": "GET",
+          "path": "/api/announcements/announcements/pinned/"
+        },
+        {
+          "method": "GET",
+          "path": "/api/feedback/teacher/queue/"
+        },
+        {
+          "method": "GET",
+          "path": "/api/skill-review/teacher/queue/"
+        },
+        {
+          "method": "GET",
+          "path": "/api/resources/admin/"
+        },
+        {
+          "method": "GET",
+          "path": "/api/teaching-knowledge/materials/"
+        },
+        {
+          "method": "GET",
+          "path": "/api/learning-paths/paths/"
+        }
+      ]
+    },
+    {
+      "role": "teacher",
+      "target": "/teacher/learning-paths",
+      "landed": "/teacher/learning-paths",
+      "errors": [],
+      "contentLength": 290,
+      "head": "跳到页面内容\n智航网络安全学习\n搜索页面\n消息\n合\n合成测试用户\n\n教学\n\n教学驾驶舱\n\n备课\n\n题目管理\n学习航线\n数据安全案例\n资源审核\n知识基座\n材料工坊\n\n布置与验收\n\n教学安排\n验收与抽查\n能力图谱审核\n\n跟踪与评测\n\n学情洞察\n动态评测\n\n反馈\n\n反馈处理\n事件核对\n学习航线管理\n\n创建和管理学习航线内容\n\n返回\n创建学习航线\n1\n可管理航线\n1",
+      "apiCalls": [
+        {
+          "method": "GET",
+          "path": "/api/ai/list/"
+        },
+        {
+          "method": "GET",
+          "path": "/api/announcements/announcements/pinned/"
+        },
+        {
+          "method": "GET",
+          "path": "/api/learning-paths/paths/"
+        }
+      ]
+    },
+    {
+      "role": "teacher",
+      "target": "/teacher/learning-paths/new",
+      "landed": "/teacher/learning-paths/new",
+      "errors": [],
+      "contentLength": 391,
+      "head": "跳到页面内容\n智航网络安全学习\n搜索页面\n消息\n合\n合成测试用户\n\n教学\n\n教学驾驶舱\n\n备课\n\n题目管理\n学习航线\n数据安全案例\n资源审核\n知识基座\n材料工坊\n\n布置与验收\n\n教学安排\n验收与抽查\n能力图谱审核\n\n跟踪与评测\n\n学情洞察\n动态评测\n\n反馈\n\n反馈处理\n事件核对\n学习航线管理\n\n创建和编辑学习航线，按章节组织内容\n\n返回\n保存学习航线\n\n可新",
+      "apiCalls": [
+        {
+          "method": "GET",
+          "path": "/api/ai/list/"
+        },
+        {
+          "method": "GET",
+          "path": "/api/announcements/announcements/pinned/"
+        },
+        {
+          "method": "GET",
+          "path": "/api/challenges/challenges/"
+        },
+        {
+          "method": "GET",
+          "path": "/api/challenges/categories/"
+        }
+      ]
+    },
+    {
+      "role": "teacher",
+      "target": "/teacher/materials",
+      "landed": "/teacher/materials",
+      "errors": [],
+      "contentLength": 376,
+      "head": "跳到页面内容\n智航网络安全学习\n搜索页面\n消息\n合\n合成测试用户\n\n教学\n\n教学驾驶舱\n\n备课\n\n题目管理\n学习航线\n数据安全案例\n资源审核\n知识基座\n材料工坊\n\n布置与验收\n\n教学安排\n验收与抽查\n能力图谱审核\n\n跟踪与评测\n\n学情洞察\n动态评测\n\n反馈\n\n反馈处理\n事件核对\n材料工坊\n\n检查原文、段落和适用任务，再提交独立审阅与发布。这里只展示你有权管理",
+      "apiCalls": [
+        {
+          "method": "GET",
+          "path": "/api/ai/list/"
+        },
+        {
+          "method": "GET",
+          "path": "/api/announcements/announcements/pinned/"
+        },
+        {
+          "method": "GET",
+          "path": "/api/teaching-knowledge/materials/"
+        }
+      ]
+    },
+    {
+      "role": "admin",
+      "target": "/admin/dashboard",
+      "landed": "/admin/dashboard",
+      "errors": [],
+      "contentLength": 488,
+      "head": "跳到页面内容\n智航网络安全学习\n搜索治理页面\n消息\n合\n合成测试用户\n\n治理\n\n治理驾驶舱\n\n用户与权限\n\n用户管理\n\n内容审核\n\n资源审核\n资源审核 · 文章\n\n题目与记录\n\n题目管理\n分类管理\n提交记录\n数据安全案例\n\n基座与平台\n\n基座治理\n全局洞察\n评测监督\n合规中心\n数据保护\n公告管理\n治理驾驶舱\n\n核对待审核内容与资料处理记录，再进入对应工作区处",
+      "apiCalls": [
+        {
+          "method": "GET",
+          "path": "/api/ai/list/"
+        },
+        {
+          "method": "GET",
+          "path": "/api/announcements/announcements/pinned/"
+        },
+        {
+          "method": "GET",
+          "path": "/api/resources/admin/"
+        },
+        {
+          "method": "GET",
+          "path": "/api/articles/articles/"
+        },
+        {
+          "method": "GET",
+          "path": "/api/legal-kb/ingestion-jobs/"
+        }
+      ]
+    },
+    {
+      "role": "admin",
+      "target": "/admin/data-security",
+      "landed": "/admin/data-security",
+      "errors": [],
+      "contentLength": 719,
+      "head": "跳到页面内容\n智航网络安全学习\n搜索治理页面\n消息\n合\n合成测试用户\n\n治理\n\n治理驾驶舱\n\n用户与权限\n\n用户管理\n\n内容审核\n\n资源审核\n资源审核 · 文章\n\n题目与记录\n\n题目管理\n分类管理\n提交记录\n数据安全案例\n\n基座与平台\n\n基座治理\n全局洞察\n评测监督\n合规中心\n数据保护\n公告管理\n数据保护策略\n刷新\n\n默认遮蔽敏感内容。本页只管理策略与查看申",
+      "apiCalls": [
+        {
+          "method": "GET",
+          "path": "/api/ai/list/"
+        },
+        {
+          "method": "GET",
+          "path": "/api/announcements/announcements/pinned/"
+        },
+        {
+          "method": "GET",
+          "path": "/api/data-security/policies/"
+        },
+        {
+          "method": "GET",
+          "path": "/api/data-security/reveal-requests/"
+        },
+        {
+          "method": "GET",
+          "path": "/api/data-security/stats/"
+        }
+      ]
+    },
+    {
+      "role": "admin",
+      "target": "/learning-paths/manage",
+      "landed": "/learning-paths/manage",
+      "errors": [],
+      "contentLength": 299,
+      "head": "跳到页面内容\n智航网络安全学习\n搜索治理页面\n消息\n合\n合成测试用户\n\n治理\n\n治理驾驶舱\n\n用户与权限\n\n用户管理\n\n内容审核\n\n资源审核\n资源审核 · 文章\n\n题目与记录\n\n题目管理\n分类管理\n提交记录\n数据安全案例\n\n基座与平台\n\n基座治理\n全局洞察\n评测监督\n合规中心\n数据保护\n公告管理\n学习航线管理\n\n创建和管理学习航线内容\n\n返回\n创建学习航线\n",
+      "apiCalls": [
+        {
+          "method": "GET",
+          "path": "/api/ai/list/"
+        },
+        {
+          "method": "GET",
+          "path": "/api/announcements/announcements/pinned/"
+        },
+        {
+          "method": "GET",
+          "path": "/api/learning-paths/paths/"
+        }
+      ]
+    },
+    {
+      "role": "admin",
+      "target": "/learning-paths/new",
+      "landed": "/learning-paths/new",
+      "errors": [],
+      "contentLength": 400,
+      "head": "跳到页面内容\n智航网络安全学习\n搜索治理页面\n消息\n合\n合成测试用户\n\n治理\n\n治理驾驶舱\n\n用户与权限\n\n用户管理\n\n内容审核\n\n资源审核\n资源审核 · 文章\n\n题目与记录\n\n题目管理\n分类管理\n提交记录\n数据安全案例\n\n基座与平台\n\n基座治理\n全局洞察\n评测监督\n合规中心\n数据保护\n公告管理\n学习航线管理\n\n创建和编辑学习航线，按章节组织内容\n\n返回\n保",
+      "apiCalls": [
+        {
+          "method": "GET",
+          "path": "/api/ai/list/"
+        },
+        {
+          "method": "GET",
+          "path": "/api/announcements/announcements/pinned/"
+        },
+        {
+          "method": "GET",
+          "path": "/api/challenges/challenges/"
+        },
+        {
+          "method": "GET",
+          "path": "/api/challenges/categories/"
+        }
+      ]
+    },
+    {
+      "role": "admin",
+      "target": "/learning-paths/7/edit",
+      "landed": "/learning-paths/7/edit",
+      "errors": [],
+      "contentLength": 390,
+      "head": "跳到页面内容\n智航网络安全学习\n搜索治理页面\n消息\n合\n合成测试用户\n\n治理\n\n治理驾驶舱\n\n用户与权限\n\n用户管理\n\n内容审核\n\n资源审核\n资源审核 · 文章\n\n题目与记录\n\n题目管理\n分类管理\n提交记录\n数据安全案例\n\n基座与平台\n\n基座治理\n全局洞察\n评测监督\n合规中心\n数据保护\n公告管理\n学习航线管理\n\n创建和编辑学习航线，按章节组织内容\n\n返回\n保",
+      "apiCalls": [
+        {
+          "method": "GET",
+          "path": "/api/ai/list/"
+        },
+        {
+          "method": "GET",
+          "path": "/api/announcements/announcements/pinned/"
+        },
+        {
+          "method": "GET",
+          "path": "/api/learning-paths/paths/7/"
+        },
+        {
+          "method": "GET",
+          "path": "/api/learning-paths/modules/"
+        },
+        {
+          "method": "GET",
+          "path": "/api/challenges/challenges/"
+        },
+        {
+          "method": "GET",
+          "path": "/api/challenges/categories/"
+        }
+      ]
+    },
+    {
+      "role": "admin",
+      "target": "/admin/categories",
+      "landed": "/admin/categories",
+      "errors": [],
+      "contentLength": 225,
+      "head": "跳到页面内容\n智航网络安全学习\n搜索治理页面\n消息\n合\n合成测试用户\n\n治理\n\n治理驾驶舱\n\n用户与权限\n\n用户管理\n\n内容审核\n\n资源审核\n资源审核 · 文章\n\n题目与记录\n\n题目管理\n分类管理\n提交记录\n数据安全案例\n\n基座与平台\n\n基座治理\n全局洞察\n评测监督\n合规中心\n数据保护\n公告管理\n分类管理\n🔄 刷新\n➕ 新增分类\n\n当前仅支持查看分类。新增",
+      "apiCalls": [
+        {
+          "method": "GET",
+          "path": "/api/ai/list/"
+        },
+        {
+          "method": "GET",
+          "path": "/api/announcements/announcements/pinned/"
+        },
+        {
+          "method": "GET",
+          "path": "/api/challenges/categories/"
+        }
+      ]
+    }
+  ],
+  "workflows": [
+    {
+      "name": "path-join",
+      "success": true,
+      "write": {
+        "method": "POST",
+        "path": "/api/learning-paths/paths/7/start/"
+      }
+    },
+    {
+      "name": "module-start-complete-local-note",
+      "success": true,
+      "writes": [
+        {
+          "method": "POST",
+          "path": "/api/learning-paths/modules/12/start/"
+        },
+        {
+          "method": "POST",
+          "path": "/api/learning-paths/modules/12/complete/"
+        }
+      ]
+    },
+    {
+      "name": "theory-single-multiple-and-save",
+      "success": true,
+      "writes": [
+        {
+          "method": "POST",
+          "path": "/api/exams/records/12/answer/"
+        },
+        {
+          "method": "POST",
+          "path": "/api/exams/records/12/answer/"
+        }
+      ]
+    },
+    {
+      "name": "profile-paginated-submissions-and-original-destinations",
+      "success": true,
+      "pathId": 7,
+      "progressRecordId": 93,
+      "challengeId": 42
+    },
+    {
+      "name": "admin-protection-preview",
+      "success": true,
+      "write": {
+        "method": "POST",
+        "path": "/api/data-security/preview/"
+      }
+    }
+  ]
+}

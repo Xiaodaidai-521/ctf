@@ -1,5 +1,8 @@
 """Pinned file policies; writes require an explicit composition-time capability."""
-import fcntl
+try:
+    import fcntl
+except ImportError:
+    fcntl = None
 import json
 import os
 from pathlib import Path
@@ -47,7 +50,7 @@ class FilePolicyRepository:
                 code=ReasonCode.POLICY_NOT_APPROVED, retryable=False, trace_id='policy/file')
 
     def put(self, snapshot, expected_version):
-        if not self.writable:
+        if not self.writable or fcntl is None:
             return ProtectionError(schema_version=ProtectionError.SCHEMA,
                 code=ReasonCode.AUTHORIZATION_DENIED, retryable=False, trace_id='policy/file')
         temporary = None

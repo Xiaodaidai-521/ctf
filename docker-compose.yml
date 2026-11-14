@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # PostgreSQL 鏁版嵁搴撴湇鍔?
   postgres:
@@ -39,10 +37,14 @@ services:
       - ./backend/staticfiles:/app/staticfiles
       # 挂载日志文件
       - ./backend/logs:/app/logs
+      # Persistent private ciphertext and independent encryption keys.
+      - protection-data:/var/lib/ctf-platform
       # 挂载 Docker socket锛堢敤浜庡鍣ㄧ鐞?- 娉ㄦ剰瀹夊叏椋庨櫓锛?
     environment:
       - DEBUG=${DEBUG:-False}
       - SECRET_KEY=${SECRET_KEY:?Set SECRET_KEY in .env}
+      - DATA_PROTECTION_ENABLED=true
+      - DATA_PROTECTION_ROOT=/var/lib/ctf-platform/security
       - ALLOWED_HOSTS=${ALLOWED_HOSTS:?Set ALLOWED_HOSTS in .env}
       - SECURE_SSL_REDIRECT=True
       - SESSION_COOKIE_SECURE=True
@@ -56,6 +58,9 @@ services:
       - FRP_HTTP_DOMAIN=${FRP_HTTP_DOMAIN:-ctf.local}
       - FRP_HTTP_PORT=9123
       - CONTAINER_PROXY_MODE=network
+      - DOCKER_NETWORK=${DOCKER_NETWORK:-ctf-challenge}
+      - CONTAINER_PROXY_HOST=${CONTAINER_PROXY_HOST:-}
+      - CONTAINER_PROXY_SCHEME=https
       - DOCKER_HOST=tcp://docker-socket-proxy:2375
       - CONTAINER_RUN_USER=${CONTAINER_RUN_USER:-65532:65532}
       - DATABASE_BACKEND=postgres
@@ -86,7 +91,7 @@ services:
       - ctf-challenge
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/api/"]
+      test: ["CMD", "python", "/app/healthcheck.py"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -107,7 +112,7 @@ services:
     command: /bin/sh -c 'while true; do python manage.py cleanup_containers; sleep 60; done'
     depends_on:
       backend:
-        condition: service_started
+        condition: service_healthy
     networks:
       - ctf-control
     restart: unless-stopped
@@ -136,6 +141,9 @@ services:
       done"
     depends_on:
       postgres:
+        condition: service_healthy
+      backend:
+        # start.sh completes migrations before Gunicorn becomes healthy.
         condition: service_healthy
     networks:
       - ctf-control
@@ -207,10 +215,14 @@ services:
       - ctf-control
     restart: unless-stopped
 
+volumes:
+  protection-data:
+
 networks:
   ctf-control:
     driver: bridge
   ctf-challenge:
+    name: ${DOCKER_NETWORK:-ctf-challenge}
     driver: bridge
     internal: true
 

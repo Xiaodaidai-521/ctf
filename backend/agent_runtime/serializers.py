@@ -1,6 +1,24 @@
 from rest_framework import serializers
+from data_security.adapters.django.protection_status import ProtectionSerializerMixin
 
-from .models import AgentRun
+from .models import AgentRun, UserMemory
+
+
+class UserMemorySerializer(ProtectionSerializerMixin, serializers.ModelSerializer):
+    def to_representation(self, instance):
+        from data_security.contracts import ContractViolation
+        result = super().to_representation(instance)
+        for name in ('memory_value', 'metadata'):
+            try:
+                result[name] = instance.display_protected(name)
+            except (ContractViolation, RuntimeError, ValueError, TypeError, KeyError):
+                result[name] = None
+        return result
+
+    class Meta:
+        model = UserMemory
+        fields = ['id', 'memory_type', 'memory_value', 'metadata', 'created_at', 'updated_at']
+        read_only_fields = fields
 
 
 class LearningRunRequestSerializer(serializers.Serializer):

@@ -24,7 +24,7 @@ class LearningDirection(models.Model):
 
 class StudentProfile(ProtectedModel):
     """用户画像"""
-    redacted_fields = ('self_assessed_skills', 'initial_self_assessed_skills')
+    redacted_fields = ('learning_goals', 'self_assessed_skills', 'initial_self_assessed_skills')
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,

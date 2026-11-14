@@ -15,6 +15,7 @@ from .models import ChallengeContainer, Challenge
 from .container_audit import record_container_audit
 from .frp_config import get_frp_manager
 from .port_pool import get_port_pool
+from .access import build_access_url
 
 logger = logging.getLogger(__name__)
 
@@ -216,8 +217,7 @@ class ContainerManager:
             container_record.expires_at = timezone.now() + timedelta(seconds=self.container_lifetime)
 
             # 生成访问URL（使用Django代理，格式：http://localhost:8000/challenge/<user_id>-<uuid>/）
-            proxy_host = getattr(settings, 'CONTAINER_PROXY_HOST', 'localhost:8000')
-            access_url = f"http://{proxy_host}/challenge/{user_id}-{container_uuid}/"
+            access_url = build_access_url(container_record)
             container_record.access_url = access_url
 
             container_record.save()

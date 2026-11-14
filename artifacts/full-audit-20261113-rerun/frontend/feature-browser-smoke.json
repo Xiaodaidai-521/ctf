@@ -1,0 +1,80 @@
+{
+  "mode": "real Chrome and Vite with synthetic intercepted API; no live API/database or permissions verified",
+  "workflows": [
+    {
+      "name": "sampling-anchor-and-all-205-risk-choices",
+      "success": true,
+      "pages": [
+        "1",
+        "2",
+        "3"
+      ]
+    },
+    {
+      "name": "candidate-real-file-payloads-and-incomplete-report-retained",
+      "success": true,
+      "configuration": {
+        "title": "合成配置",
+        "issue_group_ids": [
+          "group-source"
+        ],
+        "baseline_config_version": "base-source",
+        "candidate_config_version": "candidate-source",
+        "single_changed_factor": "source-limit",
+        "rollback_version": "base-source",
+        "baseline_config": {
+          "source-limit": 10
+        },
+        "candidate_config": {
+          "source-limit": 12
+        },
+        "target_task_versions": [
+          "task-source@1"
+        ],
+        "excluded_scope": [
+          "排除范围"
+        ],
+        "expected_risk": "原始风险"
+      },
+      "report": {
+        "run_id": "run-source",
+        "report_id": "report-source",
+        "report_version": "source-v1",
+        "report_digest": "report-source-digest",
+        "candidate_config_digest": "candidate-source-digest",
+        "recommendation": "fail",
+        "completed": false,
+        "missing_cases": 3
+      }
+    },
+    {
+      "name": "feedback-readable-detail-no-visible-reference-id",
+      "success": true
+    },
+    {
+      "name": "admin-edit-omits-empty-flag-and-preserves-all-other-fields",
+      "success": true,
+      "payload": {
+        "title": "合成题目",
+        "category": 3,
+        "difficulty": "easy",
+        "score": 10,
+        "description": "合成题面",
+        "hint": "原提示",
+        "is_active": false,
+        "docker_image": "",
+        "redirect_port": null,
+        "redirect_type": ""
+      }
+    },
+    {
+      "name": "admin-resource-review-uses-real-dialog-props-and-exact-reason",
+      "success": true
+    },
+    {
+      "name": "public-resource-failure-and-retry-show-distinct-states",
+      "success": true
+    }
+  ],
+  "pageErrors": []
+}

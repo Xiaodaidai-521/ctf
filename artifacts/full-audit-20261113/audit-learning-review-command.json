@@ -1,0 +1,18 @@
+{
+  "command": [
+    "D:\\aaa10\\16015478\u6e90\u7801\\project-code\\.state\\full-audit-20261113\\venv\\Scripts\\python.exe",
+    "-B",
+    "D:\\aaa10\\16015478\u6e90\u7801\\project-code\\backend\\manage.py",
+    "test",
+    "exams.test_audit_regressions",
+    "users.test_audit_regressions",
+    "learning_paths.test_audit_regressions",
+    "--noinput",
+    "--verbosity",
+    "1"
+  ],
+  "exit_code": 0,
+  "elapsed_seconds": 44.62,
+  "synthetic_only": true,
+  "test_database": "test_audit_learning_review"
+}

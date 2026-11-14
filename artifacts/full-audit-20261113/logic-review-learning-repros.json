@@ -1,0 +1,15 @@
+{
+  "tests": 4,
+  "passed": [
+    "artifacts.logic_review_learning_repro.LearningAuditReproductions.test_comprehensive_practice_clock_already_expired_on_activation",
+    "artifacts.logic_review_learning_repro.LearningAuditReproductions.test_practice_generator_selects_free_practice_without_a_gradable_flag",
+    "artifacts.logic_review_learning_repro.LearningAuditReproductions.test_regenerating_practice_exam_deletes_completed_answer_history",
+    "artifacts.logic_review_learning_repro.LearningAuditReproductions.test_theory_answer_flushed_at_deadline_is_rejected_then_settles_zero"
+  ],
+  "failures": [],
+  "errors": [],
+  "skipped": [],
+  "expected_failures": 0,
+  "unexpected_successes": 0,
+  "synthetic_database_only": true
+}

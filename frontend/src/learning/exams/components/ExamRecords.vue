@@ -49,6 +49,7 @@
             <span class="history-type">{{ record.typeLabel }}</span>
             <span class="history-title">{{ record.title }}</span>
             <span class="history-time">{{ formatDateTime(record.date) }}</span>
+            <ProtectionBadge :status="record.protection?.user_answer" label="考试答案加密保存" compact />
             <span class="history-meta">
               <span v-if="record.questionCount !== null && record.questionCount !== undefined">共 {{ record.questionCount }} 题</span>
               <span>用时 {{ formatTime(record.durationSeconds) }}</span>
@@ -75,6 +76,7 @@
   </div>
 </template>
 <script setup>
+import ProtectionBadge from '@/shared/privacy/ProtectionBadge.vue'
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import AppIcon from '@/shared/design/AppIcon.vue'

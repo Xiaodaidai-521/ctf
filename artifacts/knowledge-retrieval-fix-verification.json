@@ -1,0 +1,42 @@
+{
+  "backend": {
+    "ran": 174,
+    "passed": 171,
+    "skipped": 3,
+    "failures": 0,
+    "errors": 0,
+    "duration_seconds": 23.171,
+    "suites": [
+      "legal_kb.test_retrieval_regressions",
+      "legal_kb.test_corpus_import",
+      "legal_kb.tests",
+      "legal_kb.tests_browse",
+      "legal_kb.tests_chunking_round2",
+      "rag_ingestion.tests",
+      "rag_ingestion.tests_chunking",
+      "ctf_backend.test_module_integration",
+      "agent_runtime.tests.LearningRetrievalSemanticTests",
+      "ai_assistant.test_main_chain",
+      "ai_assistant.test_phase3_content",
+      "ai_assistant.tests.KnowledgeContextSemanticFusionTests"
+    ]
+  },
+  "frontend": {
+    "ran": 95,
+    "passed": 95,
+    "failed": 0
+  },
+  "frontend_build": "passed",
+  "retrieval": {
+    "questions": 21,
+    "query_executions": 42,
+    "all_expected_sources_hit_at_5": true,
+    "negative_probes": 4,
+    "all_negative_probes_empty": true
+  },
+  "unverified": [
+    "PostgreSQL ANN and live provider quality",
+    "Optional langchain splitter (dependency absent)",
+    "Legacy tests_indexing and tests_platform_chunking depend on removed embedding interfaces and were not included in this validation set"
+  ]
+}

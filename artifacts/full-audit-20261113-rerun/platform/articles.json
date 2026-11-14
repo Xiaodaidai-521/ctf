@@ -1,0 +1,20 @@
+{
+  "tests": 9,
+  "passed": [
+    "articles.test_audit_regressions.CommunityBoundaryRegressionTests.test_admin_can_review_pending_articles",
+    "articles.test_audit_regressions.CommunityBoundaryRegressionTests.test_anonymous_personal_lists_require_authentication",
+    "articles.test_audit_regressions.CommunityBoundaryRegressionTests.test_author_can_read_and_edit_own_pending_article",
+    "articles.test_audit_regressions.CommunityBoundaryRegressionTests.test_comment_cannot_be_added_to_another_authors_unpublished_article",
+    "articles.test_audit_regressions.CommunityBoundaryRegressionTests.test_comment_cannot_be_reparented_or_moved_to_another_article",
+    "articles.test_audit_regressions.CommunityBoundaryRegressionTests.test_invalid_article_query_is_a_client_error",
+    "articles.test_audit_regressions.CommunityBoundaryRegressionTests.test_other_user_cannot_update_comment",
+    "articles.test_audit_regressions.CommunityBoundaryRegressionTests.test_status_filter_cannot_reveal_unpublished_articles",
+    "articles.test_audit_regressions.CommunityBoundaryRegressionTests.test_withdrawn_favorite_and_comments_are_hidden_from_other_users"
+  ],
+  "failures": [],
+  "errors": [],
+  "skipped": [],
+  "expected_failures": 0,
+  "unexpected_successes": 0,
+  "synthetic_database_only": true
+}

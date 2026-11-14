@@ -1,0 +1,25 @@
+{
+  "tests": 14,
+  "passed": [
+    "legal_kb.test_audit_rebuild.RebuildAuditTests.test_dry_run_never_embeds_or_changes_rows",
+    "legal_kb.test_audit_rebuild.RebuildAuditTests.test_local_rebuild_records_the_current_vector_space_and_is_repeatable",
+    "legal_kb.test_audit_rebuild.RebuildAuditTests.test_missing_batch_vector_rolls_back_the_entire_source",
+    "legal_kb.test_audit_rebuild.RebuildAuditTests.test_provider_failure_rolls_back_all_chunks_of_the_source",
+    "legal_kb.test_audit_rebuild.RebuildAuditTests.test_remote_rebuild_preserves_local_vectors_and_records_semantic_space",
+    "legal_kb.test_audit_rebuild.RebuildAuditTests.test_reserved_material_and_challenge_are_excluded",
+    "legal_kb.test_audit_rebuild.RebuildAuditTests.test_student_is_rejected_before_factory_or_provider",
+    "learning_analytics.test_audit_scheduler.AnalyticsJobRecoveryTests.test_command_does_not_announce_running_job_as_completed",
+    "learning_analytics.test_audit_scheduler.AnalyticsJobRecoveryTests.test_failed_job_can_retry_without_retaining_failed_counters",
+    "learning_analytics.test_audit_scheduler.AnalyticsJobRecoveryTests.test_failed_user_work_rolls_back_and_command_reports_failure",
+    "learning_analytics.test_audit_scheduler.AnalyticsJobRecoveryTests.test_live_job_is_not_reclaimed",
+    "learning_analytics.test_audit_scheduler.AnalyticsJobRecoveryTests.test_stale_job_retries_and_resets_old_progress",
+    "learning_analytics.test_audit_scheduler.AnalyticsJobRecoveryTests.test_superseded_worker_cannot_rebuild_or_overwrite_new_attempt",
+    "learning_analytics.test_audit_scheduler.AnalyticsJobOwnershipConcurrencyTests.test_live_user_transaction_blocks_reclaim_even_if_heartbeat_looks_old"
+  ],
+  "failures": [],
+  "errors": [],
+  "skipped": [],
+  "expected_failures": 0,
+  "unexpected_successes": 0,
+  "synthetic_database_only": true
+}

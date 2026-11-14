@@ -4,7 +4,7 @@ import { createSessionController } from './sessionController.js'
 import { resetTutorHost } from './host.js'
 import { clearDraft } from './draft.js'
 
-// 全站唯一会话控制器：智航、对话页、题内抽屉、宠物都读同一次状态。
+// 全站唯一会话控制器：智航、对话页、题内抽屉都读同一次状态。
 export const agentSession = createSessionController({
   apiClient: agentApi,
   request: requestTeaching,

@@ -1,5 +1,6 @@
 """Reference-only HTTP delivery; the owner re-fetches every source and approval."""
 from django.urls import path
+from django.utils import timezone
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -53,4 +54,56 @@ def resource_export(request, operation):
     return private_file_response(payload, filename='export.' + extension)
 
 
-urlpatterns = [path('exports/resources/<str:operation>/', resource_export, name='resource-export')]
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def export_records(request):
+    """Only current subject grants; a role never expands this list."""
+    owner = export_delivery()
+    try:
+        require(not set(request.query_params) - {'offset', 'resource_id'}, ReasonCode.INVALID_VALUE)
+        require(all(len(request.query_params.getlist(key)) == 1 for key in request.query_params), ReasonCode.INVALID_VALUE)
+        offset = int(request.query_params.get('offset', '0'))
+        require(0 <= offset <= 100000, ReasonCode.INVALID_VALUE)
+        resource_id = request.query_params.get('resource_id')
+        if resource_id is not None:
+            resource_id = int(resource_id)
+            require(resource_id > 0, ReasonCode.INVALID_VALUE)
+    except (ContractViolation, ValueError):
+        return Response({'code': 'INVALID_VALUE'}, status=400)
+    if isinstance(owner, ProtectionError):
+        from legal.services import report_exports
+        if report_exports.enabled():
+            result = ({'items': [], 'next_offset': None} if resource_id is not None
+                      else report_exports.records(request.user, offset))
+            return Response(result, headers={'Cache-Control': 'no-store, private'})
+        return private_file_error(owner)
+    from resources.models import ExportSourcePermission
+    permissions = ExportSourcePermission.objects.filter(actor_ref='user/' + str(request.user.pk),
+        revoked_at__isnull=True, expires_at__gt=timezone.now(), source__revoked_at__isnull=True,
+        source__expires_at__gt=timezone.now()).select_related('source__resource').order_by('-pk')
+    if resource_id is not None:
+        permissions = permissions.filter(source__resource_id=resource_id)
+    rows = list(permissions[offset:offset + 21])
+    items = []
+    for permission in rows[:20]:
+        source = permission.source
+        # Reuse source ACL, owner metadata and authenticated grants before returning a title.
+        loaded = owner.sources.load(user=request.user, source_ref=source.source_ref,
+                                    permission_ref=permission.authorization_ref)
+        if isinstance(loaded, ProtectionError):
+            continue
+        description = owner.describe(user=request.user, source_ref=source.source_ref,
+                                     permission_ref=permission.authorization_ref)
+        if isinstance(description, ProtectionError):
+            description = {'state': 'pending', 'can_execute': False, 'can_download': False,
+                'protection': {'redaction': 'unknown', 'storage': 'unknown'},
+                'expires_at': min(source.expires_at, permission.expires_at).isoformat()}
+        items.append({'id': permission.pk, 'resource_id': source.resource_id,
+            'title': source.resource.title, 'source_ref': source.source_ref,
+            'permission_ref': permission.authorization_ref, **description})
+    return Response({'items': items, 'next_offset': offset + 20 if len(rows) > 20 else None},
+                    headers={'Cache-Control': 'no-store, private'})
+
+
+urlpatterns = [path('exports/records/', export_records, name='export-records'),
+               path('exports/resources/<str:operation>/', resource_export, name='resource-export')]

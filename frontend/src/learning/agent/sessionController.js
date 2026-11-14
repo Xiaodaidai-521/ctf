@@ -24,6 +24,7 @@ export function createSessionController({ apiClient, request, publish = () => {}
     hasHistory: false,
     // 后台真实返回的元数据（含可选 taskBinding.hintLevel）；没有就保持 null。
     metadata: null,
+    protection: null,
   }
 
   function snapshot() { return { ...state, messages: [...state.messages] } }
@@ -52,7 +53,7 @@ export function createSessionController({ apiClient, request, publish = () => {}
     generation++
     Object.assign(state, {
       conversationId: null, messages: [], resources: [], context: null,
-      phase: 'idle', restoring: false, sending: false, error: '', hasHistory: false, metadata: null,
+      phase: 'idle', restoring: false, sending: false, error: '', hasHistory: false, metadata: null, protection: null,
     })
     emit()
     return true
@@ -68,6 +69,7 @@ export function createSessionController({ apiClient, request, publish = () => {}
     if (!account) return { restored: false, reason: 'unauthenticated' }
     const version = generation
     state.restoring = true
+    state.protection = null
     state.error = ''
     emit()
     try {
@@ -82,6 +84,7 @@ export function createSessionController({ apiClient, request, publish = () => {}
       if (version !== generation) return { restored: false, reason: 'stale' }
       state.conversationId = target.id
       state.messages = conversationMessages(detail)
+      state.protection = detail.protection || null
       state.hasHistory = state.messages.length > 0
       return { restored: state.hasHistory, conversationId: target.id }
     } catch {
@@ -114,6 +117,7 @@ export function createSessionController({ apiClient, request, publish = () => {}
     const conversationId = state.conversationId
     state.error = ''
     pushUser(message)
+    state.protection = null
     setPhase('working')
     try {
       const result = await request({
@@ -149,6 +153,14 @@ export function createSessionController({ apiClient, request, publish = () => {}
       }
       if (result?.resources?.length) state.resources = result.resources
       state.metadata = result?.metadata || null
+      if (state.conversationId && apiClient.protection) {
+        try {
+          const detail = await apiClient.protection(state.conversationId)
+          if (version !== generation || token !== sendToken) return { ok: false, reason: 'stale' }
+          state.protection = detail.protection || null
+        } catch { /* 没有完整核验结果时保留空状态。 */ }
+      }
+      if (version !== generation || token !== sendToken) return { ok: false, reason: 'stale' }
       state.hasHistory = true
       setPhase('complete')
       return { ok: true, result }
@@ -172,6 +184,7 @@ export function createSessionController({ apiClient, request, publish = () => {}
     state.restoring = false
     state.error = ''
     state.metadata = null
+    state.protection = null
     setPhase('idle')
     if (deleteServer && conversationId) {
       try { await apiClient.removeConversation(conversationId) } catch { state.error = '会话已在本页清空，服务端记录暂未删除。' }

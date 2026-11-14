@@ -1,0 +1,17 @@
+{
+  "tests": 6,
+  "passed": [
+    "ctf_backend.test_module_integration.ModuleIntegrationTests.test_anonymous_requests_are_rejected_before_database_access",
+    "ctf_backend.test_module_integration.ModuleIntegrationTests.test_restored_apps_are_registered",
+    "ctf_backend.test_module_integration.ModuleIntegrationTests.test_root_urls_reach_module_views_with_existing_authentication",
+    "ctf_backend.test_module_integration.ModuleIntegrationTests.test_student_cannot_read_evaluation_student_list",
+    "ctf_backend.test_module_integration.ModuleIntegrationTests.test_teacher_needs_independent_evaluation_execution_permission",
+    "ctf_backend.test_module_integration.ModuleIntegrationTests.test_test_adapter_is_not_mounted_on_production_urls"
+  ],
+  "failures": [],
+  "errors": [],
+  "skipped": [],
+  "expected_failures": 0,
+  "unexpected_successes": 0,
+  "synthetic_database_only": true
+}

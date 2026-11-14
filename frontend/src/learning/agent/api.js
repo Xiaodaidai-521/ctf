@@ -11,6 +11,7 @@ export const agentApi = {
   conversation: id => api.conversation.detail(id),
   removeConversation: id => api.conversation.remove(id),
   profile: () => api.studentProfile.get(),
+  protection: id => api.privacy.conversation(id),
 }
 
 // 只使用后端真实存在的会话字段；空历史就是空历史，不补造欢迎语为历史消息。
@@ -25,6 +26,7 @@ export function conversationMessages(payload) {
       content: item.content || item.message || '',
       agentName: item.agent_name || item.agent || '',
       createdAt: item.created_at || item.timestamp || null,
+      protection: item.protection || null,
     }))
 }
 

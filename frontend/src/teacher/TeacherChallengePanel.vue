@@ -1,2 +1,29 @@
-﻿<template><section class="panel"><p>教师工作台 / 题目管理</p><h1>题目管理</h1><div class="grid"><article><strong>题目维护</strong><span>在此管理 CTF 练习题、难度和分类。</span></article><article><strong>教学安排</strong><span>将题目纳入学习路径或课堂练习。</span></article><article><strong>学生反馈</strong><span>结合学习效果分析调整训练内容。</span></article></div></section></template>
-<style scoped>.panel{min-height:100vh;padding:42px 36px;background:#faf7f0;color:#1e1c18}.panel p{color:#b42318;font-weight:800}.panel h1{font-size:40px}.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.grid article{display:grid;gap:10px;min-height:130px;padding:20px;border:1px solid #d9cfbe;border-radius:8px;background:#fffaf2}.grid span{color:#6b6256}@media(max-width:800px){.grid{grid-template-columns:1fr}}</style>
+<template>
+  <section class="content-page teacher-challenges" data-density="teacher">
+    <header class="content-header"><div><h1>题目管理</h1><p>为课堂练习准备题面、分级提示与环境，按难度安排训练。</p></div><div class="content-actions"><router-link class="content-button" to="/teacher/learning-paths">{{ names.paths }}</router-link><button class="content-button" :disabled="state.loading" @click="load">刷新</button><button class="content-button primary" :disabled="state.busy" @click="create">新增题目</button></div></header>
+    <p v-if="state.success" class="content-success" role="status">{{ state.success }}</p>
+    <p v-if="state.error && !state.editor" class="content-error" role="alert">{{ state.error }}</p>
+    <div class="content-surface" :aria-busy="state.loading">
+      <ChallengeFilters role="teacher" :filters="state.filters" :categories="state.categories" :loading="state.loading" @apply="filter" />
+      <p v-if="state.categoriesError" class="content-error" role="alert">{{ state.categoriesError }} <button class="content-button" :disabled="state.categoriesLoading" @click="loadCategories">重试分类</button></p>
+      <div v-if="state.loading" class="content-state" role="status">正在读取题目…</div>
+      <div v-else-if="state.listError" class="content-error" role="alert">{{ state.listError }} <button class="content-button" @click="load">重试</button></div>
+      <template v-else><ChallengeTable v-if="state.items.length" role="teacher" :items="state.items" :busy="state.busy || state.detailLoading" @edit="edit" @delete="remove" /><p v-else class="content-state">暂无符合筛选条件的题目。</p><ContentPagination :page="state.page" :total="state.total" :has-next="state.hasNext" :loading="state.loading" @change="changePage" /></template>
+      <p v-if="state.detailLoading" class="content-note" role="status">正在读取题目详情…</p>
+    </div>
+    <ChallengeEditor v-if="state.editor" role="teacher" :mode="state.editor" :form="state.form" :categories="state.categories" :busy="state.busy" :error="state.error" @close="close" @save="save" />
+  </section>
+</template>
+<script setup>
+import { onMounted, onBeforeUnmount } from 'vue'
+import { names } from '@/shared/navigation/names'
+import ChallengeFilters from '@/shared/content/ChallengeFilters.vue'
+import ChallengeTable from '@/shared/content/ChallengeTable.vue'
+import ChallengeEditor from '@/shared/content/ChallengeEditor.vue'
+import ContentPagination from '@/shared/content/ContentPagination.vue'
+import { useChallengeContent } from '@/shared/content/useChallengeContent.js'
+const { state, load, loadCategories, filter, changePage, create, edit, close, save, remove, destroy } = useChallengeContent('teacher')
+onMounted(() => Promise.all([load(), loadCategories()]))
+onBeforeUnmount(destroy)
+</script>
+<style scoped src="../shared/content/content.css"></style>

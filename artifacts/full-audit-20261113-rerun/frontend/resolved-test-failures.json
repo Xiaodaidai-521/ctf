@@ -1,0 +1,248 @@
+[
+  {
+    "number": 416,
+    "title": "content SFC contract, scoped tokens and no internal display: ../../admin/views/Challenges.vue",
+    "location": "src/shared/content/contentContracts.test.js:228:47",
+    "error": "|-"
+  },
+  {
+    "number": 417,
+    "title": "content SFC contract, scoped tokens and no internal display: ../../admin/views/Resources.vue",
+    "location": "src/shared/content/contentContracts.test.js:228:47",
+    "error": "|-"
+  },
+  {
+    "number": 432,
+    "title": "resource preview retains all original metadata, download and review actions stay reachable",
+    "location": "src/shared/content/contentContracts.test.js:297:1",
+    "error": "|-"
+  },
+  {
+    "number": 435,
+    "title": "migrated skin: teacher/SkillReviewAdmin compiles with scoped token styles",
+    "location": "src/shared/design/migrationSkins.test.js:30:27",
+    "error": "|-"
+  },
+  {
+    "number": 436,
+    "title": "migrated skin: teacher/FeedbackCandidates compiles with scoped token styles",
+    "location": "src/shared/design/migrationSkins.test.js:30:27",
+    "error": "|-"
+  },
+  {
+    "number": 469,
+    "title": "migrated skin: admin/views/Challenges compiles with scoped token styles",
+    "location": "src/shared/design/migrationSkins.test.js:30:27",
+    "error": "|-"
+  },
+  {
+    "number": 472,
+    "title": "migrated skin: admin/views/Resources compiles with scoped token styles",
+    "location": "src/shared/design/migrationSkins.test.js:30:27",
+    "error": "|-"
+  },
+  {
+    "number": 670,
+    "title": "approval explanations use known reasons with a readable fallback and full record retained",
+    "location": "src/teacher/candidatePresentation.test.js:22:1",
+    "error": "|-"
+  },
+  {
+    "number": 671,
+    "title": "changed factor import retains exact original submit values without enabling gated flows",
+    "location": "src/teacher/candidatePresentation.test.js:29:1",
+    "error": "'importConfiguration is not defined'"
+  },
+  {
+    "number": 680,
+    "title": "FeedbackQueue.vue: Vue script and template compile",
+    "location": "src/teacher/feedbackPresentation.test.js:67:3",
+    "error": "|-"
+  },
+  {
+    "number": 681,
+    "title": "FeedbackDetail.vue: Vue script and template compile",
+    "location": "src/teacher/feedbackPresentation.test.js:67:3",
+    "error": "|-"
+  },
+  {
+    "number": 687,
+    "title": "risk selection traverses all authorised pages independently of queue filters",
+    "location": "src/teacher/feedbackPresentation.test.js:117:1",
+    "error": "'embedded is not defined'"
+  },
+  {
+    "number": 688,
+    "title": "partial risk-list failure preserves choices, separates errors and can be retried",
+    "location": "src/teacher/feedbackPresentation.test.js:135:1",
+    "error": "'embedded is not defined'"
+  },
+  {
+    "number": 689,
+    "title": "sampling payload preserves selected IDs, original scope and other options",
+    "location": "src/teacher/feedbackPresentation.test.js:154:1",
+    "error": "'embedded is not defined'"
+  },
+  {
+    "number": 690,
+    "title": "queue and batch text use semantic titles while preserving internal destinations",
+    "location": "src/teacher/feedbackPresentation.test.js:168:1",
+    "error": "'embedded is not defined'"
+  },
+  {
+    "number": 691,
+    "title": "duplicate selector reads beyond the first page and retains all eligible primary feedback",
+    "location": "src/teacher/feedbackPresentation.test.js:182:1",
+    "error": "'mainTicket is not defined'"
+  },
+  {
+    "number": 692,
+    "title": "teacher actions keep all payloads, IDs and optimistic concurrency fields",
+    "location": "src/teacher/feedbackPresentation.test.js:195:1",
+    "error": "'mainTicket is not defined'"
+  },
+  {
+    "number": 693,
+    "title": "detail options relabel destinations without dropping values; evidence forms keep references",
+    "location": "src/teacher/feedbackPresentation.test.js:222:1",
+    "error": "'mainTicket is not defined'"
+  },
+  {
+    "number": 694,
+    "title": "detail resolves names and referral choices, hides references while retaining complete records",
+    "location": "src/teacher/feedbackPresentation.test.js:243:1",
+    "error": "'mainTicket is not defined'"
+  },
+  {
+    "number": 695,
+    "title": "imported owner, review references and verified retest flow through real action wrappers",
+    "location": "src/teacher/feedbackPresentation.test.js:263:1",
+    "error": "'mainTicket is not defined'"
+  },
+  {
+    "number": 696,
+    "title": "reconciliation resolves names sequentially and retries with original IDs",
+    "location": "src/teacher/feedbackPresentation.test.js:285:1",
+    "error": "'loading is not defined'"
+  },
+  {
+    "number": 697,
+    "title": "reconciliation auxiliary failures do not hide retry controls or leak errors",
+    "location": "src/teacher/feedbackPresentation.test.js:302:1",
+    "error": "'loading is not defined'"
+  },
+  {
+    "number": 699,
+    "title": "length fix: ../FeedbackQueue.vue keeps a compilable native disclosure",
+    "location": "src/teacher/feedback/lengthfix.test.js:24:3",
+    "error": "|-"
+  },
+  {
+    "number": 703,
+    "title": "sampling disclosure retains every input and write/read action while defaulting closed",
+    "location": "src/teacher/feedback/lengthfix.test.js:74:1",
+    "error": "|-"
+  },
+  {
+    "number": 706,
+    "title": "../FeedbackQueue.vue: workbench pages compile and resolve existing domain API",
+    "location": "src/teacher/feedback/workbench.test.js:37:3",
+    "error": "|-"
+  },
+  {
+    "number": 707,
+    "title": "../FeedbackCandidates.vue: workbench pages compile and resolve existing domain API",
+    "location": "src/teacher/feedback/workbench.test.js:37:3",
+    "error": "|-"
+  },
+  {
+    "number": 708,
+    "title": "../FeedbackDetail.vue: workbench pages compile and resolve existing domain API",
+    "location": "src/teacher/feedback/workbench.test.js:37:3",
+    "error": "|-"
+  },
+  {
+    "number": 709,
+    "title": "../FeedbackReconciliation.vue: workbench pages compile and resolve existing domain API",
+    "location": "src/teacher/feedback/workbench.test.js:37:3",
+    "error": "|-"
+  },
+  {
+    "number": 711,
+    "title": "queue loading and read failure do not claim zero or no feedback; retry shows real empty",
+    "location": "src/teacher/feedback/workbench.test.js:65:1",
+    "error": "'embedded is not defined'"
+  },
+  {
+    "number": 712,
+    "title": "query status preset is passed on initial read and same-route query changes; invalid query is rejected",
+    "location": "src/teacher/feedback/workbench.test.js:82:1",
+    "error": "'embedded is not defined'"
+  },
+  {
+    "number": 713,
+    "title": "late queue failures cannot replace current data or clear newer loading state",
+    "location": "src/teacher/feedback/workbench.test.js:95:1",
+    "error": "'embedded is not defined'"
+  },
+  {
+    "number": 714,
+    "title": "options and batch failures are independent of successful queue, missing total is unknown not zero",
+    "location": "src/teacher/feedback/workbench.test.js:110:1",
+    "error": "'embedded is not defined'"
+  },
+  {
+    "number": 715,
+    "title": "embedded queue hides duplicated main heading and refresh is a real action, with returned pagination",
+    "location": "src/teacher/feedback/workbench.test.js:125:1",
+    "error": "'embedded is not defined'"
+  },
+  {
+    "number": 718,
+    "title": "candidate registration requires source configuration and retains every imported request field and gates",
+    "location": "src/teacher/feedback/workbench.test.js:196:1",
+    "error": "'reportImports is not defined'"
+  },
+  {
+    "number": 719,
+    "title": "report attachment passes real failing, incomplete or insufficient source facts unchanged for server validation",
+    "location": "src/teacher/feedback/workbench.test.js:215:1",
+    "error": "'reportImports is not defined'"
+  },
+  {
+    "number": 720,
+    "title": "replacement imports cannot silently submit stale configuration or stale report after a bad file",
+    "location": "src/teacher/feedback/workbench.test.js:235:1",
+    "error": "'reportImports is not defined'"
+  },
+  {
+    "number": 721,
+    "title": "candidate imports ignore late files and unmount and repeated clicks send only one immutable payload",
+    "location": "src/teacher/feedback/workbench.test.js:254:1",
+    "error": "'reportImports is not defined'"
+  },
+  {
+    "number": 722,
+    "title": "skill review cockpit queries select exact initial and same-route sections while retaining retest and stats",
+    "location": "src/teacher/feedback/workbench.test.js:302:1",
+    "error": "'tabPreset is not defined'"
+  },
+  {
+    "number": 723,
+    "title": "skill review read failures are not empty queues, retry and late responses remain atomic",
+    "location": "src/teacher/feedback/workbench.test.js:325:1",
+    "error": "'tabPreset is not defined'"
+  },
+  {
+    "number": 907,
+    "title": "resource failures have a retry state rather than a misleading empty list",
+    "location": "src/views/pageStates.test.js:81:1",
+    "error": "'listError is not defined'"
+  },
+  {
+    "number": 908,
+    "title": "a late resource response cannot replace newer filters or clear their loading state",
+    "location": "src/views/pageStates.test.js:94:1",
+    "error": "'listError is not defined'"
+  }
+]

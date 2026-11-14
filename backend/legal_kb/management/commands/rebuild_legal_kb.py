@@ -1,13 +1,21 @@
 """Explicit, versioned re-embedding of authorized existing chunks."""
 
+from math import isfinite
+
 from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
 from django.core.management.base import BaseCommand, CommandError
-from django.db import transaction
+from django.db import connection, transaction
 
 from legal_kb.models import LegalClause, LegalDocument, LegalKnowledgeEmbedding
-from legal_kb.services.embedding_service import EmbeddingService, EmbeddingUnavailableError
-from legal_kb.services.visibility import apply_embedding_visibility, _is_staff_or_admin, _is_teacher
+from legal_kb.permissions import IsLegalKbAdmin
+from data_security.adapters.django.rag import protect_rag, rag_protection_enabled
+from rag_ingestion.registry import get_embedding_service
+from legal_kb.services.embedding_service import EmbeddingService
+from legal_kb.services.hashing import sha256_text
+from legal_kb.services.visibility import (
+    apply_embedding_visibility, apply_teaching_visibility, _is_staff_or_admin, _is_teacher,
+)
 
 
 class Command(BaseCommand):
@@ -27,18 +35,23 @@ class Command(BaseCommand):
         actor = get_user_model().objects.filter(username=options['actor'], is_active=True).first()
         if not (_is_staff_or_admin(actor) or _is_teacher(actor)):
             raise CommandError('An active staff/admin or teacher actor is required.')
-        service = EmbeddingService()
+        if rag_protection_enabled() and not IsLegalKbAdmin.allows(actor):
+            raise CommandError('A staff/admin actor is required for protected rebuilding.')
         try:
-            service.validate_configuration()
-        except EmbeddingUnavailableError as exc:
-            raise CommandError(str(exc)) from None
+            service = get_embedding_service()
+        except Exception:
+            raise CommandError('Embedding configuration is unavailable.') from None
+        if service.uses_remote_provider and (connection.vendor != 'postgresql' or service.dimension != 1024):
+            raise CommandError('Remote rebuilding requires PostgreSQL and 1024-dimensional vectors.')
         queryset = LegalKnowledgeEmbedding.objects.all()
         if options['source_type']:
             queryset = queryset.filter(source_type=options['source_type'])
         if options['object_id'] is not None:
             queryset = queryset.filter(object_id=options['object_id'])
-        eligible = apply_embedding_visibility(queryset, actor)
-        self.stdout.write(f'Target index version: {service.index_version}')
+        eligible = apply_teaching_visibility(apply_embedding_visibility(queryset, actor)).exclude(
+            source_type='challenge')
+        index_version = sha256_text(EmbeddingService.LOCAL_VECTOR_SPACE)
+        self.stdout.write(f'Target vector space: {service.vector_space}')
         self.stdout.write(f'Eligible chunks: {eligible.count()}; excluded chunks: {queryset.count() - eligible.count()}')
         self.stdout.write('Existing chunk boundaries are preserved; re-ingest originals to apply boundary-overlap-v2.')
         if options['dry_run']:
@@ -63,19 +76,36 @@ class Command(BaseCommand):
                     source = model.objects.select_for_update().filter(pk=object_id).first()
                     if source is None:
                         continue
-                    current = apply_embedding_visibility(queryset.filter(
+                    current = apply_teaching_visibility(apply_embedding_visibility(queryset.filter(
                         content_type_id=content_type_id, object_id=object_id, source_type=source_type,
-                    ), actor)
+                    ), actor))
                     rows = list(current.select_for_update().order_by('chunk_index', 'pk'))
                     if not rows:
                         continue
                     if len({row.chunk_index for row in rows}) != len(rows):
                         raise CommandError('Duplicate chunk generations found; re-ingest the source before rebuilding.')
-                    vectors = service.embed_many([row.text for row in rows])
-                    for row, vector in zip(rows, vectors):
-                        for field, value in service.storage_fields(vector).items():
-                            setattr(row, field, value)
-                        row.metadata = {**(row.metadata or {}), 'vector_model': service.model}
+                    texts = [protect_rag(row.text, object_ref=f'rag/rebuild/{row.pk}',
+                                         object_version='v' + str(int(row.updated_at.timestamp() * 1_000_000)),
+                                         outlet='embedding') for row in rows]
+                    vectors = service.embed_many(texts)
+                    dimension = service.dimension if service.uses_remote_provider else 128
+                    if len(vectors) != len(rows) or any(
+                            len(vector) != dimension or any(
+                                isinstance(value, bool) or not isinstance(value, (float, int))
+                                or not isfinite(value) for value in vector) for vector in vectors):
+                        raise ValueError('EMBEDDING_SHAPE_INVALID')
+                    for row, text, vector in zip(rows, texts, vectors):
+                        local_vector = service.embed_local_text(text)
+                        row.embedding = local_vector
+                        row.embedding_vector = (
+                            vector if service.uses_remote_provider and connection.vendor == 'postgresql'
+                            and len(vector) == 1024 else None)
+                        row.embedding_model = 'local-hash-v1'
+                        row.embedding_dimension = len(local_vector)
+                        row.index_version = index_version
+                        row.metadata = {**(row.metadata or {}), 'vector_model': service.model,
+                                        'vector_space': service.vector_space,
+                                        'retrieval_mode': service.retrieval_mode}
                         row.save(update_fields=[
                             'embedding', 'embedding_vector', 'embedding_model', 'embedding_dimension',
                             'index_version', 'metadata', 'updated_at',

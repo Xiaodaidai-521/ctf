@@ -1,0 +1,5 @@
+{
+  "exit_code": 1,
+  "stdout": "",
+  "stderr": "Traceback (most recent call last):\n  File \"D:\\aaa10\\16015478源码\\project-code\\backend\\data_lab\\worker.py\", line 2, in <module>\n    import resource\nModuleNotFoundError: No module named 'resource'\n"
+}

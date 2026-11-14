@@ -10,6 +10,7 @@ the server.
 import hashlib
 
 from django.contrib.auth import get_user_model
+from django.core.exceptions import SuspiciousFileOperation
 from django.db import DatabaseError, connection
 from django.db.models import Case, IntegerField, Q, Value, When
 from django.http import FileResponse
@@ -22,6 +23,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from data_security.contracts import ProtectionError
+from data_security.adapters.django.protection_status import private_file_status
+from data_security.runtime.storage import enabled as runtime_files_enabled
 from data_security.adapters.django.private_files import (
     create_private_share, operation_response, private_file_error, private_file_response, private_files, upload_operation_id,
 )
@@ -109,11 +112,21 @@ def _iso(value):
     return value.isoformat() if value else None
 
 
-def _attachment_payload(attachment, audience):
+def _attachment_payload(attachment, audience, user=None):
     if audience == 'student' and attachment.visibility != constants.VISIBILITY_STUDENT:
         return None
+    protection = {'file': {'storage': 'legacy' if attachment.file else 'unknown'}}
+    owner = private_files('feedback')
+    if owner is None and runtime_files_enabled():
+        protection['file'] = attachment.file.storage.protection_status(attachment.file.name)
+    if user is not None and owner is not None and not isinstance(owner, ProtectionError):
+        inspected = owner.authenticated_reference(user=user, ticket_id=attachment.ticket_id,
+                                                  attachment_id=attachment.attachment_id)
+        references = inspected if isinstance(inspected, ProtectionError) else (('file', *inspected),)
+        protection.update(private_file_status(owner, references))
     return {
         'attachment_id': str(attachment.attachment_id),
+        'protection': protection,
         'original_name': attachment.original_name,
         'content_type': attachment.content_type,
         'size': attachment.size,
@@ -124,10 +137,10 @@ def _attachment_payload(attachment, audience):
     }
 
 
-def _evidence_payload(row, audience):
+def _evidence_payload(row, audience, user=None):
     if audience == 'student' and row.visibility != constants.VISIBILITY_STUDENT:
         return None
-    attachment = _attachment_payload(row.attachment, audience) if row.attachment_id else None
+    attachment = _attachment_payload(row.attachment, audience, user) if row.attachment_id else None
     payload = {
         'evidence_id': str(row.evidence_id),
         'slot': row.slot,
@@ -394,11 +407,11 @@ def _ticket_payload(ticket, audience, request=None):
 
     evidence_rows = ticket.evidence.filter(is_current=True).select_related('attachment').order_by('slot')
     payload['evidence'] = [
-        item for item in (_evidence_payload(row, audience) for row in evidence_rows) if item
+        item for item in (_evidence_payload(row, audience, request.user if request else None) for row in evidence_rows) if item
     ]
     payload['attachments'] = [
         item for item in (
-            _attachment_payload(attachment, audience)
+            _attachment_payload(attachment, audience, request.user if request else None)
             for attachment in ticket.attachments.order_by('-created_at')
         ) if item
     ]
@@ -456,6 +469,7 @@ class FeedbackStatusView(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request):
+        gate_state = phase3.contract_payload()
         try:
             tables = set(connection.introspection.table_names())
             skill_review_connected = 'skill_review_verificationresult' in tables
@@ -467,8 +481,8 @@ class FeedbackStatusView(APIView):
             'phase3_contract_version': constants.PHASE3_CONTRACT_VERSION,
             'execution_feedback_open': constants.EXECUTION_FEEDBACK_OPEN,
             'milestone_i_open': constants.MILESTONE_I_OPEN,
-            'candidate_management_enabled': constants.CANDIDATE_MANAGEMENT_ENABLED,
-            'candidate_release_enabled': constants.CANDIDATE_RELEASE_ENABLED,
+            'candidate_management_enabled': gate_state['candidate_management_enabled'],
+            'candidate_release_enabled': gate_state['candidate_release_enabled'],
             'ai_required_for_core': False,
             'production_effects': {
                 'export_triggered': False,
@@ -706,7 +720,7 @@ class FeedbackAttachmentUploadView(APIView):
                 uploaded_by=request.user,
             )
         _log_access(ticket, request.user, 'upload_attachment', allowed=True)
-        result = _attachment_payload(attachment, _audience(request.user))
+        result = _attachment_payload(attachment, _audience(request.user), request.user)
         if operation_id is not None:
             result['operation_id'] = str(operation_id)
         return Response(result, status=status.HTTP_201_CREATED, headers={'Cache-Control': 'no-store'})
@@ -743,14 +757,19 @@ class FeedbackAttachmentDownloadView(APIView):
         if attachment.private_file or not attachment.file:
             _log_access(ticket, request.user, constants.ATTACHMENT_DOWNLOAD_ACTION, allowed=False, note='not_ready')
             return Response({'detail': '附件暂不可下载。'}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+        try:
+            attachment.file.open('rb')
+        except (OSError, ValueError, SuspiciousFileOperation):
+            return Response({'detail': '附件暂不可下载。'}, status=status.HTTP_409_CONFLICT)
         _log_access(ticket, request.user, constants.ATTACHMENT_DOWNLOAD_ACTION, allowed=True)
         response = FileResponse(
-            attachment.file.open('rb'),
+            attachment.file,
             as_attachment=True,
             filename=attachment.original_name,
             content_type='application/octet-stream',
         )
         response['X-Content-Type-Options'] = 'nosniff'
+        response['Cache-Control'] = 'no-store, private'
         return response
 
 

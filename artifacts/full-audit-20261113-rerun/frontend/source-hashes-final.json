@@ -1,0 +1,15 @@
+{
+  "frontend/src/admin/views/Challenges.vue": "c8c0dce2af4e839c5170034eb045fa012573c30af6365f15b253774a748cb2c0",
+  "frontend/src/admin/views/Resources.vue": "ae85c48b3be77812f5881ee481a444e6e0bfed128311ec78d530edaa0dee0b9a",
+  "frontend/src/shared/content/ChallengeEditor.vue": "ba34053dcd84382809a67cf340098350b514ba3dfa0ff66d89cf899fe8e392b3",
+  "frontend/src/shared/content/useChallengeContent.js": "a48fd7fca8625718ec240f8ca70310441beef6c30d772c362b047f57794fb3ba",
+  "frontend/src/shared/content/contentContracts.test.js": "2d8f4d8102a506108dff8ac50356410746b3e7098a9205eb10e923ba416a9206",
+  "frontend/src/shared/feedback/page.css": "e27c460d90f29c3b3e66adfaa54d5e5e92ae82f2d072ed26a593698dd230f59d",
+  "frontend/src/teacher/FeedbackCandidates.vue": "c7cfc6dab9fc40e9b5411931a2dccb112679fe4e0cb5ad10fe9e2e9fc7c54f5c",
+  "frontend/src/teacher/FeedbackDetail.vue": "6e0576293ff6e371400787646ae239222de6f7d40914b8c24cc023dfffe71757",
+  "frontend/src/teacher/FeedbackQueue.vue": "f5f7cb4ff02d47c8ac83387219761df895299445c93550f2aafe8a24ced5b0f8",
+  "frontend/src/teacher/FeedbackReconciliation.vue": "1bb9ae123670d5542a4ebe87b48bc29f9d20ebb80797bbf34975a4512c02c844",
+  "frontend/src/teacher/SkillReviewAdmin.vue": "06daced425e3eec97213ed8422695c046e49480874155e3a01ea5315cc702d76",
+  "frontend/src/teacher/auditSampling.test.js": "0655ce8d50cdab537d4ce259babec1b5e77b514dcf1a5dad49f06bed937761c3",
+  "frontend/src/views/Resources.vue": "233ff7092b1ff5a1a3b2f17c0bfb1afdba744f141e334aad452dce6534eacd08"
+}

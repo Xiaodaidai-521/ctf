@@ -1,0 +1,12 @@
+{
+  "backend/Dockerfile": "02cff5e8d0e7940804ea22f6192d9cae9439d65efef5ffb922a46ea1800c2cc3",
+  "frontend/Dockerfile": "12e9b90650c0f88f73494214148cfd633aa86c1c02a489ad7791adf7f31c8aac",
+  "docker-compose.yml": "f41c6e8fdab0fb728f783bfd34c249806518b0434067b651a9550760eceaa55b",
+  "frontend/nginx.conf": "b53b534cac4b7835d7c74983672f8520eaaa214c77f5985840dae687f9030d83",
+  "backend/start.sh": "90fd7ee3c40d9b5e0a95cb6941607a2322ed2beeb4ea453d6ac7fb6267d1510a",
+  "backend/requirements.txt": "8ca9abaf45b692da639ce7803f89f9ec99ad48392ed52aceebee47c3ee7bbbb8",
+  "backend/healthcheck.py": "65edfce1763a0900c338b171bfd0b1e9a758d1c5f9e9b0b125d2d842c09a5c5c",
+  "backend/.dockerignore": "2ddeed3f99a42d4e7a9460d8461e7696a53444cc0e4d3beefee4b1306e653f4c",
+  "frontend/.dockerignore": "1474d5c5ca052aa90d820ab0254ed6fb2ee65f96f513eefc194ab6aad410cbb1",
+  "docs/feedback/module7-phase3-handoff.md": "e50eb0a0da83b7e9c4e2e62cda7a5b2aa96d6a05fa785281bb072f5cd14552df"
+}

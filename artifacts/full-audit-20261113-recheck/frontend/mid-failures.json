@@ -1,0 +1,302 @@
+[
+  {
+    "test": "exam routes keep canonical record URLs and old deep links redirect with their query",
+    "location": "'D:\\\\aaa10\\\\16015478源码\\\\project-code\\\\frontend\\\\src\\\\learning\\\\exams\\\\records.test.js:132:1'",
+    "error": "|-\n    The input did not match the regular expression /path: '\\/exam-history'[\\s\\S]*?redirect: to => \\(\\{ path: '\\/exam-center\\/history', query: to\\.query \\}\\)/. Input:\n    \n    \"import { createRouter, createWebHistory } from 'vue-router'\\n\" +\n      \"import { useUserStore } from '@/store/user'\\n\" +\n      \"import TeacherLayout from '@/teacher/Teache"
+  },
+  {
+    "test": "/analytics keeps teacher access but sends students to the analysis section",
+    "location": "'D:\\\\aaa10\\\\16015478源码\\\\project-code\\\\frontend\\\\src\\\\learning\\\\growth\\\\growthWiring.test.js:22:1'",
+    "error": "|-\n    The input did not match the regular expression /compatDestination\\('\\/analytics', to\\.query\\)/. Input:\n    \n    \"import { createRouter, createWebHistory } from 'vue-router'\\n\" +\n      \"import { useUserStore } from '@/store/user'\\n\" +\n      \"import TeacherLayout from '@/teacher/TeacherLayout.vue'\\n\" +\n      \"import TeacherDashboard from '@/te"
+  },
+  {
+    "test": "back, forward, refresh and bookmarks restore the same student destinations",
+    "location": "'D:\\\\aaa10\\\\16015478源码\\\\project-code\\\\frontend\\\\src\\\\learning\\\\phase2Journey.test.js:90:1'",
+    "error": "|-\n    The input did not match the regular expression /route\\.query\\.search/. Input:\n    \n    '<template>\\n' +\n      '  <div class=\"learning-paths-page\">\\n' +\n      '    <div class=\"page-header\">\\n' +\n      '      <div class=\"header-content\">\\n' +\n      '        <h1 class=\"page-title\">学习路径</h1>\\n' +\n      '        <p class=\"page-subtitle\">系统化学习路线，从"
+  },
+  {
+    "test": "student topic retains all five steps, original write actions, replays and four help levels",
+    "location": "'D:\\\\aaa10\\\\16015478源码\\\\project-code\\\\frontend\\\\src\\\\learning\\\\shadowPages.test.js:109:1'",
+    "error": "|-\n    The input did not match the regular expression /to=\"\\/resources\\/topics\\/data-security\"/. Input:\n    \n    '<template>\\n' +\n      '  <div class=\"resources-page\">\\n' +\n      '    <header class=\"page-header\">\\n' +\n      '      <div class=\"header-content\">\\n' +\n      '        <p class=\"section-kicker\">RESOURCE INDEX / Knowledge Shelf</p>\\n' +\n  "
+  },
+  {
+    "test": "teacher history remains selected-student state history and does not show a previous student after failure",
+    "location": "'D:\\\\aaa10\\\\16015478源码\\\\project-code\\\\frontend\\\\src\\\\learning\\\\shadowPages.test.js:169:1'",
+    "error": "|-\n    The input did not match the regular expression /无权/. Input:\n    \n    '当前账号没有此操作权限'\n    "
+  },
+  {
+    "test": "migrated skin: teacher/CapabilityMapAdmin compiles with scoped token styles",
+    "location": "'D:\\\\aaa10\\\\16015478源码\\\\project-code\\\\frontend\\\\src\\\\shared\\\\design\\\\migrationSkins.test.js:30:27'",
+    "error": "|-\n    The input was expected to not match the regular expression /@import|#[\\da-f]{3,8}\\b|rgba?\\(/i. Input:\n    \n    '\\r\\n' +\n      '.teacher-map-page { width: min(1320px, calc(100% - 40px)); margin: 0 auto; padding: 36px 0 72px; }\\r\\n' +\n      '.page-header { display: flex; justify-content: space-between; align-items: flex-end; gap: 20px; border-"
+  },
+  {
+    "test": "migrated skin: components/MultiAgent/MultiAgentChat compiles with scoped token styles",
+    "location": "'D:\\\\aaa10\\\\16015478源码\\\\project-code\\\\frontend\\\\src\\\\shared\\\\design\\\\migrationSkins.test.js:30:27'",
+    "error": "|-\n    The input was expected to not match the regular expression /@import|#[\\da-f]{3,8}\\b|rgba?\\(/i. Input:\n    \n    '\\r\\n' +\n      '.multi-agent-chat {\\r\\n' +\n      '  display: flex;\\r\\n' +\n      '  flex-direction: column;\\r\\n' +\n      '  height: 100%;\\r\\n' +\n      '  background: var(--color-bg-1);\\r\\n' +\n      '  border-radius: 8px;\\r\\n' +\n     "
+  },
+  {
+    "test": "migrated skin: admin/views/legal/LegalWorkspace compiles with scoped token styles",
+    "location": "'D:\\\\aaa10\\\\16015478源码\\\\project-code\\\\frontend\\\\src\\\\shared\\\\design\\\\migrationSkins.test.js:30:27'",
+    "error": "|-\n    The input was expected to not match the regular expression /@import|#[\\da-f]{3,8}\\b|rgba?\\(/i. Input:\n    \n    '\\n' +\n      \"@import '../../assets/admin.css';\\n\" +\n      '\\n' +\n      '.legal-workspace {\\n' +\n      '  display: flex;\\n' +\n      '  flex-direction: column;\\n' +\n      '  gap: 18px;\\n' +\n      '}\\n' +\n      '\\n' +\n      '.legal-to"
+  },
+  {
+    "test": "migrated skin: admin/views/legal/ComplianceAgentCenter compiles with scoped token styles",
+    "location": "'D:\\\\aaa10\\\\16015478源码\\\\project-code\\\\frontend\\\\src\\\\shared\\\\design\\\\migrationSkins.test.js:30:27'",
+    "error": "|-\n    The input was expected to not match the regular expression /@import|#[\\da-f]{3,8}\\b|rgba?\\(/i. Input:\n    \n    '\\n' +\n      '.agent-form {\\n' +\n      '  display: flex;\\n' +\n      '  flex-direction: column;\\n' +\n      '  gap: 12px;\\n' +\n      '}\\n' +\n      '\\n' +\n      '.agent-form label {\\n' +\n      '  color: #334155;\\n' +\n      '  display: "
+  },
+  {
+    "test": "migrated skin: admin/views/legal/ComplianceCenter compiles with scoped token styles",
+    "location": "'D:\\\\aaa10\\\\16015478源码\\\\project-code\\\\frontend\\\\src\\\\shared\\\\design\\\\migrationSkins.test.js:30:27'",
+    "error": "|-\n    The input was expected to not match the regular expression /@import|#[\\da-f]{3,8}\\b|rgba?\\(/i. Input:\n    \n    '\\n' +\n      '.compliance-center {\\n' +\n      '  display: flex;\\n' +\n      '  flex-direction: column;\\n' +\n      '  gap: 18px;\\n' +\n      '}\\n' +\n      '\\n' +\n      '.center-header {\\n' +\n      '  align-items: flex-start;\\n' +\n     "
+  },
+  {
+    "test": "migrated skin: components/AIAssistant compiles with scoped token styles",
+    "location": "'D:\\\\aaa10\\\\16015478源码\\\\project-code\\\\frontend\\\\src\\\\shared\\\\design\\\\migrationSkins.test.js:30:27'",
+    "error": "|-\n    The input was expected to not match the regular expression /@import|#[\\da-f]{3,8}\\b|rgba?\\(/i. Input:\n    \n    '\\n' +\n      '.ai-assistant-container {\\n' +\n      '  border: 3px solid #1890ff;\\n' +\n      '  border-radius: 12px;\\n' +\n      '  margin-top: 30px;\\n' +\n      '  background: white;\\n' +\n      '  overflow: hidden;\\n' +\n      '  box-s"
+  },
+  {
+    "test": "migrated skin: components/AITutorChat compiles with scoped token styles",
+    "location": "'D:\\\\aaa10\\\\16015478源码\\\\project-code\\\\frontend\\\\src\\\\shared\\\\design\\\\migrationSkins.test.js:30:27'",
+    "error": "|-\n    The input was expected to not match the regular expression /@import|#[\\da-f]{3,8}\\b|rgba?\\(/i. Input:\n    \n    '\\n' +\n      '.ai-tutor-chat {\\n' +\n      '  display: flex;\\n' +\n      '  flex-direction: column;\\n' +\n      '  height: 100%;\\n' +\n      '  background: var(--color-bg-1);\\n' +\n      '  border-radius: 8px;\\n' +\n      '  overflow: hid"
+  },
+  {
+    "test": "migrated skin: views/LearningAnalytics compiles with scoped token styles",
+    "location": "'D:\\\\aaa10\\\\16015478源码\\\\project-code\\\\frontend\\\\src\\\\shared\\\\design\\\\migrationSkins.test.js:30:27'",
+    "error": "|-\n    The input was expected to not match the regular expression /@import|#[\\da-f]{3,8}\\b|rgba?\\(/i. Input:\n    \n    '\\r\\n' +\n      '.analytics-page {\\r\\n' +\n      '  min-height: calc(100vh - 64px);\\r\\n' +\n      '  background: #f5f7fb;\\r\\n' +\n      '  padding: 32px 0 48px;\\r\\n' +\n      '}\\r\\n' +\n      '\\r\\n' +\n      '.container {\\r\\n' +\n      '  m"
+  },
+  {
+    "test": "migrated skin: views/StudentDashboard compiles with scoped token styles",
+    "location": "'D:\\\\aaa10\\\\16015478源码\\\\project-code\\\\frontend\\\\src\\\\shared\\\\design\\\\migrationSkins.test.js:30:27'",
+    "error": "|-\n    The input was expected to not match the regular expression /@import|#[\\da-f]{3,8}\\b|rgba?\\(/i. Input:\n    \n    '\\n' +\n      '.dashboard-page {\\n' +\n      '  min-height: calc(100vh - 64px);\\n' +\n      '  background: #f5f7fb;\\n' +\n      '  padding: 14px 0 18px;\\n' +\n      '}\\n' +\n      '\\n' +\n      '.container {\\n' +\n      '  max-width: 1280px"
+  },
+  {
+    "test": "migrated skin: components/PersonalizedRecommendationCard compiles with scoped token styles",
+    "location": "'D:\\\\aaa10\\\\16015478源码\\\\project-code\\\\frontend\\\\src\\\\shared\\\\design\\\\migrationSkins.test.js:30:27'",
+    "error": "|-\n    The input was expected to not match the regular expression /@import|#[\\da-f]{3,8}\\b|rgba?\\(/i. Input:\n    \n    '\\n' +\n      '.recommendation-card {\\n' +\n      '  background: var(--color-bg-1);\\n' +\n      '  border: 1px solid var(--color-border);\\n' +\n      '  border-radius: 8px;\\n' +\n      '  padding: 16px;\\n' +\n      '  cursor: pointer;\\n' "
+  },
+  {
+    "test": "migrated skin: admin/views/legal/AuditLogs compiles with scoped token styles",
+    "location": "'D:\\\\aaa10\\\\16015478源码\\\\project-code\\\\frontend\\\\src\\\\shared\\\\design\\\\migrationSkins.test.js:30:27'",
+    "error": "|-\n    The input was expected to not match the regular expression /@import|#[\\da-f]{3,8}\\b|rgba?\\(/i. Input:\n    \n    '\\n' +\n      '.ledger-box {\\n' +\n      '  display: flex;\\n' +\n      '  flex-direction: column;\\n' +\n      '  gap: 12px;\\n' +\n      '  color: #334155;\\n' +\n      '}\\n'\n    "
+  },
+  {
+    "test": "migrated skin: admin/views/legal/ComplianceDashboard compiles with scoped token styles",
+    "location": "'D:\\\\aaa10\\\\16015478源码\\\\project-code\\\\frontend\\\\src\\\\shared\\\\design\\\\migrationSkins.test.js:30:27'",
+    "error": "|-\n    The input was expected to not match the regular expression /@import|#[\\da-f]{3,8}\\b|rgba?\\(/i. Input:\n    \n    '\\n' +\n      '.risk-chart {\\n' +\n      '  width: 100%;\\n' +\n      '  height: 240px;\\n' +\n      '}\\n' +\n      '\\n' +\n      '.aside-list {\\n' +\n      '  display: flex;\\n' +\n      '  flex-direction: column;\\n' +\n      '  gap: 10px;\\n' "
+  },
+  {
+    "test": "migrated skin: admin/views/legal/ComplianceExercises compiles with scoped token styles",
+    "location": "'D:\\\\aaa10\\\\16015478源码\\\\project-code\\\\frontend\\\\src\\\\shared\\\\design\\\\migrationSkins.test.js:30:27'",
+    "error": "|-\n    The input was expected to not match the regular expression /@import|#[\\da-f]{3,8}\\b|rgba?\\(/i. Input:\n    \n    '\\n' +\n      '.category-note {\\n' +\n      '  display: flex;\\n' +\n      '  flex-direction: column;\\n' +\n      '  gap: 10px;\\n' +\n      '  color: #334155;\\n' +\n      '}\\n'\n    "
+  },
+  {
+    "test": "migrated skin: components/AnnouncementBanner compiles with scoped token styles",
+    "location": "'D:\\\\aaa10\\\\16015478源码\\\\project-code\\\\frontend\\\\src\\\\shared\\\\design\\\\migrationSkins.test.js:30:27'",
+    "error": "|-\n    The input was expected to not match the regular expression /@import|#[\\da-f]{3,8}\\b|rgba?\\(/i. Input:\n    \n    '\\n' +\n      '.announcement-banner {\\n' +\n      '  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);\\n' +\n      '  color: white;\\n' +\n      '  padding: 12px 20px;\\n' +\n      '  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);\\"
+  },
+  {
+    "test": "migrated skin: components/ArticleCard compiles with scoped token styles",
+    "location": "'D:\\\\aaa10\\\\16015478源码\\\\project-code\\\\frontend\\\\src\\\\shared\\\\design\\\\migrationSkins.test.js:30:27'",
+    "error": "|-\n    The input was expected to not match the regular expression /@import|#[\\da-f]{3,8}\\b|rgba?\\(/i. Input:\n    \n    '\\n' +\n      '.article-card {\\n' +\n      '  background: transparent;\\n' +\n      '  border-radius: var(--radius-md);\\n' +\n      '  padding: 20px;\\n' +\n      '  box-shadow: none;\\n' +\n      '  cursor: pointer;\\n' +\n      '  transition"
+  },
+  {
+    "test": "migrated skin: components/CommentItem compiles with scoped token styles",
+    "location": "'D:\\\\aaa10\\\\16015478源码\\\\project-code\\\\frontend\\\\src\\\\shared\\\\design\\\\migrationSkins.test.js:30:27'",
+    "error": "|-\n    The input was expected to not match the regular expression /@import|#[\\da-f]{3,8}\\b|rgba?\\(/i. Input:\n    \n    '\\n' +\n      '.comment-item {\\n' +\n      '  padding: 20px 0;\\n' +\n      '  border-bottom: 1px solid #f0f0f0;\\n' +\n      '}\\n' +\n      '\\n' +\n      '.comment-item:last-child {\\n' +\n      '  border-bottom: none;\\n' +\n      '}\\n' +\n   "
+  },
+  {
+    "test": "migrated skin: components/MermaidDiagram compiles with scoped token styles",
+    "location": "'D:\\\\aaa10\\\\16015478源码\\\\project-code\\\\frontend\\\\src\\\\shared\\\\design\\\\migrationSkins.test.js:30:27'",
+    "error": "|-\n    The input was expected to not match the regular expression /@import|#[\\da-f]{3,8}\\b|rgba?\\(/i. Input:\n    \n    '\\n' +\n      '.mermaid-diagram {\\n' +\n      '  position: relative;\\n' +\n      '  overflow-x: auto;\\n' +\n      '  background: var(--color-bg-1);\\n' +\n      '  border: 1px solid var(--color-border);\\n' +\n      '  border-radius: 8px;\\n"
+  },
+  {
+    "test": "migrated skin: admin/views/Users compiles with scoped token styles",
+    "location": "'D:\\\\aaa10\\\\16015478源码\\\\project-code\\\\frontend\\\\src\\\\shared\\\\design\\\\migrationSkins.test.js:30:27'",
+    "error": "|-\n    The input was expected to not match the regular expression /@import|#[\\da-f]{3,8}\\b|rgba?\\(/i. Input:\n    \n    '/* 管理员后台样式 */\\n' +\n      ':root {\\n' +\n      '  --admin-sidebar-width: 240px;\\n' +\n      '  --admin-header-height: 60px;\\n' +\n      '  --admin-primary-color: #b7352d;\\n' +\n      '  --admin-dark-color: #181713;\\n' +\n      '  --admin"
+  },
+  {
+    "test": "migrated skin: admin/views/Submissions compiles with scoped token styles",
+    "location": "'D:\\\\aaa10\\\\16015478源码\\\\project-code\\\\frontend\\\\src\\\\shared\\\\design\\\\migrationSkins.test.js:30:27'",
+    "error": "|-\n    The input was expected to not match the regular expression /@import|#[\\da-f]{3,8}\\b|rgba?\\(/i. Input:\n    \n    '\\r\\n' +\n      \"@import '../assets/admin.css';\\r\\n\" +\n      '\\r\\n' +\n      '.user-avatar-small {\\r\\n' +\n      '  width: 32px;\\r\\n' +\n      '  height: 32px;\\r\\n' +\n      '  border-radius: 50%;\\r\\n' +\n      '  background: var(--admin-"
+  },
+  {
+    "test": "migrated skin: admin/views/Categories compiles with scoped token styles",
+    "location": "'D:\\\\aaa10\\\\16015478源码\\\\project-code\\\\frontend\\\\src\\\\shared\\\\design\\\\migrationSkins.test.js:30:27'",
+    "error": "|-\n    The input was expected to not match the regular expression /@import|#[\\da-f]{3,8}\\b|rgba?\\(/i. Input:\n    \n    '\\n' +\n      \"@import '../assets/admin.css';\\n\" +\n      '\\n' +\n      '.category-list {\\n' +\n      '  display: flex;\\n' +\n      '  flex-direction: column;\\n' +\n      '  gap: 16px;\\n' +\n      '}\\n' +\n      '\\n' +\n      '.category-item"
+  },
+  {
+    "test": "migrated skin: admin/views/Articles compiles with scoped token styles",
+    "location": "'D:\\\\aaa10\\\\16015478源码\\\\project-code\\\\frontend\\\\src\\\\shared\\\\design\\\\migrationSkins.test.js:30:27'",
+    "error": "|-\n    The input was expected to not match the regular expression /@import|#[\\da-f]{3,8}\\b|rgba?\\(/i. Input:\n    \n    '\\r\\n' +\n      '.admin-articles {\\r\\n' +\n      '  padding: 24px;\\r\\n' +\n      '}\\r\\n' +\n      '\\r\\n' +\n      '.filter-bar {\\r\\n' +\n      '  display: flex;\\r\\n' +\n      '  gap: 12px;\\r\\n' +\n      '  margin-bottom: 24px;\\r\\n' +\n      "
+  },
+  {
+    "test": "migrated skin: admin/views/Announcements compiles with scoped token styles",
+    "location": "'D:\\\\aaa10\\\\16015478源码\\\\project-code\\\\frontend\\\\src\\\\shared\\\\design\\\\migrationSkins.test.js:30:27'",
+    "error": "|-\n    The input was expected to not match the regular expression /@import|#[\\da-f]{3,8}\\b|rgba?\\(/i. Input:\n    \n    '\\r\\n' +\n      '.admin-announcements {\\r\\n' +\n      '  padding: 20px;\\r\\n' +\n      '}\\r\\n' +\n      '\\r\\n' +\n      '.page-card {\\r\\n' +\n      '  background: white;\\r\\n' +\n      '  border-radius: 8px;\\r\\n' +\n      '  box-shadow: 0 2px"
+  },
+  {
+    "test": "migrated skin: views/ResourceUpload compiles with scoped token styles",
+    "location": "'D:\\\\aaa10\\\\16015478源码\\\\project-code\\\\frontend\\\\src\\\\shared\\\\design\\\\migrationSkins.test.js:30:27'",
+    "error": "|-\n    The input was expected to not match the regular expression /@import|#[\\da-f]{3,8}\\b|rgba?\\(/i. Input:\n    \n    '\\n' +\n      '.upload-page {\\n' +\n      '  max-width: 900px;\\n' +\n      '  margin: 0 auto;\\n' +\n      '  padding: 32px 24px;\\n' +\n      '}\\n' +\n      '\\n' +\n      '.page-header {\\n' +\n      '  display: grid;\\n' +\n      '  grid-templ"
+  },
+  {
+    "test": "migrated skin: views/Leaderboard compiles with scoped token styles",
+    "location": "'D:\\\\aaa10\\\\16015478源码\\\\project-code\\\\frontend\\\\src\\\\shared\\\\design\\\\migrationSkins.test.js:30:27'",
+    "error": "|-\n    The input was expected to not match the regular expression /@import|#[\\da-f]{3,8}\\b|rgba?\\(/i. Input:\n    \n    '\\n' +\n      '.leaderboard-page {\\n' +\n      '  padding: 24px 0;\\n' +\n      '  min-height: calc(100vh - 60px);\\n' +\n      '}\\n' +\n      '\\n' +\n      '.page-header {\\n' +\n      '  text-align: center;\\n' +\n      '  margin-bottom: 32px"
+  },
+  {
+    "test": "migrated skin: views/ArticleEditor compiles with scoped token styles",
+    "location": "'D:\\\\aaa10\\\\16015478源码\\\\project-code\\\\frontend\\\\src\\\\shared\\\\design\\\\migrationSkins.test.js:30:27'",
+    "error": "|-\n    The input was expected to not match the regular expression /@import|#[\\da-f]{3,8}\\b|rgba?\\(/i. Input:\n    \n    '\\n' +\n      '.article-editor-page {\\n' +\n      '  max-width: 1200px;\\n' +\n      '  margin: 60px auto 20px;\\n' +\n      '  padding: 0 20px;\\n' +\n      '}\\n' +\n      '\\n' +\n      '.editor-container {\\n' +\n      '  background: white;\\n"
+  },
+  {
+    "test": "migrated skin: views/ArticleDetail compiles with scoped token styles",
+    "location": "'D:\\\\aaa10\\\\16015478源码\\\\project-code\\\\frontend\\\\src\\\\shared\\\\design\\\\migrationSkins.test.js:30:27'",
+    "error": "|-\n    The input was expected to not match the regular expression /@import|#[\\da-f]{3,8}\\b|rgba?\\(/i. Input:\n    \n    '\\n' +\n      '.article-detail-page {\\n' +\n      '  max-width: 1400px;\\n' +\n      '  margin: 24px auto 32px;\\n' +\n      '  padding: 0 24px;\\n' +\n      '}\\n' +\n      '\\n' +\n      '.detail-container {\\n' +\n      '  display: grid;\\n' +\n"
+  },
+  {
+    "test": "migrated skin: views/Community compiles with scoped token styles",
+    "location": "'D:\\\\aaa10\\\\16015478源码\\\\project-code\\\\frontend\\\\src\\\\shared\\\\design\\\\migrationSkins.test.js:30:27'",
+    "error": "|-\n    The input was expected to not match the regular expression /@import|#[\\da-f]{3,8}\\b|rgba?\\(/i. Input:\n    \n    '\\n' +\n      '.community-page {\\n' +\n      '  max-width: 1400px;\\n' +\n      '  margin: 80px auto 32px;\\n' +\n      '  padding: 0 24px;\\n' +\n      '}\\n' +\n      '\\n' +\n      '.community-container {\\n' +\n      '  display: grid;\\n' +\n  "
+  },
+  {
+    "test": "migrated skin: admin/views/legal/KnowledgeBase compiles with scoped token styles",
+    "location": "'D:\\\\aaa10\\\\16015478源码\\\\project-code\\\\frontend\\\\src\\\\shared\\\\design\\\\migrationSkins.test.js:30:27'",
+    "error": "|-\n    The input was expected to not match the regular expression /@import|#[\\da-f]{3,8}\\b|rgba?\\(/i. Input:\n    \n    '\\n' +\n      '.quick-form {\\n' +\n      '  display: flex;\\n' +\n      '  flex-direction: column;\\n' +\n      '  gap: 12px;\\n' +\n      '}\\n' +\n      '\\n' +\n      '.retrieval-item {\\n' +\n      '  border-bottom: 1px solid #e2e8f0;\\n' +\n  "
+  },
+  {
+    "test": "all remaining legacy icon names resolve to imported Arco icons, without an unknown fallback",
+    "location": "'D:\\\\aaa10\\\\16015478源码\\\\project-code\\\\frontend\\\\src\\\\shared\\\\design\\\\migrationSkins.test.js:57:1'",
+    "error": "|-\n    The input was expected to not match the regular expression /[\\u{1f300}-\\u{1faff}☀-➿]/u. Input:\n    \n    '\\r\\n' +\n      '  <div class=\"admin-announcements\">\\r\\n' +\n      '    <div class=\"page-card\">\\r\\n' +\n      '      <div class=\"page-header\">\\r\\n' +\n      '        <h3 class=\"page-title\">公告管理</h3>\\r\\n' +\n      '        <div class=\"page-actio"
+  },
+  {
+    "test": "record presentation does not inherit the feedback definition grid",
+    "location": "'D:\\\\aaa10\\\\16015478源码\\\\project-code\\\\frontend\\\\src\\\\shared\\\\design\\\\migrationSkins.test.js:86:1'",
+    "error": "|-\n    The input did not match the regular expression /\\.fb-page \\.fb-definition/. Input:\n    \n    '.fb-page {\\r\\n' +\n      '  padding: 28px 32px 48px;\\r\\n' +\n      '  color: #1e1c18;\\r\\n' +\n      '  background: #faf7f0;\\r\\n' +\n      '  min-height: calc(100vh - 58px);\\r\\n' +\n      '}\\r\\n' +\n      '.fb-header { display: flex; justify-content: space-"
+  },
+  {
+    "test": "legal search cards constrain mobile grid and textarea widths",
+    "location": "'D:\\\\aaa10\\\\16015478源码\\\\project-code\\\\frontend\\\\src\\\\shared\\\\design\\\\migrationSkins.test.js:100:1'",
+    "error": "|-\n    The input did not match the regular expression /@media \\(max-width: 768px\\)[\\s\\S]*\\.content-grid[\\s\\S]*grid-template-columns:minmax\\(0, 1fr\\)/. Input:\n    \n    '<template>\\n' +\n      '  <div class=\"legal-workspace\">\\n' +\n      '    <div class=\"legal-toolbar\">\\n' +\n      '      <div>\\n' +\n      '        <h2>{{ title }}</h2>\\n' +\n      '      "
+  },
+  {
+    "test": "learning trend identities have line and point encoding besides color",
+    "location": "'D:\\\\aaa10\\\\16015478源码\\\\project-code\\\\frontend\\\\src\\\\shared\\\\design\\\\migrationSkins.test.js:109:1'",
+    "error": "|-\n    The input did not match the regular expression /name: 'Web'[^\\n]*symbol: 'circle', lineStyle: \\{ type: 'solid' \\}/. Input:\n    \n    '<template>\\r\\n' +\n      '  <div class=\"analytics-page\">\\r\\n' +\n      '    <div class=\"container\">\\r\\n' +\n      '      <section class=\"page-hero\">\\r\\n' +\n      '        <div>\\r\\n' +\n      '          <p class=\"ey"
+  },
+  {
+    "test": "canvas colors and typography resolve from live shared tokens",
+    "location": "'D:\\\\aaa10\\\\16015478源码\\\\project-code\\\\frontend\\\\src\\\\shared\\\\design\\\\migrationSkins.test.js:118:1'",
+    "error": "|-\n    The input was expected to not match the regular expression /#[\\da-f]{3,8}\\b|rgba?\\([\\d.,\\s]+\\)/i. Input:\n    \n    '\\r\\n' +\n      \"import { ref, computed, onMounted, onUnmounted, nextTick, watch } from 'vue'\\r\\n\" +\n      \"import * as echarts from 'echarts'\\r\\n\" +\n      \"import api from '@/api'\\r\\n\" +\n      '\\r\\n' +\n      \"const activeTab = re"
+  },
+  {
+    "test": "phase-one skin: Challenges compiles and uses declared tokens",
+    "location": "'D:\\\\aaa10\\\\16015478源码\\\\project-code\\\\frontend\\\\src\\\\shared\\\\design\\\\pageSkins.test.js:23:251'",
+    "error": "|-\n    The input was expected to not match the regular expression /#[\\da-f]{3,8}\\b|rgba?\\(/i. Input:\n    \n    '\\r\\n' +\n      '.challenges-page {\\r\\n' +\n      '  padding: 42px 0 72px;\\r\\n' +\n      '  min-height: calc(100vh - 60px);\\r\\n' +\n      '}\\r\\n' +\n      '\\r\\n' +\n      '.challenges-layout {\\r\\n' +\n      '  display: grid;\\r\\n' +\n      '  grid-t"
+  },
+  {
+    "test": "phase-one skin: Resources compiles and uses declared tokens",
+    "location": "'D:\\\\aaa10\\\\16015478源码\\\\project-code\\\\frontend\\\\src\\\\shared\\\\design\\\\pageSkins.test.js:23:251'",
+    "error": "|-\n    The input was expected to not match the regular expression /#[\\da-f]{3,8}\\b|rgba?\\(/i. Input:\n    \n    '\\n' +\n      '.resources-page {\\n' +\n      '  width: min(1180px, calc(100% - 40px));\\n' +\n      '  max-width: none;\\n' +\n      '  margin: 0 auto;\\n' +\n      '  padding: 42px 0 72px;\\n' +\n      '}\\n' +\n      '.resources-layout{display:block}"
+  },
+  {
+    "test": "phase-one skin: Register compiles and uses declared tokens",
+    "location": "'D:\\\\aaa10\\\\16015478源码\\\\project-code\\\\frontend\\\\src\\\\shared\\\\design\\\\pageSkins.test.js:23:251'",
+    "error": "|-\n    The input was expected to not match the regular expression /#[\\da-f]{3,8}\\b|rgba?\\(/i. Input:\n    \n    '\\n' +\n      '.register-page { min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px; background:linear-gradient(90deg,rgba(24,23,19,.045) 1px,transparent 1px) 0 0/44px 44px,linear-gradient(180deg,#faf7f0 "
+  },
+  {
+    "test": "phase-one skin: ProfileSetup compiles and uses declared tokens",
+    "location": "'D:\\\\aaa10\\\\16015478源码\\\\project-code\\\\frontend\\\\src\\\\shared\\\\design\\\\pageSkins.test.js:23:251'",
+    "error": "|-\n    The input was expected to not match the regular expression /#[\\da-f]{3,8}\\b|rgba?\\(/i. Input:\n    \n    '\\n' +\n      '.profile-setup-page {\\n' +\n      '  min-height: calc(100vh - 64px);\\n' +\n      '  padding: 28px;\\n' +\n      '  background: #f4f1eb;\\n' +\n      '  color: #191814;\\n' +\n      '}\\n' +\n      '\\n' +\n      '.interview-shell {\\n' +\n "
+  },
+  {
+    "test": "phase-one skin: Profile compiles and uses declared tokens",
+    "location": "'D:\\\\aaa10\\\\16015478源码\\\\project-code\\\\frontend\\\\src\\\\shared\\\\design\\\\pageSkins.test.js:23:251'",
+    "error": "|-\n    The input was expected to not match the regular expression /#[\\da-f]{3,8}\\b|rgba?\\(/i. Input:\n    \n    '\\r\\n' +\n      '.profile-page {\\r\\n' +\n      '  padding: 12px 0 24px;\\r\\n' +\n      '  min-height: calc(100vh - 60px);\\r\\n' +\n      '  background: #f6f7f8;\\r\\n' +\n      '}\\r\\n' +\n      '\\r\\n' +\n      '.container {\\r\\n' +\n      '  max-width: "
+  },
+  {
+    "test": "phase-one skin: LearningPaths/LearningPathsList compiles and uses declared tokens",
+    "location": "'D:\\\\aaa10\\\\16015478源码\\\\project-code\\\\frontend\\\\src\\\\shared\\\\design\\\\pageSkins.test.js:23:251'",
+    "error": "|-\n    The input was expected to not match the regular expression /#[\\da-f]{3,8}\\b|rgba?\\(/i. Input:\n    \n    '\\n' +\n      '.learning-paths-page {\\n' +\n      '  padding: 42px 24px 72px;\\n' +\n      '  max-width: 1180px;\\n' +\n      '  margin: 0 auto;\\n' +\n      '  background:\\n' +\n      '    linear-gradient(90deg, rgba(24, 23, 19, 0.045) 1px, transpa"
+  },
+  {
+    "test": "phase-one skin: components/ChallengeCard compiles and uses declared tokens",
+    "location": "'D:\\\\aaa10\\\\16015478源码\\\\project-code\\\\frontend\\\\src\\\\shared\\\\design\\\\pageSkins.test.js:23:251'",
+    "error": "|-\n    The input was expected to not match the regular expression /#[\\da-f]{3,8}\\b|rgba?\\(/i. Input:\n    \n    '\\n' +\n      '.challenge-card {\\n' +\n      '  position: relative;\\n' +\n      '  background: rgba(255, 250, 242, 0.72);\\n' +\n      '  border-radius: var(--radius-md);\\n' +\n      '  overflow: hidden;\\n' +\n      '  box-shadow: none;\\n' +\n     "
+  },
+  {
+    "test": "phase-one skin: components/ResourceCard compiles and uses declared tokens",
+    "location": "'D:\\\\aaa10\\\\16015478源码\\\\project-code\\\\frontend\\\\src\\\\shared\\\\design\\\\pageSkins.test.js:23:251'",
+    "error": "|-\n    The input was expected to not match the regular expression /#[\\da-f]{3,8}\\b|rgba?\\(/i. Input:\n    \n    '\\n' +\n      '.resource-card {\\n' +\n      '  background: rgba(255, 250, 242, 0.74);\\n' +\n      '  border-radius: var(--radius-lg);\\n' +\n      '  overflow: hidden;\\n' +\n      '  box-shadow: none;\\n' +\n      '  cursor: pointer;\\n' +\n      '  "
+  },
+  {
+    "test": "feedback rules stay within the feedback page and retain compact forms",
+    "location": "'D:\\\\aaa10\\\\16015478源码\\\\project-code\\\\frontend\\\\src\\\\shared\\\\design\\\\pageSkins.test.js:41:1'",
+    "error": "|-\n    The input did not match the regular expression /^(\\.fb-page|\\.is-compact \\.fb-page)/. Input:\n    \n    '  padding: 28px 32px 48px;\\r'\n    "
+  },
+  {
+    "test": "compact component CSS targets descendants, never the entire app shell",
+    "location": "'D:\\\\aaa10\\\\16015478源码\\\\project-code\\\\frontend\\\\src\\\\shared\\\\design\\\\tokens.test.js:17:1'",
+    "error": "|-\n    The input did not match the regular expression /\\.is-compact\\s+\\./. Input:\n    \n    '\\n' +\n      '.home-page[data-v-check] {\\n' +\n      '  color: var(--text-primary);\\n' +\n      '}\\n' +\n      '.cover[data-v-check] {\\n' +\n      '  width: min(1180px, calc(100% - 40px));\\n' +\n      '  margin: 0 auto;\\n' +\n      '  min-height: calc(100vh - 64px)"
+  },
+  {
+    "test": "path, module and generated-content routes remain independent and reloadable",
+    "location": "'D:\\\\aaa10\\\\16015478源码\\\\project-code\\\\frontend\\\\src\\\\shared\\\\navigation\\\\phase2Destinations.test.js:85:1'",
+    "error": "|-\n    The input did not match the regular expression /watch\\(\\[pathId, moduleId\\]/. Input:\n    \n    '<template>\\n' +\n      '  <div class=\"module-learning-page\">\\n' +\n      '    <header class=\"module-header\"><div class=\"breadcrumb\"><button class=\"btn\" @click=\"goBack\"><icon-arrow-left aria-hidden=\"true\" />返回{{ names.paths }}</button><router-link :to"
+  },
+  {
+    "test": "src\\\\utils\\\\petAssets.test.js",
+    "location": "'D:\\\\aaa10\\\\16015478源码\\\\project-code\\\\frontend\\\\src\\\\utils\\\\petAssets.test.js:1:1'",
+    "error": "'test failed'"
+  },
+  {
+    "test": "registry loads every built-in display name and local spritesheet from its manifest",
+    "location": "'D:\\\\aaa10\\\\16015478源码\\\\project-code\\\\frontend\\\\src\\\\utils\\\\petRegistry.test.js:9:1'",
+    "error": "\"ENOENT: no such file or directory, open 'D:\\\\aaa10\\\\16015478源码\\\\project-code\\\\frontend\\\\public\\\\pets\\\\dundun\\\\spritesheet.webp'\""
+  },
+  {
+    "test": "dashboard retains original navigation and complete record downloads with local reflow",
+    "location": "'D:\\\\aaa10\\\\16015478源码\\\\project-code\\\\frontend\\\\src\\\\views\\\\dashboardCopy.test.js:15:1'",
+    "error": "|-\n    The input did not match the regular expression /downloadRecord\\(item, '推荐依据.json'\\)/. Input:\n    \n    '﻿<template>\\n' +\n      '  <div class=\"dashboard-page\">\\n' +\n      '    <!-- ===== 管理员视图：用户学习报表 ===== -->\\n' +\n      `    <div v-if=\"userStore.userInfo?.role === 'admin'\" class=\"container\">\\n` +\n      '      <div class=\"report-heading\">\\n' +"
+  },
+  {
+    "test": "home: template/styles compile, student overrides are role-gated and token-only",
+    "location": "'D:\\\\aaa10\\\\16015478源码\\\\project-code\\\\frontend\\\\src\\\\views\\\\studentLayoutContracts.test.js:88:3'",
+    "error": "|-\n    The input was expected to not match the regular expression /#[\\da-f]{3,8}\\b|rgba?\\(|hsla?\\(/i. Input:\n    \n    '\\n' +\n      '.home-page {\\n' +\n      '  color: var(--text-primary);\\n' +\n      '}\\n' +\n      '\\n' +\n      '.cover {\\n' +\n      '  width: min(1180px, calc(100% - 40px));\\n' +\n      '  margin: 0 auto;\\n' +\n      '  min-height: calc(1"
+  },
+  {
+    "test": "dashboard: template/styles compile, student overrides are role-gated and token-only",
+    "location": "'D:\\\\aaa10\\\\16015478源码\\\\project-code\\\\frontend\\\\src\\\\views\\\\studentLayoutContracts.test.js:88:3'",
+    "error": "|-\n    The input was expected to not match the regular expression /#[\\da-f]{3,8}\\b|rgba?\\(|hsla?\\(/i. Input:\n    \n    '\\n' +\n      '.dashboard-page {\\n' +\n      '  min-height: calc(100vh - 64px);\\n' +\n      '  background: #f5f7fb;\\n' +\n      '  padding: 14px 0 18px;\\n' +\n      '}\\n' +\n      '\\n' +\n      '.container {\\n' +\n      '  max-width: 1280px"
+  },
+  {
+    "test": "dashboard keeps the entire pre-existing teacher CSS and administrator template byte-for-byte",
+    "location": "'D:\\\\aaa10\\\\16015478源码\\\\project-code\\\\frontend\\\\src\\\\views\\\\studentLayoutContracts.test.js:116:1'",
+    "error": "|-\n    Expected values to be strictly equal:\n    + actual - expected\n    \n    + 'c814d2cf78d6df6d4f0803f4c6ff5c04f977f8f9ec1ecf6cf232da87fc81e3a2'\n    - 'e9ec6a29951af0d7bd910bfa5c2a1b3e68b68f09e8536eb7562c2664a9a757a0'\n    "
+  },
+  {
+    "test": "only the explicit student role receives the dashboard console and new layout; teacher cards remain unchanged",
+    "location": "'D:\\\\aaa10\\\\16015478源码\\\\project-code\\\\frontend\\\\src\\\\views\\\\studentLayoutContracts.test.js:126:1'",
+    "error": "|-\n    Expected values to be strictly equal:\n    \n    false !== true\n    "
+  },
+  {
+    "test": "guest Home uses only public challenges and keeps login/register/path/practice entrances plus empty/retry states",
+    "location": "'D:\\\\aaa10\\\\16015478源码\\\\project-code\\\\frontend\\\\src\\\\views\\\\studentLayoutContracts.test.js:141:1'",
+    "error": "'instance.state.load is not a function'"
+  },
+  {
+    "test": "Guide and dashboard hand typed input and identity to the existing tutor; blank input never launches a conversation",
+    "location": "'D:\\\\aaa10\\\\16015478源码\\\\project-code\\\\frontend\\\\src\\\\views\\\\studentLayoutContracts.test.js:195:1'",
+    "error": "\"Cannot set properties of undefined (setting 'value')\""
+  },
+  {
+    "test": "student progress and memory rates are never synthesized from IDs, missing fields, invalid values or failed requests",
+    "location": "'D:\\\\aaa10\\\\16015478源码\\\\project-code\\\\frontend\\\\src\\\\views\\\\studentLayoutContracts.test.js:214:1'",
+    "error": "\"Cannot read properties of undefined (reading 'value')\""
+  },
+  {
+    "test": "dashboard preserves complete recommendation, review, insight, teaching and article fields and raw-record downloads",
+    "location": "'D:\\\\aaa10\\\\16015478源码\\\\project-code\\\\frontend\\\\src\\\\views\\\\studentLayoutContracts.test.js:244:1'",
+    "error": "|-\n    The input did not match the regular expression /downloadRecord\\(item, '推荐依据\\.json'\\)/. Input:\n    \n    '﻿<template>\\n' +\n      '  <div class=\"dashboard-page\">\\n' +\n      '    <!-- ===== 管理员视图：用户学习报表 ===== -->\\n' +\n      `    <div v-if=\"userStore.userInfo?.role === 'admin'\" class=\"container\">\\n` +\n      '      <div class=\"report-heading\">\\n' "
+  }
+]

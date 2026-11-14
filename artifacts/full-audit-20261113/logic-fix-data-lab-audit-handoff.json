@@ -1,0 +1,12 @@
+{
+  "tests": 1,
+  "passed": [
+    "skill_review.tests.test_audit_handoff.CorrectionHandoffEventTests.test_correction_dispatch_ids_fit_and_retry_keeps_original_event"
+  ],
+  "failures": [],
+  "errors": [],
+  "skipped": [],
+  "expected_failures": 0,
+  "unexpected_successes": 0,
+  "synthetic_database_only": true
+}

@@ -52,7 +52,7 @@ test('duplicate confirmation and late account response cannot repopulate private
 })
 test('staff-only deletion transport obtains CSRF and preserves DELETE body, encoded id and signal', async () => {
   const calls = [], client = { get: async (...args) => { calls.push(['get', ...args]); return { data: {} } }, delete: async (...args) => { calls.push(['delete', ...args]); return { data: { review_status: 'withdrawn' } } } }
-  const text = readFileSync(new URL('./governanceApi.js', import.meta.url), 'utf8').replace(/^import .*\n/gm, '').replace('export const', 'const')
+  const text = readFileSync(new URL('./governanceApi.js', import.meta.url), 'utf8').replace(/^import .*\r?\n/gm, '').replace('export const', 'const')
   const api = runInNewContext(text + '\n;governanceKnowledgeApi', { axios: { create: () => client }, encodeURIComponent })
   const body = { expected_revision: 3, reason: '删除', idempotency_key: 'unique-key' }, signal = new AbortController().signal
   const result = await api.deleteMaterial('a/b', body, signal)

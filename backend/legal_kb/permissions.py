@@ -1,6 +1,16 @@
 """Permissions for legal knowledge-base APIs."""
 
 from rest_framework.permissions import BasePermission
+from users.permissions import is_staff_or_role
+
+
+def require_ingestion_actor(actor):
+    """Legacy local calls may omit an actor; explicit actors need an active role."""
+    if actor is not None and (
+        not getattr(actor, 'is_active', False)
+        or not is_staff_or_role(actor, 'teacher', 'admin')
+    ):
+        raise ValueError('An active staff/admin or teacher actor is required.')
 
 
 class IsLegalKbReader(BasePermission):

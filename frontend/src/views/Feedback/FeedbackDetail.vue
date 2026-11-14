@@ -77,6 +77,7 @@
                 <span v-if="item.ref">引用：{{ item.ref }}</span>
               </div>
               <div v-if="item.attachment" class="fb-actions">
+                <ProtectionBadge :status="item.attachment.protection?.file" label="文件已加密保存" />
                 <button class="fb-btn" type="button" @click="download(item.attachment)">
                   下载 {{ item.attachment.original_name }}
                 </button>
@@ -88,6 +89,7 @@
 
       <section class="fb-panel">
         <h2>补充证据</h2>
+        <ReferenceImport title="原证据引用" :fields="referenceFields" :model-value="{ ref: evidenceForm.ref }" @update:model-value="Object.assign(evidenceForm, $event)" />
         <p class="fb-muted">
           新证据会追加为当前版本，原证据保留；若工单已驳回或已处理，会重新进入待复核。
           重复记录请到主记录补充。
@@ -192,9 +194,11 @@
 </template>
 
 <script setup>
+import ProtectionBadge from '@/shared/privacy/ProtectionBadge.vue'
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import service from '@/api'
+import ReferenceImport from '@/shared/forms/ReferenceImport.vue'
 
 const route = useRoute()
 const detail = ref(null)
@@ -213,6 +217,7 @@ const evidenceForm = reactive({
   attachment_id: '',
 })
 
+const referenceFields = [{ key: 'ref', label: '证据引用' }]
 const slotOptions = computed(() => {
   if (!detail.value) return []
   const category = options.categories.find((item) => item.value === detail.value.category)
@@ -250,6 +255,7 @@ async function load() {
 }
 
 async function addEvidence() {
+  if (submitting.value || !detail.value) return
   error.value = ''
   message.value = ''
   if (!evidenceForm.slot) {
@@ -292,8 +298,8 @@ async function upload() {
     const formData = new FormData()
     formData.append('file', uploadFile.value)
     formData.append('visibility', uploadVisibility.value)
-    await service.feedback.uploadAttachment(detail.value.feedback_id, formData)
-    message.value = '附件已上传；可在“补充证据”中关联。'
+    const uploaded = await service.feedback.uploadAttachment(detail.value.feedback_id, formData)
+    message.value = uploaded?.protection?.file?.storage === 'encrypted' ? '附件已加密保存；可在“补充证据”中关联。' : '附件已上传；可在“补充证据”中关联。'
     uploadFile.value = null
     await load()
   } catch (err) {

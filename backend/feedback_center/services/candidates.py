@@ -56,6 +56,15 @@ def digest_of(payload):
     return hashlib.sha256(encoded.encode('utf-8')).hexdigest()
 
 
+def _verified_report(candidate, supplied_ref):
+    from evaluation_center.evaluations import EvaluationError, resolve_report
+
+    try:
+        return resolve_report(candidate, supplied_ref)
+    except EvaluationError as exc:
+        raise CandidateError(str(exc), code='candidate_report_invalid') from exc
+
+
 def _transition(candidate, to_state, *, actor, action, note=''):
     allowed = constants.CANDIDATE_TRANSITIONS.get(candidate.state, set())
     if to_state not in allowed:
@@ -150,18 +159,7 @@ def attach_report(candidate, *, actor, report):
     """Attach a module-8 report reference.  The report itself stays in module 8."""
 
     require_write()
-    required = ('run_id', 'report_id', 'report_version', 'report_digest', 'recommendation')
-    missing = [key for key in required if not report.get(key)]
-    if missing:
-        raise CandidateError(f'报告引用缺少字段：{", ".join(missing)}')
-    if report['recommendation'] not in dict(constants.REPORT_RECOMMENDATION_CHOICES):
-        raise CandidateError('报告建议取值不合法。')
-    if not report.get('completed'):
-        raise CandidateError('评测未完成，不能作为审批依据。')
-    if report.get('missing_cases'):
-        raise CandidateError('评测存在缺失案例，不能作为审批依据。')
-    if report.get('candidate_config_digest') and report['candidate_config_digest'] != candidate.config_digest:
-        raise CandidateError('报告针对的候选配置摘要与当前配置不一致。')
+    report = _verified_report(candidate, report)
 
     candidate.evaluation_report_ref = {
         **report,
@@ -188,7 +186,7 @@ def attach_report(candidate, *, actor, report):
 @transaction.atomic
 def complete_evaluation(candidate, *, actor, note=''):
     require_write()
-    report = candidate.evaluation_report_ref or {}
+    report = _verified_report(candidate, candidate.evaluation_report_ref or {})
     if not report.get('report_id'):
         raise CandidateError('缺少模块八评测报告，不能进入审批。')
     if report.get('recommendation') == constants.REPORT_RECOMMENDATION_PASS:
@@ -208,7 +206,7 @@ def approve(candidate, *, approver, scope, observation_window, rollback_conditio
     require_write()
     if candidate.state != constants.CANDIDATE_PENDING_APPROVAL:
         raise CandidateError('只有待审批的候选可以审批。')
-    report = candidate.evaluation_report_ref or {}
+    report = _verified_report(candidate, candidate.evaluation_report_ref or {})
     if report.get('recommendation') != constants.REPORT_RECOMMENDATION_PASS:
         raise CandidateError('评测报告未给出通过建议。')
     if not report.get('report_digest'):
@@ -248,7 +246,10 @@ def _approval_is_current(candidate):
         return False, '候选配置在审批后已变化，旧审批失效。'
     if approval.get('approved_baseline_config_digest') != candidate.baseline_config_digest:
         return False, '基准配置在审批后已变化，旧审批失效。'
-    report = candidate.evaluation_report_ref or {}
+    try:
+        report = _verified_report(candidate, candidate.evaluation_report_ref or {})
+    except CandidateError as exc:
+        return False, str(exc)
     if approval.get('approved_report_id') != report.get('report_id'):
         return False, '评测报告已变化，旧审批失效。'
     if approval.get('approved_report_digest') != report.get('report_digest'):

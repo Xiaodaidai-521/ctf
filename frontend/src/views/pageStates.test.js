@@ -14,7 +14,7 @@ function pageScript(file, globals, expose) {
   const script = parse(source).descriptor.scriptSetup.content.replace(/^import[\s\S]*?from ['"][^'"]+['"];?\s*/gm, '')
   return runInNewContext(`${script}\n;({ ${expose.join(', ')} })`, {
     ref, computed, watch, nextTick, createHubState, createAccountGuard, accountMemoryStorage,
-    onMounted() {}, onUnmounted() {}, onActivated() {}, onDeactivated() {}, defineExpose() {},
+    onMounted() {}, onUnmounted() {}, onBeforeUnmount() {}, onActivated() {}, onDeactivated() {}, defineExpose() {},
     ...globals,
   })
 }
@@ -24,6 +24,8 @@ function challenges(authenticated = true, api = {}) {
     'fetchChallenges', 'fetchCategories', 'fetchSubmissionStats', 'fetchRecentActivities', 'recentActivities',
     'listError', 'categoriesError', 'statsError', 'submissionStats', 'activitiesError', 'activitiesLoading',
     'selectedStatus', 'filteredChallenges', 'selectedChallenge', 'handleRandom', 'loadedChallenges', 'listLoading',
+    'fetchPaths', 'pathsLoading', 'pathsError', 'globalSolvedCount', 'resume',
+    'loadMore', 'loadingMore', 'totalCount', 'selectedCategory',
   ])
   return { page, store }
 }
@@ -70,6 +72,57 @@ test('guest activity makes no private API call; status filtering and random sele
   page.listLoading.value = true
   page.handleRandom()
   assert.equal(page.selectedChallenge.value, null)
+  scope.stop()
+})
+
+test('guest practice stays public and does not request protected learning paths', async () => {
+  const scope = effectScope()
+  const { page } = scope.run(() => challenges(false, {}))
+  await page.fetchPaths()
+  assert.equal(page.pathsLoading.value, false)
+  assert.equal(page.pathsError.value, '')
+  scope.stop()
+})
+
+test('missing solved totals and unknown submission outcomes remain unknown', async () => {
+  const scope = effectScope()
+  const { page } = scope.run(() => challenges(true, { submission: {
+    stats: async () => ({ solved_challenges: null }),
+    mySubmissions: async () => [{ id: 7, challenge_id: 8, is_correct: null }],
+  } }))
+  await Promise.all([page.fetchSubmissionStats(), page.fetchRecentActivities()])
+  assert.equal(page.globalSolvedCount.value, null)
+  assert.equal(page.resume.value, null)
+  scope.stop()
+})
+
+test('changing category invalidates a pending page and releases pagination for the new list', async () => {
+  const scope = effectScope()
+  let finishPage
+  const { page, store } = scope.run(() => challenges(false, { challenge: {
+    getChallenges: () => new Promise(resolve => { finishPage = resolve }),
+  } }))
+  store.fetchChallenges = async () => ({ results: [{ id: 1 }], count: 3 })
+  await page.fetchChallenges()
+  const pending = page.loadMore()
+  assert.equal(page.loadingMore.value, true)
+  const queries = []
+  store.fetchChallenges = async params => {
+    queries.push(params)
+    return { results: [{ id: 20 }], count: 2 }
+  }
+  page.selectedCategory.value = 2
+  await nextTick()
+  await new Promise(resolve => setImmediate(resolve))
+  assert.equal(page.loadingMore.value, false)
+  assert.equal(page.listError.value, '')
+  assert.equal(queries.at(-1).category, 2)
+  assert.equal(queries.at(-1).page, 1)
+  assert.deepEqual(page.loadedChallenges.value.map(item => item.id), [20])
+  finishPage({ results: [{ id: 2 }], count: 3 })
+  await pending
+  assert.deepEqual(page.loadedChallenges.value.map(item => item.id), [20])
+  assert.equal(page.totalCount.value, 2)
   scope.stop()
 })
 function resources(list) {

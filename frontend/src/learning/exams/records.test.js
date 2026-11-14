@@ -133,6 +133,6 @@ test('exam routes keep canonical record URLs and old deep links redirect with th
   const routerSource = readFileSync(new URL('../../router/index.js', import.meta.url), 'utf8')
   assert.match(routerSource, /path: '\/exam-center\/history'[\s\S]*?name: 'ExamHistory'[\s\S]*?ExamRecords\.vue/)
   assert.match(routerSource, /path: '\/exam-center\/result\/:id'[\s\S]*?name: 'ExamResult'[\s\S]*?ExamRecordDetail\.vue/)
-  assert.match(routerSource, /path: '\/exam-history'[\s\S]*?redirect: to => \(\{ path: '\/exam-center\/history', query: to\.query \}\)/)
-  assert.match(routerSource, /path: '\/exam-result\/:id'[\s\S]*?redirect: to => \(\{ path: `\/exam-center\/result\/\$\{to\.params\.id\}`, query: to\.query \}\)/)
+  assert.match(routerSource, /path: '\/exam-history'[\s\S]*?redirect: to => \(\{ path: '\/exam-center\/history', query: to\.query, hash: to\.hash \}\)/)
+  assert.match(routerSource, /path: '\/exam-result\/:id'[\s\S]*?redirect: to => \(\{ path: `\/exam-center\/result\/\$\{to\.params\.id\}`, query: to\.query, hash: to\.hash \}\)/)
 })

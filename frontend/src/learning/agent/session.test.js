@@ -129,3 +129,29 @@ test('context accepts only authorized references and never a flag', () => {
   session.setContext({ kind: 'exam', ref: 1 })
   assert.equal(session.state.context, null)
 })
+
+test('saved protection is cleared during send and late verification cannot cross accounts', async () => {
+  let finishVerification
+  const session = make({})({ userId: 1,
+    apiClient: { protection: () => new Promise(resolve => { finishVerification = resolve }) },
+    request: async () => ({ conversation_id: 5, responses: [{ content: 'Saved answer' }] }),
+  })
+  const sending = session.send({ message: 'Question' })
+  assert.equal(session.state.protection, null)
+  await new Promise(resolve => setImmediate(resolve))
+  session.setAccount(2)
+  finishVerification({ protection: { content: { storage: 'encrypted' } } })
+  assert.equal((await sending).ok, false)
+  assert.equal(session.state.protection, null)
+  assert.equal(session.state.messages.length, 0)
+})
+
+test('verification failure keeps completed response without claiming encrypted storage', async () => {
+  const session = make({})({ userId: 1,
+    apiClient: { protection: async () => { throw new Error('Unavailable') } },
+    request: async () => ({ conversation_id: 5, responses: [{ content: 'Answer' }] }),
+  })
+  assert.equal((await session.send({ message: 'Question' })).ok, true)
+  assert.equal(session.state.phase, 'complete')
+  assert.equal(session.state.protection, null)
+})

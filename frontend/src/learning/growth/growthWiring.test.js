@@ -20,7 +20,7 @@ test('/dashboard dispatches students to the growth overview and keeps teacher vi
 })
 
 test('/analytics keeps teacher access but sends students to the analysis section', () => {
-  assert.match(router, /compatDestination\('\/analytics', to\.query\)/)
+  assert.match(router, /return \{ path: '\/dashboard', query: \{ \.\.\.to\.query, section: 'activity' \}, hash: to\.hash \}/)
   assert.match(router, /role === 'teacher' \|\| role === 'admin'/)
   assert.match(router, /path: '\/analytics'/)
 })

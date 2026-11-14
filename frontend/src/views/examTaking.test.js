@@ -71,6 +71,7 @@ function examPage(exams = {}) {
 }
 async function html(harness) {
   const app = Vue.createSSRApp({ setup: () => harness.page, render: harness.Page.render })
+  app.component('RouterLink', { props: ['to'], template: '<a :href="to"><slot /></a>' })
   for (const [key, icon] of Object.entries(icons)) if (key.startsWith('Icon')) app.component(key, icon)
   return renderToString(app)
 }
@@ -296,15 +297,16 @@ test('each theory/practice surface has only one filled main action; states have 
   assert.match(await html(loading), /本场考试暂无题目/)
 })
 
-test('load failures retain original alert/return behavior without leaking internal server details', async () => {
+test('load failures keep the current record available for retry and a return link without leaking internal server details', async () => {
   const harness = examPage({ getExamResult: async () => { throw Error('INTERNAL_SQL_DETAIL') } })
   await harness.page.loadExamInfo()
   assert.equal(harness.page.loading.value, false)
-  assert.match(harness.alerts[0], /试炼场重试/)
-  assert.doesNotMatch(harness.alerts[0], /INTERNAL_SQL_DETAIL/)
-  assert.deepEqual(harness.routes, ['/exam-center'])
+  assert.match(harness.page.loadError.value, /重新进入考试/)
+  assert.doesNotMatch(harness.page.loadError.value, /INTERNAL_SQL_DETAIL/)
+  assert.deepEqual(harness.routes, [])
   const rendered = await html(harness)
   assert.match(rendered, /class="page-state load-error" role="alert"/)
+  assert.match(rendered, /href="\/exam-center"/)
   assert.doesNotMatch(rendered, /INTERNAL_SQL_DETAIL/)
 })
 
@@ -346,14 +348,14 @@ test('confirmed submission preserves result routes and failed final submission l
 
 test('exit choices preserve cancel, return, abandonment API and failure behavior', async () => {
   const calls = []
-  const harness = ready(examPage({ startComprehensiveExam: async payload => calls.push(plain(payload)) }))
+  const harness = ready(examPage({ startComprehensiveExam: async payload => calls.push(plain(payload)), getExamResult: async () => ({ status: 'abandoned' }) }))
   harness.page.exitExam()
   assert.equal(harness.page.showExitDialog.value, true)
-  assert.match(await html(harness), /仅保留已提交的答案，尚未提交的选择不会保存/)
+  assert.match(await html(harness), /退出前会保存当前答案/)
   harness.page.closeExitDialog()
   assert.equal(harness.page.showExitDialog.value, false)
   assert.deepEqual(calls, [])
-  harness.page.exitWithoutAbandon()
+  await harness.page.exitWithoutAbandon()
   assert.deepEqual(harness.routes, ['/exam-center'])
   await harness.page.abandonAndExit()
   assert.deepEqual(calls, [{ abandon: true }])
@@ -367,7 +369,7 @@ test('exit choices preserve cancel, return, abandonment API and failure behavior
   assert.match(failure.alerts[0], /放弃考试失败/)
 })
 
-test('countdown cadence, elapsed time, expiry submission and unmount cleanup retain original behavior', async () => {
+test('countdown uses wall-clock deadline, settles at expiry and cleans up on unmount', async () => {
   const calls = []
   const harness = examPage({
     getExamResult: async () => ({ theory_exam: 6 }), getTheoryQuestions: async () => theoryQuestions(),
@@ -377,10 +379,11 @@ test('countdown cadence, elapsed time, expiry submission and unmount cleanup ret
   assert.equal(harness.page.timeRemaining.value, 180 * 60)
   const interval = [...harness.intervals.values()][0]
   assert.equal(interval.ms, 1000)
+  harness.page.examDeadline.value = Date.now() + 180 * 60000 - 1000
   interval.callback()
   assert.equal(harness.page.timeRemaining.value, 180 * 60 - 1)
   assert.equal(harness.page.elapsedTime.value, 1)
-  harness.page.timeRemaining.value = 0
+  harness.page.examDeadline.value = Date.now() - 1
   interval.callback()
   await flush()
   assert.deepEqual(calls, [12])
@@ -475,7 +478,7 @@ test('switching recordId reloads the paper and discards responses from the previ
   assert.deepEqual(calls, [['result', 12], ['result', 13]])
 })
 
-test('time limit never pretends unsaved choices were submitted', async () => {
+test('time limit settles saved server answers and explicitly identifies unsaved choices', async () => {
   const calls = []
   const harness = ready(examPage({ submitExam: async id => calls.push(['submit', id]), submitAnswer: async () => { throw Error('offline') } }))
   const { page } = harness
@@ -483,12 +486,138 @@ test('time limit never pretends unsaved choices were submitted', async () => {
   page.timeRemaining.value = 0
   await page.handleTimeUp()
   await flush()
-  assert.deepEqual(calls, [])
-  assert.match(page.timeoutNotice.value, /不会把未保存的答案当作已交卷/)
+  assert.deepEqual(calls, [['submit', 12]])
+  assert.match(page.timeoutNotice.value, /仅结算截止前保存成功的答案/)
   assert.equal(page.answers.value[19].user_answer, '选项一')
   assert.equal(harness.intervals.size, 0)
   const rendered = await html(harness)
   assert.match(rendered, /exam-notice is-error/)
+})
+
+test('theory choices save immediately and deadline submission does not resend already saved answers', async () => {
+  const calls = []
+  const harness = ready(examPage({
+    submitAnswer: async (id, payload) => { calls.push(['answer', payload.user_answer]); return { saved: true } },
+    submitExam: async id => calls.push(['submit', id]),
+    getExamResult: async () => ({}),
+  }))
+  harness.page.selectOption('选项一')
+  assert.equal(harness.page.savingTheoryAnswers.value, true)
+  await flush()
+  assert.deepEqual(calls, [['answer', '选项一']])
+  assert.equal(harness.page.savingTheoryAnswers.value, false)
+  assert.equal(harness.page.answerSaveError.value, '')
+  assert.doesNotMatch(await html(harness), /已记录正确率/)
+  harness.page.timeRemaining.value = 0
+  await harness.page.handleTimeUp()
+  assert.deepEqual(calls, [['answer', '选项一'], ['submit', 12]])
+  assert.deepEqual(harness.routes, ['/exam-center/result/12'])
+})
+
+test('clearing a saved multiple choice after cancelling confirmation sends an empty server answer', async () => {
+  const calls = []
+  let serverValue = ''
+  const harness = ready(examPage({ submitAnswer: async (id, payload) => {
+    calls.push(plain(payload)); serverValue = payload.user_answer; return { saved: true }
+  } }))
+  harness.page.goToQuestion(1)
+  harness.page.selectOption('甲')
+  await harness.page.submitAllTheoryAnswers()
+  harness.page.closeSubmitDialog()
+  harness.page.selectOption('甲')
+  await flush()
+  assert.equal(harness.page.answeredCount.value, 0)
+  assert.equal(serverValue, '')
+  assert.deepEqual(calls.map(payload => payload.user_answer), ['甲', ''])
+  assert.ok(calls.every(payload => payload.theory_question_id === 22))
+  assert.equal(harness.page.answerSaveError.value, '')
+})
+
+test('an in-flight save cannot restore an older choice after the user clears it', async () => {
+  const calls = [], releases = []
+  const harness = ready(examPage({ submitAnswer: (id, payload) => {
+    calls.push(payload.user_answer)
+    return new Promise(resolve => releases.push(() => resolve({ saved: true })))
+  } }))
+  harness.page.goToQuestion(1)
+  harness.page.selectOption('甲')
+  await flush()
+  assert.deepEqual(calls, ['甲'])
+  harness.page.selectOption('甲')
+  assert.equal(harness.page.answers.value[5], undefined)
+  await flush()
+  assert.deepEqual(calls, ['甲'])
+  releases.shift()()
+  await flush()
+  assert.deepEqual(calls, ['甲', ''])
+  releases.shift()()
+  await flush()
+  assert.equal(harness.page.answers.value[5], undefined)
+  assert.equal(harness.page.savingTheoryAnswers.value, false)
+})
+
+test('failed autosave remains visible, retry preserves choice, and safe exit waits for saved answers', async () => {
+  let offline = true
+  const calls = []
+  const harness = ready(examPage({ submitAnswer: async (id, payload) => {
+    calls.push(payload.user_answer)
+    if (offline) throw Error('offline')
+    return { saved: true }
+  } }))
+  harness.page.selectOption('选项一')
+  await flush()
+  assert.match(harness.page.answerSaveError.value, /保存失败/)
+  assert.match(await html(harness), /重试保存/)
+  await harness.page.exitWithoutAbandon()
+  assert.deepEqual(harness.routes, [])
+  assert.equal(harness.page.answers.value[19].user_answer, '选项一')
+  offline = false
+  await harness.page.exitWithoutAbandon()
+  assert.deepEqual(harness.routes, ['/exam-center'])
+  assert.equal(harness.page.answerSaveError.value, '')
+  assert.deepEqual(calls, ['选项一', '选项一', '选项一'])
+})
+
+test('practice numeric challenge contract renders challenge_description including attachment links', () => {
+  const harness = ready(examPage(), 'practice')
+  const stem = '<p>环境说明 <a href="/file/attachment">附件</a></p>'
+  harness.page.formatQuestion({ id: 7, challenge: 31, challenge_title: 'Title', challenge_description: stem })
+  assert.equal(harness.sanitized.at(-1), stem)
+})
+
+test('a browser click event cannot bypass the final save before submitting theory', async () => {
+  const calls = []
+  const harness = ready(examPage({
+    submitAnswer: async (id, payload) => calls.push(['answer', payload.user_answer]),
+    submitExam: async id => calls.push(['submit', id]),
+    getExamResult: async () => ({}),
+  }))
+  // The actual @click handler passes a MouseEvent unless arguments are explicit.
+  harness.page.answers.value[19] = { user_answer: '选项一' }
+  await harness.page.confirmSubmit({ type: 'click' })
+  assert.deepEqual(calls, [['answer', '选项一'], ['submit', 12]])
+})
+
+test('expiry waits for a previously sent save but does not send new late answers', async () => {
+  let rejectSave
+  const calls = []
+  const harness = ready(examPage({
+    submitAnswer: (id, payload) => {
+      calls.push(['answer', payload.user_answer])
+      return new Promise((resolve, reject) => { rejectSave = reject })
+    },
+    submitExam: async id => calls.push(['submit', id]), getExamResult: async () => ({}),
+  }))
+  harness.page.selectOption('选项一')
+  await flush()
+  harness.page.timeRemaining.value = 0
+  const expired = harness.page.handleTimeUp()
+  await flush()
+  assert.deepEqual(calls, [['answer', '选项一']])
+  rejectSave({ response: { data: { code: 'exam_time_expired' } } })
+  await expired
+  assert.deepEqual(calls, [['answer', '选项一'], ['submit', 12]])
+  assert.match(harness.page.timeoutNotice.value, /未保存的选择未计入成绩/)
 })
 
 test('abandon re-reads the record and only leaves when the server confirms it is no longer in progress', async () => {

@@ -20,6 +20,6 @@ export function createContentApi(role, client = api) {
     resources: params => client.resource.adminList(params),
     reviewResource: (id, status, note) => client.resource.review({ resource_id: id, status, review_comment: note }),
     uploadResource: data => client.resource.upload(data),
-    downloadResource: id => client.resource.download(id),
+    downloadResource: id => client.resource.download(id, { highlight_resource: id }),
   }
 }

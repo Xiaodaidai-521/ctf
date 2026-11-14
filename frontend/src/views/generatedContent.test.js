@@ -111,6 +111,16 @@ test('unknown content types keep the original body instead of pretending a layou
   assert.equal(view.hasBody, true)
 })
 
+test('an unscorable question never shifts another answer into the scoreable question', () => {
+  const questions = [
+    { options: ['甲', '乙'], answerIndex: null },
+    { options: ['甲', '乙'], answerIndex: 0 },
+  ]
+  assert.equal(quizResult(questions, { 0: 0 }).correct, 0)
+  assert.equal(quizResult(questions, { 1: 0 }).correct, 1)
+  assert.equal(quizResult(questions, { 1: null }).correct, 0)
+})
+
 test('content failures separate missing/permission/expired/service without backend text', () => {
   const notFound = contentFailure({ response: { status: 404 }, message: 'Request failed' })
   assert.equal(notFound.notFound, true)
@@ -133,6 +143,7 @@ test('regenerate keeps the current page when no new id, and targets the real new
   assert.deepEqual(regeneratedTarget(12, { id: 31 }), { ok: true, id: 31, changed: true, to: '/content/31' })
   assert.equal(regeneratedTarget(12, {}).ok, false)
   assert.equal(regeneratedTarget(12, null).ok, false)
+  assert.equal(regeneratedTarget(12, { id: 31, content_type: 'quiz' }).to, '/content/31?content_type=quiz')
 })
 
 test('page consumes the adapter, reloads on id change, and keeps legacy field access out', () => {
@@ -144,7 +155,7 @@ test('page consumes the adapter, reloads on id change, and keeps legacy field ac
   // MermaidDiagram 的真实 prop 是 mermaidCode；旧页传 code 会渲染空白。
   assert.match(source, /:mermaid-code="view\.mermaidCode"/)
   assert.doesNotMatch(source, /<MermaidDiagram[^>]*:code=/)
-  assert.match(source, /watch\(\s*\(\) => route\.params\.id/)
+  assert.match(source, /watch\(\s*\(\) => \[route\.params\.id, route\.query\.content_type\]/)
   assert.match(source, /router\.replace\(target\.to\)/)
   assert.match(source, /本地练习，不计入正式测评/)
   assert.match(source, /不自动判题/)

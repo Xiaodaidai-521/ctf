@@ -1,0 +1,5 @@
+{
+  "exit_code": 0,
+  "stdout": "{\"cpu_100ns\": 30000000, \"memory_bytes\": 536870912, \"active_process_limit\": 1, \"blocked\": {\"write\": true, \"socket\": true, \"process\": true}}\n",
+  "stderr": ""
+}

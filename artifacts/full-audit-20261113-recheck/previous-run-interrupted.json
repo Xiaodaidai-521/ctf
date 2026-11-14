@@ -1,0 +1,39 @@
+{
+  "recorded_at": "2026-11-13T02:24:57.311587+00:00",
+  "reason": "Previous 4-worker run was still active after 40 minutes, delaying fresh verification; retain all completed logs/results, stop only exact owned audit runner process tree.",
+  "completed": {
+    "agents": 0,
+    "agent_memory": 1,
+    "agent_runtime": 1,
+    "ai_assistant": 1,
+    "announcements": 0,
+    "articles": 0,
+    "audit": 1,
+    "challenges": 0,
+    "ctf_backend": 0,
+    "data_lab": 1,
+    "data_security": 1,
+    "evaluation_center": 1,
+    "exams": 0,
+    "export_quota": 0
+  },
+  "unfinished": [
+    "resources",
+    "export_risk",
+    "feedback_center",
+    "learning_analytics",
+    "learning_knowledge",
+    "learning_map",
+    "learning_paths",
+    "legal",
+    "legal_kb",
+    "practical_training",
+    "rag_ingestion",
+    "scripts",
+    "skill_review",
+    "student_profiles",
+    "submissions",
+    "test_auth",
+    "users"
+  ]
+}

@@ -1,0 +1,73 @@
+{
+  "documents": 253,
+  "owasp_documents": 246,
+  "legal_documents": 7,
+  "legal_articles": 393,
+  "index_chunks": 4106,
+  "updated_existing_laws": 5,
+  "idempotent_rerun_skipped": 253,
+  "clause_texts_match_source": true,
+  "retrieval_checks": [
+    {
+      "query": "SQL injection",
+      "source_type": "document",
+      "returned": 3,
+      "titles": [
+        "Chunk 2",
+        "Chunk 7",
+        "Chunk 6"
+      ]
+    },
+    {
+      "query": "个人信息",
+      "source_type": "legal_clause",
+      "returned": 3,
+      "titles": [
+        "第九条",
+        "第八条",
+        "第四十二条"
+      ]
+    }
+  ],
+  "database": "configured SQLite",
+  "index_mode": "deterministic",
+  "pending_migrations": 0,
+  "backend_tests": {
+    "passed": 38,
+    "failed": 0,
+    "suites": [
+      "legal_kb.test_corpus_import",
+      "ctf_backend.test_module_integration",
+      "learning_analytics.test_events",
+      "rag_ingestion.tests"
+    ]
+  },
+  "legal_service_regression": {
+    "suite": "legal_kb.tests.LegalKbServiceTests",
+    "passed": 8,
+    "failed": 0,
+    "errors": 0
+  },
+  "additional_backend_regression": {
+    "total": 18,
+    "passed": 9,
+    "failed": 4,
+    "errors": 5,
+    "suites": [
+      "legal_kb.tests.LegalKbServiceTests",
+      "rag_ingestion.tests_write_permissions"
+    ],
+    "issues": [
+      "Legacy upload tests reference missing UploadIngestionService",
+      "Teacher and non-staff administrator upload expectations conflict with current IsAdminUser permission",
+      "Legacy tests use unsupported embedding provider name local"
+    ],
+    "affected_upload_views_and_legacy_tests_unchanged_by_corpus_merge": true
+  },
+  "frontend_build": "passed",
+  "frontend_tests": {
+    "passed": 48,
+    "failed": 4,
+    "unchanged_since_checkpoint": "020786a"
+  }
+}

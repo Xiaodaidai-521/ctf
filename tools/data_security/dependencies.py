@@ -401,6 +401,10 @@ PHASE7_LEGACY = {
     'legal_kb.services.retrieval_service': ('data_security.adapters.django.rag',),
     'legal_kb.services.ingestion_service': ('data_security.adapters.django.rag',),
     'legal_kb.services.platform_indexing_service': ('data_security.adapters.django.rag',),
+    'legal_kb.management.commands.rebuild_legal_kb': (
+        'data_security.adapters.django.rag.protect_rag',
+        'data_security.adapters.django.rag.rag_protection_enabled',
+    ),
     'rag_ingestion.serializers': ('data_security.adapters.django.rag',),
     'ai_assistant.service': (*PHASE6_LEGACY['ai_assistant.service'], 'data_security.adapters.django.rag'),
     'ai_assistant.views': (*PHASE6_LEGACY['ai_assistant.views'],
@@ -664,8 +668,12 @@ def scan(root, *, phase=None):
     paths = list((root / 'backend').rglob('*.py'))
     paths += list((root / 'tasks/controlled-export-execution/controlled_export').rglob('*.py'))
     paths += list((root / 'tasks/controlled-export-execution/controlled_export_service').rglob('*.py'))
+    environments = {path for path in (root / 'backend').glob('*')
+                    if path.is_dir() and not path.is_symlink() and (path / 'pyvenv.cfg').is_file()}
     for path in sorted(paths):
         relative = path.relative_to(root)
+        if any(environment in path.parents for environment in environments):
+            continue
         if any(part in ('.venv', '__pycache__', 'tests') for part in relative.parts):
             continue
         if phase not in (3, 4, 5, 6, 7) and 'migrations' in relative.parts:
@@ -673,16 +681,16 @@ def scan(root, *, phase=None):
         if path.name.startswith('test_') or path.name == 'tests.py':
             continue
         if path.is_symlink():
-            violations.append(Violation(str(relative), 1, 'SOURCE_SYMLINK'))
+            violations.append(Violation(relative.as_posix(), 1, 'SOURCE_SYMLINK'))
             continue
         checked += 1
         module = module_name(relative)
         inventory = {2: PHASE2_MODULES, 3: PHASE3_MODULES, 4: PHASE4_MODULES,
                      5: PHASE5_MODULES, 6: PHASE6_MODULES, 7: PHASE7_MODULES}.get(phase, PHASE2_MODULES)
         if owner(module) in ALLOWED.keys() - {'M0'} and (phase == 1 or module not in inventory):
-            violations.append(Violation(str(relative), 1, f'PHASE{phase}_FUTURE_IMPLEMENTATION'))
+            violations.append(Violation(relative.as_posix(), 1, f'PHASE{phase}_FUTURE_IMPLEMENTATION'))
         # Bytes preserve Python's declared encoding and UTF-8 BOM handling.
-        violations.extend(check_source(relative, path.read_bytes(), phase=phase))
+        violations.extend(check_source(relative.as_posix(), path.read_bytes(), phase=phase))
     return checked, violations
 
 

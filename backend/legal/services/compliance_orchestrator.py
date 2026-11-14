@@ -115,17 +115,19 @@ class ComplianceOrchestrator:
     @transaction.atomic
     def _mark_failed(self, *, task, actor, error: Exception) -> None:
         now = timezone.now()
-        task.__class__.objects.filter(pk=task.pk).update(
-            status='failed',
-            error_message=str(error),
-            completed_at=now,
-            updated_at=now,
-        )
+        # Analysis can fail after a rolled-back write. Reload its authenticated
+        # revision, then use the model's protected save for exception text too.
+        task.refresh_from_db()
+        task.status = 'failed'
+        task.error_message = str(error)
+        task.completed_at = now
+        task.updated_at = now
+        task.save(update_fields=['status', 'error_message', 'completed_at', 'updated_at'])
         AuditEvent.log(
             category='legal_analysis',
             summary=f'Legal analysis failed: {task.title}',
             user=actor,
-            detail={'task_id': task.id, 'error': str(error)},
+            detail={'task_id': task.id, 'error': task.error_message},
         )
         task.refresh_from_db(fields=['status', 'error_message', 'completed_at', 'updated_at'])
 

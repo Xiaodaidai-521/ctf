@@ -1,0 +1,390 @@
+{
+  "checked_python_files": 826,
+  "counts": {
+    "PHASE7_BUSINESS_NOT_CONNECTED": 22,
+    "DEPENDENCY_M9": 13,
+    "PHASE7_FUTURE_IMPLEMENTATION": 2,
+    "DEPENDENCY_M5": 1,
+    "DEPENDENCY_M6": 1,
+    "UNCLASSIFIED_SECURITY_MODULE": 2,
+    "BOOTSTRAP_REVERSE_IMPORT": 2,
+    "DYNAMIC_CODE_OR_IMPORT": 1,
+    "DEPENDENCY_B": 1
+  },
+  "findings": [
+    {
+      "file": "backend/agent_runtime/serializers.py",
+      "line": 2,
+      "code": "PHASE7_BUSINESS_NOT_CONNECTED",
+      "imports": [
+        "data_security.adapters.django.protection_status.ProtectionSerializerMixin"
+      ]
+    },
+    {
+      "file": "backend/agent_runtime/serializers.py",
+      "line": 9,
+      "code": "PHASE7_BUSINESS_NOT_CONNECTED",
+      "imports": [
+        "data_security.contracts.ContractViolation"
+      ]
+    },
+    {
+      "file": "backend/agent_runtime/views.py",
+      "line": 10,
+      "code": "PHASE7_BUSINESS_NOT_CONNECTED",
+      "imports": [
+        "data_security.adapters.django.privacy_api.PrivateResponseMixin"
+      ]
+    },
+    {
+      "file": "backend/ai_assistant/views.py",
+      "line": 437,
+      "code": "PHASE7_BUSINESS_NOT_CONNECTED",
+      "imports": [
+        "data_security.adapters.django.protection_status.summarize"
+      ]
+    },
+    {
+      "file": "backend/ai_assistant/views.py",
+      "line": 448,
+      "code": "PHASE7_BUSINESS_NOT_CONNECTED",
+      "imports": [
+        "data_security.adapters.django.protection_status.protection_for"
+      ]
+    },
+    {
+      "file": "backend/data_security/adapters/django/export_delivery.py",
+      "line": 3,
+      "code": "DEPENDENCY_M9",
+      "imports": [
+        "django.utils.timezone"
+      ]
+    },
+    {
+      "file": "backend/data_security/adapters/django/export_delivery.py",
+      "line": 75,
+      "code": "DEPENDENCY_M9",
+      "imports": [
+        "resources.models.ExportSourcePermission"
+      ]
+    },
+    {
+      "file": "backend/data_security/adapters/django/privacy_api.py",
+      "line": 1,
+      "code": "PHASE7_FUTURE_IMPLEMENTATION",
+      "imports": []
+    },
+    {
+      "file": "backend/data_security/adapters/django/privacy_api.py",
+      "line": 2,
+      "code": "DEPENDENCY_M9",
+      "imports": [
+        "django.shortcuts.get_object_or_404"
+      ]
+    },
+    {
+      "file": "backend/data_security/adapters/django/privacy_api.py",
+      "line": 3,
+      "code": "DEPENDENCY_M9",
+      "imports": [
+        "django.urls.path"
+      ]
+    },
+    {
+      "file": "backend/data_security/adapters/django/privacy_api.py",
+      "line": 4,
+      "code": "DEPENDENCY_M9",
+      "imports": [
+        "rest_framework.permissions.AllowAny",
+        "rest_framework.permissions.IsAuthenticated"
+      ]
+    },
+    {
+      "file": "backend/data_security/adapters/django/privacy_api.py",
+      "line": 4,
+      "code": "DEPENDENCY_M9",
+      "imports": [
+        "rest_framework.permissions.AllowAny",
+        "rest_framework.permissions.IsAuthenticated"
+      ]
+    },
+    {
+      "file": "backend/data_security/adapters/django/privacy_api.py",
+      "line": 5,
+      "code": "DEPENDENCY_M9",
+      "imports": [
+        "rest_framework.response.Response"
+      ]
+    },
+    {
+      "file": "backend/data_security/adapters/django/privacy_api.py",
+      "line": 6,
+      "code": "DEPENDENCY_M9",
+      "imports": [
+        "rest_framework.views.APIView"
+      ]
+    },
+    {
+      "file": "backend/data_security/adapters/django/privacy_api.py",
+      "line": 8,
+      "code": "DEPENDENCY_M9",
+      "imports": [
+        "data_security.adapters.persistence.fields.field_storage_enabled"
+      ]
+    },
+    {
+      "file": "backend/data_security/adapters/django/privacy_api.py",
+      "line": 11,
+      "code": "DEPENDENCY_M9",
+      "imports": [
+        "data_security.adapters.django.protection_status.conversation_protection"
+      ]
+    },
+    {
+      "file": "backend/data_security/adapters/django/privacy_api.py",
+      "line": 36,
+      "code": "DEPENDENCY_M9",
+      "imports": [
+        "ai_assistant.models.AIConversation"
+      ]
+    },
+    {
+      "file": "backend/data_security/adapters/django/protection_status.py",
+      "line": 1,
+      "code": "PHASE7_FUTURE_IMPLEMENTATION",
+      "imports": []
+    },
+    {
+      "file": "backend/data_security/adapters/django/protection_status.py",
+      "line": 2,
+      "code": "DEPENDENCY_M9",
+      "imports": [
+        "django.db.DatabaseError"
+      ]
+    },
+    {
+      "file": "backend/data_security/adapters/django/protection_status.py",
+      "line": 4,
+      "code": "DEPENDENCY_M9",
+      "imports": [
+        "data_security.adapters.persistence.fields"
+      ]
+    },
+    {
+      "file": "backend/data_security/adapters/keys.py",
+      "line": 5,
+      "code": "DEPENDENCY_M5",
+      "imports": [
+        ".private_permissions.is_private_path"
+      ]
+    },
+    {
+      "file": "backend/data_security/adapters/persistence/models.py",
+      "line": 1,
+      "code": "DEPENDENCY_M6",
+      "imports": [
+        "django.conf.settings"
+      ]
+    },
+    {
+      "file": "backend/data_security/adapters/private_permissions.py",
+      "line": 1,
+      "code": "UNCLASSIFIED_SECURITY_MODULE",
+      "imports": []
+    },
+    {
+      "file": "backend/data_security/privacy_test_settings.py",
+      "line": 1,
+      "code": "UNCLASSIFIED_SECURITY_MODULE",
+      "imports": []
+    },
+    {
+      "file": "backend/exams/serializers.py",
+      "line": 2,
+      "code": "PHASE7_BUSINESS_NOT_CONNECTED",
+      "imports": [
+        "data_security.adapters.django.protection_status.ProtectionSerializerMixin",
+        "data_security.adapters.django.protection_status.summarize"
+      ]
+    },
+    {
+      "file": "backend/exams/serializers.py",
+      "line": 2,
+      "code": "PHASE7_BUSINESS_NOT_CONNECTED",
+      "imports": [
+        "data_security.adapters.django.protection_status.ProtectionSerializerMixin",
+        "data_security.adapters.django.protection_status.summarize"
+      ]
+    },
+    {
+      "file": "backend/exams/views.py",
+      "line": 4,
+      "code": "PHASE7_BUSINESS_NOT_CONNECTED",
+      "imports": [
+        "data_security.adapters.django.protection_status.protection_for"
+      ]
+    },
+    {
+      "file": "backend/feedback_center/views.py",
+      "line": 25,
+      "code": "PHASE7_BUSINESS_NOT_CONNECTED",
+      "imports": [
+        "data_security.adapters.django.protection_status.private_file_status"
+      ]
+    },
+    {
+      "file": "backend/legal/serializers.py",
+      "line": 4,
+      "code": "PHASE7_BUSINESS_NOT_CONNECTED",
+      "imports": [
+        "data_security.adapters.django.protection_status.ProtectionSerializerMixin"
+      ]
+    },
+    {
+      "file": "backend/legal_kb/services/corpus_import.py",
+      "line": 11,
+      "code": "BOOTSTRAP_REVERSE_IMPORT",
+      "imports": [
+        "ctf_backend.security_bootstrap.assemble_rag"
+      ]
+    },
+    {
+      "file": "backend/resources/serializers.py",
+      "line": 4,
+      "code": "PHASE7_BUSINESS_NOT_CONNECTED",
+      "imports": [
+        "data_security.adapters.django.protection_status.private_file_status"
+      ]
+    },
+    {
+      "file": "backend/scripts/evaluate_remote_knowledge.py",
+      "line": 51,
+      "code": "PHASE7_BUSINESS_NOT_CONNECTED",
+      "imports": [
+        "data_security.contracts.KeyPurpose",
+        "data_security.contracts.KeyReference",
+        "data_security.contracts.KeyStatus",
+        "data_security.contracts.PolicyBinding",
+        "data_security.contracts.PolicySnapshot"
+      ]
+    },
+    {
+      "file": "backend/scripts/evaluate_remote_knowledge.py",
+      "line": 51,
+      "code": "PHASE7_BUSINESS_NOT_CONNECTED",
+      "imports": [
+        "data_security.contracts.KeyPurpose",
+        "data_security.contracts.KeyReference",
+        "data_security.contracts.KeyStatus",
+        "data_security.contracts.PolicyBinding",
+        "data_security.contracts.PolicySnapshot"
+      ]
+    },
+    {
+      "file": "backend/scripts/evaluate_remote_knowledge.py",
+      "line": 51,
+      "code": "PHASE7_BUSINESS_NOT_CONNECTED",
+      "imports": [
+        "data_security.contracts.KeyPurpose",
+        "data_security.contracts.KeyReference",
+        "data_security.contracts.KeyStatus",
+        "data_security.contracts.PolicyBinding",
+        "data_security.contracts.PolicySnapshot"
+      ]
+    },
+    {
+      "file": "backend/scripts/evaluate_remote_knowledge.py",
+      "line": 51,
+      "code": "PHASE7_BUSINESS_NOT_CONNECTED",
+      "imports": [
+        "data_security.contracts.KeyPurpose",
+        "data_security.contracts.KeyReference",
+        "data_security.contracts.KeyStatus",
+        "data_security.contracts.PolicyBinding",
+        "data_security.contracts.PolicySnapshot"
+      ]
+    },
+    {
+      "file": "backend/scripts/evaluate_remote_knowledge.py",
+      "line": 51,
+      "code": "PHASE7_BUSINESS_NOT_CONNECTED",
+      "imports": [
+        "data_security.contracts.KeyPurpose",
+        "data_security.contracts.KeyReference",
+        "data_security.contracts.KeyStatus",
+        "data_security.contracts.PolicyBinding",
+        "data_security.contracts.PolicySnapshot"
+      ]
+    },
+    {
+      "file": "backend/scripts/evaluate_remote_knowledge.py",
+      "line": 52,
+      "code": "PHASE7_BUSINESS_NOT_CONNECTED",
+      "imports": [
+        "data_security.contracts.schema.content_hash"
+      ]
+    },
+    {
+      "file": "backend/scripts/evaluate_remote_knowledge.py",
+      "line": 53,
+      "code": "PHASE7_BUSINESS_NOT_CONNECTED",
+      "imports": [
+        "data_security.adapters.llm.official.ENDPOINTS"
+      ]
+    },
+    {
+      "file": "backend/scripts/evaluate_remote_knowledge.py",
+      "line": 93,
+      "code": "BOOTSTRAP_REVERSE_IMPORT",
+      "imports": [
+        "ctf_backend.security_bootstrap.assemble"
+      ]
+    },
+    {
+      "file": "backend/scripts/evaluate_remote_knowledge.py",
+      "line": 275,
+      "code": "DYNAMIC_CODE_OR_IMPORT",
+      "imports": []
+    },
+    {
+      "file": "backend/student_profiles/serializers.py",
+      "line": 2,
+      "code": "PHASE7_BUSINESS_NOT_CONNECTED",
+      "imports": [
+        "data_security.adapters.django.protection_status.protection_for"
+      ]
+    },
+    {
+      "file": "backend/student_profiles/serializers.py",
+      "line": 109,
+      "code": "PHASE7_BUSINESS_NOT_CONNECTED",
+      "imports": [
+        "data_security.contracts.ContractViolation"
+      ]
+    },
+    {
+      "file": "backend/student_profiles/views.py",
+      "line": 6,
+      "code": "PHASE7_BUSINESS_NOT_CONNECTED",
+      "imports": [
+        "data_security.adapters.django.protection_status.protection_for"
+      ]
+    },
+    {
+      "file": "backend/users/serializers.py",
+      "line": 5,
+      "code": "PHASE7_BUSINESS_NOT_CONNECTED",
+      "imports": [
+        "data_security.adapters.django.protection_status.ProtectionSerializerMixin"
+      ]
+    },
+    {
+      "file": "tasks/controlled-export-execution/controlled_export_service/security_bootstrap.py",
+      "line": 96,
+      "code": "DEPENDENCY_B",
+      "imports": [
+        "data_security.adapters.private_permissions.is_private_path"
+      ]
+    }
+  ]
+}

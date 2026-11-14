@@ -19,6 +19,7 @@ export const governancePages = Object.freeze([
   page('assessment', names.assessmentSupervision, '/admin/learning-scores', 'icon-eye', '平台', ['评分记录', '动态评测']),
   page('announcements', '公告管理', '/admin/announcements', 'icon-notification', '平台', ['通知']),
   page('compliance', '合规中心', '/admin/legal/dashboard', 'icon-safe', '合规', ['合规治理']),
+  page('data-security', '数据保护', '/admin/data-security', 'icon-safe', '合规', ['数据安全', '受控导出', '保护策略']),
   page('legal-workspace', '数智合规官', '/admin/legal/agent', 'icon-safe', '合规', ['合规工作台']),
   page('audit', '合规审计', '/admin/legal/audit', 'icon-history', '合规', ['审计日志', '事件']),
   page('violations', '违规记录', '/admin/legal/violations', 'icon-exclamation-circle', '合规', ['违规处理']),

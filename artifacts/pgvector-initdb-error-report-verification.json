@@ -1,0 +1,30 @@
+{
+  "started_at": "2026-11-13T15:52:50.406785+00:00",
+  "source_database": "D:\\aaa10\\16015478源码\\database\\db.sqlite3",
+  "source_access": "not accessed; isolated native PostgreSQL cluster",
+  "postgres_port": 57713,
+  "evaluation_mode": "probe_only",
+  "providers": [],
+  "retrieval": {},
+  "answers": [],
+  "errors": [
+    {
+      "type": "RuntimeError",
+      "code": "postgres command failed: initdb.exe (exit 23); see postgres_command_failures in the report"
+    }
+  ],
+  "production_settings_changed": false,
+  "postgres_command_failures": [
+    {
+      "command": "initdb.exe",
+      "exit_code": 23,
+      "log_path": "C:\\Users\\29681\\AppData\\Local\\Temp\\knowledge-remote-pg-3lw60zln\\commands.log",
+      "log_tail": "initdb: 错误: 无法创建目录: File exists\n"
+    }
+  ],
+  "completed": false,
+  "temporary_keys_deleted": true,
+  "isolated_workspace": "C:\\Users\\29681\\AppData\\Local\\Temp\\knowledge-remote-pg-3lw60zln",
+  "finished_at": "2026-11-13T15:52:50.442122+00:00",
+  "verification_kind": "simulated initdb failure; no PostgreSQL or model requests"
+}

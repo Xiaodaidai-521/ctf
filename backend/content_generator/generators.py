@@ -9,6 +9,10 @@ from asgiref.sync import sync_to_async
 logger = logging.getLogger(__name__)
 
 
+class ContentGenerationError(ValueError):
+    """The provider failed or returned unusable content; nothing was saved."""
+
+
 class ContentGeneratorService:
     """AI内容生成服务 —— 封装多智能体调用、解析、持久化与缓存"""
 
@@ -22,9 +26,31 @@ class ContentGeneratorService:
     # 公共工具方法
     # ------------------------------------------------------------------
 
-    def _cache_key(self, topic, difficulty, content_type):
-        raw = f'{topic}:{difficulty}:{content_type}'
-        return f'content_gen:{hashlib.md5(raw.encode()).hexdigest()}'
+    def _cache_key(self, topic, difficulty, content_type, *, user=None, concept=None, **params):
+        raw = json.dumps({'v': 2, 'user': getattr(user, 'pk', None),
+                          'concept': getattr(concept, 'pk', None), 'topic': topic,
+                          'difficulty': difficulty, 'type': content_type, 'params': params},
+                         ensure_ascii=False, sort_keys=True)
+        return f'content_gen:v2:{hashlib.sha256(raw.encode()).hexdigest()}'
+
+    async def _cached(self, model, key, user, bypass_cache):
+        cached_id = None if bypass_cache else cache.get(key)
+        if cached_id:
+            try:
+                return await sync_to_async(model.objects.get)(
+                    id=cached_id, created_by_id=getattr(user, 'pk', None))
+            except model.DoesNotExist:
+                cache.delete(key)
+        return None
+
+    def _validated_content(self, result):
+        if (not isinstance(result, dict) or result.get('provider') in {'fallback', 'error'}
+                or result.get('provider_error') or result.get('error')):
+            raise ContentGenerationError('模型服务暂时不可用，请稍后重试。')
+        content = result.get('content')
+        if not isinstance(content, str) or not content.strip():
+            raise ContentGenerationError('模型没有返回有效内容，请重试。')
+        return content
 
     def _parse_sections(self, markdown):
         """按 ## 二级标题将 Markdown 拆分为 [{title, content}]"""
@@ -138,19 +164,15 @@ class ContentGeneratorService:
     # 生成方法
     # ------------------------------------------------------------------
 
-    async def generate_tutorial(self, topic_name, difficulty='medium', concept=None, user=None):
-        cache_key = self._cache_key(topic_name, difficulty, 'tutorial')
-        cached_id = cache.get(cache_key)
-        if cached_id:
-            try:
-                get = sync_to_async(GeneratedTutorial.objects.get)
-                return await get(id=cached_id)
-            except GeneratedTutorial.DoesNotExist:
-                cache.delete(cache_key)
+    async def generate_tutorial(self, topic_name, difficulty='medium', concept=None, user=None, *, bypass_cache=False):
+        cache_key = self._cache_key(topic_name, difficulty, 'tutorial', user=user, concept=concept)
+        cached = await self._cached(GeneratedTutorial, cache_key, user, bypass_cache)
+        if cached is not None:
+            return cached
 
         prompt = self._build_tutorial_prompt(topic_name, difficulty)
         result = await self.ai_service.chat_with_agent('architect', prompt)
-        raw_content = result.get('content', '')
+        raw_content = self._validated_content(result)
         sections = self._parse_sections(raw_content)
         reviewer = result.get('agent_id', '')
 
@@ -169,21 +191,26 @@ class ContentGeneratorService:
         cache.set(cache_key, tutorial.id, self.cache_ttl)
         return tutorial
 
-    async def generate_quiz(self, topic_name, question_count=5, difficulty='medium', concept=None, user=None):
-        cache_key = self._cache_key(topic_name, difficulty, 'quiz')
-        cached_id = cache.get(cache_key)
-        if cached_id:
-            try:
-                get = sync_to_async(GeneratedQuiz.objects.get)
-                return await get(id=cached_id)
-            except GeneratedQuiz.DoesNotExist:
-                cache.delete(cache_key)
+    async def generate_quiz(self, topic_name, question_count=5, difficulty='medium', concept=None, user=None, *, bypass_cache=False):
+        cache_key = self._cache_key(topic_name, difficulty, 'quiz', user=user, concept=concept,
+                                    question_count=question_count)
+        cached = await self._cached(GeneratedQuiz, cache_key, user, bypass_cache)
+        if cached is not None:
+            return cached
 
         prompt = self._build_quiz_prompt(topic_name, question_count, difficulty)
         result = await self.ai_service.chat_with_agent('analyst', prompt)
-        raw_content = result.get('content', '')
+        raw_content = self._validated_content(result)
         parsed = self._parse_json_from_response(raw_content)
         questions = parsed if isinstance(parsed, list) else []
+        if (len(questions) != question_count or any(
+                not isinstance(q, dict) or not isinstance(q.get('question'), str) or not q['question'].strip()
+                or not isinstance(q.get('options'), list) or not 2 <= len(q['options']) <= 26
+                or not all(isinstance(o, str) and o.strip() for o in q['options'])
+                or not isinstance(q.get('answer'), str)
+                or q['answer'].strip().upper() not in [chr(65 + i) for i in range(len(q['options']))]
+                for q in questions)):
+            raise ContentGenerationError('模型返回的题目数量或题目格式不完整，请重试。')
         reviewer = result.get('agent_id', '')
 
         create = sync_to_async(GeneratedQuiz.objects.create)
@@ -191,7 +218,7 @@ class ContentGeneratorService:
             title=f'{topic_name} 测验',
             raw_content=raw_content,
             questions=questions,
-            question_count=len(questions) if questions else question_count,
+            question_count=len(questions),
             difficulty=difficulty,
             topic=concept,
             created_by=user,
@@ -206,20 +233,19 @@ class ContentGeneratorService:
         cache.set(cache_key, quiz.id, self.cache_ttl)
         return quiz
 
-    async def generate_diagram(self, topic_name, diagram_type='flowchart', difficulty='medium', concept=None, user=None):
-        cache_key = self._cache_key(topic_name, difficulty, 'diagram')
-        cached_id = cache.get(cache_key)
-        if cached_id:
-            try:
-                get = sync_to_async(GeneratedDiagram.objects.get)
-                return await get(id=cached_id)
-            except GeneratedDiagram.DoesNotExist:
-                cache.delete(cache_key)
+    async def generate_diagram(self, topic_name, diagram_type='flowchart', difficulty='medium', concept=None, user=None, *, bypass_cache=False):
+        cache_key = self._cache_key(topic_name, difficulty, 'diagram', user=user, concept=concept,
+                                    diagram_type=diagram_type)
+        cached = await self._cached(GeneratedDiagram, cache_key, user, bypass_cache)
+        if cached is not None:
+            return cached
 
         prompt = self._build_diagram_prompt(topic_name, diagram_type)
         result = await self.ai_service.chat_with_agent('architect', prompt)
-        raw_content = result.get('content', '')
+        raw_content = self._validated_content(result)
         mermaid_code = self._extract_mermaid(raw_content)
+        if not re.match(r'^(?:graph|flowchart|sequenceDiagram|classDiagram|mindmap|C4Context|C4Container)\b', mermaid_code):
+            raise ContentGenerationError('模型没有返回有效的图表代码，请重试。')
         reviewer = result.get('agent_id', '')
 
         create = sync_to_async(GeneratedDiagram.objects.create)
@@ -241,20 +267,27 @@ class ContentGeneratorService:
         cache.set(cache_key, diagram.id, self.cache_ttl)
         return diagram
 
-    async def generate_exercise(self, topic_name, language='python', difficulty='medium', concept=None, user=None):
-        cache_key = self._cache_key(topic_name, difficulty, 'exercise')
-        cached_id = cache.get(cache_key)
-        if cached_id:
-            try:
-                get = sync_to_async(GeneratedCodeExercise.objects.get)
-                return await get(id=cached_id)
-            except GeneratedCodeExercise.DoesNotExist:
-                cache.delete(cache_key)
+    async def generate_exercise(self, topic_name, language='python', difficulty='medium', concept=None, user=None, *, bypass_cache=False):
+        cache_key = self._cache_key(topic_name, difficulty, 'exercise', user=user, concept=concept,
+                                    language=language)
+        cached = await self._cached(GeneratedCodeExercise, cache_key, user, bypass_cache)
+        if cached is not None:
+            return cached
 
         prompt = self._build_exercise_prompt(topic_name, language, difficulty)
         result = await self.ai_service.chat_with_agent('developer', prompt)
-        raw_content = result.get('content', '')
-        parsed = self._parse_json_from_response(raw_content) or {}
+        raw_content = self._validated_content(result)
+        parsed = self._parse_json_from_response(raw_content)
+        if (not isinstance(parsed, dict)
+                or not all(isinstance(parsed.get(k), str) and parsed[k].strip()
+                           for k in ('description', 'solution_code'))
+                or not isinstance(parsed.get('starter_code'), str)
+                or not isinstance(parsed.get('test_cases'), list) or not parsed['test_cases']
+                or any(not isinstance(t, dict) or 'input' not in t or 'expected' not in t
+                       for t in parsed['test_cases'])
+                or not isinstance(parsed.get('hints', []), list)
+                or not all(isinstance(h, str) for h in parsed.get('hints', []))):
+            raise ContentGenerationError('模型返回的练习格式不完整，请重试。')
         reviewer = result.get('agent_id', '')
 
         create = sync_to_async(GeneratedCodeExercise.objects.create)

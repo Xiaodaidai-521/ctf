@@ -8,6 +8,7 @@
     <p v-else-if="restoring" class="stream-restoring"><AppIcon name="bi-arrow-repeat" />正在读取上次的学习对话…</p>
     <AgentMessage v-for="message in messages" :key="message.id" :message="message">
       <template #footer>
+        <ProtectionBadge :status="message.protection?.content" label="加密保存" />
         <TeachingReportMessage v-if="message.kind === 'report' || message.report" :report="message.report || {}" />
       </template>
     </AgentMessage>
@@ -18,6 +19,7 @@
 import { nextTick, onActivated, onDeactivated, ref, watch } from 'vue'
 import AppIcon from '@/shared/design/AppIcon.vue'
 import AgentMessage from './AgentMessage.vue'
+import ProtectionBadge from '@/shared/privacy/ProtectionBadge.vue'
 import TeachingReportMessage from './TeachingReportMessage.vue'
 const props = defineProps({
   messages: { type: Array, default: () => [] },

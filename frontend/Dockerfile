@@ -5,13 +5,13 @@ FROM node:20-alpine AS builder
 WORKDIR /app
 
 # 安装pnpm
-RUN npm install -g pnpm
+RUN npm install -g pnpm@10.29.3
 
 # 复制package文件
 COPY package.json pnpm-lock.yaml ./
 
 # 安装依赖
-RUN pnpm install --no-frozen-lockfile
+RUN pnpm install --frozen-lockfile
 
 # 复制源代码
 COPY . .

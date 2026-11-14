@@ -17,7 +17,6 @@
         </button>
         <template #content>
           <a-doption v-for="item in personalLinks.filter(item => item.roles.includes(role))" :key="item.key" :value="item.path">{{ item.label }}</a-doption>
-          <a-doption value="recall-pet">{{ pet.preferences.hidden ? '重新开启智航伙伴' : '唤出智航伙伴' }}</a-doption>
           <a-doption value="logout" :disabled="loggingOut">{{ loggingOut ? '正在退出…' : '退出登录' }}</a-doption>
         </template>
       </a-dropdown>
@@ -45,7 +44,6 @@ import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { createRecentVisits } from '../navigation/recentVisits.js'
 import { useUserStore } from '@/store/user'
-import { usePetStore } from '@/store/pet'
 import { landingFor, personalLinks, searchEntries } from '../navigation/config.js'
 import { openTutor } from '@/learning/agent/public.js'
 import MessageCenter from './MessageCenter.vue'
@@ -53,7 +51,6 @@ import { clearTeachingTransfer } from '../knowledge/teachingTransfer.js'
 defineProps({ compact: Boolean })
 defineEmits(['menu'])
 const user = useUserStore()
-const pet = usePetStore()
 const router = useRouter()
 const route = useRoute()
 let storage
@@ -84,7 +81,6 @@ function searchShortcut(event) {
 window.addEventListener('keydown', searchShortcut)
 onBeforeUnmount(() => window.removeEventListener('keydown', searchShortcut))
 async function selectPersonal(value) {
-  if (value === 'recall-pet') { pet.reveal(); return }
   if (value !== 'logout') return router.push(value)
   loggingOut.value = true
   await user.logout()

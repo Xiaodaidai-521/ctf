@@ -9,6 +9,7 @@ from django.core.management.base import BaseCommand, CommandError
 from django.db import connection
 
 from legal_kb.models import LegalDocument
+from legal_kb.permissions import require_ingestion_actor
 from legal_kb.services.flk_client import (
     DEFAULT_OFFICIAL_LAW_TARGETS,
     FlkClient,
@@ -132,9 +133,14 @@ class Command(BaseCommand):
             return None
         User = get_user_model()
         try:
-            return User.objects.get(username=username)
+            actor = User.objects.get(username=username)
         except User.DoesNotExist as exc:
             raise CommandError(f'Actor user not found: {username}') from exc
+        try:
+            require_ingestion_actor(actor)
+        except ValueError as exc:
+            raise CommandError(str(exc)) from exc
+        return actor
 
     def _build_targets(self, options):
         if options['query']:

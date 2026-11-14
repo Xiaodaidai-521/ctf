@@ -1,0 +1,31 @@
+{
+  "boundary": "Real Chrome, API fixtures only; no real login, database writes or model calls.",
+  "cases": [
+    {
+      "name": "teaching-entry-and-pet-removal-desktop",
+      "passed": true
+    },
+    {
+      "name": "document-image-preview-desktop",
+      "passed": true
+    },
+    {
+      "name": "typed-generated-content-desktop",
+      "passed": true
+    },
+    {
+      "name": "teaching-entry-and-pet-removal-mobile",
+      "passed": true
+    },
+    {
+      "name": "document-image-preview-mobile",
+      "passed": true
+    },
+    {
+      "name": "typed-generated-content-mobile",
+      "passed": true
+    }
+  ],
+  "pageErrors": [],
+  "petRequests": []
+}

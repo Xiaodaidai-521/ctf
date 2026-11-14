@@ -1,0 +1,19 @@
+{
+  "command": [
+    "D:\\aaa10\\16015478\u6e90\u7801\\project-code\\.state\\full-audit-20261113\\venv\\Scripts\\python.exe",
+    "-B",
+    "D:\\aaa10\\16015478\u6e90\u7801\\project-code\\backend\\manage.py",
+    "test",
+    "practical_training.tests.EvidenceTests.test_server_evidence_is_bound_and_delivered_to_module_six_and_one",
+    "practical_training.tests.EvidenceTests.test_self_report_and_direct_module_six_json_cannot_pass",
+    "practical_training.test_acceptance.AcceptanceTests.test_all_models_disabled_full_http_contract_flow_and_zero_external_calls",
+    "practical_training.test_acceptance.AcceptanceTests.test_delivery_failure_retries_without_reexecution_or_new_facts",
+    "--noinput",
+    "--verbosity",
+    "2"
+  ],
+  "exit_code": 0,
+  "elapsed_seconds": 42.97,
+  "synthetic_only": true,
+  "test_database": "test_logic_review_m5"
+}

@@ -1,15 +1,37 @@
 from rest_framework import viewsets, status, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.exceptions import PermissionDenied
+from rest_framework.exceptions import PermissionDenied, ValidationError
 from django.db.models import Q, Count, F
 from django.utils import timezone
+from users.pagination import positive_query_integer
 from .models import Article, Category, Comment, ArticleLike, CommentLike, ArticleCollect
 from .serializers import (
     ArticleListSerializer, ArticleDetailSerializer, ArticleCreateSerializer,
     ArticleUpdateSerializer, ArticleReviewSerializer, CommentSerializer,
     CommentCreateSerializer, CategorySerializer, ArticleHotSerializer
 )
+
+
+def is_article_admin(user):
+    return bool(user.is_authenticated and (user.is_staff or user.role == 'admin'))
+
+
+def visible_articles(user):
+    queryset = Article.objects.all()
+    if is_article_admin(user):
+        return queryset
+    visibility = Q(status='approved')
+    if user.is_authenticated:
+        visibility |= Q(author=user)
+    return queryset.filter(visibility)
+
+
+def query_ordering(params, allowed, default='-created_at'):
+    value = params.get('ordering', default)
+    if value.lstrip('-') not in allowed:
+        raise ValidationError({'ordering': '不支持的排序字段。'})
+    return value
 
 
 class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
@@ -23,27 +45,19 @@ class ArticleViewSet(viewsets.ModelViewSet):
     """文章视图"""
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
-    def get_queryset(self):
-        queryset = Article.objects.select_related('author', 'category')
+    def get_permissions(self):
+        if self.action in ('my', 'my_favorites'):
+            return [permissions.IsAuthenticated()]
+        return super().get_permissions()
 
-        # 管理员可以查看所有状态的文章
-        if self.request.user.is_staff:
-            # 对于detail action，需要传递status参数或者不过滤
-            if self.action == 'retrieve' or self.action == 'review':
-                # 不应用状态过滤
-                pass
-            else:
-                # list action根据status参数过滤
-                status_filter = self.request.query_params.get('status', 'all')
-                if status_filter != 'all':
-                    queryset = queryset.filter(status=status_filter)
-        else:
-            # 普通用户只能查看已发布的文章（除非是作者查看自己的文章）
-            status_filter = self.request.query_params.get('status', 'approved')
-            if status_filter == 'all':
-                queryset = queryset.filter(status='approved')
-            else:
-                queryset = queryset.filter(status=status_filter)
+    def get_queryset(self):
+        queryset = visible_articles(self.request.user).select_related('author', 'category')
+        default_status = 'all' if is_article_admin(self.request.user) or self.action != 'list' else 'approved'
+        status_filter = self.request.query_params.get('status', default_status)
+        if status_filter not in ('all', 'approved', 'pending', 'rejected'):
+            raise ValidationError({'status': '不支持的文章状态。'})
+        if status_filter != 'all':
+            queryset = queryset.filter(status=status_filter)
 
         # 搜索
         search = self.request.query_params.get('search')
@@ -57,6 +71,7 @@ class ArticleViewSet(viewsets.ModelViewSet):
         # 分类筛选
         category_id = self.request.query_params.get('category')
         if category_id:
+            category_id = positive_query_integer(self.request.query_params, 'category', 1)
             queryset = queryset.filter(category_id=category_id)
 
         # 标签筛选
@@ -67,6 +82,7 @@ class ArticleViewSet(viewsets.ModelViewSet):
         # 作者筛选
         author_id = self.request.query_params.get('author')
         if author_id:
+            author_id = positive_query_integer(self.request.query_params, 'author', 1)
             queryset = queryset.filter(author_id=author_id)
 
         # 排序
@@ -86,6 +102,7 @@ class ArticleViewSet(viewsets.ModelViewSet):
         elif ordering == 'like':
             queryset = queryset.order_by('-like_count', '-created_at')
         else:
+            ordering = query_ordering(self.request.query_params, {'id', 'created_at', 'updated_at', 'published_at', 'view_count', 'like_count', 'comment_count', 'collect_count', 'is_top'})
             queryset = queryset.order_by(ordering)
 
         return queryset
@@ -102,8 +119,8 @@ class ArticleViewSet(viewsets.ModelViewSet):
     def retrieve(self, request, *args, **kwargs):
         """获取文章详情，增加浏览次数"""
         instance = self.get_object()
-        instance.view_count += 1
-        instance.save(update_fields=['view_count'])
+        Article.objects.filter(pk=instance.pk).update(view_count=F('view_count') + 1)
+        instance.refresh_from_db(fields=['view_count'])
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
 
@@ -111,13 +128,13 @@ class ArticleViewSet(viewsets.ModelViewSet):
         serializer.save()
 
     def perform_update(self, serializer):
-        if serializer.instance.author != self.request.user and not self.request.user.is_staff:
+        if serializer.instance.author != self.request.user and not is_article_admin(self.request.user):
             raise PermissionDenied('Only the author or an administrator can update an article.')
         serializer.save()
 
     def perform_destroy(self, instance):
         """删除文章时需要检查权限"""
-        if instance.author != self.request.user and not self.request.user.is_staff:
+        if instance.author != self.request.user and not is_article_admin(self.request.user):
             raise PermissionDenied('Only the author or an administrator can delete an article.')
             return Response(
                 {'error': '只有作者和管理员可以删除文章'},
@@ -130,13 +147,15 @@ class ArticleViewSet(viewsets.ModelViewSet):
         """获取我的文章"""
         queryset = self.get_queryset().filter(author=request.user)
         page = self.paginate_queryset(queryset)
-        serializer = self.get_serializer(page, many=True)
-        return self.get_paginated_response(serializer.data)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        return Response(self.get_serializer(queryset, many=True).data)
 
     @action(detail=False, methods=['get'])
     def hot(self, request):
         """获取热门文章（热度排行）"""
-        limit = int(request.query_params.get('limit', 10))
+        limit = min(100, positive_query_integer(request.query_params, 'limit', 10))
         queryset = self.get_queryset().filter(status='approved').annotate(
             heat_score=F('view_count') * 1 + F('like_count') * 5 + F('comment_count') * 3
         ).order_by('-heat_score', '-created_at')[:limit]
@@ -150,7 +169,7 @@ class ArticleViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'])
     def my_favorites(self, request):
         """获取我的收藏文章"""
-        queryset = Article.objects.filter(
+        queryset = visible_articles(request.user).filter(
             id__in=ArticleCollect.objects.filter(user=request.user).values('article_id')
         ).select_related('author', 'category').order_by('-created_at')
 
@@ -165,7 +184,7 @@ class ArticleViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'])
     def recommend(self, request):
         """获取推荐文章"""
-        limit = int(request.query_params.get('limit', 10))
+        limit = min(100, positive_query_integer(request.query_params, 'limit', 10))
         queryset = self.get_queryset().filter(status='approved')
         candidates = list(
             queryset.filter(is_recommend=True)
@@ -179,6 +198,7 @@ class ArticleViewSet(viewsets.ModelViewSet):
             ]
             candidates.extend(list(fallback))
 
+        provider = 'editorial_hot'
         if request.user.is_authenticated:
             try:
                 from learning_paths.sequence_recommender import KnowledgeSequenceRecommender
@@ -187,8 +207,10 @@ class ArticleViewSet(viewsets.ModelViewSet):
                     candidates,
                     limit=limit,
                 )
+                provider = 'knowledge_tracking_sequence_recommender'
             except Exception:
                 candidates = candidates[:limit]
+                provider = 'editorial_hot_fallback'
         else:
             candidates = candidates[:limit]
 
@@ -196,7 +218,7 @@ class ArticleViewSet(viewsets.ModelViewSet):
         return Response({
             'results': serializer.data,
             'count': len(candidates),
-            'provider': 'knowledge_tracking_sequence_recommender' if request.user.is_authenticated else 'editorial_hot',
+            'provider': provider,
         })
 
     @action(detail=True, methods=['post'])
@@ -240,7 +262,7 @@ class ArticleViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'])
     def review(self, request, pk=None):
         """审核文章（管理员）"""
-        if not request.user.is_staff:
+        if not is_article_admin(request.user):
             return Response(
                 {'error': '只有管理员可以审核文章'},
                 status=status.HTTP_403_FORBIDDEN
@@ -267,15 +289,16 @@ class CommentViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
     def get_queryset(self):
-        queryset = Comment.objects.select_related('author', 'article', 'parent')
+        queryset = Comment.objects.filter(article__in=visible_articles(self.request.user)).select_related('author', 'article', 'parent')
 
         # 文章筛选
         article_id = self.request.query_params.get('article')
         if article_id:
+            article_id = positive_query_integer(self.request.query_params, 'article', 1)
             queryset = queryset.filter(article_id=article_id, parent=None)  # 只返回一级评论
 
         # 排序
-        ordering = self.request.query_params.get('ordering', '-created_at')
+        ordering = query_ordering(self.request.query_params, {'id', 'created_at', 'like_count'})
         queryset = queryset.order_by(ordering)
 
         return queryset
@@ -298,9 +321,14 @@ class CommentViewSet(viewsets.ModelViewSet):
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
+    def perform_update(self, serializer):
+        if serializer.instance.author != self.request.user and not is_article_admin(self.request.user):
+            raise PermissionDenied('Only the author or an administrator can update a comment.')
+        serializer.save()
+
     def perform_destroy(self, instance):
         """删除评论时需要检查权限"""
-        if instance.author != self.request.user and not self.request.user.is_staff:
+        if instance.author != self.request.user and not is_article_admin(self.request.user):
             raise PermissionDenied('Only the author or an administrator can delete a comment.')
             return Response(
                 {'error': '只有评论者和管理员可以删除评论'},

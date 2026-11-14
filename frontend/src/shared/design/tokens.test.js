@@ -15,7 +15,7 @@ for (const [ink, surface] of [
   assert.ok(contrast(ink, surface) >= 4.5, `${contrast(ink, surface).toFixed(2)}:1`)
 })
 test('compact component CSS targets descendants, never the entire app shell', () => {
-  for (const file of ['../layout/GlobalHeader.vue', '../../learning/guide/GuideView.vue', '../../components/PlatformPet.vue', '../../views/Home.vue']) {
+  for (const file of ['../layout/GlobalHeader.vue', '../../learning/guide/GuideView.vue', '../../views/Home.vue']) {
     const source = readFileSync(new URL(file, import.meta.url), 'utf8')
     const style = parse(source).descriptor.styles[0]
     const css = compileStyle({ source: style.content, id: 'data-v-check', scoped: true }).code

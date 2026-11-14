@@ -203,6 +203,8 @@ class LegalKnowledgeEmbedding(models.Model):
     embedding_vector = VectorField(dimensions=1024, null=True, blank=True, verbose_name='Embedding vector')
     embedding_model = models.CharField(max_length=120, blank=True, verbose_name='Embedding model')
     embedding_dimension = models.PositiveIntegerField(default=0, verbose_name='Embedding dimension')
+    # Legacy vectors keep an unknown index version until explicitly re-indexed.
+    index_version = models.CharField(max_length=64, blank=True, default='', db_index=True)
     metadata = models.JSONField(default=dict, blank=True, verbose_name='Metadata')
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='Created at')
     updated_at = models.DateTimeField(auto_now=True, verbose_name='Updated at')

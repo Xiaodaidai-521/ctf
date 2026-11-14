@@ -57,6 +57,7 @@
                     {{ formatCell(row, column) }}
                   </span>
                   <span v-else>{{ formatCell(row, column) }}</span>
+                  <template v-if="column.key === 'title'"><ProtectionBadge v-for="(label, field) in protectionLabels" :key="field" :status="row.protection?.[field]" :label="label" /></template>
                 </td>
                 <td v-if="rowActions.length">
                   <button
@@ -92,6 +93,9 @@
 
 <script setup>
 import { computed, ref } from 'vue'
+import ProtectionBadge from '@/shared/privacy/ProtectionBadge.vue'
+const protectionLabels = { input_text: '分析原文加密保存', content: '报告正文加密保存', manual_notes: '人工备注加密保存' }
+import { legalLabel, legalBadgeTone } from './displayLabels.js'
 
 const props = defineProps({
   title: { type: String, required: true },
@@ -121,174 +125,184 @@ const formatCell = (row, column) => {
   if (column.formatter) return column.formatter(row[column.key], row)
   const value = row[column.key]
   if (value === null || value === undefined || value === '') return '-'
+  if (column.labelKey) return legalLabel(column.labelKey, value)
   return value
 }
 
-const badgeClass = (value) => {
-  const normalized = String(value || '').toLowerCase()
-  if (['completed', 'active', 'final', 'exported', 'published', 'low', 'resolved'].includes(normalized)) return 'ok'
-  if (['running', 'draft', 'medium', 'investigating'].includes(normalized)) return 'warn'
-  if (['failed', 'critical', 'high', 'open'].includes(normalized)) return 'danger'
-  return 'neutral'
-}
+const badgeClass = legalBadgeTone
 </script>
 
+<style scoped src="../../assets/admin.css"></style>
+
 <style scoped>
-@import '../../assets/admin.css';
 
 .legal-workspace {
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
+  display:flex;
+  flex-direction:column;
+  gap:var(--space-2);
 }
 
 .legal-toolbar {
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
-  align-items: flex-start;
+  display:flex;
+  justify-content:space-between;
+  gap:var(--space-2);
+  align-items:flex-start;
 }
 
 .legal-toolbar h2 {
-  margin: 0 0 6px;
-  font-size: 22px;
-  color: #1f2937;
+  margin:0 0 calc(var(--space-1) / 2);
+  font-size:var(--text-card);
+  color:var(--action);
 }
 
 .legal-toolbar p {
-  margin: 0;
-  color: #64748b;
-  max-width: 68ch;
+  margin:0;
+  color:var(--ink-secondary);
+  max-width:68ch;
 }
 
 .toolbar-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  justify-content: flex-end;
+  display:flex;
+  flex-wrap:wrap;
+  gap:var(--space-1);
+  justify-content:flex-end;
 }
 
 .metric-row {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 12px;
+  display:grid;
+  grid-template-columns:repeat(auto-fit, minmax(var(--row-label-width), 1fr));
+  gap:var(--space-1);
 }
 
 .metric-tile {
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 6px;
-  padding: 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+  background:var(--surface);
+  border:var(--stroke) solid var(--line);
+  border-radius:var(--radius-control);
+  padding:var(--space-2);
+  display:flex;
+  flex-direction:column;
+  gap:calc(var(--space-1) / 2);
 }
 
 .metric-label {
-  font-size: 12px;
-  color: #64748b;
+  font-size:var(--text-caption);
+  color:var(--ink-secondary);
 }
 
 .metric-tile strong {
-  font-size: 24px;
-  color: #0f172a;
+  font-size:var(--text-section);
+  color:var(--action);
 }
 
 .metric-tile small {
-  color: #64748b;
+  color:var(--ink-secondary);
 }
 
 .content-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 320px;
-  gap: 18px;
+  display:grid;
+  grid-template-columns:minmax(0, 1fr) var(--panel-width);
+  gap:var(--space-2);
 }
 
 .content-grid.single {
-  grid-template-columns: 1fr;
+  grid-template-columns:1fr;
 }
 
 .table-wrap {
-  overflow-x: auto;
+  overflow-x:auto;
 }
 
 .legal-table th,
 .legal-table td {
-  white-space: nowrap;
+  white-space:nowrap;
 }
 
 .search-input {
-  width: 240px;
+  width:var(--sidebar-width);
 }
 
 .status-badge {
-  display: inline-flex;
-  align-items: center;
-  min-height: 24px;
-  padding: 3px 9px;
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 600;
+  display:inline-flex;
+  align-items:center;
+  min-height:var(--space-3);
+  padding:var(--focus-width) var(--space-1);
+  border-radius:var(--radius-pill);
+  font-size:var(--text-caption);
+  font-weight: var(--weight-strong);
 }
 
 .status-badge.ok {
-  background: #ecfdf5;
-  color: #047857;
+  background:var(--positive-soft);
+  color:var(--positive);
 }
 
 .status-badge.warn {
-  background: #fffbeb;
-  color: #b45309;
+  background:var(--warning-soft);
+  color:var(--warning);
 }
 
 .status-badge.danger {
-  background: #fef2f2;
-  color: #b91c1c;
+  background:var(--negative-soft);
+  color:var(--negative);
 }
 
 .status-badge.neutral {
-  background: #f1f5f9;
-  color: #475569;
+  background:var(--surface);
+  color:var(--ink-secondary);
 }
 
 .inline-action {
-  border: 0;
-  background: transparent;
-  color: #2563eb;
-  cursor: pointer;
-  font-weight: 600;
-  margin-right: 10px;
+  border:0;
+  background:transparent;
+  color:var(--action);
+  cursor:pointer;
+  font-weight: var(--weight-strong);
+  margin-right:var(--space-1);
 }
 
 .inline-action:disabled {
-  color: #94a3b8;
-  cursor: not-allowed;
+  color:var(--ink-muted);
+  cursor:not-allowed;
 }
 
 .aside-panel {
-  min-height: 240px;
+  min-height:var(--content-short-height);
 }
 
 .loading-state {
-  padding: 28px;
-  text-align: center;
-  color: #64748b;
+  padding:var(--space-3);
+  text-align:center;
+  color:var(--ink-secondary);
 }
 
-@media (max-width: 1100px) {
+@media (max-width: 1120px) {
   .content-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns:1fr;
   }
 }
 
-@media (max-width: 760px) {
+@media (max-width: 768px) {
   .legal-toolbar {
-    flex-direction: column;
+    flex-direction:column;
   }
 
   .toolbar-actions,
   .search-input {
-    width: 100%;
+    width:100%;
+  }
+
+  .content-grid,
+  .content-grid.single {
+    grid-template-columns:minmax(0, 1fr);
+  }
+
+  .content-grid > .page-card {
+    min-width:0;
+  }
+
+  .page-header {
+    flex-direction:column;
+    align-items:stretch;
   }
 }
 </style>

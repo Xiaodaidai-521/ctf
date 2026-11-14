@@ -1,0 +1,23 @@
+{
+  "tmp_directory_exists": true,
+  "external_linux_recovery_proof_exists": false,
+  "phase3_fixture_direct_importers": [
+    "backend\\data_security\\tests\\phase4_fixtures.py",
+    "backend\\data_security\\tests\\test_phase3_official.py",
+    "backend\\data_security\\tests\\test_phase6_b4_canary_postgres.py",
+    "backend\\data_security\\tests\\test_phase6_canary_tool_protocol.py",
+    "backend\\data_security\\tests\\test_phase7_export_lifecycle.py",
+    "backend\\data_security\\tests\\test_phase7_export_retention_apply.py",
+    "backend\\data_security\\tests\\test_phase7_lifecycle_audit.py",
+    "backend\\data_security\\tests\\test_phase7_vision.py"
+  ],
+  "phase4_fixture_direct_importers": [
+    "backend\\data_security\\tests\\test_phase7_reveal_consumption_evidence.py",
+    "backend\\data_security\\tests\\test_phase7_reveal_postgres.py",
+    "backend\\data_security\\tests\\test_phase7_reveal_requests_postgres.py",
+    "backend\\data_security\\tests\\test_phase7_reveal_retention_registration.py",
+    "backend\\data_security\\tests\\test_phase7_reveal_source_postgres.py",
+    "backend\\data_security\\tests\\test_phase7_statistics_postgres.py"
+  ],
+  "native_acl_fixture_available": true
+}

@@ -1,6 +1,10 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
+import { runInNewContext } from 'node:vm'
+import { computed, reactive, ref } from 'vue'
+import * as moduleLearning from '../../learning/paths/moduleLearning.js'
+import { asList } from '../../learning/contracts.js'
 import {
   compatDestination, dashboardOwner, dashboardRouteName, examHistoryDestination, examResultDestination,
 } from './phase2.js'
@@ -32,8 +36,8 @@ test('exam history/result deep links map to the record sub-views', () => {
   assert.equal(compatDestination('/exam-result/12'), '/exam-center/result/12')
   assert.equal(compatDestination('/exam-result/12/'), '/exam-center/result/12')
   assert.equal(compatDestination('/exam-result/'), null)
-  assert.match(routerSource, /path: '\/exam-history'[\s\S]*?redirect: to => \(\{ path: '\/exam-center\/history', query: to\.query \}\)/)
-  assert.match(routerSource, /path: '\/exam-result\/:id'[\s\S]*?redirect: to => \(\{ path: `\/exam-center\/result\/\$\{to\.params\.id\}`, query: to\.query \}\)/)
+  assert.match(routerSource, /path: '\/exam-history'[\s\S]*?redirect: to => \(\{ path: '\/exam-center\/history', query: to\.query, hash: to\.hash \}\)/)
+  assert.match(routerSource, /path: '\/exam-result\/:id'[\s\S]*?redirect: to => \(\{ path: `\/exam-center\/result\/\$\{to\.params\.id\}`, query: to\.query, hash: to\.hash \}\)/)
 })
 
 test('/dashboard dispatches by role without sending teachers to student growth', () => {
@@ -82,21 +86,54 @@ test('multi-agent legacy deep links stay compatible without exposing old student
   assert.deepEqual(pushes, ['/multi-agent?mode=learning'])
 })
 
-test('path, module and generated-content routes remain independent and reloadable', () => {
+test('path, module and generated-content routes remain independent and reloadable', async () => {
   assert.match(routerSource, /path: '\/learning-paths\/:id'[\s\S]*?name: 'LearningPathDetail'/)
   assert.match(routerSource, /path: '\/learning-paths\/:pathId\/modules\/:moduleId'[\s\S]*?name: 'ModuleLearning'/)
   assert.match(routerSource, /path: '\/content\/:id'[\s\S]*?name: 'GeneratedContent'/)
   const moduleSource = readFileSync(new URL('../../views/LearningPaths/ModuleLearning.vue', import.meta.url), 'utf8')
   const detailSource = readFileSync(new URL('../../views/LearningPaths/LearningPathDetail.vue', import.meta.url), 'utf8')
-  assert.match(moduleSource, /watch\(\[pathId, moduleId\]/)
-  assert.match(moduleSource, /onBeforeRouteUpdate\(unsavedNotesGuard\)/)
-  assert.match(detailSource, /watch\(pathId, \(next, previous\) =>/)
+  assert.match(detailSource, /watch\(pathId,\s*loadPath\)/)
+  const route = reactive({ params: { pathId: '7', moduleId: '8' } })
+  const callbacks = {}, timers = [], reads = []
+  let allowLeave = false
+  const script = moduleSource.match(/<script setup>([\s\S]*?)<\/script>/)[1].replace(/^import .*$/gm, '')
+  const page = runInNewContext(`${script}\n;({ module, path, notes })`, {
+    ref, computed, reactive, asList, ...moduleLearning,
+    useRoute: () => route, useRouter: () => ({}), useUserStore: () => ({ userInfo: { id: 17 } }),
+    pathsApi: {
+      detail: async id => { reads.push(['path', id]); return { id } },
+      module: async id => { reads.push(['module', id]); return { id } },
+      modules: async ({ learning_path }) => { reads.push(['catalog', learning_path]); return [] },
+    },
+    onMounted: callback => { callbacks.mount = callback }, onBeforeUnmount() {},
+    onBeforeRouteLeave: callback => { callbacks.leave = callback },
+    onBeforeRouteUpdate: callback => { callbacks.update = callback },
+    window: { confirm: () => allowLeave, addEventListener() {}, removeEventListener() {} },
+    localStorage: { getItem: key => key === 'ctf-module-notes:17:9:10' ? '下一章已保存笔记' : '' },
+    setTimeout: callback => timers.push(callback),
+  })
+  await callbacks.mount()
+  assert.equal(page.module.value.id, '8')
+  page.notes.value = '当前章未保存笔记'
+  const next = { params: { pathId: '9', moduleId: '10' } }
+  assert.equal(callbacks.update(next), false, 'declining to discard notes cancels route navigation')
+  assert.equal(timers.length, 0)
+  assert.equal(page.notes.value, '当前章未保存笔记')
+  allowLeave = true
+  assert.notEqual(callbacks.update(next), false)
+  assert.equal(reads.length, 3, 'the guard must wait until the router installs the new parameters')
+  route.params = next.params
+  await timers.shift()()
+  assert.deepEqual(reads.slice(3), [['path', '9'], ['module', '10'], ['catalog', '9']])
+  assert.equal(page.path.value.id, '9')
+  assert.equal(page.module.value.id, '10')
+  assert.equal(page.notes.value, '下一章已保存笔记')
 })
 
 test('profile persona and resource highlight deep links keep their original sections', () => {
   assert.match(profileSource, /const tabFromQuery = value => \(PROFILE_TABS\.includes\(value\) \? value : 'solved'\)/)
   assert.match(profileSource, /route\.query\.tab/)
-  assert.match(profileSource, /router\.replace\(\{ path: '\/profile', query \}\)/)
+  assert.match(profileSource, /router\.replace\(\{ path: '\/profile', query, hash: route\.hash \}\)/)
   assert.match(resourcesSource, /highlight_resource/)
   assert.match(resourcesSource, /highlight_resources/)
   assert.match(resourcesSource, /delete query\.highlight_resource/)

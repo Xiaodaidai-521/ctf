@@ -3,6 +3,7 @@ from datetime import timedelta
 
 from django.utils import timezone
 from data_security.adapters.persistence.fields import field_storage_enabled, protect_stored_value
+from data_security.adapters.django.protection_status import protection_for
 from users.permissions import authorized_users
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -278,6 +279,7 @@ class OnboardingInterviewView(APIView):
         return Response({
             'questions': ONBOARDING_QUESTIONS,
             'answers': interview.display_protected('answers'),
+            'protection': protection_for(interview),
             'current_question': interview.current_question,
             'status': interview.status,
             'report': StudentProfileReportSerializer(report).data if report else None,
@@ -310,6 +312,7 @@ class OnboardingInterviewView(APIView):
                 if report is not None:
                     return Response({
                         'completed': True,
+                        'protection': protection_for(interview),
                         'report': StudentProfileReportSerializer(report).data,
                     })
 
@@ -327,12 +330,14 @@ class OnboardingInterviewView(APIView):
                 report = complete_interview(interview)
                 return Response({
                     'completed': True,
+                    'protection': protection_for(interview),
                     'assistant_message': '初始学习画像已经生成。我会在后续学习中持续用真实数据校正这份画像。',
                     'report': StudentProfileReportSerializer(report).data,
                 })
 
         return Response({
             'completed': False,
+            'protection': protection_for(interview),
             'assistant_message': '收到，我会把这部分作为画像分析依据。',
             'current_question': interview.current_question,
             'next_question': next_question,
